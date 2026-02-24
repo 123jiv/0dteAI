@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>0dteAI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg-primary: #0a0f23;
+      --bg-surface: #1a1f3a;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --danger: #f97373;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px 16px 20px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(30, 64, 175, 0.5);
+      margin-bottom: 12px;
+    }
+
+    .header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .app-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-muted);
+    }
+
+    .input-shell {
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border);
+      padding: 12px 12px 10px;
+      margin-bottom: 12px;
+    }
+
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 180px;
+      flex: 1 1 220px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .ticker-input {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 13px;
+      padding: 8px 14px;
+      outline: none;
+    }
+
+    .ticker-input::placeholder {
+      color: #64748b;
+    }
+
+    .ticker-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #020617;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .chip:hover {
+      border-color: rgba(148, 163, 184, 0.9);
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.18);
+      color: var(--text);
+    }
+
+    .run-button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 18px;
+      background: var(--accent);
+      color: #eff6ff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      min-width: 130px;
+      transition: background 0.12s ease, transform 0.05s ease;
+    }
+
+    .run-button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .run-button:active {
+      transform: translateY(0);
+    }
+
+    .run-button[disabled] {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+    }
+
+    .status-line {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      min-height: 14px;
+    }
+
+    .status-line.error {
+      color: var(--danger);
+    }
+
+    .conversation {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 4px 0;
+      overflow-y: auto;
+      border-radius: 14px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 100%;
+    }
+
+    .message-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 4px;
+      margin-bottom: 2px;
+    }
+
+    .message-card {
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    }
+
+    .footer-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding: 10px;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .input-shell {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="header-main">
+        <div class="app-title">0dteAI</div>
+        <div class="app-subtitle">
+          Intraday 0DTE scenario analysis. Educational only &mdash; not trading advice.
+        </div>
+      </div>
+      <div class="header-badge">0DTE OPTIONS</div>
+    </div>
+
+    <div class="input-shell">
+      <div class="input-row">
+        <div class="field">
+          <span class="field-label">Tickers</span>
+          <input
+            id="tickers"
+            class="ticker-input"
+            placeholder="Enter tickers (e.g. SPY, QQQ, IWM)"
+            value="SPY,QQQ,IWM"
+          />
+        </div>
+
+        <div class="field">
+          <span class="field-label">Focus</span>
+          <div class="chip-row">
+            <div class="chip active" data-focus="both">Calls &amp; puts</div>
+            <div class="chip" data-focus="calls">Calls only</div>
+            <div class="chip" data-focus="puts">Puts only</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Risk style</span>
+          <div class="chip-row">
+            <div class="chip active" data-style="balanced">Balanced</div>
+            <div class="chip" data-style="conservative">Conservative</div>
+            <div class="chip" data-style="aggressive">Aggressive</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:flex-end;">
+          <button id="runBtn" class="run-button" onclick="runAnalysis()">
+            <span id="btnLabel">Run analysis</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="status" class="status-line"></div>
+    </div>
+
+    <div id="conversation" class="conversation"></div>
+
+    <div class="footer-note">
+      Each response is a new analysis “message”. Use filters to steer calls vs puts and risk style.
+    </div>
+  </div>
+
+  <script>
+    let currentFocus = "both";
+    let currentStyle = "balanced";
+
+    function setupChips() {
+      document.querySelectorAll('.chip[data-focus]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip[data-focus]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentFocus = chip.getAttribute('data-focus');
+        });
+      });
+      document.querySelectorAll('.chip[data-style]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip[data-style]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentStyle = chip.getAttribute('data-style');
+        });
+      });
+    }
+
+    setupChips();
+
+    function appendMessage(tickers, focus, style, text) {
+      const convo = document.getElementById('conversation');
+
+      const msg = document.createElement('div');
+      msg.className = 'message';
+
+      const meta = document.createElement('div');
+      meta.className = 'message-meta';
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      meta.textContent = `${timeStr} • ${tickers} • focus: ${focus}, style: ${style}`;
+      msg.appendChild(meta);
+
+      const card = document.createElement('div');
+      card.className = 'message-card';
+      card.textContent = text;
+      msg.appendChild(card);
+
+      convo.appendChild(msg);
+      convo.scrollTop = convo.scrollHeight;
+    }
+
+    async function runAnalysis() {
+      const tickersValue = document.getElementById('tickers').value;
+      const statusEl = document.getElementById('status');
+      const btn = document.getElementById('runBtn');
+      const btnLabel = document.getElementById('btnLabel');
+
+      statusEl.textContent = 'Running analysis...';
+      statusEl.classList.remove('error');
+      btn.disabled = true;
+      btnLabel.textContent = 'Running…';
+
+      try {
+        const params = new URLSearchParams({
+          tickers: tickersValue,
+          focus: currentFocus,
+          style: currentStyle,
+        });
+        const res = await fetch(`/analyze?${params.toString()}`);
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ('HTTP ' + res.status));
+        }
+        const data = await res.json();
+        const outText = data.analysis_markdown || JSON.stringify(data, null, 2);
+        appendMessage(tickersValue, currentFocus, currentStyle, outText);
+        statusEl.textContent = 'Analysis complete.';
+      } catch (err) {
+        statusEl.textContent = 'Request failed. See last message for details.';
+        statusEl.classList.add('error');
+        appendMessage(tickersValue, currentFocus, currentStyle, String(err));
+      } finally {
+        btn.disabled = false;
+        btnLabel.textContent = 'Run analysis';
+      }
+    }
+  </script>
+</body>
+</html>
