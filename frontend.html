@@ -7,14 +7,13 @@
 
   <style>
     :root {
-      --bg-primary: #0a0f23;
-      --bg-surface: #1a1f3a;
       --accent: #3b82f6;
       --accent-hover: #2563eb;
       --text: #e2e8f0;
       --text-muted: #94a3b8;
       --border: #334155;
       --danger: #f97373;
+      --good: #22c55e;
     }
 
     * { box-sizing: border-box; }
@@ -33,9 +32,10 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      max-width: 1000px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 16px 16px 20px;
+      min-height: 0;
     }
 
     .header {
@@ -47,12 +47,15 @@
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid rgba(30, 64, 175, 0.5);
       margin-bottom: 12px;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .header-main {
       display: flex;
       flex-direction: column;
       gap: 3px;
+      min-width: 220px;
     }
 
     .app-title {
@@ -66,7 +69,7 @@
       color: var(--text-muted);
     }
 
-    .header-badge {
+    .tag {
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -74,6 +77,46 @@
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.6);
       color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav a, .nav button {
+      border: 1px solid var(--border);
+      background: rgba(2, 6, 23, 0.6);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .nav a.active {
+      border-color: rgba(59, 130, 246, 0.75);
+      background: rgba(59, 130, 246, 0.16);
+    }
+
+    .page { display: none; min-height: 0; }
+    .page.active { display: block; }
+
+    .card {
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border);
+      padding: 14px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
 
     .input-shell {
@@ -106,7 +149,7 @@
       color: var(--text-muted);
     }
 
-    .ticker-input {
+    .pill-input {
       border-radius: 999px;
       border: 1px solid var(--border);
       background: #020617;
@@ -114,22 +157,17 @@
       font-size: 13px;
       padding: 8px 14px;
       outline: none;
+      width: 100%;
     }
 
-    .ticker-input::placeholder {
-      color: #64748b;
-    }
+    .pill-input::placeholder { color: #64748b; }
 
-    .ticker-input:focus {
+    .pill-input:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
     }
 
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .chip {
       padding: 6px 12px;
@@ -143,17 +181,16 @@
       transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
     }
 
-    .chip:hover {
-      border-color: rgba(148, 163, 184, 0.9);
-    }
-
+    .chip:hover { border-color: rgba(148, 163, 184, 0.9); }
     .chip.active {
       border-color: var(--accent);
       background: rgba(59, 130, 246, 0.18);
       color: var(--text);
     }
 
-    .run-button {
+    .btn-row { display: flex; gap: 8px; align-items: flex-end; }
+
+    .btn {
       border-radius: 999px;
       border: none;
       padding: 8px 18px;
@@ -163,62 +200,49 @@
       font-weight: 500;
       cursor: pointer;
       display: inline-flex;
-      gap: 6px;
       align-items: center;
       justify-content: center;
       min-width: 130px;
       transition: background 0.12s ease, transform 0.05s ease;
+      white-space: nowrap;
     }
 
-    .run-button:hover {
-      background: var(--accent-hover);
-      transform: translateY(-1px);
+    .btn.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      min-width: 120px;
     }
 
-    .run-button:active {
-      transform: translateY(0);
-    }
+    .btn:hover:not([disabled]) { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn.secondary:hover:not([disabled]) { background: rgba(15, 23, 42, 0.9); }
+    .btn:active:not([disabled]) { transform: translateY(0); }
+    .btn[disabled] { opacity: 0.6; cursor: default; transform: none; }
 
-    .run-button[disabled] {
-      opacity: 0.6;
-      cursor: default;
-      transform: none;
-    }
+    .status-line { margin-top: 6px; font-size: 11px; color: var(--text-muted); min-height: 14px; }
+    .status-line.error { color: var(--danger); }
 
-    .status-line {
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-muted);
-      min-height: 14px;
-    }
-
-    .status-line.error {
-      color: var(--danger);
+    .main-body {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      min-height: 0;
     }
 
     .conversation {
-      flex: 1;
+      flex: 1.2;
       display: flex;
       flex-direction: column;
       gap: 8px;
       padding: 10px 4px 0;
       overflow-y: auto;
       border-radius: 14px;
+      min-height: 0;
+      max-height: calc(100vh - 260px);
     }
 
-    .message {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      max-width: 100%;
-    }
-
-    .message-meta {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-left: 4px;
-      margin-bottom: 2px;
-    }
+    .message { display: flex; flex-direction: column; gap: 4px; }
+    .message-meta { font-size: 11px; color: var(--text-muted); margin-left: 4px; margin-bottom: 2px; }
 
     .message-card {
       border-radius: 14px;
@@ -228,9 +252,73 @@
       font-size: 13px;
       line-height: 1.5;
       white-space: pre-wrap;
-      word-wrap: break-word;
       overflow-wrap: anywhere;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    }
+
+    .screener-shell {
+      flex: 1;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid var(--border);
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      min-width: 260px;
+      max-height: calc(100vh - 260px);
+      min-height: 0;
+    }
+
+    .screener-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+    .screener-title { font-size: 13px; font-weight: 500; }
+    .screener-subtitle { font-size: 11px; color: var(--text-muted); }
+
+    .screener-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .screener-control { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
+
+    .screener-number {
+      width: 70px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 11px;
+      padding: 4px 8px;
+      outline: none;
+    }
+
+    .screener-number:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+    }
+
+    .screener-summary { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+
+    .screener-table-wrap {
+      flex: 1;
+      overflow: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      min-height: 0;
+    }
+
+    table { border-collapse: collapse; width: 100%; font-size: 11px; min-width: 680px; }
+    thead { background: rgba(15, 23, 42, 0.98); position: sticky; top: 0; z-index: 1; }
+    th, td { padding: 4px 6px; border-bottom: 1px solid rgba(30, 41, 59, 0.9); text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; padding-left: 8px; }
+    th { font-weight: 500; color: var(--text-muted); }
+    tbody tr:hover { background: rgba(30, 64, 175, 0.25); }
+
+    .row-itm {
+      background: rgba(34, 197, 94, 0.10);
+      box-shadow: inset 2px 0 0 rgba(34, 197, 94, 0.55);
     }
 
     .footer-note {
@@ -240,18 +328,39 @@
       text-align: center;
     }
 
+    .login-wrap {
+      max-width: 560px;
+      margin: 28px auto 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .chat-input-shell {
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+
+    .chat-row { display: flex; gap: 10px; align-items: center; }
+
+    @media (max-width: 900px) {
+      .main-body { flex-direction: column; }
+      .conversation { max-height: none; }
+      .screener-shell { max-height: none; }
+      table { min-width: 640px; }
+    }
+
     @media (max-width: 640px) {
-      .app {
-        padding: 10px;
-      }
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-      }
-      .input-shell {
-        padding: 10px;
-      }
+      .app { padding: 10px; }
     }
   </style>
 </head>
@@ -260,63 +369,287 @@
     <div class="header">
       <div class="header-main">
         <div class="app-title">0dteAI</div>
-        <div class="app-subtitle">
-          Intraday 0DTE scenario analysis. Educational only &mdash; not trading advice.
-        </div>
+        <div class="app-subtitle">Intraday 0DTE scenario analysis. Educational only — not trading advice.</div>
       </div>
-      <div class="header-badge">0DTE OPTIONS</div>
+
+      <div class="nav">
+        <a href="#/app" id="navApp">Analysis</a>
+        <a href="#/chat" id="navChat">Chat</a>
+        <button type="button" id="logoutBtn">Logout</button>
+        <span class="tag">0DTE OPTIONS</span>
+      </div>
     </div>
 
-    <div class="input-shell">
-      <div class="input-row">
-        <div class="field">
-          <span class="field-label">Tickers</span>
-          <input
-            id="tickers"
-            class="ticker-input"
-            placeholder="Enter tickers (e.g. SPY, QQQ, IWM)"
-            value="SPY,QQQ,IWM"
-          />
-        </div>
+    <!-- LOGIN -->
+    <div id="pageLogin" class="page">
+      <div class="login-wrap">
+        <div class="card">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <div>
+              <div style="font-size:14px; font-weight:600; margin-bottom:4px;">Login</div>
+              <div class="hint">Enter your app password to access analysis, screener, and chat.</div>
+            </div>
+            <span class="tag">Private</span>
+          </div>
 
-        <div class="field">
-          <span class="field-label">Focus</span>
-          <div class="chip-row">
-            <div class="chip active" data-focus="both">Calls &amp; puts</div>
-            <div class="chip" data-focus="calls">Calls only</div>
-            <div class="chip" data-focus="puts">Puts only</div>
+          <div style="height:10px;"></div>
+
+          <div class="input-row">
+            <div class="field" style="flex: 2 1 280px;">
+              <span class="field-label">Password</span>
+              <input id="loginPassword" class="pill-input" type="password" placeholder="APP_PASSWORD">
+            </div>
+            <div class="btn-row">
+              <button id="loginBtn" class="btn" onclick="doLogin()"><span id="loginBtnLabel">Login</span></button>
+            </div>
+          </div>
+
+          <div id="loginStatus" class="status-line" style="margin-top:10px;"></div>
+          <div class="hint" style="margin-top:8px;">
+            Render env vars needed: <span class="tag">APP_PASSWORD</span> and <span class="tag">APP_SECRET</span>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div id="pageApp" class="page">
+      <div class="input-shell">
+        <div class="input-row">
+          <div class="field">
+            <span class="field-label">Tickers</span>
+            <input id="tickers" class="pill-input" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
+          </div>
+
+          <div class="field">
+            <span class="field-label">Focus</span>
+            <div class="chip-row">
+              <div class="chip active" data-focus="both">Calls &amp; puts</div>
+              <div class="chip" data-focus="calls">Calls only</div>
+              <div class="chip" data-focus="puts">Puts only</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <span class="field-label">Risk style</span>
+            <div class="chip-row">
+              <div class="chip active" data-style="balanced">Balanced</div>
+              <div class="chip" data-style="conservative">Conservative</div>
+              <div class="chip" data-style="aggressive">Aggressive</div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button id="runBtn" class="btn" onclick="runAnalysis()"><span id="btnLabel">Run analysis</span></button>
+            <button id="screenerBtn" class="btn secondary" onclick="runScreener()"><span id="screenerBtnLabel">Run screener</span></button>
           </div>
         </div>
 
-        <div class="field">
-          <span class="field-label">Risk style</span>
-          <div class="chip-row">
-            <div class="chip active" data-style="balanced">Balanced</div>
-            <div class="chip" data-style="conservative">Conservative</div>
-            <div class="chip" data-style="aggressive">Aggressive</div>
-          </div>
-        </div>
+        <div id="status" class="status-line"></div>
+      </div>
 
-        <div style="display:flex; align-items:flex-end;">
-          <button id="runBtn" class="run-button" onclick="runAnalysis()">
-            <span id="btnLabel">Run analysis</span>
-          </button>
+      <div class="card" id="confidenceCard" style="margin-bottom:12px; display:none;">
+        <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Confidence &amp; simple backtest</div>
+        <div id="confidenceBody" class="hint">
+          Run an analysis to see confidence scores and rough historical follow-through stats.
         </div>
       </div>
 
-      <div id="status" class="status-line"></div>
+      <div class="main-body">
+        <div id="conversation" class="conversation"></div>
+
+        <div class="screener-shell">
+          <div class="screener-header">
+            <div>
+              <div class="screener-title">0DTE Screener</div>
+              <div class="screener-subtitle">ITM rows are highlighted. Greeks are approximate/educational.</div>
+            </div>
+          </div>
+
+          <div class="screener-controls">
+            <div class="screener-control">
+              <span>Min vol</span>
+              <input id="minVolumeInput" class="screener-number" type="number" value="1000" min="0" step="100">
+            </div>
+            <div class="screener-control">
+              <span>Max spread %</span>
+              <input id="maxSpreadInput" class="screener-number" type="number" value="25" min="0" step="1">
+            </div>
+          </div>
+
+          <div id="screenerSummary" class="screener-summary">No screener results yet. Click “Run screener”.</div>
+
+          <div class="screener-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Type</th>
+                  <th>Strike</th>
+                  <th>Last</th>
+                  <th>Bid</th>
+                  <th>Ask</th>
+                  <th>Spread %</th>
+                  <th>Vol</th>
+                  <th>OI</th>
+                  <th>Moneyness %</th>
+                  <th>Delta</th>
+                  <th>Gamma</th>
+                  <th>Theta</th>
+                  <th>Vega</th>
+                  <th>IV %</th>
+                </tr>
+              </thead>
+              <tbody id="screenerBody">
+                <tr><td colspan="15" style="text-align:center; padding:8px;">No data.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div style="min-width:260px; flex:1;">
+            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Ask a question (opens Chat page)</div>
+            <div class="hint">To keep this page clean, full chat lives on its own page.</div>
+          </div>
+          <div style="flex:2; min-width:260px; display:flex; gap:10px; align-items:center;">
+            <input id="firstQuestionInput" class="pill-input" style="flex:1;" placeholder="Example: What’s the cleanest call setup if SPY holds above VWAP?">
+            <button id="enterChatBtn" class="btn secondary" onclick="enterChatFromFirstQuestion()">Ask in chat</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div id="conversation" class="conversation"></div>
+    <!-- CHAT -->
+    <div id="pageChat" class="page">
+      <div class="chat-shell">
+        <div class="card">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <div>
+              <div style="font-size:14px; font-weight:600; margin-bottom:4px;">Chat</div>
+              <div class="hint">Each message uses a fresh snapshot. Keep it simple; 0DTE can go to zero.</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn secondary" style="min-width:110px;" onclick="clearChat()">Clear</button>
+              <button class="btn" style="min-width:110px;" onclick="location.hash = '#/app'">Back</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="chatConversation" class="conversation"></div>
+
+        <div class="chat-input-shell">
+          <div class="chat-row">
+            <input id="chatInput" class="pill-input" placeholder="Ask a follow-up question...">
+            <button id="chatBtn" class="btn" style="min-width:120px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
+          </div>
+          <div id="chatStatus" class="status-line"></div>
+        </div>
+      </div>
+    </div>
 
     <div class="footer-note">
-      Each response is a new analysis “message”. Use filters to steer calls vs puts and risk style.
+      Educational only — not trading advice. Screener/Greeks are approximate. 0DTE options can go to zero.
     </div>
   </div>
 
   <script>
     let currentFocus = "both";
     let currentStyle = "balanced";
+    let authToken = null;
+    let chatHistory = [];
+
+    function $(id) { return document.getElementById(id); }
+
+    function apiHeaders(extra = {}) {
+      const headers = { ...extra };
+      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+      return headers;
+    }
+
+    function saveAuthToken(token) {
+      authToken = token;
+      localStorage.setItem("odteai_token", token);
+    }
+
+    function loadAuthToken() {
+      authToken = localStorage.getItem("odteai_token");
+      return authToken;
+    }
+
+    function logout() {
+      localStorage.removeItem("odteai_token");
+      localStorage.removeItem("odteai_chat_history");
+      authToken = null;
+      chatHistory = [];
+      location.hash = "#/login";
+    }
+
+    async function authCheck() {
+      if (!loadAuthToken()) return false;
+      try {
+        const res = await fetch("/auth/me", { headers: apiHeaders() });
+        return res.ok;
+      } catch {
+        return false;
+      }
+    }
+
+    function showPage(pageId) {
+      ["pageLogin", "pageApp", "pageChat"].forEach(id => {
+        $(id).classList.toggle("active", id === pageId);
+      });
+    }
+
+    function setNavActive(path) {
+      $("navApp").classList.toggle("active", path === "/app");
+      $("navChat").classList.toggle("active", path === "/chat");
+    }
+
+    async function route() {
+      const hash = location.hash || "#/login";
+      const path = hash.replace("#", "") || "/login";
+
+      $("logoutBtn").onclick = logout;
+
+      const authed = await authCheck();
+      if (!authed) {
+        setNavActive("/login");
+        showPage("pageLogin");
+        return;
+      }
+
+      // restore chat history
+      try {
+        const saved = localStorage.getItem("odteai_chat_history");
+        chatHistory = saved ? (JSON.parse(saved) || []) : [];
+      } catch {
+        chatHistory = [];
+      }
+
+      if (path === "/chat") {
+        setNavActive("/chat");
+        showPage("pageChat");
+
+        // If we have a pending first question, auto-send it
+        const pending = sessionStorage.getItem("odteai_pending_first_question");
+        if (pending) {
+          $("chatInput").value = pending;
+          sessionStorage.removeItem("odteai_pending_first_question");
+          setTimeout(runChat, 50);
+        }
+
+        return;
+      }
+
+      setNavActive("/app");
+      showPage("pageApp");
+    }
+
+    window.addEventListener("hashchange", route);
+    window.addEventListener("load", route);
 
     function setupChips() {
       document.querySelectorAll('.chip[data-focus]').forEach(chip => {
@@ -334,24 +667,23 @@
         });
       });
     }
-
     setupChips();
 
-    function appendMessage(tickers, focus, style, text) {
-      const convo = document.getElementById('conversation');
+    function appendMessage(metaText, text, targetId) {
+      const convo = $(targetId);
 
-      const msg = document.createElement('div');
-      msg.className = 'message';
+      const msg = document.createElement("div");
+      msg.className = "message";
 
-      const meta = document.createElement('div');
-      meta.className = 'message-meta';
+      const meta = document.createElement("div");
+      meta.className = "message-meta";
       const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      meta.textContent = `${timeStr} • ${tickers} • focus: ${focus}, style: ${style}`;
+      const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      meta.textContent = `${timeStr} • ${metaText}`;
       msg.appendChild(meta);
 
-      const card = document.createElement('div');
-      card.className = 'message-card';
+      const card = document.createElement("div");
+      card.className = "message-card";
       card.textContent = text;
       msg.appendChild(card);
 
@@ -359,16 +691,170 @@
       convo.scrollTop = convo.scrollHeight;
     }
 
-    async function runAnalysis() {
-      const tickersValue = document.getElementById('tickers').value;
-      const statusEl = document.getElementById('status');
-      const btn = document.getElementById('runBtn');
-      const btnLabel = document.getElementById('btnLabel');
+    function setStatus(text, isError=false) {
+      $("status").textContent = text || "";
+      $("status").classList.toggle("error", !!isError);
+    }
 
-      statusEl.textContent = 'Running analysis...';
-      statusEl.classList.remove('error');
+    function setChatStatus(text, isError=false) {
+      $("chatStatus").textContent = text || "";
+      $("chatStatus").classList.toggle("error", !!isError);
+    }
+
+    async function doLogin() {
+      const pw = $("loginPassword").value || "";
+      const statusEl = $("loginStatus");
+      const btn = $("loginBtn");
+      const btnLabel = $("loginBtnLabel");
+
+      statusEl.textContent = "Logging in...";
+      statusEl.classList.remove("error");
       btn.disabled = true;
-      btnLabel.textContent = 'Running…';
+      btnLabel.textContent = "Working…";
+
+      try {
+        const res = await fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: "user", password: pw }),
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        const data = await res.json();
+        if (!data.token) throw new Error("No token returned");
+        saveAuthToken(data.token);
+        statusEl.textContent = "Logged in.";
+        location.hash = "#/app";
+      } catch {
+        statusEl.textContent = "Login failed.";
+        statusEl.classList.add("error");
+      } finally {
+        btn.disabled = false;
+        btnLabel.textContent = "Login";
+      }
+    }
+
+    function fmtNumber(value, digits = 2) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "-";
+      return Number(value).toFixed(digits);
+    }
+
+    function normalizeContractsData(raw) {
+      if (Array.isArray(raw)) return raw;
+      if (raw && Array.isArray(raw.rows)) return raw.rows;
+      if (raw && Array.isArray(raw.contracts)) return raw.contracts;
+      return [];
+    }
+
+    function renderConfidencePanel(confidence) {
+      const card = $("confidenceCard");
+      const body = $("confidenceBody");
+      const keys = Object.keys(confidence || {});
+      if (!keys.length) {
+        body.textContent = "No confidence metrics available for these tickers (not enough history).";
+        card.style.display = "block";
+        return;
+      }
+
+      const lines = [];
+      keys.forEach(sym => {
+        const m = confidence[sym] || {};
+        const conf = m.confidence_score !== undefined ? `${m.confidence_score}%` : "n/a";
+        const win = m.expected_win_prob_pct !== undefined ? `${m.expected_win_prob_pct}%` : "n/a";
+        const trend = m.trend_pct_90d !== undefined ? `${m.trend_pct_90d}%` : "n/a";
+        const vol = m.vol_annual_pct !== undefined ? `${m.vol_annual_pct}%` : "n/a";
+        const samples = m.sample_trades !== undefined ? m.sample_trades : "n/a";
+        const pattern = m.pattern || "mixed days";
+
+        lines.push(
+          `${sym}: confidence ${conf}, expected win ~${win} (pattern ${pattern}, ` +
+          `${samples} sample days, 90d trend ${trend}, realized vol ~${vol}).`
+        );
+      });
+
+      body.textContent = lines.join(" ");
+      card.style.display = "block";
+    }
+
+    function renderScreenerTable(rows) {
+      const tbody = $("screenerBody");
+      tbody.innerHTML = "";
+
+      if (!rows || rows.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 15;
+        td.style.textAlign = "center";
+        td.style.padding = "8px";
+        td.textContent = "No contracts passed the current filters.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const symbol = row.symbol || row.ticker || row.underlying || "";
+        const type = (row.type || row.option_type || row.side || "").toUpperCase();
+        const strike = row.strike !== undefined ? row.strike : row.Strike;
+
+        const last = row.last !== undefined ? row.last : (row.lastPrice ?? row.Last);
+        const bid = row.bid !== undefined ? row.bid : (row.Bid ?? row.bestBid);
+        const ask = row.ask !== undefined ? row.ask : (row.Ask ?? row.bestAsk);
+        const spreadPct = row.spread_pct !== undefined ? row.spread_pct : (row.spreadPct ?? row.spread_percent);
+
+        const vol = row.volume !== undefined ? row.volume : (row.vol ?? row.Volume);
+        const oi = row.open_interest !== undefined ? row.open_interest : (row.oi ?? row.openInterest ?? row.OI);
+
+        const moneyness = row.moneyness_pct !== undefined ? row.moneyness_pct : (row.moneyness ?? row.moneynessPercent);
+        const isItm = (moneyness !== undefined && moneyness !== null && Number(moneyness) > 0);
+        if (isItm) tr.classList.add("row-itm");
+
+        const delta = row.delta ?? row.Delta;
+        const gamma = row.gamma ?? row.Gamma;
+        const theta = row.theta ?? row.Theta;
+        const vega = row.vega ?? row.Vega;
+        const iv = row.iv_pct ?? row.iv ?? row.impliedVol ?? row.impliedVolatility;
+
+        const cells = [
+          symbol,
+          type || "-",
+          strike !== undefined ? fmtNumber(strike, 1) : "-",
+          fmtNumber(last),
+          fmtNumber(bid),
+          fmtNumber(ask),
+          fmtNumber(spreadPct, 1),
+          vol !== undefined ? Number(vol).toLocaleString() : "-",
+          oi !== undefined ? Number(oi).toLocaleString() : "-",
+          fmtNumber(moneyness, 2),
+          fmtNumber(delta, 3),
+          fmtNumber(gamma, 4),
+          fmtNumber(theta, 3),
+          fmtNumber(vega, 3),
+          fmtNumber(iv, 1),
+        ];
+
+        cells.forEach(val => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function runAnalysis() {
+      const tickersValue = $("tickers").value;
+      const btn = $("runBtn");
+      const btnLabel = $("btnLabel");
+
+      setStatus("Running analysis...");
+      btn.disabled = true;
+      btnLabel.textContent = "Running…";
 
       try {
         const params = new URLSearchParams({
@@ -376,22 +862,142 @@
           focus: currentFocus,
           style: currentStyle,
         });
-        const res = await fetch(`/analyze?${params.toString()}`);
+        const res = await fetch(`/analyze?${params.toString()}`, { headers: apiHeaders() });
         if (!res.ok) {
           const text = await res.text();
-          throw new Error(text || ('HTTP ' + res.status));
+          throw new Error(text || ("HTTP " + res.status));
         }
         const data = await res.json();
         const outText = data.analysis_markdown || JSON.stringify(data, null, 2);
-        appendMessage(tickersValue, currentFocus, currentStyle, outText);
-        statusEl.textContent = 'Analysis complete.';
+        appendMessage(`${tickersValue} • focus: ${currentFocus}, style: ${currentStyle}`, outText, "conversation");
+        setStatus("Analysis complete.");
+
+        if (data.confidence) {
+          renderConfidencePanel(data.confidence);
+        }
+
+        // seed chat history with this analysis
+        chatHistory.push({
+          role: "user",
+          content: `Give me a fresh 0DTE analysis for ${tickersValue} with focus=${currentFocus} and style=${currentStyle}.`
+        });
+        chatHistory.push({ role: "assistant", content: outText });
+        localStorage.setItem("odteai_chat_history", JSON.stringify(chatHistory.slice(-30)));
       } catch (err) {
-        statusEl.textContent = 'Request failed. See last message for details.';
-        statusEl.classList.add('error');
-        appendMessage(tickersValue, currentFocus, currentStyle, String(err));
+        setStatus("Request failed. See last message for details.", true);
+        appendMessage(`${tickersValue} • error`, String(err), "conversation");
       } finally {
         btn.disabled = false;
-        btnLabel.textContent = 'Run analysis';
+        btnLabel.textContent = "Run analysis";
+      }
+    }
+
+    async function runScreener() {
+      const tickersValue = $("tickers").value;
+      const minVol = $("minVolumeInput").value || "0";
+      const maxSpread = $("maxSpreadInput").value || "100";
+      const btn = $("screenerBtn");
+      const btnLabel = $("screenerBtnLabel");
+      const summaryEl = $("screenerSummary");
+
+      setStatus("Running screener...");
+      btn.disabled = true;
+      btnLabel.textContent = "Screening…";
+
+      try {
+        const params = new URLSearchParams({
+          tickers: tickersValue,
+          min_volume: String(minVol),
+          max_spread_pct: String(maxSpread),
+        });
+
+        const res = await fetch(`/screener?${params.toString()}`, { headers: apiHeaders() });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        const data = await res.json();
+        const rows = normalizeContractsData(data);
+        renderScreenerTable(rows);
+
+        const count = rows.length || 0;
+        summaryEl.textContent = `${count} contract${count === 1 ? "" : "s"} found. ITM rows highlighted.`;
+        setStatus("Screener complete.");
+      } catch (err) {
+        setStatus("Screener request failed. Check filters or backend.", true);
+        summaryEl.textContent = "Error running screener.";
+      } finally {
+        btn.disabled = false;
+        btnLabel.textContent = "Run screener";
+      }
+    }
+
+    function enterChatFromFirstQuestion() {
+      const q = ($("firstQuestionInput").value || "").trim();
+      if (q) {
+        sessionStorage.setItem("odteai_pending_first_question", q);
+        $("firstQuestionInput").value = "";
+      }
+      location.hash = "#/chat";
+    }
+
+    function clearChat() {
+      chatHistory = [];
+      localStorage.removeItem("odteai_chat_history");
+      $("chatConversation").innerHTML = "";
+      setChatStatus("Cleared.");
+    }
+
+    async function runChat() {
+      const tickersValue = $("tickers").value || "SPY,QQQ,IWM";
+      const question = ($("chatInput").value || "").trim();
+      if (!question) return;
+
+      const btn = $("chatBtn");
+      const btnLabel = $("chatBtnLabel");
+
+      setChatStatus("Sending...");
+      btn.disabled = true;
+      btnLabel.textContent = "Sending…";
+
+      appendMessage("you", question, "chatConversation");
+
+      try {
+        const body = {
+          tickers: tickersValue,
+          focus: currentFocus,
+          style: currentStyle,
+          history: chatHistory,
+          question: question,
+        };
+
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: apiHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+
+        const data = await res.json();
+        const answer = data.reply || JSON.stringify(data, null, 2);
+        appendMessage("assistant", answer, "chatConversation");
+
+        chatHistory.push({ role: "user", content: question });
+        chatHistory.push({ role: "assistant", content: answer });
+        localStorage.setItem("odteai_chat_history", JSON.stringify(chatHistory.slice(-30)));
+
+        setChatStatus("Done.");
+      } catch (err) {
+        setChatStatus("Chat failed.", true);
+        appendMessage("error", String(err), "chatConversation");
+      } finally {
+        btn.disabled = false;
+        btnLabel.textContent = "Send";
+        $("chatInput").value = "";
       }
     }
   </script>

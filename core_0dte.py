@@ -1,11 +1,12 @@
-import datetime as dt
 import os
-from typing import List, Dict, Any
+import math
+import datetime as dt
+from typing import List, Dict, Any, Literal
 
 import yfinance as yf
 from openai import OpenAI
 
-# 1) 0DTE spec / behavior
+
 ZERO_DTE_SPEC = """
 You are an options day-trading assistant focused ONLY on 0DTE contracts for SPY, QQQ, and IWM.
 Your job is to give very simple, easy-to-read explanations, NOT dense reports.
@@ -65,7 +66,8 @@ STYLE REMINDERS
 - Always treat this as educational scenario analysis only, not trading advice. Remind that 0DTE options can easily go to zero.
 """
 
-# 2) Data helpers using yfinance (free, delayed)
+
+# ---------- yfinance helpers ----------
 
 
 def _get_today_or_nearest_expiration(ticker: yf.Ticker) -> str:
@@ -73,20 +75,27 @@ def _get_today_or_nearest_expiration(ticker: yf.Ticker) -> str:
     if not exps:
         raise RuntimeError("No option expirations found.")
     today = dt.date.today()
-    # exact match if available
     exact = [e for e in exps if dt.date.fromisoformat(e) == today]
     if exact:
         return exact[0]
-    # fallback: nearest future expiration
     exps_sorted = sorted(exps, key=lambda x: dt.date.fromisoformat(x))
     return exps_sorted[0]
 
 
+def _approx_time_to_expiry_yrs(expiration_str: str) -> float:
+    """Rough T in years for same-day 0DTE options (educational only)."""
+    today = dt.date.today()
+    exp_date = dt.date.fromisoformat(expiration_str)
+    # assume US close 16:00 Eastern ~ 21:00 UTC
+    exp_dt = dt.datetime(exp_date.year, exp_date.month, exp_date.day, 21, 0, 0, tzinfo=dt.timezone.utc)
+    now = dt.datetime.now(dt.timezone.utc)
+    seconds = max((exp_dt - now).total_seconds(), 5 * 60)  # at least 5 min to avoid zero
+    return seconds / (365.0 * 24 * 3600)
+
+
 def fetch_0dte_snapshot(symbol: str) -> Dict[str, Any]:
-    """Fetch simple intraday info + near-ATM 0DTE calls/puts for a symbol using yfinance."""
     t = yf.Ticker(symbol)
 
-    # 5-minute intraday candles for today
     hist = t.history(period="1d", interval="5m")
     if hist.empty:
         raise RuntimeError("No intraday data for %s" % symbol)
@@ -95,7 +104,6 @@ def fetch_0dte_snapshot(symbol: str) -> Dict[str, Any]:
     last_price = float(last_row["Close"])
 
     exp = _get_today_or_nearest_expiration(t)
-
     chain = t.option_chain(exp)
     calls = chain.calls
     puts = chain.puts
@@ -103,8 +111,20 @@ def fetch_0dte_snapshot(symbol: str) -> Dict[str, Any]:
     def pick_near_atm(df):
         df = df.copy()
         df["dist"] = (df["strike"] - last_price).abs()
-        df = df.sort_values("dist").head(6)
-        return df[["contractSymbol", "strike", "lastPrice", "bid", "ask", "volume", "openInterest"]]
+        df = df.sort_values("dist").head(12)
+        return df[
+            [
+                "contractSymbol",
+                "strike",
+                "lastPrice",
+                "bid",
+                "ask",
+                "volume",
+                "openInterest",
+                "impliedVolatility",
+                "inTheMoney",
+            ]
+        ]
 
     calls_sel = pick_near_atm(calls)
     puts_sel = pick_near_atm(puts)
@@ -126,7 +146,48 @@ def fetch_0dte_snapshot(symbol: str) -> Dict[str, Any]:
         "puts": puts_sel.to_dict(orient="records"),
     }
 
-# 3) Prompt builder
+
+# ---------- Black–Scholes Greeks (approximate, educational) ----------
+
+
+def _norm_cdf(x: float) -> float:
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def _norm_pdf(x: float) -> float:
+    return math.exp(-0.5 * x * x) / math.sqrt(2.0 * math.pi)
+
+
+def _option_greeks(
+    S: float,
+    K: float,
+    T: float,
+    r: float,
+    sigma: float,
+    opt_type: Literal["call", "put"],
+) -> Dict[str, float]:
+    if T <= 0 or sigma <= 0 or S <= 0 or K <= 0:
+        return {"delta": 0.0, "gamma": 0.0, "theta": 0.0, "vega": 0.0}
+
+    d1 = (math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * math.sqrt(T))
+    d2 = d1 - sigma * math.sqrt(T)
+    pdf = _norm_pdf(d1)
+
+    if opt_type == "call":
+        delta = _norm_cdf(d1)
+        theta = (
+            -S * pdf * sigma / (2 * math.sqrt(T)) - r * K * math.exp(-r * T) * _norm_cdf(d2)
+        )
+    else:
+        delta = _norm_cdf(d1) - 1.0
+        theta = (
+            -S * pdf * sigma / (2 * math.sqrt(T)) + r * K * math.exp(-r * T) * _norm_cdf(-d2)
+        )
+
+    gamma = pdf / (S * sigma * math.sqrt(T))
+    vega = S * pdf * math.sqrt(T)
+
+    return {"delta": delta, "gamma": gamma, "theta": theta, "vega": vega}
 
 
 def build_prompt(
@@ -134,12 +195,6 @@ def build_prompt(
     focus: str = "both",
     style: str = "balanced",
 ) -> str:
-    """
-    Build a text prompt that includes:
-    - Your fixed 0DTE spec
-    - A simple snapshot for each ticker
-    - User preferences (focus/style)
-    """
     lines = [
         ZERO_DTE_SPEC.strip(),
         "\n\n---\n\nHere is the current market snapshot (delayed yfinance data):",
@@ -184,13 +239,11 @@ def build_prompt(
 
     return "\n".join(lines)
 
-# 4) Call OpenAI
-
 
 def call_llm(prompt: str) -> str:
     client = OpenAI()
     resp = client.chat.completions.create(
-        model="gpt-4.1-mini",  # or another model you like
+        model="gpt-4.1-mini",
         messages=[
             {"role": "system", "content": "You are a cautious options trading analysis assistant."},
             {"role": "user", "content": prompt},
@@ -198,8 +251,6 @@ def call_llm(prompt: str) -> str:
         temperature=0.4,
     )
     return resp.choices[0].message.content or ""
-
-# 5) Public entry used by app.py and script.py
 
 
 def analyze_symbols(symbols, focus: str = "both", style: str = "balanced") -> str:
@@ -215,3 +266,183 @@ def analyze_symbols(symbols, focus: str = "both", style: str = "balanced") -> st
 
     prompt = build_prompt(snapshots, focus=focus, style=style)
     return call_llm(prompt)
+
+
+# ---------- Screener API helpers (with Greeks) ----------
+
+
+def build_screener_rows(
+    symbol: str,
+    min_volume: int,
+    max_spread_pct: float,
+) -> List[Dict[str, Any]]:
+    snap = fetch_0dte_snapshot(symbol)
+    S = snap["last_price"]
+    T = _approx_time_to_expiry_yrs(snap["expiration"])
+    r = 0.05  # simple risk-free assumption
+
+    rows: List[Dict[str, Any]] = []
+
+    def process_side(records, opt_type: str):
+        nonlocal rows
+        for row in records:
+            bid = float(row.get("bid") or 0.0)
+            ask = float(row.get("ask") or 0.0)
+            last = float(row.get("lastPrice") or 0.0)
+            vol = int(row.get("volume") or 0)
+            oi = int(row.get("openInterest") or 0)
+            K = float(row.get("strike") or 0.0)
+            iv = float(row.get("impliedVolatility") or 0.0)  # already in decimals from yfinance
+
+            if vol < min_volume:
+                continue
+            if bid <= 0 or ask <= 0:
+                continue
+
+            mid = 0.5 * (bid + ask)
+            spread_pct = (ask - bid) / ask * 100.0 if ask > 0 else 0.0
+            if spread_pct > max_spread_pct:
+                continue
+
+            # Positive moneyness_pct means "in the money" for BOTH calls and puts:
+            # - Call ITM: S > K  => (S-K)/S > 0
+            # - Put ITM:  K > S  => (K-S)/S > 0
+            if opt_type == "CALL":
+                moneyness_pct = (S - K) / S * 100.0
+            else:
+                moneyness_pct = (K - S) / S * 100.0
+
+            greeks = _option_greeks(
+                S=S,
+                K=K,
+                T=T,
+                r=r,
+                sigma=max(iv, 0.0001),
+                opt_type="call" if opt_type == "CALL" else "put",
+            )
+
+            rows.append(
+                {
+                    "symbol": snap["symbol"],
+                    "type": opt_type,
+                    "strike": K,
+                    "last": last,
+                    "bid": bid,
+                    "ask": ask,
+                    "spread_pct": spread_pct,
+                    "volume": vol,
+                    "open_interest": oi,
+                    "moneyness_pct": moneyness_pct,
+                    "iv_pct": iv * 100.0,
+                    "delta": greeks["delta"],
+                    "gamma": greeks["gamma"],
+                    "theta": greeks["theta"],
+                    "vega": greeks["vega"],
+                }
+            )
+
+    process_side(snap["calls"], "CALL")
+    process_side(snap["puts"], "PUT")
+
+    # sort: liquid, tight spread, then near-the-money
+    rows.sort(
+        key=lambda r: (
+            -r["volume"],
+            r["spread_pct"],
+            abs(r["moneyness_pct"]),
+        )
+    )
+    return rows
+
+
+# ---------- Confidence / simple backtest metrics ----------
+
+
+def _compute_confidence_metrics(symbol: str) -> Dict[str, Any]:
+    """
+    Very rough, educational-only metrics:
+    - Look at last ~90 trading days of daily candles.
+    - Measure trend, volatility, and how often a strong day sees follow-through next day.
+    """
+    t = yf.Ticker(symbol)
+    hist = t.history(period="90d", interval="1d")
+    if hist.empty or len(hist) < 25:
+        raise RuntimeError("Not enough daily history for %s" % symbol)
+
+    closes = hist["Close"]
+    opens = hist["Open"]
+
+    # 90d trend (% move from start to end)
+    first_close = float(closes.iloc[0])
+    last_close = float(closes.iloc[-1])
+    trend_pct_90d = (last_close - first_close) / first_close * 100.0
+
+    # Realized annualized volatility from daily returns
+    daily_rets = closes.pct_change().dropna()
+    vol_annual = float(daily_rets.std() * math.sqrt(252.0)) if not daily_rets.empty else 0.0
+
+    # Simple "follow-through" backtest:
+    # if day is strong up (close > open + small buffer), how often does next close finish higher?
+    up_mask = closes > opens * 1.002
+    down_mask = closes < opens * 0.998
+
+    next_close = closes.shift(-1)
+    curr_close = closes
+
+    up_sample = up_mask & (next_close > curr_close)
+    down_sample = down_mask & (next_close < curr_close)
+
+    up_count = int(up_mask[:-1].sum())
+    down_count = int(down_mask[:-1].sum())
+
+    up_hit_rate = float(up_sample[:-1].sum()) / up_count if up_count > 0 else None
+    down_hit_rate = float(down_sample[:-1].sum()) / down_count if down_count > 0 else None
+
+    # Base win probability from whichever side matches the latest day
+    last_up = bool(up_mask.iloc[-1])
+    last_down = bool(down_mask.iloc[-1])
+
+    if last_up and up_hit_rate is not None:
+        base_win_prob = up_hit_rate * 100.0
+        sample_trades = up_count
+        pattern = "strong up-follow-through"
+    elif last_down and down_hit_rate is not None:
+        base_win_prob = down_hit_rate * 100.0
+        sample_trades = down_count
+        pattern = "strong down-follow-through"
+    else:
+        # fallback: average of both sides if available
+        vals = [v for v in [up_hit_rate, down_hit_rate] if v is not None]
+        base_win_prob = (sum(vals) / len(vals) * 100.0) if vals else 50.0
+        sample_trades = (up_count or 0) + (down_count or 0)
+        pattern = "mixed days"
+
+    # Confidence score heuristic:
+    # - Start from base win probability
+    # - Penalize extreme volatility
+    # - Reward clean trend direction
+    trend_adj = max(min(trend_pct_90d, 8.0), -8.0)  # clamp to +/-8%
+    vol_penalty = min(vol_annual * 100.0, 80.0) * 0.25  # higher vol => larger penalty
+
+    raw_conf = base_win_prob + trend_adj - vol_penalty
+    confidence_score = max(5.0, min(95.0, raw_conf))
+
+    return {
+        "symbol": symbol,
+        "trend_pct_90d": round(trend_pct_90d, 1),
+        "vol_annual_pct": round(vol_annual * 100.0, 1),
+        "expected_win_prob_pct": round(base_win_prob, 1),
+        "confidence_score": round(confidence_score, 1),
+        "sample_trades": int(sample_trades),
+        "pattern": pattern,
+    }
+
+
+def compute_confidence_for_symbols(symbols: List[str]) -> Dict[str, Any]:
+    out: Dict[str, Any] = {}
+    for sym in symbols:
+        try:
+            out[sym] = _compute_confidence_metrics(sym)
+        except Exception as e:
+            print("Confidence metrics skipping %s: %s" % (sym, e))
+    return out
