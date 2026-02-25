@@ -142,6 +142,7 @@ def analyze(
     tickers: str = "SPY,QQQ,IWM",
     focus: str = "both",      # both | calls | puts
     style: str = "balanced",  # balanced | conservative | aggressive
+    timeframe: str = "intraday",
     authorization: Optional[str] = Header(default=None),
 ):
     if not os.getenv("OPENAI_API_KEY"):
@@ -153,7 +154,7 @@ def analyze(
         raise HTTPException(status_code=400, detail="No valid tickers provided")
 
     try:
-        result = analyze_symbols(symbols, focus=focus, style=style)
+        result = analyze_symbols(symbols, focus=focus, style=style, timeframe=timeframe)
         confidence = compute_confidence_for_symbols(symbols)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -199,6 +200,7 @@ class ChatRequest(BaseModel):
     tickers: str
     focus: str = "both"
     style: str = "balanced"
+    timeframe: str = "intraday"
     history: List[ChatMessage] = []
     question: str
 
@@ -224,15 +226,20 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(default=None)):
     if not snapshots:
         raise HTTPException(status_code=500, detail="No data fetched for chat.")
 
-    base_prompt = build_prompt(snapshots, focus=req.focus, style=req.style)
+    base_prompt = build_prompt(snapshots, focus=req.focus, style=req.style, timeframe=req.timeframe)
 
     client = OpenAI()
 
     messages: List[Dict[str, str]] = [
         {
             "role": "system",
-            "content": "You are a cautious options trading analysis assistant. "
-                       "Keep everything simple, educational, and focused on 0DTE for SPY/QQQ/IWM.",
+            "content": (
+                "You are a cautious options and market-scenario assistant. "
+                "You can discuss intraday 0DTE setups, short-term swings, and longer-term "
+                "multi-week or multi-month scenarios for any reasonably liquid US stock or ETF. "
+                "Always stay educational, avoid promises, and highlight that options and "
+                "price targets are uncertain and can be wrong."
+            ),
         },
         {
             "role": "user",

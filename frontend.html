@@ -369,7 +369,7 @@
     <div class="header">
       <div class="header-main">
         <div class="app-title">0dteAI</div>
-        <div class="app-subtitle">Intraday 0DTE scenario analysis. Educational only — not trading advice.</div>
+        <div class="app-subtitle">Intraday 0DTE and multi-horizon options / price scenarios. Educational only — not trading advice.</div>
       </div>
 
       <div class="nav">
@@ -439,6 +439,16 @@
             </div>
           </div>
 
+          <div class="field">
+            <span class="field-label">Timeframe</span>
+            <div class="chip-row">
+              <div class="chip active" data-timeframe="intraday">Intraday / 0DTE</div>
+              <div class="chip" data-timeframe="1-5d">1–5 days</div>
+              <div class="chip" data-timeframe="multi-week">Multi-week</div>
+              <div class="chip" data-timeframe="long-term">Long-term</div>
+            </div>
+          </div>
+
           <div class="btn-row">
             <button id="runBtn" class="btn" onclick="runAnalysis()"><span id="btnLabel">Run analysis</span></button>
             <button id="screenerBtn" class="btn secondary" onclick="runScreener()"><span id="screenerBtnLabel">Run screener</span></button>
@@ -485,6 +495,7 @@
                 <tr>
                   <th>Ticker</th>
                   <th>Type</th>
+                  <th>Exp</th>
                   <th>Strike</th>
                   <th>Last</th>
                   <th>Bid</th>
@@ -501,7 +512,7 @@
                 </tr>
               </thead>
               <tbody id="screenerBody">
-                <tr><td colspan="15" style="text-align:center; padding:8px;">No data.</td></tr>
+                <tr><td colspan="16" style="text-align:center; padding:8px;">No data.</td></tr>
               </tbody>
             </table>
           </div>
@@ -529,7 +540,7 @@
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
             <div>
               <div style="font-size:14px; font-weight:600; margin-bottom:4px;">Chat</div>
-              <div class="hint">Each message uses a fresh snapshot. Keep it simple; 0DTE can go to zero.</div>
+              <div class="hint">Each message uses a fresh snapshot. You can ask about intraday, swing, or longer-term scenarios — but everything is uncertain and options can go to zero.</div>
             </div>
             <div style="display:flex; gap:8px;">
               <button class="btn secondary" style="min-width:110px;" onclick="clearChat()">Clear</button>
@@ -558,6 +569,7 @@
   <script>
     let currentFocus = "both";
     let currentStyle = "balanced";
+    let currentTimeframe = "intraday";
     let authToken = null;
     let chatHistory = [];
 
@@ -664,6 +676,13 @@
           document.querySelectorAll('.chip[data-style]').forEach(c => c.classList.remove('active'));
           chip.classList.add('active');
           currentStyle = chip.getAttribute('data-style');
+        });
+      });
+      document.querySelectorAll('.chip[data-timeframe]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip[data-timeframe]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentTimeframe = chip.getAttribute('data-timeframe');
         });
       });
     }
@@ -785,7 +804,7 @@
       if (!rows || rows.length === 0) {
         const tr = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 15;
+        td.colSpan = 16;
         td.style.textAlign = "center";
         td.style.padding = "8px";
         td.textContent = "No contracts passed the current filters.";
@@ -799,6 +818,7 @@
 
         const symbol = row.symbol || row.ticker || row.underlying || "";
         const type = (row.type || row.option_type || row.side || "").toUpperCase();
+        const expiration = row.expiration || row.exp || row.Expiry || row.expiry || "";
         const strike = row.strike !== undefined ? row.strike : row.Strike;
 
         const last = row.last !== undefined ? row.last : (row.lastPrice ?? row.Last);
@@ -822,6 +842,7 @@
         const cells = [
           symbol,
           type || "-",
+          expiration || "-",
           strike !== undefined ? fmtNumber(strike, 1) : "-",
           fmtNumber(last),
           fmtNumber(bid),
@@ -861,6 +882,7 @@
           tickers: tickersValue,
           focus: currentFocus,
           style: currentStyle,
+          timeframe: currentTimeframe,
         });
         const res = await fetch(`/analyze?${params.toString()}`, { headers: apiHeaders() });
         if (!res.ok) {
@@ -869,7 +891,11 @@
         }
         const data = await res.json();
         const outText = data.analysis_markdown || JSON.stringify(data, null, 2);
-        appendMessage(`${tickersValue} • focus: ${currentFocus}, style: ${currentStyle}`, outText, "conversation");
+        appendMessage(
+          `${tickersValue} • focus: ${currentFocus}, style: ${currentStyle}, tf: ${currentTimeframe}`,
+          outText,
+          "conversation"
+        );
         setStatus("Analysis complete.");
 
         if (data.confidence) {
@@ -967,6 +993,7 @@
           tickers: tickersValue,
           focus: currentFocus,
           style: currentStyle,
+          timeframe: currentTimeframe,
           history: chatHistory,
           question: question,
         };

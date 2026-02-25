@@ -8,19 +8,29 @@ from openai import OpenAI
 
 
 ZERO_DTE_SPEC = """
-You are an options day-trading assistant focused ONLY on 0DTE contracts for SPY, QQQ, and IWM.
-Your job is to give very simple, easy-to-read explanations, NOT dense reports.
+You are an options and price-scenario assistant for any reasonably liquid US stock or ETF
+(including but not limited to SPY, QQQ, and IWM). Your job is to give very simple,
+easy-to-read explanations, NOT dense reports.
 
-Work only with same-day expiration (0DTE) options for SPY, QQQ, and IWM.
-Use the data I provide (price, candles, simple intraday context, and a list of near-ATM 0DTE options)
-to describe what is happening and suggest ideas in plain language.
+You can:
+- Use same-day expiration (0DTE) options for intraday ideas.
+- Also discuss 1–5 day, multi-week, and longer-term (multi-month) scenarios when the timeframe
+  preference or question asks for it.
+- For longer-term views, focus on broad price zones and directional scenarios (not precise single
+  price targets), and always emphasize uncertainty.
+
+Use the data I provide:
+- Intraday candles and a list of near-ATM 0DTE options.
+- Daily history summaries (trend, volatility, moving averages, 52-week levels).
+Combine these to describe what is happening and suggest ideas in plain language.
 
 IMPORTANT FORMAT RULES
 - DO NOT use markdown headings (#) or markdown symbols like ** or _.
 - Use plain text headings that end with a colon, for example: "IWM 0DTE View:".
 - Keep everything short and friendly, like you are talking to a newer trader.
 
-For EACH ticker I give you, output using EXACTLY this structure and nothing more:
+For EACH ticker I give you, output using EXACTLY this structure and nothing more
+(replace "IWM" with the actual ticker symbol):
 
 1) Heading line:
 IWM 0DTE View:
@@ -56,14 +66,15 @@ Put idea:
 
 5) Main risks section:
 Main risks:
-- Theta: [1 line on time decay].
+- Theta: [1 line on time decay, especially dangerous for 0DTE].
 - Reversal: [1 line on price reversing and flipping the idea].
+- Timeframe mismatch: [1 line on short-term noise vs. longer-term trend].
 - News/liquidity: [1 line on news or poor fills].
 
 STYLE REMINDERS
 - Use short, plain sentences. No tables, no long paragraphs, no extra sections.
 - Do NOT invent precise live prices or Greeks; use approximate or conditional language based on the data I give you.
-- Always treat this as educational scenario analysis only, not trading advice. Remind that 0DTE options can easily go to zero.
+- Always treat this as educational scenario analysis only, not trading advice. Remind that options can easily go to zero, especially 0DTE, and that longer-term scenarios are uncertain and can be very wrong.
 """
 
 
@@ -137,6 +148,39 @@ def fetch_0dte_snapshot(symbol: str) -> Dict[str, Any]:
         "close": float(last_row["Close"]),
     }
 
+    # Higher timeframe daily context (up to ~1 year)
+    daily = t.history(period="1y", interval="1d")
+    higher_tf = None
+    if not daily.empty:
+        closes_d = daily["Close"]
+        first_close = float(closes_d.iloc[0])
+        last_close_d = float(closes_d.iloc[-1])
+        trend_pct_1y = (last_close_d - first_close) / first_close * 100.0 if first_close > 0 else 0.0
+
+        high_52w = float(closes_d.max())
+        low_52w = float(closes_d.min())
+        dist_from_high = (last_price - high_52w) / high_52w * 100.0 if high_52w > 0 else 0.0
+        dist_from_low = (last_price - low_52w) / low_52w * 100.0 if low_52w > 0 else 0.0
+
+        ma20 = float(closes_d.rolling(20).mean().iloc[-1])
+        ma50 = float(closes_d.rolling(50).mean().iloc[-1])
+        ma200 = float(closes_d.rolling(200).mean().iloc[-1])
+
+        daily_rets = closes_d.pct_change().dropna()
+        vol_annual = float(daily_rets.std() * math.sqrt(252.0)) if not daily_rets.empty else 0.0
+
+        higher_tf = {
+            "trend_pct_1y": trend_pct_1y,
+            "high_52w": high_52w,
+            "low_52w": low_52w,
+            "dist_from_high_pct": dist_from_high,
+            "dist_from_low_pct": dist_from_low,
+            "ma20": ma20,
+            "ma50": ma50,
+            "ma200": ma200,
+            "vol_annual_pct": vol_annual * 100.0,
+        }
+
     return {
         "symbol": symbol,
         "last_price": last_price,
@@ -144,6 +188,7 @@ def fetch_0dte_snapshot(symbol: str) -> Dict[str, Any]:
         "intraday_last_candle": candle,
         "calls": calls_sel.to_dict(orient="records"),
         "puts": puts_sel.to_dict(orient="records"),
+        "higher_tf": higher_tf,
     }
 
 
@@ -194,6 +239,7 @@ def build_prompt(
     symbol_snapshots: List[Dict[str, Any]],
     focus: str = "both",
     style: str = "balanced",
+    timeframe: str = "intraday",
 ) -> str:
     lines = [
         ZERO_DTE_SPEC.strip(),
@@ -227,14 +273,32 @@ def build_prompt(
                 % row
             )
 
+        ht = snap.get("higher_tf")
+        if ht:
+            lines.append("\nHigher timeframe daily context:")
+            lines.append(
+                " - 1y trend: %.1f%%, 52w high: %.2f, 52w low: %.2f"
+                % (ht["trend_pct_1y"], ht["high_52w"], ht["low_52w"])
+            )
+            lines.append(
+                " - Distance from 52w high/low: %.1f%% / %.1f%%"
+                % (ht["dist_from_high_pct"], ht["dist_from_low_pct"])
+            )
+            lines.append(
+                " - Moving avgs (20/50/200d): %.2f / %.2f / %.2f"
+                % (ht["ma20"], ht["ma50"], ht["ma200"])
+            )
+            lines.append(" - Realized annual volatility (close-close): %.1f%%" % (ht["vol_annual_pct"]))
+
     lines.append(
         "\n\nUser preferences for this run:\n"
         "- Focus: %s (both/calls/puts)\n"
-        "- Risk style: %s (balanced/conservative/aggressive)\n\n"
+        "- Risk style: %s (balanced/conservative/aggressive)\n"
+        "- Timeframe: %s (intraday / 1–5 days / multi-week / long-term)\n\n"
         "Respect these preferences when you choose which setups to highlight and how aggressive "
-        "the position sizing / targets sound. Do NOT output position sizes; only describe how "
-        "aggressive or conservative the idea is relative to typical 0DTE risk."
-        % (focus, style)
+        "the ideas sound. Do NOT output position sizes; only describe how "
+        "aggressive or conservative the idea is relative to typical options and 0DTE risk."
+        % (focus, style, timeframe)
     )
 
     return "\n".join(lines)
@@ -245,7 +309,16 @@ def call_llm(prompt: str) -> str:
     resp = client.chat.completions.create(
         model="gpt-4.1-mini",
         messages=[
-            {"role": "system", "content": "You are a cautious options trading analysis assistant."},
+            {
+                "role": "system",
+                "content": (
+                    "You are a cautious options and market-scenario assistant. "
+                    "You can discuss intraday 0DTE setups, short-term swings, and longer-term "
+                    "multi-week or multi-month scenarios for any reasonably liquid US stock or ETF. "
+                    "Always stay educational, avoid promises, and highlight that options and "
+                    "price targets are uncertain and can be wrong."
+                ),
+            },
             {"role": "user", "content": prompt},
         ],
         temperature=0.4,
@@ -253,7 +326,12 @@ def call_llm(prompt: str) -> str:
     return resp.choices[0].message.content or ""
 
 
-def analyze_symbols(symbols, focus: str = "both", style: str = "balanced") -> str:
+def analyze_symbols(
+    symbols,
+    focus: str = "both",
+    style: str = "balanced",
+    timeframe: str = "intraday",
+) -> str:
     snapshots: List[Dict[str, Any]] = []
     for sym in symbols:
         try:
@@ -264,7 +342,7 @@ def analyze_symbols(symbols, focus: str = "both", style: str = "balanced") -> st
     if not snapshots:
         raise RuntimeError("No data fetched.")
 
-    prompt = build_prompt(snapshots, focus=focus, style=style)
+    prompt = build_prompt(snapshots, focus=focus, style=style, timeframe=timeframe)
     return call_llm(prompt)
 
 
@@ -325,6 +403,7 @@ def build_screener_rows(
                 {
                     "symbol": snap["symbol"],
                     "type": opt_type,
+                    "expiration": snap["expiration"],
                     "strike": K,
                     "last": last,
                     "bid": bid,
