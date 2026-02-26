@@ -526,11 +526,101 @@
     }
 
     .login-wrap {
-      max-width: 480px;
-      margin: 32px auto 0;
+      max-width: 460px;
+      margin: 40px auto 0;
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+
+    .auth-card-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .auth-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+    }
+
+    .auth-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .auth-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .auth-button {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-primary);
+      font-size: 13px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      width: 100%;
+      justify-content: center;
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .auth-button:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      background: rgba(15, 23, 42, 1);
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.2);
+    }
+
+    .auth-icon-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin: 6px 0 12px;
+    }
+
+    .auth-divider span {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .auth-divider span.label {
+      flex: 0;
+      padding: 0 4px;
+      background: var(--container-bg);
+      border-radius: 999px;
+    }
+
+    .auth-footer-hint {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 10px;
     }
 
     .chat-shell {
@@ -590,26 +680,64 @@
     <div id="pageLogin" class="page">
       <div class="login-wrap">
         <div class="card">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-            <div>
-              <div style="font-size:15px; font-weight:600; margin-bottom:6px;">Login</div>
-              <div class="hint">Enter your app password to access analysis, screener, and chat.</div>
+          <div class="auth-card-header">
+            <div class="auth-title">Welcome to 0dteAI</div>
+            <div class="auth-subtitle">
+              Sign in like you would on ChatGPT — quick social buttons plus email.
+              Behind the scenes this is a single shared app password for your private access.
             </div>
-            <span class="tag">Private</span>
           </div>
-          <div style="height:14px;"></div>
+
+          <div class="auth-buttons">
+            <button type="button" class="auth-button" onclick="continueWithGoogle()">
+              <span class="auth-icon-circle">G</span>
+              <span>Continue with Google</span>
+            </button>
+          </div>
+
+          <div class="auth-divider">
+            <span></span>
+            <span class="label">or</span>
+            <span></span>
+          </div>
+
+          <div class="input-row" style="margin-bottom:8px;">
+            <div class="field" style="flex: 2 1 220px;">
+              <span class="field-label">Email</span>
+              <input id="signupEmail" class="pill-input" type="email" placeholder="you@example.com">
+            </div>
+            <div class="field" style="flex: 1 1 160px;">
+              <span class="field-label">Name (optional)</span>
+              <input id="signupName" class="pill-input" type="text" placeholder="Your name">
+            </div>
+            <div class="btn-row">
+              <button id="signupBtn" class="btn secondary" type="button" onclick="submitEmailSignup()">
+                <span id="signupBtnLabel">Continue with email</span>
+              </button>
+            </div>
+          </div>
+          <div id="signupStatus" class="status-line" style="margin-top:4px;"></div>
+
+          <div class="auth-divider" style="margin-top:14px; margin-bottom:10px;">
+            <span></span>
+            <span class="label">or enter app password</span>
+            <span></span>
+          </div>
+
           <div class="input-row">
             <div class="field" style="flex: 2 1 260px;">
-              <span class="field-label">Password</span>
+              <span class="field-label">App password</span>
               <input id="loginPassword" class="pill-input" type="password" placeholder="APP_PASSWORD">
             </div>
             <div class="btn-row">
-              <button id="loginBtn" class="btn" onclick="doLogin()"><span id="loginBtnLabel">Login</span></button>
+              <button id="loginBtn" class="btn" type="button" onclick="doLogin()">
+                <span id="loginBtnLabel">Login</span>
+              </button>
             </div>
           </div>
-          <div id="loginStatus" class="status-line" style="margin-top:12px;"></div>
-          <div class="hint" style="margin-top:10px;">
-            Render env vars: <span class="tag">APP_PASSWORD</span> and <span class="tag">APP_SECRET</span>.
+          <div id="loginStatus" class="status-line" style="margin-top:8px;"></div>
+          <div class="auth-footer-hint">
+            You control access via Render env vars <span class="tag">APP_PASSWORD</span> and <span class="tag">APP_SECRET</span>.
           </div>
         </div>
       </div>
@@ -993,6 +1121,69 @@
       } finally {
         if (btn) { btn.disabled = false; }
         if (label) { label.textContent = "Refresh signals"; }
+      }
+    }
+
+    function continueWithGoogle() {
+      // Full Google OAuth handled on the backend; this just kicks off the flow.
+      window.location.href = "/auth/google/start";
+    }
+
+    function socialNotImplemented(provider) {
+      const statusEl = $("signupStatus") || $("loginStatus");
+      if (statusEl) {
+        statusEl.textContent = provider + " sign-in isn't configured yet. Use email or the app password below.";
+        statusEl.classList.add("error");
+      } else {
+        alert(provider + " sign-in isn't configured yet. Use email or the app password.");
+      }
+    }
+
+    async function submitEmailSignup() {
+      const email = ($("signupEmail") && $("signupEmail").value || "").trim();
+      const name = ($("signupName") && $("signupName").value || "").trim();
+      const statusEl = $("signupStatus");
+      const btn = $("signupBtn");
+      const btnLabel = $("signupBtnLabel");
+
+      if (!email || !email.includes("@")) {
+        if (statusEl) {
+          statusEl.textContent = "Enter a valid email to continue.";
+          statusEl.classList.add("error");
+        }
+        return;
+      }
+
+      if (statusEl) {
+        statusEl.textContent = "Sending email…";
+        statusEl.classList.remove("error");
+      }
+      if (btn) btn.disabled = true;
+      if (btnLabel) btnLabel.textContent = "Sending…";
+
+      try {
+        const res = await fetch("/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email, name: name || null }),
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        if (statusEl) {
+          statusEl.textContent = "Check your inbox. You can now use the app password below to sign in.";
+          statusEl.classList.remove("error");
+        }
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent = "Signup email failed. Please try again or use the app password.";
+          statusEl.classList.add("error");
+        }
+        console.error(err);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (btnLabel) btnLabel.textContent = "Continue with email";
       }
     }
 
