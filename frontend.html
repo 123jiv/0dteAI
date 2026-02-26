@@ -623,6 +623,119 @@
       margin-top: 10px;
     }
 
+    /* ---------- Floating panels ---------- */
+    .panels-zone {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .panels-zone .panel {
+      pointer-events: auto;
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      min-width: 320px;
+      max-width: 96vw;
+      width: 420px;
+      height: 380px;
+      max-height: 85vh;
+      background: var(--container-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+      z-index: 10;
+      transition: box-shadow 0.2s ease;
+    }
+    .panels-zone .panel:hover { box-shadow: 0 16px 48px rgba(59, 130, 246, 0.15); }
+    .panels-zone .panel.closed {
+      display: none !important;
+    }
+    .panels-zone .panel.minimized {
+      width: auto;
+      min-width: 200px;
+      height: 40px;
+      max-height: 40px;
+    }
+    .panels-zone .panel.minimized .panel-body {
+      display: none;
+    }
+    .panels-zone .panel.maximized {
+      top: 8px !important;
+      left: 8px !important;
+      right: 8px !important;
+      bottom: 8px !important;
+      width: auto !important;
+      height: auto !important;
+      max-width: none;
+      max-height: none;
+    }
+    .panel-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: rgba(15, 27, 45, 0.95);
+      border-bottom: 1px solid var(--border);
+      cursor: move;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .panel-title {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .panel-btns {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .panel-btn {
+      width: 28px;
+      height: 24px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(30, 41, 59, 0.8);
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .panel-btn:hover {
+      background: rgba(59, 130, 246, 0.25);
+      color: var(--text-primary);
+    }
+    .panel-btn[data-action="close"]:hover { background: rgba(249, 115, 115, 0.25); color: var(--danger); }
+    .panel-body {
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+      min-height: 0;
+    }
+    .dashboard-launcher {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 0;
+      margin-bottom: 12px;
+    }
+    .dashboard-launcher .btn {
+      min-width: 0;
+      padding: 8px 14px;
+      font-size: 12px;
+    }
+
     .chat-shell {
       display: flex;
       flex-direction: column;
@@ -708,20 +821,55 @@
 
     <!-- APP (Analysis) -->
     <div id="pageApp" class="page">
-      <div class="signals-engine" id="signalsEngine">
-        <div class="signals-engine-header">
-          <div>
-            <div class="signals-engine-title">Live 0DTE signals</div>
-            <div class="signals-engine-sub">Top setups of the day — AI-ranked</div>
-          </div>
-          <button type="button" id="refreshSignalsBtn" class="btn secondary" onclick="fetchSignals()"><span id="refreshSignalsLabel">Refresh signals</span></button>
-        </div>
-        <div id="signalHero" class="signal-hero" style="display:none;"></div>
-        <div id="signalsList" class="signals-list"></div>
-        <div id="signalsPlaceholder" class="hint" style="padding:8px 0;">Click Refresh to load the highest-probability 0DTE setups right now.</div>
+      <div class="dashboard-launcher">
+        <button type="button" class="btn" onclick="openPanel('panelSignals')">Signals</button>
+        <button type="button" class="btn secondary" onclick="openPanel('panelAnalysis')">Analysis</button>
+        <button type="button" class="btn secondary" onclick="openPanel('panelScreener')">Screener</button>
+        <button type="button" class="btn secondary" onclick="openPanel('panelChat')">Chat</button>
+        <button type="button" class="btn secondary" onclick="openPanel('panelConfidence')">Confidence</button>
+        <span style="flex:1; min-width:120px;"></span>
+        <input id="firstQuestionInput" class="pill-input" style="max-width:220px;" placeholder="Ask a question..." autocomplete="off">
+        <button type="button" class="btn secondary" onclick="enterChatFromFirstQuestion()">Ask in chat</button>
       </div>
+      <div class="footer-note" style="margin-top:0;">Open panels above. Minimize, maximize, or close each window. Educational only — not trading advice.</div>
 
-      <div class="input-shell">
+      <div id="panelsZone" class="panels-zone">
+        <div id="panelSignals" class="panel closed" data-panel="signals" style="top:60px;left:24px;">
+          <div class="panel-titlebar">
+            <span class="panel-title">Live 0DTE Signals</span>
+            <div class="panel-btns">
+              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelSignals')" title="Minimize">−</button>
+              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelSignals')" title="Maximize">□</button>
+              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelSignals')" title="Close">×</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="signals-engine" id="signalsEngine">
+              <div class="signals-engine-header">
+                <div>
+                  <div class="signals-engine-title">Live 0DTE signals</div>
+                  <div class="signals-engine-sub">Top setups — AI-ranked</div>
+                </div>
+                <button type="button" id="refreshSignalsBtn" class="btn secondary" onclick="fetchSignals()"><span id="refreshSignalsLabel">Refresh</span></button>
+              </div>
+              <div id="signalHero" class="signal-hero" style="display:none;"></div>
+              <div id="signalsList" class="signals-list"></div>
+              <div id="signalsPlaceholder" class="hint" style="padding:8px 0;">Click Refresh to load setups.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="panelAnalysis" class="panel closed" data-panel="analysis" style="top:80px;left:80px;">
+          <div class="panel-titlebar">
+            <span class="panel-title">Analysis</span>
+            <div class="panel-btns">
+              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelAnalysis')" title="Minimize">−</button>
+              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelAnalysis')" title="Maximize">□</button>
+              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelAnalysis')" title="Close">×</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="input-shell">
         <div class="input-row">
           <div class="field">
             <span class="field-label">Tickers</span>
@@ -758,16 +906,22 @@
           </div>
         </div>
         <div id="status" class="status-line"></div>
-      </div>
+            </div>
+            <div id="conversation" class="conversation" style="max-height:240px;"></div>
+          </div>
+        </div>
 
-      <div class="card" id="confidenceCard" style="margin-bottom:14px; display:none;">
-        <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Confidence &amp; simple backtest</div>
-        <div id="confidenceBody" class="hint">Run an analysis to see confidence scores and rough historical follow-through stats.</div>
-      </div>
-
-      <div class="main-body">
-        <div id="conversation" class="conversation"></div>
-        <div class="screener-shell">
+        <div id="panelScreener" class="panel closed" data-panel="screener" style="top:100px;left:140px;">
+          <div class="panel-titlebar">
+            <span class="panel-title">0DTE Screener</span>
+            <div class="panel-btns">
+              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelScreener')" title="Minimize">−</button>
+              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelScreener')" title="Maximize">□</button>
+              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelScreener')" title="Close">×</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="screener-shell">
           <div class="screener-header">
             <div class="screener-title">0DTE Screener</div>
             <div class="screener-subtitle">ITM rows highlighted. Greeks approximate/educational.</div>
@@ -810,50 +964,61 @@
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:14px;">
-        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-          <div style="min-width:220px; flex:1;">
-            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Ask a question (opens Chat)</div>
-            <div class="hint">Full chat lives on its own page.</div>
+            </div>
           </div>
-          <div style="flex:2; min-width:220px; display:flex; gap:10px; align-items:center;">
-            <input id="firstQuestionInput" class="pill-input" style="flex:1;" placeholder="e.g. Cleanest call setup if SPY holds above VWAP?">
-            <button id="enterChatBtn" class="btn secondary" onclick="enterChatFromFirstQuestion()">Ask in chat</button>
+        </div>
+
+        <div id="panelChat" class="panel closed" data-panel="chat" style="top:120px;left:200px;">
+          <div class="panel-titlebar">
+            <span class="panel-title">Chat</span>
+            <div class="panel-btns">
+              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelChat')" title="Minimize">−</button>
+              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelChat')" title="Maximize">□</button>
+              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelChat')" title="Close">×</button>
+            </div>
+          </div>
+          <div class="panel-body chat-shell">
+            <div class="hint" style="margin-bottom:8px;">Fresh snapshot per message. Educational only.</div>
+            <button type="button" class="btn secondary" style="margin-bottom:8px;" onclick="clearChat()">Clear chat</button>
+            <div id="chatConversation" class="conversation" style="max-height:180px;"></div>
+            <div id="typingIndicator" class="typing-indicator" style="display:none;">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="chat-input-shell" style="margin-top:8px;">
+              <div class="chat-row">
+                <input id="chatInput" class="pill-input" placeholder="Ask a follow-up..." autocomplete="off">
+                <button id="chatBtn" class="btn" style="min-width:80px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
+              </div>
+              <div id="chatStatus" class="status-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="panelConfidence" class="panel closed" data-panel="confidence" style="top:140px;left:260px;">
+          <div class="panel-titlebar">
+            <span class="panel-title">Confidence &amp; backtest</span>
+            <div class="panel-btns">
+              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelConfidence')" title="Minimize">−</button>
+              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelConfidence')" title="Maximize">□</button>
+              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelConfidence')" title="Close">×</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="card" id="confidenceCard" style="display:block; margin:0;">
+              <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Confidence &amp; simple backtest</div>
+              <div id="confidenceBody" class="hint">Run an analysis to see confidence scores and follow-through stats.</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- CHAT -->
+    <!-- CHAT: nav opens panel on main page -->
     <div id="pageChat" class="page">
-      <div class="card" style="margin-bottom:12px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-          <div>
-            <div style="font-size:14px; font-weight:600; margin-bottom:4px;">Chat</div>
-            <div class="hint">Fresh snapshot per message. Intraday, swing, or longer-term — all uncertain; options can go to zero.</div>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn secondary" style="min-width:100px;" onclick="clearChat()">Clear</button>
-            <button class="btn" style="min-width:100px;" onclick="location.hash = '#/app'">Back</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="chatConversation" class="conversation"></div>
-
-      <div id="typingIndicator" class="typing-indicator" style="display:none;">
-        <span></span><span></span><span></span>
-      </div>
-
-      <div class="chat-input-shell">
-        <div class="chat-row">
-          <input id="chatInput" class="pill-input" placeholder="Ask a follow-up question..." autocomplete="off">
-          <button id="chatBtn" class="btn" style="min-width:110px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
-        </div>
-        <div id="chatStatus" class="status-line"></div>
+      <div class="card" style="max-width:400px; margin:40px auto;">
+        <div style="font-size:14px; font-weight:600; margin-bottom:8px;">Chat</div>
+        <div class="hint" style="margin-bottom:12px;">Chat opens in a panel. Use the launcher on the Analysis page.</div>
+        <button type="button" class="btn" onclick="location.hash='#/app'; setTimeout(function(){ openPanel('panelChat'); }, 80);">Open Chat panel</button>
       </div>
     </div>
 
@@ -916,6 +1081,56 @@
       $("navChat").classList.toggle("active", path === "/chat");
     }
 
+    function openPanel(id) {
+      const el = $(id);
+      if (!el) return;
+      el.classList.remove("closed", "minimized", "maximized");
+      el.style.display = "flex";
+      bringPanelToFront(id);
+    }
+
+    function closePanel(id) {
+      const el = $(id);
+      if (!el) return;
+      el.classList.add("closed");
+      el.classList.remove("minimized", "maximized");
+      el.style.display = "none";
+    }
+
+    function minimizePanel(id) {
+      const el = $(id);
+      if (!el) return;
+      el.classList.add("minimized");
+      el.classList.remove("maximized");
+      el.style.display = "flex";
+    }
+
+    function maximizePanel(id) {
+      const el = $(id);
+      if (!el) return;
+      el.classList.toggle("maximized");
+      el.classList.remove("minimized");
+      if (el.classList.contains("maximized")) bringPanelToFront(id);
+    }
+
+    function bringPanelToFront(id) {
+      const zone = $("panelsZone");
+      if (!zone) return;
+      const panels = zone.querySelectorAll(".panel:not(.closed)");
+      let maxZ = 10;
+      panels.forEach(p => { maxZ = Math.max(maxZ, parseInt(p.style.zIndex || "10", 10)); });
+      const el = $(id);
+      if (el) el.style.zIndex = String(maxZ + 1);
+    }
+
+    function initPanelStacking() {
+      const zone = $("panelsZone");
+      if (!zone) return;
+      zone.querySelectorAll(".panel").forEach((p, i) => {
+        p.addEventListener("mousedown", () => bringPanelToFront(p.id));
+      });
+    }
+
     async function route() {
       const hash = location.hash || "#/login";
       const path = hash.replace("#", "") || "/login";
@@ -937,9 +1152,10 @@
 
       if (path === "/chat") {
         setNavActive("/chat");
-        showPage("pageChat");
+        showPage("pageApp");
+        openPanel("panelChat");
         const pending = sessionStorage.getItem("odteai_pending_first_question");
-        if (pending) {
+        if (pending && $("chatInput")) {
           $("chatInput").value = pending;
           sessionStorage.removeItem("odteai_pending_first_question");
           setTimeout(runChat, 50);
@@ -950,6 +1166,8 @@
       setNavActive("/app");
       showPage("pageApp");
       fetchSignals();
+      openPanel("panelSignals");
+      if (typeof initPanelStacking === "function") initPanelStacking();
     }
 
     window.addEventListener("hashchange", route);
@@ -1310,12 +1528,22 @@
     }
 
     function enterChatFromFirstQuestion() {
-      const q = ($("firstQuestionInput").value || "").trim();
-      if (q) {
+      const input = $("firstQuestionInput");
+      const q = (input && input.value || "").trim();
+      if (q && $("chatInput")) {
+        $("chatInput").value = q;
+        if (input) input.value = "";
+        location.hash = "#/app";
+        openPanel("panelChat");
+        setTimeout(runChat, 100);
+      } else if (q) {
         sessionStorage.setItem("odteai_pending_first_question", q);
-        $("firstQuestionInput").value = "";
+        location.hash = "#/app";
+        openPanel("panelChat");
+      } else {
+        location.hash = "#/app";
+        openPanel("panelChat");
       }
-      location.hash = "#/chat";
     }
 
     function clearChat() {
