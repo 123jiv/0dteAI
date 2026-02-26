@@ -186,14 +186,23 @@ def screener(
         except Exception as e:
             print("Screener skipping %s: %s" % (sym, e))
 
-    # If no contracts passed strict filters, retry with relaxed filters so something shows
+    # If no contracts passed strict filters, retry with very relaxed filters (min vol 0, max spread 99%)
     if not all_rows:
         for sym in symbols:
             try:
-                rows = build_screener_rows(sym, min_volume=100, max_spread_pct=50.0, timeframe=timeframe)
+                rows = build_screener_rows(sym, min_volume=0, max_spread_pct=99.0, timeframe=timeframe)
                 all_rows.extend(rows)
             except Exception as e:
                 print("Screener fallback skip %s: %s" % (sym, e))
+
+    # If still empty (e.g. same-day expiry has no data outside market hours), try 1-5 day expirations
+    if not all_rows:
+        for sym in symbols:
+            try:
+                rows = build_screener_rows(sym, min_volume=0, max_spread_pct=99.0, timeframe="1-5d")
+                all_rows.extend(rows)
+            except Exception as e:
+                print("Screener 1-5d fallback skip %s: %s" % (sym, e))
 
     if not all_rows:
         return {"rows": [], "tickers": symbols}

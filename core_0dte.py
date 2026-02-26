@@ -113,8 +113,10 @@ def _get_expirations_for_timeframe(ticker: yf.Ticker, timeframe: str) -> List[st
     if timeframe == "intraday":
         exact = [e for e in future if dt.date.fromisoformat(e) == today]
         if exact:
-            return exact
-        return future[:1]
+            # Try today plus next 2 expirations so we have a fallback if same-day is empty (e.g. outside market hours)
+            result = exact + [e for e in future if e not in exact][:2]
+            return result[:3]
+        return future[:3]
 
     if timeframe == "1-5d":
         candidates = [e for e in future if 1 <= days_out(e) <= 5]
