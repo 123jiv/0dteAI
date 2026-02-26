@@ -683,8 +683,7 @@
           <div class="auth-card-header">
             <div class="auth-title">Welcome to 0dteAI</div>
             <div class="auth-subtitle">
-              Sign in like you would on ChatGPT — quick social buttons plus email.
-              Behind the scenes this is a single shared app password for your private access.
+              Sign in with Google or use your app password for private access.
             </div>
           </div>
 
@@ -696,29 +695,6 @@
           </div>
 
           <div class="auth-divider">
-            <span></span>
-            <span class="label">or</span>
-            <span></span>
-          </div>
-
-          <div class="input-row" style="margin-bottom:8px;">
-            <div class="field" style="flex: 2 1 220px;">
-              <span class="field-label">Email</span>
-              <input id="signupEmail" class="pill-input" type="email" placeholder="you@example.com">
-            </div>
-            <div class="field" style="flex: 1 1 160px;">
-              <span class="field-label">Name (optional)</span>
-              <input id="signupName" class="pill-input" type="text" placeholder="Your name">
-            </div>
-            <div class="btn-row">
-              <button id="signupBtn" class="btn secondary" type="button" onclick="submitEmailSignup()">
-                <span id="signupBtnLabel">Continue with email</span>
-              </button>
-            </div>
-          </div>
-          <div id="signupStatus" class="status-line" style="margin-top:4px;"></div>
-
-          <div class="auth-divider" style="margin-top:14px; margin-bottom:10px;">
             <span></span>
             <span class="label">or enter app password</span>
             <span></span>
@@ -1125,66 +1101,7 @@
     }
 
     function continueWithGoogle() {
-      // Full Google OAuth handled on the backend; this just kicks off the flow.
       window.location.href = "/auth/google/start";
-    }
-
-    function socialNotImplemented(provider) {
-      const statusEl = $("signupStatus") || $("loginStatus");
-      if (statusEl) {
-        statusEl.textContent = provider + " sign-in isn't configured yet. Use email or the app password below.";
-        statusEl.classList.add("error");
-      } else {
-        alert(provider + " sign-in isn't configured yet. Use email or the app password.");
-      }
-    }
-
-    async function submitEmailSignup() {
-      const email = ($("signupEmail") && $("signupEmail").value || "").trim();
-      const name = ($("signupName") && $("signupName").value || "").trim();
-      const statusEl = $("signupStatus");
-      const btn = $("signupBtn");
-      const btnLabel = $("signupBtnLabel");
-
-      if (!email || !email.includes("@")) {
-        if (statusEl) {
-          statusEl.textContent = "Enter a valid email to continue.";
-          statusEl.classList.add("error");
-        }
-        return;
-      }
-
-      if (statusEl) {
-        statusEl.textContent = "Sending email…";
-        statusEl.classList.remove("error");
-      }
-      if (btn) btn.disabled = true;
-      if (btnLabel) btnLabel.textContent = "Sending…";
-
-      try {
-        const res = await fetch("/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email, name: name || null }),
-        });
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || ("HTTP " + res.status));
-        }
-        if (statusEl) {
-          statusEl.textContent = "Check your inbox. You can now use the app password below to sign in.";
-          statusEl.classList.remove("error");
-        }
-      } catch (err) {
-        if (statusEl) {
-          statusEl.textContent = "Signup email failed. Please try again or use the app password.";
-          statusEl.classList.add("error");
-        }
-        console.error(err);
-      } finally {
-        if (btn) btn.disabled = false;
-        if (btnLabel) btnLabel.textContent = "Continue with email";
-      }
     }
 
     async function doLogin() {

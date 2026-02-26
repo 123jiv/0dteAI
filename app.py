@@ -34,42 +34,6 @@ app.add_middleware(
 )
 
 
-# ---------- Resend email helper ----------
-
-
-def _send_resend_email(
-    to: List[str],
-    subject: str,
-    html: str,
-    text: Optional[str] = None,
-) -> None:
-    api_key = os.getenv("RESEND_API_KEY", "").strip()
-    from_email = os.getenv("RESEND_FROM_EMAIL", "").strip()
-    if not api_key or not from_email:
-        raise RuntimeError("RESEND_API_KEY or RESEND_FROM_EMAIL not set")
-
-    payload: Dict[str, Any] = {
-        "from": from_email,
-        "to": to,
-        "subject": subject,
-        "html": html,
-    }
-    if text:
-        payload["text"] = text
-
-    resp = requests.post(
-        "https://api.resend.com/emails",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        json=payload,
-        timeout=10,
-    )
-    if resp.status_code >= 400:
-        raise RuntimeError(f"Resend error {resp.status_code}: {resp.text}")
-
-
 def _get_google_oauth_config() -> Dict[str, str]:
     client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
     client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
@@ -167,11 +131,6 @@ def _require_auth(authorization: Optional[str]):
 class LoginRequest(BaseModel):
     username: str = "user"
     password: str
-
-
-class SignupRequest(BaseModel):
-    email: str
-    name: Optional[str] = None
 
 
 @app.post("/auth/login")
@@ -286,48 +245,6 @@ def auth_google_callback(code: Optional[str] = None, error: Optional[str] = None
 </html>
     """.strip()
     return HTMLResponse(content=html)
-
-
-@app.post("/signup")
-def signup(req: SignupRequest):
-    """
-    Lightweight email capture that triggers Resend emails.
-    Sends a short welcome email to the user and a notification to the owner.
-    """
-    email = (req.email or "").strip()
-    if not email or "@" not in email:
-        raise HTTPException(status_code=400, detail="Valid email is required")
-
-    admin_email = os.getenv("RESEND_ADMIN_EMAIL", "").strip() or None
-
-    try:
-        # User-facing email
-        user_subject = "Welcome to 0dteAI"
-        user_html = (
-            "<p>Thanks for signing up for 0dteAI.</p>"
-            "<p>This tool is educational only and not trading advice. "
-            "You can access it any time using your app password.</p>"
-        )
-        _send_resend_email(
-            [email],
-            user_subject,
-            user_html,
-            text="Thanks for signing up for 0dteAI. Educational only — not trading advice.",
-        )
-
-        # Internal notification
-        if admin_email:
-            owner_subject = "New 0dteAI signup"
-            name_part = f"Name: {req.name}\n" if req.name else ""
-            owner_text = f"New signup email: {email}\n{name_part}"
-            owner_html = f"<p>New signup email: {email}</p>"
-            if req.name:
-                owner_html += f"<p>Name: {req.name}</p>"
-            _send_resend_email([admin_email], owner_subject, owner_html, text=owner_text)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    return {"ok": True}
 
 
 @app.get("/auth/me")
