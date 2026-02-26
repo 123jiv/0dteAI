@@ -4,79 +4,101 @@
   <meta charset="utf-8">
   <title>0dteAI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
+    /* ========== COLOR SYSTEM (DARK BLUE FINTECH) ========== */
     :root {
+      --bg-gradient: linear-gradient(135deg, #0a192f 0%, #0f172a 50%, #111827 100%);
+      --container-bg: #0f1b2d;
+      --user-bubble: #1d4ed8;
+      --ai-bubble: #1e293b;
+      --text-primary: #e6f1ff;
+      --text-secondary: #93c5fd;
       --accent: #3b82f6;
       --accent-hover: #2563eb;
-      --text: #e2e8f0;
-      --text-muted: #94a3b8;
-      --border: #334155;
+      --border: rgba(59, 130, 246, 0.15);
       --danger: #f97373;
       --good: #22c55e;
+      --radius: 14px;
+      --radius-lg: 16px;
+      --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.12);
+      --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
     * { box-sizing: border-box; }
 
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
-      color: var(--text);
-      min-height: 100vh;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
       display: flex;
       flex-direction: column;
+      min-height: 100vh;
     }
 
     .app {
       flex: 1;
       display: flex;
       flex-direction: column;
-      max-width: 1120px;
+      max-width: 850px;
       margin: 0 auto;
-      padding: 16px 16px 20px;
+      width: 100%;
+      padding: 16px 20px 24px;
       min-height: 0;
     }
 
+    /* ---------- Header ---------- */
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(30, 64, 175, 0.5);
-      margin-bottom: 12px;
-      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--radius-lg);
+      background: var(--container-bg);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      gap: 12px;
       flex-wrap: wrap;
+      box-shadow: var(--shadow-soft);
     }
 
     .header-main {
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      min-width: 220px;
+      gap: 4px;
+      min-width: 200px;
     }
 
     .app-title {
       font-size: 18px;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
     }
 
     .app-subtitle {
       font-size: 12px;
-      color: var(--text-muted);
+      color: var(--text-secondary);
+      line-height: 1.4;
     }
 
     .tag {
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 2px 8px;
+      letter-spacing: 0.1em;
+      padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      color: var(--text-muted);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
       white-space: nowrap;
     }
 
@@ -89,268 +111,452 @@
 
     .nav a, .nav button {
       border: 1px solid var(--border);
-      background: rgba(2, 6, 23, 0.6);
-      color: var(--text);
-      padding: 6px 10px;
+      background: rgba(15, 27, 45, 0.8);
+      color: var(--text-primary);
+      padding: 8px 14px;
       border-radius: 999px;
       font-size: 12px;
+      font-weight: 500;
       cursor: pointer;
       text-decoration: none;
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .nav a:hover, .nav button:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
     }
 
     .nav a.active {
-      border-color: rgba(59, 130, 246, 0.75);
-      background: rgba(59, 130, 246, 0.16);
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.18);
+      box-shadow: var(--shadow-glow);
     }
 
-    .page { display: none; min-height: 0; }
-    .page.active { display: block; }
+    /* ---------- Pages ---------- */
+    .page { display: none; min-height: 0; flex: 1; flex-direction: column; }
+    .page.active { display: flex; flex-direction: column; }
 
     .card {
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.95);
+      border-radius: var(--radius-lg);
+      background: var(--container-bg);
       border: 1px solid var(--border);
-      padding: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow-soft);
     }
 
     .hint {
       font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.4;
+      color: var(--text-secondary);
+      line-height: 1.5;
     }
 
+    /* ---------- Forms & inputs ---------- */
     .input-shell {
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.95);
+      border-radius: var(--radius-lg);
+      background: var(--container-bg);
       border: 1px solid var(--border);
-      padding: 12px 12px 10px;
-      margin-bottom: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-soft);
     }
 
     .input-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       align-items: flex-end;
     }
 
     .field {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      min-width: 180px;
-      flex: 1 1 220px;
+      gap: 6px;
+      min-width: 160px;
+      flex: 1 1 200px;
     }
 
     .field-label {
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--text-muted);
+      color: var(--text-secondary);
+      font-weight: 500;
     }
 
     .pill-input {
-      border-radius: 999px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
-      background: #020617;
-      color: var(--text);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-primary);
       font-size: 13px;
-      padding: 8px 14px;
+      padding: 10px 14px;
       outline: none;
       width: 100%;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .pill-input::placeholder { color: #64748b; }
+    .pill-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
 
     .pill-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
     }
 
-    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
 
     .chip {
-      padding: 6px 12px;
-      border-radius: 999px;
+      padding: 8px 14px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
-      background: #020617;
+      background: rgba(15, 23, 42, 0.6);
       font-size: 12px;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
       user-select: none;
-      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+      transition: all 0.2s ease;
     }
 
-    .chip:hover { border-color: rgba(148, 163, 184, 0.9); }
+    .chip:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      color: var(--text-primary);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+    }
+
     .chip.active {
       border-color: var(--accent);
-      background: rgba(59, 130, 246, 0.18);
-      color: var(--text);
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-glow);
     }
 
-    .btn-row { display: flex; gap: 8px; align-items: flex-end; }
+    .btn-row { display: flex; gap: 10px; align-items: flex-end; }
 
     .btn {
-      border-radius: 999px;
+      border-radius: var(--radius);
       border: none;
-      padding: 8px 18px;
+      padding: 10px 18px;
       background: var(--accent);
-      color: #eff6ff;
+      color: #fff;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 130px;
-      transition: background 0.12s ease, transform 0.05s ease;
+      min-width: 120px;
+      transition: background 0.2s ease, transform 0.05s ease, box-shadow 0.2s ease;
       white-space: nowrap;
+    }
+
+    .btn:hover:not([disabled]) {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.35);
     }
 
     .btn.secondary {
       background: transparent;
       border: 1px solid var(--border);
-      color: var(--text);
-      min-width: 120px;
+      color: var(--text-primary);
+      min-width: 110px;
     }
 
-    .btn:hover:not([disabled]) { background: var(--accent-hover); transform: translateY(-1px); }
-    .btn.secondary:hover:not([disabled]) { background: rgba(15, 23, 42, 0.9); }
-    .btn:active:not([disabled]) { transform: translateY(0); }
-    .btn[disabled] { opacity: 0.6; cursor: default; transform: none; }
+    .btn.secondary:hover:not([disabled]) {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+    }
 
-    .status-line { margin-top: 6px; font-size: 11px; color: var(--text-muted); min-height: 14px; }
+    .btn:active:not([disabled]) { transform: translateY(0); }
+    .btn[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .status-line {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      min-height: 16px;
+    }
     .status-line.error { color: var(--danger); }
 
+    /* ---------- Message list (scrollable, ChatGPT-style) ---------- */
+    .conversation {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 0;
+      overflow-y: auto;
+      min-height: 0;
+      max-height: calc(100vh - 280px);
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      animation: messageIn 0.2s ease-out;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-left: 4px;
+    }
+
+    .message-card {
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .message.user .message-card {
+      background: var(--user-bubble);
+      color: var(--text-primary);
+      margin-left: 0;
+      margin-right: 24px;
+    }
+
+    .message.assistant .message-card,
+    .message.analysis .message-card {
+      background: var(--ai-bubble);
+      color: var(--text-primary);
+      margin-left: 24px;
+      margin-right: 0;
+    }
+
+    .message.error .message-card {
+      background: rgba(249, 115, 115, 0.15);
+      border-color: rgba(249, 115, 115, 0.3);
+    }
+
+    /* ---------- Typing indicator ---------- */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 16px;
+      margin-left: 24px;
+      margin-right: 0;
+      border-radius: var(--radius-lg);
+      background: var(--ai-bubble);
+      border: 1px solid var(--border);
+      width: fit-content;
+      animation: messageIn 0.2s ease-out;
+    }
+
+    .typing-indicator span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      animation: typingDot 1.2s ease-in-out infinite;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes typingDot {
+      0%, 60%, 100% { opacity: 0.4; transform: scale(0.9); }
+      30% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ---------- Main body (analysis + screener) ---------- */
     .main-body {
       display: flex;
-      gap: 12px;
+      gap: 14px;
       align-items: flex-start;
       min-height: 0;
     }
 
-    .conversation {
-      flex: 1.2;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 10px 4px 0;
-      overflow-y: auto;
-      border-radius: 14px;
-      min-height: 0;
-      max-height: calc(100vh - 260px);
-    }
-
-    .message { display: flex; flex-direction: column; gap: 4px; }
-    .message-meta { font-size: 11px; color: var(--text-muted); margin-left: 4px; margin-bottom: 2px; }
-
-    .message-card {
-      border-radius: 14px;
-      background: rgba(15, 23, 42, 0.96);
-      border: 1px solid var(--border);
-      padding: 10px 14px;
-      font-size: 13px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
     .screener-shell {
       flex: 1;
-      border-radius: 14px;
-      background: rgba(15, 23, 42, 0.96);
+      border-radius: var(--radius-lg);
+      background: var(--container-bg);
       border: 1px solid var(--border);
-      padding: 10px 12px 12px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
       min-width: 260px;
-      max-height: calc(100vh - 260px);
+      max-height: calc(100vh - 280px);
       min-height: 0;
+      box-shadow: var(--shadow-soft);
     }
 
-    .screener-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
-    .screener-title { font-size: 13px; font-weight: 500; }
-    .screener-subtitle { font-size: 11px; color: var(--text-muted); }
+    .screener-header { margin-bottom: 8px; }
+    .screener-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .screener-subtitle { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
     .screener-controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
-    .screener-control { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
+    .screener-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
 
     .screener-number {
-      width: 70px;
-      border-radius: 999px;
+      width: 72px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
-      background: #020617;
-      color: var(--text);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-primary);
       font-size: 11px;
-      padding: 4px 8px;
+      padding: 6px 8px;
       outline: none;
     }
 
     .screener-number:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
 
-    .screener-summary { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .screener-summary { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
 
     .screener-table-wrap {
       flex: 1;
       overflow: auto;
-      border-radius: 10px;
-      border: 1px solid rgba(51, 65, 85, 0.9);
-      background: rgba(15, 23, 42, 0.9);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.5);
       min-height: 0;
     }
 
     table { border-collapse: collapse; width: 100%; font-size: 11px; min-width: 680px; }
-    thead { background: rgba(15, 23, 42, 0.98); position: sticky; top: 0; z-index: 1; }
-    th, td { padding: 4px 6px; border-bottom: 1px solid rgba(30, 41, 59, 0.9); text-align: right; white-space: nowrap; }
-    th:first-child, td:first-child { text-align: left; padding-left: 8px; }
-    th { font-weight: 500; color: var(--text-muted); }
-    tbody tr:hover { background: rgba(30, 64, 175, 0.25); }
+    thead { background: var(--container-bg); position: sticky; top: 0; z-index: 1; }
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+      white-space: nowrap;
+    }
+    th:first-child, td:first-child { text-align: left; padding-left: 10px; }
+    th { font-weight: 500; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    tbody tr:hover { background: rgba(59, 130, 246, 0.08); }
 
     .row-itm {
-      background: rgba(34, 197, 94, 0.10);
-      box-shadow: inset 2px 0 0 rgba(34, 197, 94, 0.55);
+      background: rgba(34, 197, 94, 0.08);
+      box-shadow: inset 3px 0 0 rgba(34, 197, 94, 0.5);
     }
+
+    /* ---------- Signal Engine ---------- */
+    .signals-engine {
+      border-radius: var(--radius-lg);
+      background: var(--container-bg);
+      border: 1px solid var(--border);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-soft);
+    }
+    .signals-engine-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .signals-engine-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .signals-engine-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .signal-hero {
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(29, 78, 216, 0.25) 0%, rgba(30, 41, 59, 0.6) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .signal-hero-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 4px; }
+    .signal-hero-headline { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .signal-hero-meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+    .signal-hero-reason { font-size: 12px; color: var(--text-primary); line-height: 1.45; }
+    .signals-list { display: flex; flex-direction: column; gap: 8px; }
+    .signal-card {
+      border-radius: var(--radius);
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .signal-rank {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .signal-card-body { flex: 1; min-width: 0; }
+    .signal-card-headline { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .signal-card-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+    .signal-card-reason { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+    .signals-engine .hint.error { color: var(--danger); }
 
     .footer-note {
       font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 10px;
+      color: var(--text-secondary);
+      margin-top: 14px;
       text-align: center;
     }
 
     .login-wrap {
-      max-width: 560px;
-      margin: 28px auto 0;
+      max-width: 480px;
+      margin: 32px auto 0;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .chat-shell {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      flex: 1;
       min-height: 0;
     }
 
     .chat-input-shell {
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.95);
+      border-radius: var(--radius-lg);
+      background: var(--container-bg);
       border: 1px solid var(--border);
-      padding: 10px 12px;
+      padding: 12px 14px;
+      margin-top: auto;
+      position: sticky;
+      bottom: 0;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
     }
 
-    .chat-row { display: flex; gap: 10px; align-items: center; }
+    .chat-row { display: flex; gap: 12px; align-items: center; }
+
+    .chat-row .pill-input {
+      flex: 1;
+      min-width: 0;
+    }
 
     @media (max-width: 900px) {
       .main-body { flex-direction: column; }
@@ -360,7 +566,8 @@
     }
 
     @media (max-width: 640px) {
-      .app { padding: 10px; }
+      .app { padding: 12px 14px; }
+      .header { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -371,7 +578,6 @@
         <div class="app-title">0dteAI</div>
         <div class="app-subtitle">Intraday 0DTE and multi-horizon options / price scenarios. Educational only — not trading advice.</div>
       </div>
-
       <div class="nav">
         <a href="#/app" id="navApp">Analysis</a>
         <a href="#/chat" id="navChat">Chat</a>
@@ -384,18 +590,16 @@
     <div id="pageLogin" class="page">
       <div class="login-wrap">
         <div class="card">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
             <div>
-              <div style="font-size:14px; font-weight:600; margin-bottom:4px;">Login</div>
+              <div style="font-size:15px; font-weight:600; margin-bottom:6px;">Login</div>
               <div class="hint">Enter your app password to access analysis, screener, and chat.</div>
             </div>
             <span class="tag">Private</span>
           </div>
-
-          <div style="height:10px;"></div>
-
+          <div style="height:14px;"></div>
           <div class="input-row">
-            <div class="field" style="flex: 2 1 280px;">
+            <div class="field" style="flex: 2 1 260px;">
               <span class="field-label">Password</span>
               <input id="loginPassword" class="pill-input" type="password" placeholder="APP_PASSWORD">
             </div>
@@ -403,24 +607,35 @@
               <button id="loginBtn" class="btn" onclick="doLogin()"><span id="loginBtnLabel">Login</span></button>
             </div>
           </div>
-
-          <div id="loginStatus" class="status-line" style="margin-top:10px;"></div>
-          <div class="hint" style="margin-top:8px;">
-            Render env vars needed: <span class="tag">APP_PASSWORD</span> and <span class="tag">APP_SECRET</span>.
+          <div id="loginStatus" class="status-line" style="margin-top:12px;"></div>
+          <div class="hint" style="margin-top:10px;">
+            Render env vars: <span class="tag">APP_PASSWORD</span> and <span class="tag">APP_SECRET</span>.
           </div>
         </div>
       </div>
     </div>
 
-    <!-- APP -->
+    <!-- APP (Analysis) -->
     <div id="pageApp" class="page">
+      <div class="signals-engine" id="signalsEngine">
+        <div class="signals-engine-header">
+          <div>
+            <div class="signals-engine-title">Live 0DTE signals</div>
+            <div class="signals-engine-sub">Top setups of the day — AI-ranked</div>
+          </div>
+          <button type="button" id="refreshSignalsBtn" class="btn secondary" onclick="fetchSignals()"><span id="refreshSignalsLabel">Refresh signals</span></button>
+        </div>
+        <div id="signalHero" class="signal-hero" style="display:none;"></div>
+        <div id="signalsList" class="signals-list"></div>
+        <div id="signalsPlaceholder" class="hint" style="padding:8px 0;">Click Refresh to load the highest-probability 0DTE setups right now.</div>
+      </div>
+
       <div class="input-shell">
         <div class="input-row">
           <div class="field">
             <span class="field-label">Tickers</span>
             <input id="tickers" class="pill-input" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
           </div>
-
           <div class="field">
             <span class="field-label">Focus</span>
             <div class="chip-row">
@@ -429,7 +644,6 @@
               <div class="chip" data-focus="puts">Puts only</div>
             </div>
           </div>
-
           <div class="field">
             <span class="field-label">Risk style</span>
             <div class="chip-row">
@@ -438,7 +652,6 @@
               <div class="chip" data-style="aggressive">Aggressive</div>
             </div>
           </div>
-
           <div class="field">
             <span class="field-label">Timeframe</span>
             <div class="chip-row">
@@ -448,34 +661,26 @@
               <div class="chip" data-timeframe="long-term">Long-term</div>
             </div>
           </div>
-
           <div class="btn-row">
             <button id="runBtn" class="btn" onclick="runAnalysis()"><span id="btnLabel">Run analysis</span></button>
             <button id="screenerBtn" class="btn secondary" onclick="runScreener()"><span id="screenerBtnLabel">Run screener</span></button>
           </div>
         </div>
-
         <div id="status" class="status-line"></div>
       </div>
 
-      <div class="card" id="confidenceCard" style="margin-bottom:12px; display:none;">
-        <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Confidence &amp; simple backtest</div>
-        <div id="confidenceBody" class="hint">
-          Run an analysis to see confidence scores and rough historical follow-through stats.
-        </div>
+      <div class="card" id="confidenceCard" style="margin-bottom:14px; display:none;">
+        <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Confidence &amp; simple backtest</div>
+        <div id="confidenceBody" class="hint">Run an analysis to see confidence scores and rough historical follow-through stats.</div>
       </div>
 
       <div class="main-body">
         <div id="conversation" class="conversation"></div>
-
         <div class="screener-shell">
           <div class="screener-header">
-            <div>
-              <div class="screener-title">0DTE Screener</div>
-              <div class="screener-subtitle">ITM rows are highlighted. Greeks are approximate/educational.</div>
-            </div>
+            <div class="screener-title">0DTE Screener</div>
+            <div class="screener-subtitle">ITM rows highlighted. Greeks approximate/educational.</div>
           </div>
-
           <div class="screener-controls">
             <div class="screener-control">
               <span>Min vol</span>
@@ -486,9 +691,7 @@
               <input id="maxSpreadInput" class="screener-number" type="number" value="25" min="0" step="1">
             </div>
           </div>
-
           <div id="screenerSummary" class="screener-summary">No screener results yet. Click “Run screener”.</div>
-
           <div class="screener-table-wrap">
             <table>
               <thead>
@@ -512,21 +715,21 @@
                 </tr>
               </thead>
               <tbody id="screenerBody">
-                <tr><td colspan="16" style="text-align:center; padding:8px;">No data.</td></tr>
+                <tr><td colspan="16" style="text-align:center; padding:10px;">No data.</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <div class="card" style="margin-top:12px;">
-        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-          <div style="min-width:260px; flex:1;">
-            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Ask a question (opens Chat page)</div>
-            <div class="hint">To keep this page clean, full chat lives on its own page.</div>
+      <div class="card" style="margin-top:14px;">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div style="min-width:220px; flex:1;">
+            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Ask a question (opens Chat)</div>
+            <div class="hint">Full chat lives on its own page.</div>
           </div>
-          <div style="flex:2; min-width:260px; display:flex; gap:10px; align-items:center;">
-            <input id="firstQuestionInput" class="pill-input" style="flex:1;" placeholder="Example: What’s the cleanest call setup if SPY holds above VWAP?">
+          <div style="flex:2; min-width:220px; display:flex; gap:10px; align-items:center;">
+            <input id="firstQuestionInput" class="pill-input" style="flex:1;" placeholder="e.g. Cleanest call setup if SPY holds above VWAP?">
             <button id="enterChatBtn" class="btn secondary" onclick="enterChatFromFirstQuestion()">Ask in chat</button>
           </div>
         </div>
@@ -535,34 +738,36 @@
 
     <!-- CHAT -->
     <div id="pageChat" class="page">
-      <div class="chat-shell">
-        <div class="card">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-            <div>
-              <div style="font-size:14px; font-weight:600; margin-bottom:4px;">Chat</div>
-              <div class="hint">Each message uses a fresh snapshot. You can ask about intraday, swing, or longer-term scenarios — but everything is uncertain and options can go to zero.</div>
-            </div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn secondary" style="min-width:110px;" onclick="clearChat()">Clear</button>
-              <button class="btn" style="min-width:110px;" onclick="location.hash = '#/app'">Back</button>
-            </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:14px; font-weight:600; margin-bottom:4px;">Chat</div>
+            <div class="hint">Fresh snapshot per message. Intraday, swing, or longer-term — all uncertain; options can go to zero.</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn secondary" style="min-width:100px;" onclick="clearChat()">Clear</button>
+            <button class="btn" style="min-width:100px;" onclick="location.hash = '#/app'">Back</button>
           </div>
         </div>
+      </div>
 
-        <div id="chatConversation" class="conversation"></div>
+      <div id="chatConversation" class="conversation"></div>
 
-        <div class="chat-input-shell">
-          <div class="chat-row">
-            <input id="chatInput" class="pill-input" placeholder="Ask a follow-up question...">
-            <button id="chatBtn" class="btn" style="min-width:120px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
-          </div>
-          <div id="chatStatus" class="status-line"></div>
+      <div id="typingIndicator" class="typing-indicator" style="display:none;">
+        <span></span><span></span><span></span>
+      </div>
+
+      <div class="chat-input-shell">
+        <div class="chat-row">
+          <input id="chatInput" class="pill-input" placeholder="Ask a follow-up question..." autocomplete="off">
+          <button id="chatBtn" class="btn" style="min-width:110px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
         </div>
+        <div id="chatStatus" class="status-line"></div>
       </div>
     </div>
 
     <div class="footer-note">
-      Educational only — not trading advice. Screener/Greeks are approximate. 0DTE options can go to zero.
+      Educational only — not trading advice. Screener/Greeks approximate. 0DTE options can go to zero.
     </div>
   </div>
 
@@ -623,7 +828,6 @@
     async function route() {
       const hash = location.hash || "#/login";
       const path = hash.replace("#", "") || "/login";
-
       $("logoutBtn").onclick = logout;
 
       const authed = await authCheck();
@@ -633,7 +837,6 @@
         return;
       }
 
-      // restore chat history
       try {
         const saved = localStorage.getItem("odteai_chat_history");
         chatHistory = saved ? (JSON.parse(saved) || []) : [];
@@ -644,20 +847,18 @@
       if (path === "/chat") {
         setNavActive("/chat");
         showPage("pageChat");
-
-        // If we have a pending first question, auto-send it
         const pending = sessionStorage.getItem("odteai_pending_first_question");
         if (pending) {
           $("chatInput").value = pending;
           sessionStorage.removeItem("odteai_pending_first_question");
           setTimeout(runChat, 50);
         }
-
         return;
       }
 
       setNavActive("/app");
       showPage("pageApp");
+      fetchSignals();
     }
 
     window.addEventListener("hashchange", route);
@@ -688,17 +889,16 @@
     }
     setupChips();
 
-    function appendMessage(metaText, text, targetId) {
+    function appendMessage(metaText, text, targetId, role) {
       const convo = $(targetId);
-
       const msg = document.createElement("div");
-      msg.className = "message";
+      msg.className = "message " + (role || "analysis");
 
       const meta = document.createElement("div");
       meta.className = "message-meta";
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      meta.textContent = `${timeStr} • ${metaText}`;
+      meta.textContent = timeStr + " • " + metaText;
       msg.appendChild(meta);
 
       const card = document.createElement("div");
@@ -710,14 +910,90 @@
       convo.scrollTop = convo.scrollHeight;
     }
 
-    function setStatus(text, isError=false) {
-      $("status").textContent = text || "";
-      $("status").classList.toggle("error", !!isError);
+    function showTypingIndicator(show) {
+      const el = $("typingIndicator");
+      if (el) el.style.display = show ? "flex" : "none";
+      const convo = $("chatConversation");
+      if (convo) convo.scrollTop = convo.scrollHeight;
     }
 
-    function setChatStatus(text, isError=false) {
-      $("chatStatus").textContent = text || "";
-      $("chatStatus").classList.toggle("error", !!isError);
+    function setStatus(text, isError) {
+      const el = $("status");
+      if (!el) return;
+      el.textContent = text || "";
+      el.classList.toggle("error", !!isError);
+    }
+
+    function setChatStatus(text, isError) {
+      const el = $("chatStatus");
+      if (!el) return;
+      el.textContent = text || "";
+      el.classList.toggle("error", !!isError);
+    }
+
+    function renderSignals(data) {
+      const hero = $("signalHero");
+      const list = $("signalsList");
+      const placeholder = $("signalsPlaceholder");
+      const signals = (data && data.signals) ? data.signals : [];
+      if (!signals.length) {
+        placeholder.style.display = "block";
+        placeholder.classList.remove("error");
+        placeholder.textContent = "Click Refresh to load the highest-probability 0DTE setups right now.";
+        hero.style.display = "none";
+        list.innerHTML = "";
+        return;
+      }
+      placeholder.style.display = "none";
+      placeholder.classList.remove("error");
+      const top = signals[0];
+      hero.style.display = "block";
+      hero.innerHTML =
+        "<div class=\"signal-hero-label\">Highest probability trade right now</div>" +
+        "<div class=\"signal-hero-headline\">" + (top.headline || "") + "</div>" +
+        "<div class=\"signal-hero-meta\">" + (top.ticker || "") + " " + (top.type || "") + " · Strike zone " + (top.strike_zone || "—") + "</div>" +
+        "<div class=\"signal-hero-reason\">" + (top.reason || "") + "</div>";
+      list.innerHTML = "";
+      signals.forEach(function(s, i) {
+        if (i === 0) return;
+        const card = document.createElement("div");
+        card.className = "signal-card";
+        card.innerHTML =
+          "<span class=\"signal-rank\">" + (s.rank || i + 1) + "</span>" +
+          "<div class=\"signal-card-body\">" +
+          "<div class=\"signal-card-headline\">" + (s.headline || "") + "</div>" +
+          "<div class=\"signal-card-meta\">" + (s.ticker || "") + " " + (s.type || "") + " · " + (s.strike_zone || "—") + "</div>" +
+          "<div class=\"signal-card-reason\">" + (s.reason || "") + "</div>" +
+          "</div>";
+        list.appendChild(card);
+      });
+    }
+
+    async function fetchSignals() {
+      const tickersValue = ($("tickers") && $("tickers").value) ? $("tickers").value : "SPY,QQQ,IWM";
+      const btn = $("refreshSignalsBtn");
+      const label = $("refreshSignalsLabel");
+      if (btn) { btn.disabled = true; }
+      if (label) { label.textContent = "Loading…"; }
+      try {
+        const params = new URLSearchParams({ tickers: tickersValue, limit: "3" });
+        const res = await fetch("/signals?" + params.toString(), { headers: apiHeaders() });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        const data = await res.json();
+        renderSignals(data);
+      } catch (err) {
+        renderSignals({});
+        if ($("signalsPlaceholder")) {
+          $("signalsPlaceholder").textContent = "Signals unavailable. Check API key and try again.";
+          $("signalsPlaceholder").classList.add("error");
+        }
+      } finally {
+        if (btn) { btn.disabled = false; }
+        if (label) { label.textContent = "Refresh signals"; }
+      }
     }
 
     async function doLogin() {
@@ -755,7 +1031,7 @@
       }
     }
 
-    function fmtNumber(value, digits = 2) {
+    function fmtNumber(value, digits) {
       if (value === null || value === undefined || Number.isNaN(Number(value))) return "-";
       return Number(value).toFixed(digits);
     }
@@ -776,23 +1052,17 @@
         card.style.display = "block";
         return;
       }
-
       const lines = [];
       keys.forEach(sym => {
         const m = confidence[sym] || {};
-        const conf = m.confidence_score !== undefined ? `${m.confidence_score}%` : "n/a";
-        const win = m.expected_win_prob_pct !== undefined ? `${m.expected_win_prob_pct}%` : "n/a";
-        const trend = m.trend_pct_90d !== undefined ? `${m.trend_pct_90d}%` : "n/a";
-        const vol = m.vol_annual_pct !== undefined ? `${m.vol_annual_pct}%` : "n/a";
+        const conf = m.confidence_score !== undefined ? m.confidence_score + "%" : "n/a";
+        const win = m.expected_win_prob_pct !== undefined ? m.expected_win_prob_pct + "%" : "n/a";
+        const trend = m.trend_pct_90d !== undefined ? m.trend_pct_90d + "%" : "n/a";
+        const vol = m.vol_annual_pct !== undefined ? m.vol_annual_pct + "%" : "n/a";
         const samples = m.sample_trades !== undefined ? m.sample_trades : "n/a";
         const pattern = m.pattern || "mixed days";
-
-        lines.push(
-          `${sym}: confidence ${conf}, expected win ~${win} (pattern ${pattern}, ` +
-          `${samples} sample days, 90d trend ${trend}, realized vol ~${vol}).`
-        );
+        lines.push(sym + ": confidence " + conf + ", expected win ~" + win + " (pattern " + pattern + ", " + samples + " sample days, 90d trend " + trend + ", realized vol ~" + vol + ").");
       });
-
       body.textContent = lines.join(" ");
       card.style.display = "block";
     }
@@ -806,7 +1076,7 @@
         const td = document.createElement("td");
         td.colSpan = 16;
         td.style.textAlign = "center";
-        td.style.padding = "8px";
+        td.style.padding = "10px";
         td.textContent = "No contracts passed the current filters.";
         tr.appendChild(td);
         tbody.appendChild(tr);
@@ -815,24 +1085,19 @@
 
       rows.forEach(row => {
         const tr = document.createElement("tr");
-
         const symbol = row.symbol || row.ticker || row.underlying || "";
         const type = (row.type || row.option_type || row.side || "").toUpperCase();
         const expiration = row.expiration || row.exp || row.Expiry || row.expiry || "";
         const strike = row.strike !== undefined ? row.strike : row.Strike;
-
         const last = row.last !== undefined ? row.last : (row.lastPrice ?? row.Last);
         const bid = row.bid !== undefined ? row.bid : (row.Bid ?? row.bestBid);
         const ask = row.ask !== undefined ? row.ask : (row.Ask ?? row.bestAsk);
         const spreadPct = row.spread_pct !== undefined ? row.spread_pct : (row.spreadPct ?? row.spread_percent);
-
         const vol = row.volume !== undefined ? row.volume : (row.vol ?? row.Volume);
         const oi = row.open_interest !== undefined ? row.open_interest : (row.oi ?? row.openInterest ?? row.OI);
-
         const moneyness = row.moneyness_pct !== undefined ? row.moneyness_pct : (row.moneyness ?? row.moneynessPercent);
         const isItm = (moneyness !== undefined && moneyness !== null && Number(moneyness) > 0);
         if (isItm) tr.classList.add("row-itm");
-
         const delta = row.delta ?? row.Delta;
         const gamma = row.gamma ?? row.Gamma;
         const theta = row.theta ?? row.Theta;
@@ -863,7 +1128,6 @@
           td.textContent = val;
           tr.appendChild(td);
         });
-
         tbody.appendChild(tr);
       });
     }
@@ -884,7 +1148,7 @@
           style: currentStyle,
           timeframe: currentTimeframe,
         });
-        const res = await fetch(`/analyze?${params.toString()}`, { headers: apiHeaders() });
+        const res = await fetch("/analyze?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || ("HTTP " + res.status));
@@ -892,26 +1156,24 @@
         const data = await res.json();
         const outText = data.analysis_markdown || JSON.stringify(data, null, 2);
         appendMessage(
-          `${tickersValue} • focus: ${currentFocus}, style: ${currentStyle}, tf: ${currentTimeframe}`,
+          tickersValue + " • focus: " + currentFocus + ", style: " + currentStyle + ", tf: " + currentTimeframe,
           outText,
-          "conversation"
+          "conversation",
+          "analysis"
         );
         setStatus("Analysis complete.");
 
-        if (data.confidence) {
-          renderConfidencePanel(data.confidence);
-        }
+        if (data.confidence) renderConfidencePanel(data.confidence);
 
-        // seed chat history with this analysis
         chatHistory.push({
           role: "user",
-          content: `Give me a fresh 0DTE analysis for ${tickersValue} with focus=${currentFocus} and style=${currentStyle}.`
+          content: "Give me a fresh 0DTE analysis for " + tickersValue + " with focus=" + currentFocus + " and style=" + currentStyle + "."
         });
         chatHistory.push({ role: "assistant", content: outText });
         localStorage.setItem("odteai_chat_history", JSON.stringify(chatHistory.slice(-30)));
       } catch (err) {
         setStatus("Request failed. See last message for details.", true);
-        appendMessage(`${tickersValue} • error`, String(err), "conversation");
+        appendMessage(tickersValue + " • error", String(err), "conversation", "error");
       } finally {
         btn.disabled = false;
         btnLabel.textContent = "Run analysis";
@@ -936,8 +1198,7 @@
           min_volume: String(minVol),
           max_spread_pct: String(maxSpread),
         });
-
-        const res = await fetch(`/screener?${params.toString()}`, { headers: apiHeaders() });
+        const res = await fetch("/screener?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || ("HTTP " + res.status));
@@ -945,9 +1206,8 @@
         const data = await res.json();
         const rows = normalizeContractsData(data);
         renderScreenerTable(rows);
-
         const count = rows.length || 0;
-        summaryEl.textContent = `${count} contract${count === 1 ? "" : "s"} found. ITM rows highlighted.`;
+        summaryEl.textContent = count + " contract" + (count === 1 ? "" : "s") + " found. ITM rows highlighted.";
         setStatus("Screener complete.");
       } catch (err) {
         setStatus("Screener request failed. Check filters or backend.", true);
@@ -975,18 +1235,21 @@
     }
 
     async function runChat() {
-      const tickersValue = $("tickers").value || "SPY,QQQ,IWM";
+      const tickersValue = ($("tickers") && $("tickers").value) ? $("tickers").value : "SPY,QQQ,IWM";
       const question = ($("chatInput").value || "").trim();
       if (!question) return;
 
       const btn = $("chatBtn");
       const btnLabel = $("chatBtnLabel");
+      const input = $("chatInput");
 
       setChatStatus("Sending...");
       btn.disabled = true;
       btnLabel.textContent = "Sending…";
+      appendMessage("you", question, "chatConversation", "user");
+      input.value = "";
 
-      appendMessage("you", question, "chatConversation");
+      showTypingIndicator(true);
 
       try {
         const body = {
@@ -1011,7 +1274,7 @@
 
         const data = await res.json();
         const answer = data.reply || JSON.stringify(data, null, 2);
-        appendMessage("assistant", answer, "chatConversation");
+        appendMessage("assistant", answer, "chatConversation", "assistant");
 
         chatHistory.push({ role: "user", content: question });
         chatHistory.push({ role: "assistant", content: answer });
@@ -1020,13 +1283,20 @@
         setChatStatus("Done.");
       } catch (err) {
         setChatStatus("Chat failed.", true);
-        appendMessage("error", String(err), "chatConversation");
+        appendMessage("error", String(err), "chatConversation", "error");
       } finally {
+        showTypingIndicator(false);
         btn.disabled = false;
         btnLabel.textContent = "Send";
-        $("chatInput").value = "";
       }
     }
+
+    $("chatInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        runChat();
+      }
+    });
   </script>
 </body>
 </html>

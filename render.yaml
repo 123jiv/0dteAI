@@ -1,0 +1,15 @@
+# Render Blueprint — 0dteAI
+# Deploy: connect repo at dashboard.render.com, or use "New > Blueprint"
+services:
+  - type: web
+    name: 0dteai
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
+      - key: APP_SECRET
+        sync: false

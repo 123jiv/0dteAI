@@ -17,6 +17,7 @@ from core_0dte import (
     fetch_0dte_snapshot,
     build_prompt,
     compute_confidence_for_symbols,
+    get_top_signals,
 )
 from openai import OpenAI
 
@@ -187,6 +188,32 @@ def screener(
 
     all_rows.sort(key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"])))
     return {"rows": all_rows, "tickers": symbols}
+
+
+@app.get("/signals")
+def signals(
+    tickers: str = "SPY,QQQ,IWM",
+    limit: int = 3,
+    authorization: Optional[str] = Header(default=None),
+):
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
+    _require_auth(authorization)
+
+    symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
+    if not symbols:
+        raise HTTPException(status_code=400, detail="No valid tickers provided")
+
+    try:
+        from datetime import datetime, timezone
+        signal_list = get_top_signals(symbols, limit=min(int(limit), 5))
+        return {
+            "signals": signal_list,
+            "tickers": symbols,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # -------- Chat API models --------

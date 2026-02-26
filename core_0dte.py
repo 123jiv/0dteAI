@@ -1,3 +1,4 @@
+import json
 import os
 import math
 import datetime as dt
@@ -525,3 +526,137 @@ def compute_confidence_for_symbols(symbols: List[str]) -> Dict[str, Any]:
         except Exception as e:
             print("Confidence metrics skipping %s: %s" % (sym, e))
     return out
+
+
+# ---------- Signal Engine: AI-ranked top 0DTE setups ----------
+
+SIGNALS_SYSTEM = (
+    "You are a 0DTE signal engine. Given live snapshot data, screener rows, and confidence metrics, "
+    "you pick the single best and top N 0DTE setups right now. You respond ONLY with valid JSON, no other text. "
+    "Educational only; not trading advice."
+)
+
+SIGNALS_OUTPUT_FORMAT = """
+Respond with a single JSON object of this exact shape (no markdown, no code fence):
+{
+  "signals": [
+    {
+      "rank": 1,
+      "ticker": "SPY",
+      "type": "CALL",
+      "strike_zone": "585-587",
+      "headline": "SPY 0DTE call — hold above VWAP",
+      "reason": "One short sentence why this is the best setup right now."
+    }
+  ]
+}
+- rank: 1 = highest probability, then 2, 3.
+- type: CALL or PUT.
+- strike_zone: approximate strike or range from the data.
+- headline: one short punchy line (like an alert).
+- reason: one sentence.
+Return exactly 1 to 3 signals, in order of probability. If data is thin, return fewer.
+"""
+
+
+def _build_signals_prompt(
+    snapshots: List[Dict[str, Any]],
+    screener_rows: List[Dict[str, Any]],
+    confidence: Dict[str, Any],
+) -> str:
+    lines = [
+        "Here is the current 0DTE snapshot and liquid contracts. Pick the top 1–3 setups RIGHT NOW.",
+        "",
+        "--- Snapshot summary ---",
+    ]
+    for snap in snapshots:
+        sym = snap["symbol"]
+        lines.append("%s: last=%.2f, exp=%s" % (sym, snap["last_price"], snap["expiration"]))
+        c = snap["intraday_last_candle"]
+        lines.append("  Last 5m: O=%.2f H=%.2f L=%.2f C=%.2f" % (c["open"], c["high"], c["low"], c["close"]))
+        conf = confidence.get(sym)
+        if conf:
+            lines.append("  Confidence: %.1f%%, expected win ~%.1f%%, pattern: %s" % (
+                conf.get("confidence_score", 0),
+                conf.get("expected_win_prob_pct", 0),
+                conf.get("pattern", "—"),
+            ))
+    lines.append("")
+    lines.append("--- Top liquid 0DTE contracts (from screener) ---")
+    for r in screener_rows[:24]:  # cap so prompt stays reasonable
+        lines.append(
+            "  %s %s strike=%.1f bid=%.2f ask=%.2f spread=%.1f%% vol=%s"
+            % (r["symbol"], r["type"], r["strike"], r["bid"], r["ask"], r["spread_pct"], r["volume"])
+        )
+    lines.append("")
+    lines.append(SIGNALS_OUTPUT_FORMAT)
+    return "\n".join(lines)
+
+
+def get_top_signals(symbols: List[str], limit: int = 3) -> List[Dict[str, Any]]:
+    """
+    Fetch snapshots, screener, and confidence; ask LLM for top N 0DTE setups.
+    Returns list of { rank, ticker, type, strike_zone, headline, reason }.
+    """
+    snapshots: List[Dict[str, Any]] = []
+    for sym in symbols:
+        try:
+            snapshots.append(fetch_0dte_snapshot(sym))
+        except Exception as e:
+            print("Signals snapshot skip %s: %s" % (sym, e))
+
+    if not snapshots:
+        return []
+
+    all_rows: List[Dict[str, Any]] = []
+    for sym in symbols:
+        try:
+            rows = build_screener_rows(sym, min_volume=500, max_spread_pct=30.0)
+            all_rows.extend(rows)
+        except Exception as e:
+            print("Signals screener skip %s: %s" % (sym, e))
+
+    all_rows.sort(key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"])))
+    confidence = compute_confidence_for_symbols(symbols)
+
+    prompt = _build_signals_prompt(snapshots, all_rows, confidence)
+
+    client = OpenAI()
+    resp = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[
+            {"role": "system", "content": SIGNALS_SYSTEM},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+    )
+    raw = (resp.choices[0].message.content or "").strip()
+
+    # Strip optional markdown code block
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[-1] if "\n" in raw else raw[3:]
+    if raw.startswith("json"):
+        raw = raw[4:].lstrip()
+    if raw.endswith("```"):
+        raw = raw.rsplit("```", 1)[0].strip()
+
+    try:
+        data = json.loads(raw)
+        signals = data.get("signals") or []
+        if not isinstance(signals, list):
+            return []
+        out = []
+        for s in signals[: int(limit)]:
+            if isinstance(s, dict) and s.get("ticker") and s.get("headline"):
+                out.append({
+                    "rank": int(s.get("rank") or len(out) + 1),
+                    "ticker": str(s.get("ticker", "")).upper(),
+                    "type": str(s.get("type", "CALL")).upper()[:4],
+                    "strike_zone": str(s.get("strike_zone", "—")),
+                    "headline": str(s.get("headline", "")),
+                    "reason": str(s.get("reason", "")),
+                })
+        return out
+    except Exception as e:
+        print("Signals JSON parse failed: %s" % e)
+        return []
