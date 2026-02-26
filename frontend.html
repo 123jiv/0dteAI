@@ -1135,59 +1135,6 @@
     </div>
   </div>
 
-          <div id="screenerSummary" class="screener-summary">No screener results yet. Click “Run screener”.</div>
-        <div id="panelChat" class="panel closed" data-panel="chat" style="top:80px;left:180px;width:400px;height:360px;">
-          <div class="panel-titlebar" data-drag="panelChat">
-            <span class="panel-title">Chat</span>
-            <div class="panel-btns">
-              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelChat')" title="Minimize">−</button>
-              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelChat')" title="Maximize">□</button>
-              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelChat')" title="Close">×</button>
-            </div>
-          </div>
-          <div class="panel-body chat-shell">
-            <div class="hint" style="margin-bottom:8px;">Fresh snapshot per message. Educational only.</div>
-            <button type="button" class="btn secondary" style="margin-bottom:8px;" onclick="clearChat()">Clear chat</button>
-            <div id="chatConversation" class="conversation" style="max-height:180px;"></div>
-            <div id="typingIndicator" class="typing-indicator" style="display:none;">
-              <span></span><span></span><span></span>
-            </div>
-            <div class="chat-input-shell" style="margin-top:8px;">
-              <div class="chat-row">
-                <input id="chatInput" class="pill-input" placeholder="Ask a follow-up..." autocomplete="off">
-                <button id="chatBtn" class="btn" style="min-width:80px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
-              </div>
-              <div id="chatStatus" class="status-line"></div>
-            </div>
-          </div>
-          <div class="panel-resize-handle" data-resize="panelChat"></div>
-        </div>
-
-        <div id="panelConfidence" class="panel closed" data-panel="confidence" style="top:100px;left:120px;width:380px;height:200px;">
-          <div class="panel-titlebar" data-drag="panelConfidence">
-            <span class="panel-title">Confidence &amp; backtest</span>
-            <div class="panel-btns">
-              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelConfidence')" title="Minimize">−</button>
-              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelConfidence')" title="Maximize">□</button>
-              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelConfidence')" title="Close">×</button>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="card" style="margin:0;">
-              <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Confidence &amp; simple backtest</div>
-              <div id="confidenceBodyPanel" class="hint">Run an analysis to see confidence scores.</div>
-            </div>
-          </div>
-          <div class="panel-resize-handle" data-resize="panelConfidence"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-note">
-      Educational only — not trading advice. Screener/Greeks approximate. 0DTE options can go to zero.
-    </div>
-  </div>
-
   <script>
     let currentFocus = "both";
     let currentStyle = "balanced";
