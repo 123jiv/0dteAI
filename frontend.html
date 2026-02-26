@@ -1259,7 +1259,7 @@
             <div class="input-row">
               <div class="field">
                 <span class="field-label">Tickers</span>
-                <input id="tickers" class="pill-input" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
+                <input id="tickers" class="pill-input" value="" placeholder="e.g. SPY, QQQ, IWM">
               </div>
               <div class="field">
                 <span class="field-label">Focus</span>
@@ -1304,15 +1304,15 @@
             <div class="screener-controls">
               <div class="screener-control screener-tickers-wrap">
                 <span>Tickers</span>
-                <input id="screenerTickers" class="pill-input" type="text" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
+                <input id="screenerTickers" class="pill-input" type="text" value="" placeholder="e.g. SPY, QQQ, IWM">
               </div>
               <div class="screener-control">
                 <span>Min vol</span>
-                <input id="minVolumeInput" class="screener-number" type="number" value="1000" min="0" step="100">
+                <input id="minVolumeInput" class="screener-number" type="number" value="500" min="0" step="100">
               </div>
               <div class="screener-control">
                 <span>Max spread %</span>
-                <input id="maxSpreadInput" class="screener-number" type="number" value="25" min="0" step="1">
+                <input id="maxSpreadInput" class="screener-number" type="number" value="30" min="0" step="1">
               </div>
               <button type="button" class="btn" onclick="runScreener()" style="margin-left:12px;">Run screener</button>
             </div>
@@ -1931,7 +1931,7 @@
     }
 
     async function runAnalysis() {
-      const tickersValue = $("tickers").value;
+      const tickersValue = ($("tickers") && $("tickers").value && $("tickers").value.trim()) ? $("tickers").value.trim() : "SPY,QQQ,IWM";
       const btn = $("runBtn");
       const btnLabel = $("btnLabel");
 
