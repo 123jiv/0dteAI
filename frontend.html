@@ -683,21 +683,8 @@
           <div class="auth-card-header">
             <div class="auth-title">Welcome to 0dteAI</div>
             <div class="auth-subtitle">
-              Sign in with Google or use your app password for private access.
+              Enter your app password to access analysis, screener, and chat.
             </div>
-          </div>
-
-          <div class="auth-buttons">
-            <button type="button" class="auth-button" onclick="continueWithGoogle()">
-              <span class="auth-icon-circle">G</span>
-              <span>Continue with Google</span>
-            </button>
-          </div>
-
-          <div class="auth-divider">
-            <span></span>
-            <span class="label">or enter app password</span>
-            <span></span>
           </div>
 
           <div class="input-row">
@@ -1098,10 +1085,6 @@
         if (btn) { btn.disabled = false; }
         if (label) { label.textContent = "Refresh signals"; }
       }
-    }
-
-    function continueWithGoogle() {
-      window.location.href = "/auth/google/start";
     }
 
     async function doLogin() {

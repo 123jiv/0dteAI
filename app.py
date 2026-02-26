@@ -5,12 +5,10 @@ import hmac
 import json
 import time
 from typing import Optional, List, Dict, Any, Literal
-from urllib.parse import urlencode
 
-import requests
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from core_0dte import (
@@ -34,19 +32,6 @@ app.add_middleware(
 )
 
 
-def _get_google_oauth_config() -> Dict[str, str]:
-    client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
-    client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
-    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
-    if not client_id or not client_secret or not redirect_uri:
-        raise RuntimeError("Google OAuth env vars GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REDIRECT_URI not set")
-    return {
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "redirect_uri": redirect_uri,
-    }
-
-
 @app.get("/", include_in_schema=False)
 def root():
     here = os.path.dirname(os.path.abspath(__file__))
@@ -61,7 +46,7 @@ def health():
     return {"status": "ok"}
 
 
-# ---------- Minimal auth (password -> signed token) ----------
+# ---------- Auth (password -> signed token) ----------
 
 def _get_auth_secret() -> str:
     secret = os.getenv("APP_SECRET", "").strip()
@@ -145,106 +130,6 @@ def auth_login(req: LoginRequest):
 
     token = _issue_token(req.username or "user")
     return {"token": token}
-
-
-@app.get("/auth/google/start")
-def auth_google_start():
-    """
-    Redirects the user to Google's OAuth 2.0 consent screen.
-    """
-    try:
-        cfg = _get_google_oauth_config()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    params = {
-        "client_id": cfg["client_id"],
-        "redirect_uri": cfg["redirect_uri"],
-        "response_type": "code",
-        "scope": "openid email profile",
-        "access_type": "offline",
-        "prompt": "select_account",
-    }
-    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
-    return RedirectResponse(url)
-
-
-@app.get("/auth/google/callback")
-def auth_google_callback(code: Optional[str] = None, error: Optional[str] = None):
-    """
-    Handles Google's OAuth 2.0 callback:
-    - exchanges the code for tokens
-    - fetches the user's email
-    - issues a normal 0dteAI auth token
-    - returns a tiny HTML page that stores the token in localStorage and routes to the app.
-    """
-    if error:
-        raise HTTPException(status_code=400, detail=f"Google auth error: {error}")
-    if not code:
-        raise HTTPException(status_code=400, detail="Missing code")
-
-    try:
-        cfg = _get_google_oauth_config()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    token_resp = requests.post(
-        "https://oauth2.googleapis.com/token",
-        data={
-            "code": code,
-            "client_id": cfg["client_id"],
-            "client_secret": cfg["client_secret"],
-            "redirect_uri": cfg["redirect_uri"],
-            "grant_type": "authorization_code",
-        },
-        timeout=10,
-    )
-    if token_resp.status_code >= 400:
-        raise HTTPException(status_code=500, detail=f"Google token error {token_resp.status_code}: {token_resp.text}")
-
-    token_data = token_resp.json()
-    access_token = token_data.get("access_token")
-    if not access_token:
-        raise HTTPException(status_code=500, detail="Missing access_token from Google")
-
-    userinfo_resp = requests.get(
-        "https://openidconnect.googleapis.com/v1/userinfo",
-        headers={"Authorization": f"Bearer {access_token}"},
-        timeout=10,
-    )
-    if userinfo_resp.status_code >= 400:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Google userinfo error {userinfo_resp.status_code}: {userinfo_resp.text}",
-        )
-
-    profile = userinfo_resp.json()
-    email = (profile.get("email") or "").strip().lower()
-    if not email:
-        raise HTTPException(status_code=500, detail="Google userinfo did not include an email")
-
-    token = _issue_token(email)
-
-    html = f"""
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>0dteAI login</title>
-  </head>
-  <body>
-    <script>
-      try {{
-        window.localStorage.setItem('odteai_token', '{token}');
-        window.location.href = '/#/app';
-      }} catch (e) {{
-        document.body.innerText = 'Login succeeded, but we could not store your session token. Please try again.';
-      }}
-    </script>
-  </body>
-</html>
-    """.strip()
-    return HTMLResponse(content=html)
 
 
 @app.get("/auth/me")
