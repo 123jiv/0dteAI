@@ -110,10 +110,23 @@ def fetch_0dte_snapshot(symbol: str) -> Dict[str, Any]:
 
     hist = t.history(period="1d", interval="5m")
     if hist.empty:
-        raise RuntimeError("No intraday data for %s" % symbol)
-
-    last_row = hist.iloc[-1]
-    last_price = float(last_row["Close"])
+        # Outside market hours or no intraday: fall back to latest daily close
+        hist = t.history(period="5d", interval="1d")
+        if hist.empty:
+            raise RuntimeError("No price data for %s (market may be closed or ticker invalid)" % symbol)
+        last_row = hist.iloc[-1]
+        last_price = float(last_row["Close"])
+        candle = {
+            "time": last_row.name.isoformat(),
+            "open": float(last_row["Open"]),
+            "high": float(last_row["High"]),
+            "low": float(last_row["Low"]),
+            "close": float(last_row["Close"]),
+        }
+    else:
+        last_row = hist.iloc[-1]
+        last_price = float(last_row["Close"])
+        candle = None
 
     exp = _get_today_or_nearest_expiration(t)
     chain = t.option_chain(exp)
@@ -334,14 +347,20 @@ def analyze_symbols(
     timeframe: str = "intraday",
 ) -> str:
     snapshots: List[Dict[str, Any]] = []
+    errors: List[str] = []
     for sym in symbols:
         try:
             snapshots.append(fetch_0dte_snapshot(sym))
         except Exception as e:
+            msg = str(e).strip()
+            errors.append("%s: %s" % (sym, msg if msg else type(e).__name__))
             print("Skipping %s: %s" % (sym, e))
 
     if not snapshots:
-        raise RuntimeError("No data fetched.")
+        detail = "No data fetched."
+        if errors:
+            detail += " " + "; ".join(errors)
+        raise RuntimeError(detail)
 
     prompt = build_prompt(snapshots, focus=focus, style=style, timeframe=timeframe)
     return call_llm(prompt)
