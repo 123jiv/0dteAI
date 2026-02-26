@@ -649,6 +649,11 @@
       font-size: 11px;
       color: var(--text-secondary);
     }
+    .screener-tickers-wrap .pill-input {
+      min-width: 180px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
 
     .screener-number {
       width: 72px;
@@ -1297,6 +1302,10 @@
           </div>
           <div class="card" style="margin-bottom:16px;">
             <div class="screener-controls">
+              <div class="screener-control screener-tickers-wrap">
+                <span>Tickers</span>
+                <input id="screenerTickers" class="pill-input" type="text" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
+              </div>
               <div class="screener-control">
                 <span>Min vol</span>
                 <input id="minVolumeInput" class="screener-number" type="number" value="1000" min="0" step="100">
@@ -1307,7 +1316,8 @@
               </div>
               <button type="button" class="btn" onclick="runScreener()" style="margin-left:12px;">Run screener</button>
             </div>
-            <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set timeframe on Analysis, then run screener.</div>
+            <p class="page-desc" style="margin-top:8px; margin-bottom:0;">Timeframe is set on the Analysis page (e.g. Intraday / 0DTE for same-day options).</p>
+            <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers above and timeframe on Analysis, then run screener.</div>
           </div>
           <div class="screener-table-wrap" style="max-height:480px;">
             <table class="table-zebra">
@@ -1385,6 +1395,7 @@
     </div>
   </div>
 
+          <div id="screenerSummary" class="screener-summary">No screener results yet. Click “Run screener”.</div>
   <script>
     let currentFocus = "both";
     let currentStyle = "balanced";
@@ -1969,7 +1980,8 @@
     }
 
     async function runScreener() {
-      const tickersValue = $("tickers").value;
+      const tickersEl = $("screenerTickers") || $("tickers");
+      const tickersValue = (tickersEl && tickersEl.value && tickersEl.value.trim()) ? tickersEl.value.trim() : "SPY,QQQ,IWM";
       const minVol = $("minVolumeInput").value || "0";
       const maxSpread = $("maxSpreadInput").value || "100";
       const btn = $("screenerBtn");
