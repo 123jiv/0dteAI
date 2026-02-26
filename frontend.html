@@ -752,6 +752,7 @@
       min-height: 0;
     }
     @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+    .main-grid-single { grid-template-columns: 1fr; }
     .main-section {
       border-radius: var(--radius-lg);
       background: var(--container-bg);
@@ -776,6 +777,30 @@
       min-width: 0;
       padding: 8px 14px;
       font-size: 12px;
+    }
+    .launcher-btn-wrap {
+      position: relative;
+      display: inline-flex;
+    }
+    .notification-dot {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 0 0 2px var(--container-bg);
+    }
+    .notification-dot.visible {
+      display: block;
+      animation: notificationPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes notificationPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.15); }
     }
 
     .chat-shell {
@@ -864,8 +889,18 @@
     <!-- APP (Analysis) -->
     <div id="pageApp" class="page">
       <div class="dashboard-launcher">
-        <button type="button" class="btn" onclick="openPanel('panelSignals')">Signals</button>
-        <button type="button" class="btn secondary" onclick="openPanel('panelConfidence')">Confidence</button>
+        <span class="launcher-btn-wrap" data-notification="panelSignals">
+          <button type="button" class="btn" onclick="openPanel('panelSignals')">Signals</button>
+          <span class="notification-dot" id="notificationDotPanelSignals" aria-hidden="true"></span>
+        </span>
+        <span class="launcher-btn-wrap" data-notification="panelConfidence">
+          <button type="button" class="btn secondary" onclick="openPanel('panelConfidence')">Confidence</button>
+          <span class="notification-dot" id="notificationDotPanelConfidence" aria-hidden="true"></span>
+        </span>
+        <span class="launcher-btn-wrap" data-notification="panelChat">
+          <button type="button" class="btn secondary" onclick="openPanel('panelChat')">Chat</button>
+          <span class="notification-dot" id="notificationDotPanelChat" aria-hidden="true"></span>
+        </span>
         <span style="flex:1; min-width:80px;"></span>
         <input id="firstQuestionInput" class="pill-input" style="max-width:220px;" placeholder="Ask a question..." autocomplete="off">
         <button type="button" class="btn secondary" onclick="enterChatFromFirstQuestion()">Ask in chat</button>
@@ -915,7 +950,7 @@
           <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Confidence &amp; simple backtest</div>
           <div id="confidenceBody" class="hint">Run an analysis to see confidence scores.</div>
         </div>
-        <div class="main-grid">
+        <div class="main-grid main-grid-single">
           <div class="main-section">
             <div class="screener-header">
               <div class="screener-title">0DTE Screener</div>
@@ -958,22 +993,6 @@
                   <tr><td colspan="16" style="text-align:center; padding:10px;">No data.</td></tr>
                 </tbody>
               </table>
-            </div>
-          </div>
-          <div id="chatSection" class="main-section chat-shell">
-            <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Chat</div>
-            <div class="hint" style="margin-bottom:8px;">Fresh snapshot per message. Educational only.</div>
-            <button type="button" class="btn secondary" style="margin-bottom:8px;" onclick="clearChat()">Clear chat</button>
-            <div id="chatConversation" class="conversation"></div>
-            <div id="typingIndicator" class="typing-indicator" style="display:none;">
-              <span></span><span></span><span></span>
-            </div>
-            <div class="chat-input-shell" style="margin-top:8px;">
-              <div class="chat-row">
-                <input id="chatInput" class="pill-input" placeholder="Ask a follow-up..." autocomplete="off">
-                <button id="chatBtn" class="btn" style="min-width:80px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
-              </div>
-              <div id="chatStatus" class="status-line"></div>
             </div>
           </div>
         </div>
@@ -1063,8 +1082,8 @@
           </div>
         </div>
 
-        <div id="panelChat" class="panel closed" data-panel="chat" style="top:120px;left:200px;">
-          <div class="panel-titlebar">
+        <div id="panelChat" class="panel closed" data-panel="chat" style="top:80px;left:180px;width:400px;height:360px;">
+          <div class="panel-titlebar" data-drag="panelChat">
             <span class="panel-title">Chat</span>
             <div class="panel-btns">
               <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelChat')" title="Minimize">−</button>
@@ -1087,6 +1106,7 @@
               <div id="chatStatus" class="status-line"></div>
             </div>
           </div>
+          <div class="panel-resize-handle" data-resize="panelChat"></div>
         </div>
 
         <div id="panelConfidence" class="panel closed" data-panel="confidence" style="top:100px;left:120px;width:380px;height:200px;">
@@ -1177,12 +1197,19 @@
       $("navChat").classList.toggle("active", path === "/chat");
     }
 
+    function setNotificationDot(panelId, show) {
+      const dotId = "notificationDot" + panelId.charAt(0).toUpperCase() + panelId.slice(1);
+      const dot = $(dotId);
+      if (dot) dot.classList.toggle("visible", !!show);
+    }
+
     function openPanel(id) {
       const el = $(id);
       if (!el) return;
       el.classList.remove("closed", "minimized", "maximized");
       el.style.display = "flex";
       bringPanelToFront(id);
+      setNotificationDot(id, false);
     }
 
     function closePanel(id) {
@@ -1315,8 +1342,7 @@
         if (typeof initPanelStacking === "function") initPanelStacking();
         if (typeof initPanelDrag === "function") initPanelDrag();
         if (typeof initPanelResize === "function") initPanelResize();
-        const chatSection = document.getElementById("chatSection");
-        if (chatSection) chatSection.scrollIntoView({ behavior: "smooth" });
+        openPanel("panelChat");
         const pending = sessionStorage.getItem("odteai_pending_first_question");
         if (pending && $("chatInput")) {
           $("chatInput").value = pending;
@@ -1458,6 +1484,7 @@
         }
         const data = await res.json();
         renderSignals(data);
+        if (data.signals && data.signals.length) setNotificationDot("panelSignals", true);
       } catch (err) {
         renderSignals({});
         if ($("signalsPlaceholder")) {
@@ -1526,6 +1553,7 @@
         card.style.display = "block";
         const panelBody = $("confidenceBodyPanel");
         if (panelBody) panelBody.textContent = body.textContent;
+        setNotificationDot("panelConfidence", true);
         return;
       }
       const lines = [];
@@ -1543,6 +1571,7 @@
       card.style.display = "block";
       const panelBody = $("confidenceBodyPanel");
       if (panelBody) panelBody.textContent = body.textContent;
+      setNotificationDot("panelConfidence", true);
     }
 
     function renderScreenerTable(rows) {
@@ -1699,16 +1728,14 @@
     function enterChatFromFirstQuestion() {
       const input = $("firstQuestionInput");
       const q = (input && input.value || "").trim();
+      openPanel("panelChat");
       if (q && $("chatInput")) {
         $("chatInput").value = q;
         if (input) input.value = "";
-        location.hash = "#/chat";
         setTimeout(runChat, 100);
-      } else if (q) {
-        sessionStorage.setItem("odteai_pending_first_question", q);
-        location.hash = "#/chat";
-      } else {
-        location.hash = "#/chat";
+      } else if (q && $("chatInput")) {
+        $("chatInput").value = q;
+        if (input) input.value = "";
       }
     }
 
@@ -1765,6 +1792,7 @@
         chatHistory.push({ role: "assistant", content: answer });
         localStorage.setItem("odteai_chat_history", JSON.stringify(chatHistory.slice(-30)));
 
+        setNotificationDot("panelChat", true);
         setChatStatus("Done.");
       } catch (err) {
         setChatStatus("Chat failed.", true);
