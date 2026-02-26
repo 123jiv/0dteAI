@@ -168,17 +168,20 @@ def screener(
     tickers: str = "SPY,QQQ,IWM",
     min_volume: int = 1000,
     max_spread_pct: float = 25.0,
+    timeframe: str = "intraday",  # intraday | 1-5d | multi-week | long-term
     authorization: Optional[str] = Header(default=None),
 ):
     _require_auth(authorization)
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
         raise HTTPException(status_code=400, detail="No valid tickers provided")
+    if timeframe not in ("intraday", "1-5d", "multi-week", "long-term"):
+        timeframe = "intraday"
 
     all_rows: List[Dict[str, Any]] = []
     for sym in symbols:
         try:
-            rows = build_screener_rows(sym, min_volume=min_volume, max_spread_pct=max_spread_pct)
+            rows = build_screener_rows(sym, min_volume=min_volume, max_spread_pct=max_spread_pct, timeframe=timeframe)
             all_rows.extend(rows)
         except Exception as e:
             print("Screener skipping %s: %s" % (sym, e))

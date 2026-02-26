@@ -94,6 +94,50 @@ def _get_today_or_nearest_expiration(ticker: yf.Ticker) -> str:
     return exps_sorted[0]
 
 
+def _get_expiration_for_timeframe(ticker: yf.Ticker, timeframe: str) -> str:
+    """Return an expiration date string that matches the given timeframe (intraday | 1-5d | multi-week | long-term)."""
+    exps = ticker.options
+    if not exps:
+        raise RuntimeError("No option expirations found.")
+    today = dt.date.today()
+    exps_sorted = sorted(exps, key=lambda x: dt.date.fromisoformat(x))
+
+    if timeframe == "intraday":
+        exact = [e for e in exps_sorted if dt.date.fromisoformat(e) == today]
+        if exact:
+            return exact[0]
+        return exps_sorted[0]
+
+    # All other timeframes: filter by days from today
+    def days_out(exp_str: str) -> int:
+        return (dt.date.fromisoformat(exp_str) - today).days
+
+    if timeframe == "1-5d":
+        candidates = [e for e in exps_sorted if 1 <= days_out(e) <= 5]
+    elif timeframe == "multi-week":
+        candidates = [e for e in exps_sorted if 7 <= days_out(e) <= 56]
+    elif timeframe == "long-term":
+        candidates = [e for e in exps_sorted if days_out(e) >= 45]
+    else:
+        candidates = [e for e in exps_sorted if dt.date.fromisoformat(e) == today] or exps_sorted[:1]
+
+    if not candidates:
+        raise RuntimeError("No expirations found for timeframe '%s'. Try a different timeframe or ticker." % timeframe)
+    return candidates[0]
+
+
+def _get_last_price(symbol: str) -> float:
+    """Get latest available price for a symbol (intraday or daily)."""
+    t = yf.Ticker(symbol)
+    hist = t.history(period="1d", interval="5m")
+    if not hist.empty:
+        return float(hist.iloc[-1]["Close"])
+    hist = t.history(period="5d", interval="1d")
+    if hist.empty:
+        raise RuntimeError("No price data for %s" % symbol)
+    return float(hist.iloc[-1]["Close"])
+
+
 def _approx_time_to_expiry_yrs(expiration_str: str) -> float:
     """Rough T in years for same-day 0DTE options (educational only)."""
     today = dt.date.today()
@@ -373,11 +417,17 @@ def build_screener_rows(
     symbol: str,
     min_volume: int,
     max_spread_pct: float,
+    timeframe: str = "intraday",
 ) -> List[Dict[str, Any]]:
-    snap = fetch_0dte_snapshot(symbol)
-    S = snap["last_price"]
-    T = _approx_time_to_expiry_yrs(snap["expiration"])
+    t = yf.Ticker(symbol)
+    S = _get_last_price(symbol)
+    exp = _get_expiration_for_timeframe(t, timeframe)
+    T = _approx_time_to_expiry_yrs(exp)
     r = 0.05  # simple risk-free assumption
+
+    chain = t.option_chain(exp)
+    calls = chain.calls
+    puts = chain.puts
 
     rows: List[Dict[str, Any]] = []
 
@@ -421,9 +471,9 @@ def build_screener_rows(
 
             rows.append(
                 {
-                    "symbol": snap["symbol"],
+                    "symbol": symbol,
                     "type": opt_type,
-                    "expiration": snap["expiration"],
+                    "expiration": exp,
                     "strike": K,
                     "last": last,
                     "bid": bid,
@@ -440,8 +490,8 @@ def build_screener_rows(
                 }
             )
 
-    process_side(snap["calls"], "CALL")
-    process_side(snap["puts"], "PUT")
+    process_side(calls, "CALL")
+    process_side(puts, "PUT")
 
     # sort: liquid, tight spread, then near-the-money
     rows.sort(
@@ -630,7 +680,7 @@ def get_top_signals(symbols: List[str], limit: int = 3) -> List[Dict[str, Any]]:
     all_rows: List[Dict[str, Any]] = []
     for sym in symbols:
         try:
-            rows = build_screener_rows(sym, min_volume=500, max_spread_pct=30.0)
+            rows = build_screener_rows(sym, min_volume=500, max_spread_pct=30.0, timeframe="intraday")
             all_rows.extend(rows)
         except Exception as e:
             print("Signals screener skip %s: %s" % (sym, e))

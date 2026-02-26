@@ -744,6 +744,8 @@
     }
     .panel.maximized .panel-resize-handle { display: none; }
     .panel.minimized .panel-resize-handle { display: none; }
+    .panel-analysis { min-width: 520px; min-height: 420px; }
+    .panel-analysis .conversation { min-height: 220px; }
     .main-content { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
     .main-grid {
       display: grid;
@@ -889,8 +891,12 @@
     <!-- APP (Analysis) -->
     <div id="pageApp" class="page">
       <div class="dashboard-launcher">
+        <span class="launcher-btn-wrap" data-notification="panelAnalysis">
+          <button type="button" class="btn" onclick="openPanel('panelAnalysis')">Analysis</button>
+          <span class="notification-dot" id="notificationDotPanelAnalysis" aria-hidden="true"></span>
+        </span>
         <span class="launcher-btn-wrap" data-notification="panelSignals">
-          <button type="button" class="btn" onclick="openPanel('panelSignals')">Signals</button>
+          <button type="button" class="btn secondary" onclick="openPanel('panelSignals')">Signals</button>
           <span class="notification-dot" id="notificationDotPanelSignals" aria-hidden="true"></span>
         </span>
         <span class="launcher-btn-wrap" data-notification="panelConfidence">
@@ -907,49 +913,6 @@
       </div>
 
       <div class="main-content">
-        <div class="input-shell">
-          <div class="input-row">
-            <div class="field">
-              <span class="field-label">Tickers</span>
-              <input id="tickers" class="pill-input" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
-            </div>
-            <div class="field">
-              <span class="field-label">Focus</span>
-              <div class="chip-row">
-                <div class="chip active" data-focus="both">Calls &amp; puts</div>
-                <div class="chip" data-focus="calls">Calls only</div>
-                <div class="chip" data-focus="puts">Puts only</div>
-              </div>
-            </div>
-            <div class="field">
-              <span class="field-label">Risk style</span>
-              <div class="chip-row">
-                <div class="chip active" data-style="balanced">Balanced</div>
-                <div class="chip" data-style="conservative">Conservative</div>
-                <div class="chip" data-style="aggressive">Aggressive</div>
-              </div>
-            </div>
-            <div class="field">
-              <span class="field-label">Timeframe</span>
-              <div class="chip-row">
-                <div class="chip active" data-timeframe="intraday">Intraday / 0DTE</div>
-                <div class="chip" data-timeframe="1-5d">1–5 days</div>
-                <div class="chip" data-timeframe="multi-week">Multi-week</div>
-                <div class="chip" data-timeframe="long-term">Long-term</div>
-              </div>
-            </div>
-            <div class="btn-row">
-              <button id="runBtn" class="btn" onclick="runAnalysis()"><span id="btnLabel">Run analysis</span></button>
-              <button id="screenerBtn" class="btn secondary" onclick="runScreener()"><span id="screenerBtnLabel">Run screener</span></button>
-            </div>
-          </div>
-          <div id="status" class="status-line"></div>
-        </div>
-        <div id="conversation" class="conversation"></div>
-        <div class="card" id="confidenceCard" style="display:none;">
-          <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Confidence &amp; simple backtest</div>
-          <div id="confidenceBody" class="hint">Run an analysis to see confidence scores.</div>
-        </div>
         <div class="main-grid main-grid-single">
           <div class="main-section">
             <div class="screener-header">
@@ -966,7 +929,7 @@
                 <input id="maxSpreadInput" class="screener-number" type="number" value="25" min="0" step="1">
               </div>
             </div>
-            <div id="screenerSummary" class="screener-summary">No screener results yet. Click Run screener above.</div>
+            <div id="screenerSummary" class="screener-summary">No screener results yet. Open the Analysis panel and click Run screener.</div>
             <div class="screener-table-wrap">
               <table>
                 <thead>
@@ -999,6 +962,59 @@
       </div>
 
       <div id="panelsZone" class="panels-zone">
+        <div id="panelAnalysis" class="panel panel-analysis closed" data-panel="analysis" style="top:40px;left:40px;width:680px;height:580px;">
+          <div class="panel-titlebar" data-drag="panelAnalysis">
+            <span class="panel-title">0DTE Analysis</span>
+            <div class="panel-btns">
+              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelAnalysis')" title="Minimize">−</button>
+              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelAnalysis')" title="Maximize">□</button>
+              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelAnalysis')" title="Close">×</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="input-shell">
+              <div class="input-row">
+                <div class="field">
+                  <span class="field-label">Tickers</span>
+                  <input id="tickers" class="pill-input" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
+                </div>
+                <div class="field">
+                  <span class="field-label">Focus</span>
+                  <div class="chip-row">
+                    <div class="chip active" data-focus="both">Calls &amp; puts</div>
+                    <div class="chip" data-focus="calls">Calls only</div>
+                    <div class="chip" data-focus="puts">Puts only</div>
+                  </div>
+                </div>
+                <div class="field">
+                  <span class="field-label">Risk style</span>
+                  <div class="chip-row">
+                    <div class="chip active" data-style="balanced">Balanced</div>
+                    <div class="chip" data-style="conservative">Conservative</div>
+                    <div class="chip" data-style="aggressive">Aggressive</div>
+                  </div>
+                </div>
+                <div class="field">
+                  <span class="field-label">Timeframe</span>
+                  <div class="chip-row">
+                    <div class="chip active" data-timeframe="intraday">Intraday / 0DTE</div>
+                    <div class="chip" data-timeframe="1-5d">1–5 days</div>
+                    <div class="chip" data-timeframe="multi-week">Multi-week</div>
+                    <div class="chip" data-timeframe="long-term">Long-term</div>
+                  </div>
+                </div>
+                <div class="btn-row">
+                  <button id="runBtn" class="btn" onclick="runAnalysis()"><span id="btnLabel">Run analysis</span></button>
+                  <button id="screenerBtn" class="btn secondary" onclick="runScreener()"><span id="screenerBtnLabel">Run screener</span></button>
+                </div>
+              </div>
+              <div id="status" class="status-line"></div>
+            </div>
+            <div id="conversation" class="conversation"></div>
+          </div>
+          <div class="panel-resize-handle" data-resize="panelAnalysis"></div>
+        </div>
+
         <div id="panelSignals" class="panel closed" data-panel="signals" style="top:60px;left:24px;width:420px;height:380px;">
           <div class="panel-titlebar" data-drag="panelSignals">
             <span class="panel-title">Live 0DTE Signals</span>
@@ -1355,7 +1371,7 @@
       setNavActive("/app");
       showPage("pageApp");
       fetchSignals();
-      openPanel("panelSignals");
+      openPanel("panelAnalysis");
       if (typeof initPanelStacking === "function") initPanelStacking();
       if (typeof initPanelDrag === "function") initPanelDrag();
       if (typeof initPanelResize === "function") initPanelResize();
@@ -1545,32 +1561,26 @@
     }
 
     function renderConfidencePanel(confidence) {
-      const card = $("confidenceCard");
-      const body = $("confidenceBody");
       const keys = Object.keys(confidence || {});
+      let text;
       if (!keys.length) {
-        body.textContent = "No confidence metrics available for these tickers (not enough history).";
-        card.style.display = "block";
-        const panelBody = $("confidenceBodyPanel");
-        if (panelBody) panelBody.textContent = body.textContent;
-        setNotificationDot("panelConfidence", true);
-        return;
+        text = "No confidence metrics available for these tickers (not enough history).";
+      } else {
+        const lines = [];
+        keys.forEach(sym => {
+          const m = confidence[sym] || {};
+          const conf = m.confidence_score !== undefined ? m.confidence_score + "%" : "n/a";
+          const win = m.expected_win_prob_pct !== undefined ? m.expected_win_prob_pct + "%" : "n/a";
+          const trend = m.trend_pct_90d !== undefined ? m.trend_pct_90d + "%" : "n/a";
+          const vol = m.vol_annual_pct !== undefined ? m.vol_annual_pct + "%" : "n/a";
+          const samples = m.sample_trades !== undefined ? m.sample_trades : "n/a";
+          const pattern = m.pattern || "mixed days";
+          lines.push(sym + ": confidence " + conf + ", expected win ~" + win + " (pattern " + pattern + ", " + samples + " sample days, 90d trend " + trend + ", realized vol ~" + vol + ").");
+        });
+        text = lines.join(" ");
       }
-      const lines = [];
-      keys.forEach(sym => {
-        const m = confidence[sym] || {};
-        const conf = m.confidence_score !== undefined ? m.confidence_score + "%" : "n/a";
-        const win = m.expected_win_prob_pct !== undefined ? m.expected_win_prob_pct + "%" : "n/a";
-        const trend = m.trend_pct_90d !== undefined ? m.trend_pct_90d + "%" : "n/a";
-        const vol = m.vol_annual_pct !== undefined ? m.vol_annual_pct + "%" : "n/a";
-        const samples = m.sample_trades !== undefined ? m.sample_trades : "n/a";
-        const pattern = m.pattern || "mixed days";
-        lines.push(sym + ": confidence " + conf + ", expected win ~" + win + " (pattern " + pattern + ", " + samples + " sample days, 90d trend " + trend + ", realized vol ~" + vol + ").");
-      });
-      body.textContent = lines.join(" ");
-      card.style.display = "block";
       const panelBody = $("confidenceBodyPanel");
-      if (panelBody) panelBody.textContent = body.textContent;
+      if (panelBody) panelBody.textContent = text;
       setNotificationDot("panelConfidence", true);
     }
 
@@ -1669,6 +1679,7 @@
           "analysis"
         );
         setStatus("Analysis complete.");
+        setNotificationDot("panelAnalysis", true);
 
         if (data.confidence) renderConfidencePanel(data.confidence);
 
@@ -1704,6 +1715,7 @@
           tickers: tickersValue,
           min_volume: String(minVol),
           max_spread_pct: String(maxSpread),
+          timeframe: currentTimeframe,
         });
         const res = await fetch("/screener?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
@@ -1714,7 +1726,8 @@
         const rows = normalizeContractsData(data);
         renderScreenerTable(rows);
         const count = rows.length || 0;
-        summaryEl.textContent = count + " contract" + (count === 1 ? "" : "s") + " found. ITM rows highlighted.";
+        const tfLabel = { intraday: "0DTE / same day", "1-5d": "1–5 days", "multi-week": "multi-week", "long-term": "long-term" }[currentTimeframe] || currentTimeframe;
+        summaryEl.textContent = count + " contract" + (count === 1 ? "" : "s") + " found (" + tfLabel + "). ITM rows highlighted.";
         setStatus("Screener complete.");
       } catch (err) {
         setStatus("Screener request failed. Check filters or backend.", true);
