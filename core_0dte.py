@@ -94,36 +94,45 @@ def _get_today_or_nearest_expiration(ticker: yf.Ticker) -> str:
     return exps_sorted[0]
 
 
-def _get_expiration_for_timeframe(ticker: yf.Ticker, timeframe: str) -> str:
-    """Return an expiration date string that matches the given timeframe (intraday | 1-5d | multi-week | long-term)."""
+def _get_expirations_for_timeframe(ticker: yf.Ticker, timeframe: str) -> List[str]:
+    """Return a list of expiration date strings for the given timeframe (best first). Falls back if none in range."""
     exps = ticker.options
     if not exps:
         raise RuntimeError("No option expirations found.")
     today = dt.date.today()
     exps_sorted = sorted(exps, key=lambda x: dt.date.fromisoformat(x))
 
-    if timeframe == "intraday":
-        exact = [e for e in exps_sorted if dt.date.fromisoformat(e) == today]
-        if exact:
-            return exact[0]
-        return exps_sorted[0]
-
-    # All other timeframes: filter by days from today
     def days_out(exp_str: str) -> int:
         return (dt.date.fromisoformat(exp_str) - today).days
 
-    if timeframe == "1-5d":
-        candidates = [e for e in exps_sorted if 1 <= days_out(e) <= 5]
-    elif timeframe == "multi-week":
-        candidates = [e for e in exps_sorted if 7 <= days_out(e) <= 56]
-    elif timeframe == "long-term":
-        candidates = [e for e in exps_sorted if days_out(e) >= 45]
-    else:
-        candidates = [e for e in exps_sorted if dt.date.fromisoformat(e) == today] or exps_sorted[:1]
+    # Filter out past expirations
+    future = [e for e in exps_sorted if days_out(e) >= 0]
+    if not future:
+        future = exps_sorted
 
-    if not candidates:
-        raise RuntimeError("No expirations found for timeframe '%s'. Try a different timeframe or ticker." % timeframe)
-    return candidates[0]
+    if timeframe == "intraday":
+        exact = [e for e in future if dt.date.fromisoformat(e) == today]
+        if exact:
+            return exact
+        return future[:1]
+
+    if timeframe == "1-5d":
+        candidates = [e for e in future if 1 <= days_out(e) <= 5]
+        if not candidates:
+            candidates = [e for e in future if days_out(e) >= 1][:3] or future[:1]
+    elif timeframe == "multi-week":
+        candidates = [e for e in future if 7 <= days_out(e) <= 56]
+        if not candidates:
+            candidates = [e for e in future if days_out(e) >= 7][:5] or future[-3:]
+    elif timeframe == "long-term":
+        # 30+ days (was 45); include monthlies
+        candidates = [e for e in future if days_out(e) >= 30]
+        if not candidates:
+            candidates = future[-5:] if len(future) >= 5 else future
+    else:
+        candidates = [e for e in future if dt.date.fromisoformat(e) == today] or future[:1]
+
+    return candidates[:10]
 
 
 def _get_last_price(symbol: str) -> float:
@@ -413,6 +422,76 @@ def analyze_symbols(
 # ---------- Screener API helpers (with Greeks) ----------
 
 
+def _build_screener_rows_for_exp(
+    symbol: str,
+    S: float,
+    exp: str,
+    calls,
+    puts,
+    min_volume: int,
+    max_spread_pct: float,
+) -> List[Dict[str, Any]]:
+    """Build screener rows for one expiration. Returns list (may be empty)."""
+    T = _approx_time_to_expiry_yrs(exp)
+    r = 0.05
+    rows: List[Dict[str, Any]] = []
+
+    def process_side(records, opt_type: str):
+        nonlocal rows
+        if records is None or (hasattr(records, "empty") and records.empty):
+            return
+        # yfinance returns DataFrames; iterate rows
+        for _, row in records.iterrows():
+            bid = float(row.get("bid", 0) or 0.0)
+            ask = float(row.get("ask", 0) or 0.0)
+            last = float(row.get("lastPrice", 0) or 0.0)
+            vol = int(row.get("volume", 0) or 0)
+            oi = int(row.get("openInterest", 0) or 0)
+            K = float(row.get("strike", 0) or 0.0)
+            iv = float(row.get("impliedVolatility", 0) or 0.0)
+
+            if vol < min_volume:
+                continue
+            if bid <= 0 or ask <= 0:
+                continue
+            spread_pct = (ask - bid) / ask * 100.0 if ask > 0 else 0.0
+            if spread_pct > max_spread_pct:
+                continue
+
+            if opt_type == "CALL":
+                moneyness_pct = (S - K) / S * 100.0
+            else:
+                moneyness_pct = (K - S) / S * 100.0
+
+            greeks = _option_greeks(
+                S=S, K=K, T=T, r=r,
+                sigma=max(iv, 0.0001),
+                opt_type="call" if opt_type == "CALL" else "put",
+            )
+            rows.append({
+                "symbol": symbol,
+                "type": opt_type,
+                "expiration": exp,
+                "strike": K,
+                "last": last,
+                "bid": bid,
+                "ask": ask,
+                "spread_pct": spread_pct,
+                "volume": vol,
+                "open_interest": oi,
+                "moneyness_pct": moneyness_pct,
+                "iv_pct": iv * 100.0,
+                "delta": greeks["delta"],
+                "gamma": greeks["gamma"],
+                "theta": greeks["theta"],
+                "vega": greeks["vega"],
+            })
+
+    process_side(calls, "CALL")
+    process_side(puts, "PUT")
+    return rows
+
+
 def build_screener_rows(
     symbol: str,
     min_volume: int,
@@ -421,87 +500,30 @@ def build_screener_rows(
 ) -> List[Dict[str, Any]]:
     t = yf.Ticker(symbol)
     S = _get_last_price(symbol)
-    exp = _get_expiration_for_timeframe(t, timeframe)
-    T = _approx_time_to_expiry_yrs(exp)
-    r = 0.05  # simple risk-free assumption
+    expirations = _get_expirations_for_timeframe(t, timeframe)
+    if not expirations:
+        return []
 
-    chain = t.option_chain(exp)
-    calls = chain.calls
-    puts = chain.puts
-
-    rows: List[Dict[str, Any]] = []
-
-    def process_side(records, opt_type: str):
-        nonlocal rows
-        for row in records:
-            bid = float(row.get("bid") or 0.0)
-            ask = float(row.get("ask") or 0.0)
-            last = float(row.get("lastPrice") or 0.0)
-            vol = int(row.get("volume") or 0)
-            oi = int(row.get("openInterest") or 0)
-            K = float(row.get("strike") or 0.0)
-            iv = float(row.get("impliedVolatility") or 0.0)  # already in decimals from yfinance
-
-            if vol < min_volume:
-                continue
-            if bid <= 0 or ask <= 0:
-                continue
-
-            mid = 0.5 * (bid + ask)
-            spread_pct = (ask - bid) / ask * 100.0 if ask > 0 else 0.0
-            if spread_pct > max_spread_pct:
-                continue
-
-            # Positive moneyness_pct means "in the money" for BOTH calls and puts:
-            # - Call ITM: S > K  => (S-K)/S > 0
-            # - Put ITM:  K > S  => (K-S)/S > 0
-            if opt_type == "CALL":
-                moneyness_pct = (S - K) / S * 100.0
-            else:
-                moneyness_pct = (K - S) / S * 100.0
-
-            greeks = _option_greeks(
-                S=S,
-                K=K,
-                T=T,
-                r=r,
-                sigma=max(iv, 0.0001),
-                opt_type="call" if opt_type == "CALL" else "put",
+    all_rows: List[Dict[str, Any]] = []
+    for exp in expirations:
+        try:
+            chain = t.option_chain(exp)
+            rows = _build_screener_rows_for_exp(
+                symbol, S, exp, chain.calls, chain.puts,
+                min_volume=min_volume, max_spread_pct=max_spread_pct,
             )
+            all_rows.extend(rows)
+            # If we got enough rows, stop; otherwise try next expiration (e.g. illiquid expiry)
+            if len(all_rows) >= 20:
+                break
+        except Exception as e:
+            print("Screener skip exp %s for %s: %s" % (exp, symbol, e))
+            continue
 
-            rows.append(
-                {
-                    "symbol": symbol,
-                    "type": opt_type,
-                    "expiration": exp,
-                    "strike": K,
-                    "last": last,
-                    "bid": bid,
-                    "ask": ask,
-                    "spread_pct": spread_pct,
-                    "volume": vol,
-                    "open_interest": oi,
-                    "moneyness_pct": moneyness_pct,
-                    "iv_pct": iv * 100.0,
-                    "delta": greeks["delta"],
-                    "gamma": greeks["gamma"],
-                    "theta": greeks["theta"],
-                    "vega": greeks["vega"],
-                }
-            )
-
-    process_side(calls, "CALL")
-    process_side(puts, "PUT")
-
-    # sort: liquid, tight spread, then near-the-money
-    rows.sort(
-        key=lambda r: (
-            -r["volume"],
-            r["spread_pct"],
-            abs(r["moneyness_pct"]),
-        )
+    all_rows.sort(
+        key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"]))
     )
-    return rows
+    return all_rows
 
 
 # ---------- Confidence / simple backtest metrics ----------

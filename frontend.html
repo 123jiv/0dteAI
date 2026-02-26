@@ -48,15 +48,131 @@
     .app {
       flex: 1;
       display: flex;
-      flex-direction: column;
-      max-width: 850px;
-      margin: 0 auto;
-      width: 100%;
-      padding: 16px 20px 24px;
       min-height: 0;
+      min-width: 0;
     }
 
-    /* ---------- Header ---------- */
+    /* ---------- Sidebar ---------- */
+    .app-sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: var(--container-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 0;
+      flex-shrink: 0;
+    }
+    .app-sidebar .brand {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .app-sidebar .brand-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+    }
+    .app-sidebar .brand-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .app-sidebar .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 0 12px;
+    }
+    .app-sidebar .nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .app-sidebar .nav a:hover {
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--text-primary);
+    }
+    .app-sidebar .nav a.active {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--accent);
+    }
+    .app-sidebar .nav-spacer { flex: 1; }
+    .app-sidebar .nav a.logout {
+      color: var(--text-secondary);
+    }
+    .app-sidebar .nav a.logout:hover { color: var(--danger); background: rgba(249, 115, 115, 0.1); }
+
+    .app-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: auto;
+      padding: 24px 28px 32px;
+    }
+    .app-main .page-head {
+      margin-bottom: 20px;
+    }
+    .app-main .page-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+    .app-main .page-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      max-width: 560px;
+    }
+
+    /* ---------- Dashboard (home) ---------- */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .dashboard-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      border-radius: var(--radius-lg);
+      background: var(--container-bg);
+      border: 1px solid var(--border);
+      padding: 20px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    }
+    .dashboard-card:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-2px);
+    }
+    .dashboard-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0 0 8px;
+      color: var(--text-primary);
+    }
+    .dashboard-card p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* ---------- Header (login page only) ---------- */
     .header {
       display: flex;
       align-items: center;
@@ -70,72 +186,22 @@
       flex-wrap: wrap;
       box-shadow: var(--shadow-soft);
     }
-
-    .header-main {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 200px;
-    }
-
-    .app-title {
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      color: var(--text-primary);
-    }
-
-    .app-subtitle {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    .tag {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      white-space: nowrap;
-    }
-
-    .nav {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .nav a, .nav button {
-      border: 1px solid var(--border);
-      background: rgba(15, 27, 45, 0.8);
-      color: var(--text-primary);
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .nav a:hover, .nav button:hover {
-      border-color: rgba(59, 130, 246, 0.4);
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
-    }
-
-    .nav a.active {
-      border-color: var(--accent);
-      background: rgba(59, 130, 246, 0.18);
-      box-shadow: var(--shadow-glow);
-    }
+    .header-main { display: flex; flex-direction: column; gap: 4px; min-width: 200px; }
+    .app-title { font-size: 18px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary); }
+    .app-subtitle { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+    .tag { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); white-space: nowrap; }
+    .nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .nav a, .nav button { border: 1px solid var(--border); background: rgba(15, 27, 45, 0.8); color: var(--text-primary); padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none; transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease; }
+    .nav a:hover, .nav button:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 12px rgba(59, 130, 246, 0.15); }
+    .nav a.active { border-color: var(--accent); background: rgba(59, 130, 246, 0.18); box-shadow: var(--shadow-glow); }
 
     /* ---------- Pages ---------- */
     .page { display: none; min-height: 0; flex: 1; flex-direction: column; }
     .page.active { display: flex; flex-direction: column; }
+    #pageApp.page.active { flex: 1; min-width: 0; }
+    .page-content { max-width: 820px; }
+    .screen { display: none; flex-direction: column; flex: 1; min-height: 0; }
+    .screen.active { display: flex; }
 
     .card {
       border-radius: var(--radius-lg);
@@ -837,9 +903,16 @@
       table { min-width: 640px; }
     }
 
+    @media (max-width: 768px) {
+      .app-sidebar { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; padding: 12px; gap: 8px; }
+      .app-sidebar .brand { padding: 0 12px 0 0; margin: 0; border: none; }
+      .app-sidebar .nav { flex-direction: row; flex-wrap: wrap; padding: 0; }
+      .app-sidebar .nav-spacer { display: none; }
+    }
     @media (max-width: 640px) {
       .app { padding: 12px 14px; }
       .header { flex-direction: column; align-items: flex-start; }
+      .app-main { padding: 16px; }
     }
   </style>
 </head>
@@ -851,9 +924,6 @@
         <div class="app-subtitle">Intraday 0DTE and multi-horizon options / price scenarios. Educational only — not trading advice.</div>
       </div>
       <div class="nav">
-        <a href="#/app" id="navApp">Analysis</a>
-        <a href="#/chat" id="navChat">Chat</a>
-        <button type="button" id="logoutBtn">Logout</button>
         <span class="tag">0DTE OPTIONS</span>
       </div>
     </div>
@@ -888,37 +958,104 @@
       </div>
     </div>
 
-    <!-- APP (Analysis) -->
+    <!-- Authenticated app: sidebar + screens -->
     <div id="pageApp" class="page">
-      <div class="dashboard-launcher">
-        <span class="launcher-btn-wrap" data-notification="panelAnalysis">
-          <button type="button" class="btn" onclick="openPanel('panelAnalysis')">Analysis</button>
-          <span class="notification-dot" id="notificationDotPanelAnalysis" aria-hidden="true"></span>
-        </span>
-        <span class="launcher-btn-wrap" data-notification="panelSignals">
-          <button type="button" class="btn secondary" onclick="openPanel('panelSignals')">Signals</button>
-          <span class="notification-dot" id="notificationDotPanelSignals" aria-hidden="true"></span>
-        </span>
-        <span class="launcher-btn-wrap" data-notification="panelConfidence">
-          <button type="button" class="btn secondary" onclick="openPanel('panelConfidence')">Confidence</button>
-          <span class="notification-dot" id="notificationDotPanelConfidence" aria-hidden="true"></span>
-        </span>
-        <span class="launcher-btn-wrap" data-notification="panelChat">
-          <button type="button" class="btn secondary" onclick="openPanel('panelChat')">Chat</button>
-          <span class="notification-dot" id="notificationDotPanelChat" aria-hidden="true"></span>
-        </span>
-        <span style="flex:1; min-width:80px;"></span>
-        <input id="firstQuestionInput" class="pill-input" style="max-width:220px;" placeholder="Ask a question..." autocomplete="off">
-        <button type="button" class="btn secondary" onclick="enterChatFromFirstQuestion()">Ask in chat</button>
-      </div>
-
-      <div class="main-content">
-        <div class="main-grid main-grid-single">
-          <div class="main-section">
-            <div class="screener-header">
-              <div class="screener-title">0DTE Screener</div>
-              <div class="screener-subtitle">ITM rows highlighted. Greeks approximate.</div>
+      <aside class="app-sidebar">
+        <div class="brand">
+          <div class="brand-title">0dteAI</div>
+          <div class="brand-tag">0DTE OPTIONS</div>
+        </div>
+        <nav class="nav">
+          <a href="#/dashboard" id="navDashboard">Dashboard</a>
+          <a href="#/analysis" id="navAnalysis">Analysis</a>
+          <a href="#/screener" id="navScreener">Screener</a>
+          <a href="#/chat" id="navChat">Chat</a>
+          <a href="#/signals" id="navSignals">Signals</a>
+          <a href="#/confidence" id="navConfidence">Confidence</a>
+          <div class="nav-spacer"></div>
+          <a href="#" id="logoutBtn" class="logout">Logout</a>
+        </nav>
+      </aside>
+      <main class="app-main">
+        <div id="screenDashboard" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-desc">Your command center for 0DTE and multi-horizon options. Pick a tool below to get started.</p>
+          </div>
+          <div class="dashboard-grid">
+            <a href="#/analysis" class="dashboard-card">
+              <h3>Analysis</h3>
+              <p>AI-powered scenario analysis for SPY, QQQ, IWM. Run analysis or screener with your chosen focus and timeframe.</p>
+            </a>
+            <a href="#/screener" class="dashboard-card">
+              <h3>Screener</h3>
+              <p>Filter options by volume and spread. Choose timeframe from intraday to long-term and see liquid contracts.</p>
+            </a>
+            <a href="#/chat" class="dashboard-card">
+              <h3>Chat</h3>
+              <p>Ask follow-up questions with fresh market context. Educational only — not trading advice.</p>
+            </a>
+            <a href="#/signals" class="dashboard-card">
+              <h3>Signals</h3>
+              <p>Top AI-ranked 0DTE setups. Refresh to load the highest-probability ideas right now.</p>
+            </a>
+            <a href="#/confidence" class="dashboard-card">
+              <h3>Confidence</h3>
+              <p>Confidence scores and simple backtest metrics after you run an analysis.</p>
+            </a>
+          </div>
+        </div>
+        <div id="screenAnalysis" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Analysis</h1>
+            <p class="page-desc">Run AI scenario analysis or screener. Set tickers, focus, risk style, and timeframe.</p>
+          </div>
+          <div class="input-shell">
+            <div class="input-row">
+              <div class="field">
+                <span class="field-label">Tickers</span>
+                <input id="tickers" class="pill-input" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
+              </div>
+              <div class="field">
+                <span class="field-label">Focus</span>
+                <div class="chip-row">
+                  <div class="chip active" data-focus="both">Calls &amp; puts</div>
+                  <div class="chip" data-focus="calls">Calls only</div>
+                  <div class="chip" data-focus="puts">Puts only</div>
+                </div>
+              </div>
+              <div class="field">
+                <span class="field-label">Risk style</span>
+                <div class="chip-row">
+                  <div class="chip active" data-style="balanced">Balanced</div>
+                  <div class="chip" data-style="conservative">Conservative</div>
+                  <div class="chip" data-style="aggressive">Aggressive</div>
+                </div>
+              </div>
+              <div class="field">
+                <span class="field-label">Timeframe</span>
+                <div class="chip-row">
+                  <div class="chip active" data-timeframe="intraday">Intraday / 0DTE</div>
+                  <div class="chip" data-timeframe="1-5d">1–5 days</div>
+                  <div class="chip" data-timeframe="multi-week">Multi-week</div>
+                  <div class="chip" data-timeframe="long-term">Long-term</div>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button id="runBtn" class="btn" onclick="runAnalysis()"><span id="btnLabel">Run analysis</span></button>
+                <button id="screenerBtn" class="btn secondary" onclick="runScreener()"><span id="screenerBtnLabel">Run screener</span></button>
+              </div>
             </div>
+            <div id="status" class="status-line"></div>
+          </div>
+          <div id="conversation" class="conversation" style="max-height:420px;"></div>
+        </div>
+        <div id="screenScreener" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Screener</h1>
+            <p class="page-desc">Filter options by min volume and max spread. Timeframe is set on Analysis. Run screener from Analysis or here.</p>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
             <div class="screener-controls">
               <div class="screener-control">
                 <span>Min vol</span>
@@ -928,176 +1065,77 @@
                 <span>Max spread %</span>
                 <input id="maxSpreadInput" class="screener-number" type="number" value="25" min="0" step="1">
               </div>
+              <button type="button" class="btn" onclick="runScreener()" style="margin-left:12px;">Run screener</button>
             </div>
-            <div id="screenerSummary" class="screener-summary">No screener results yet. Open the Analysis panel and click Run screener.</div>
-            <div class="screener-table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Ticker</th>
-                    <th>Type</th>
-                    <th>Exp</th>
-                    <th>Strike</th>
-                    <th>Last</th>
-                    <th>Bid</th>
-                    <th>Ask</th>
-                    <th>Spread %</th>
-                    <th>Vol</th>
-                    <th>OI</th>
-                    <th>Moneyness %</th>
-                    <th>Delta</th>
-                    <th>Gamma</th>
-                    <th>Theta</th>
-                    <th>Vega</th>
-                    <th>IV %</th>
-                  </tr>
-                </thead>
-                <tbody id="screenerBody">
-                  <tr><td colspan="16" style="text-align:center; padding:10px;">No data.</td></tr>
-                </tbody>
-              </table>
-            </div>
+            <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set timeframe on Analysis, then run screener.</div>
           </div>
-        </div>
-      </div>
-
-      <div id="panelsZone" class="panels-zone">
-        <div id="panelAnalysis" class="panel panel-analysis closed" data-panel="analysis" style="top:40px;left:40px;width:680px;height:580px;">
-          <div class="panel-titlebar" data-drag="panelAnalysis">
-            <span class="panel-title">0DTE Analysis</span>
-            <div class="panel-btns">
-              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelAnalysis')" title="Minimize">−</button>
-              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelAnalysis')" title="Maximize">□</button>
-              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelAnalysis')" title="Close">×</button>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="input-shell">
-              <div class="input-row">
-                <div class="field">
-                  <span class="field-label">Tickers</span>
-                  <input id="tickers" class="pill-input" value="SPY,QQQ,IWM" placeholder="SPY, QQQ, IWM">
-                </div>
-                <div class="field">
-                  <span class="field-label">Focus</span>
-                  <div class="chip-row">
-                    <div class="chip active" data-focus="both">Calls &amp; puts</div>
-                    <div class="chip" data-focus="calls">Calls only</div>
-                    <div class="chip" data-focus="puts">Puts only</div>
-                  </div>
-                </div>
-                <div class="field">
-                  <span class="field-label">Risk style</span>
-                  <div class="chip-row">
-                    <div class="chip active" data-style="balanced">Balanced</div>
-                    <div class="chip" data-style="conservative">Conservative</div>
-                    <div class="chip" data-style="aggressive">Aggressive</div>
-                  </div>
-                </div>
-                <div class="field">
-                  <span class="field-label">Timeframe</span>
-                  <div class="chip-row">
-                    <div class="chip active" data-timeframe="intraday">Intraday / 0DTE</div>
-                    <div class="chip" data-timeframe="1-5d">1–5 days</div>
-                    <div class="chip" data-timeframe="multi-week">Multi-week</div>
-                    <div class="chip" data-timeframe="long-term">Long-term</div>
-                  </div>
-                </div>
-                <div class="btn-row">
-                  <button id="runBtn" class="btn" onclick="runAnalysis()"><span id="btnLabel">Run analysis</span></button>
-                  <button id="screenerBtn" class="btn secondary" onclick="runScreener()"><span id="screenerBtnLabel">Run screener</span></button>
-                </div>
-              </div>
-              <div id="status" class="status-line"></div>
-            </div>
-            <div id="conversation" class="conversation"></div>
-          </div>
-          <div class="panel-resize-handle" data-resize="panelAnalysis"></div>
-        </div>
-
-        <div id="panelSignals" class="panel closed" data-panel="signals" style="top:60px;left:24px;width:420px;height:380px;">
-          <div class="panel-titlebar" data-drag="panelSignals">
-            <span class="panel-title">Live 0DTE Signals</span>
-            <div class="panel-btns">
-              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelSignals')" title="Minimize">−</button>
-              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelSignals')" title="Maximize">□</button>
-              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelSignals')" title="Close">×</button>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="signals-engine" id="signalsEngine">
-              <div class="signals-engine-header">
-                <div>
-                  <div class="signals-engine-title">Live 0DTE signals</div>
-                  <div class="signals-engine-sub">Top setups — AI-ranked</div>
-                </div>
-                <button type="button" id="refreshSignalsBtn" class="btn secondary" onclick="fetchSignals()"><span id="refreshSignalsLabel">Refresh</span></button>
-              </div>
-              <div id="signalHero" class="signal-hero" style="display:none;"></div>
-              <div id="signalsList" class="signals-list"></div>
-              <div id="signalsPlaceholder" class="hint" style="padding:8px 0;">Click Refresh to load setups.</div>
-            </div>
-          </div>
-          <div class="panel-resize-handle" data-resize="panelSignals"></div>
-        </div>
-
-        <div id="panelScreener" class="panel closed" data-panel="screener" style="top:100px;left:140px;">
-          <div class="panel-titlebar">
-            <span class="panel-title">0DTE Screener</span>
-            <div class="panel-btns">
-              <button type="button" class="panel-btn" data-action="minimize" onclick="minimizePanel('panelScreener')" title="Minimize">−</button>
-              <button type="button" class="panel-btn" data-action="maximize" onclick="maximizePanel('panelScreener')" title="Maximize">□</button>
-              <button type="button" class="panel-btn" data-action="close" onclick="closePanel('panelScreener')" title="Close">×</button>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="screener-shell">
-          <div class="screener-header">
-            <div class="screener-title">0DTE Screener</div>
-            <div class="screener-subtitle">ITM rows highlighted. Greeks approximate/educational.</div>
-          </div>
-          <div class="screener-controls">
-            <div class="screener-control">
-              <span>Min vol</span>
-              <input id="minVolumeInput" class="screener-number" type="number" value="1000" min="0" step="100">
-            </div>
-            <div class="screener-control">
-              <span>Max spread %</span>
-              <input id="maxSpreadInput" class="screener-number" type="number" value="25" min="0" step="1">
-            </div>
-          </div>
-          <div id="screenerSummary" class="screener-summary">No screener results yet. Click “Run screener”.</div>
-          <div class="screener-table-wrap">
+          <div class="screener-table-wrap" style="max-height:480px;">
             <table>
               <thead>
                 <tr>
-                  <th>Ticker</th>
-                  <th>Type</th>
-                  <th>Exp</th>
-                  <th>Strike</th>
-                  <th>Last</th>
-                  <th>Bid</th>
-                  <th>Ask</th>
-                  <th>Spread %</th>
-                  <th>Vol</th>
-                  <th>OI</th>
-                  <th>Moneyness %</th>
-                  <th>Delta</th>
-                  <th>Gamma</th>
-                  <th>Theta</th>
-                  <th>Vega</th>
-                  <th>IV %</th>
+                  <th>Ticker</th><th>Type</th><th>Exp</th><th>Strike</th><th>Last</th><th>Bid</th><th>Ask</th><th>Spread %</th><th>Vol</th><th>OI</th><th>Moneyness %</th><th>Delta</th><th>Gamma</th><th>Theta</th><th>Vega</th><th>IV %</th>
                 </tr>
               </thead>
               <tbody id="screenerBody">
-                <tr><td colspan="16" style="text-align:center; padding:10px;">No data.</td></tr>
+                <tr><td colspan="16" style="text-align:center; padding:16px;">No data. Run screener above.</td></tr>
               </tbody>
             </table>
           </div>
+        </div>
+        <div id="screenChat" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Chat</h1>
+            <p class="page-desc">Ask follow-up questions with a fresh snapshot per message. Educational only.</p>
+          </div>
+          <div class="card chat-shell" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+            <button type="button" class="btn secondary" style="margin-bottom:12px; align-self:flex-start;" onclick="clearChat()">Clear chat</button>
+            <div id="chatConversation" class="conversation" style="flex:1; max-height:360px;"></div>
+            <div id="typingIndicator" class="typing-indicator" style="display:none;"><span></span><span></span><span></span></div>
+            <div class="chat-input-shell" style="margin-top:12px;">
+              <div class="chat-row">
+                <input id="chatInput" class="pill-input" placeholder="Ask a follow-up..." autocomplete="off">
+                <button id="chatBtn" class="btn" style="min-width:88px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
+              </div>
+              <div id="chatStatus" class="status-line"></div>
             </div>
           </div>
         </div>
+        <div id="screenSignals" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Signals</h1>
+            <p class="page-desc">Top AI-ranked 0DTE setups. Refresh to load the highest-probability ideas for your tickers.</p>
+          </div>
+          <div class="signals-engine" id="signalsEngine">
+            <div class="signals-engine-header">
+              <div>
+                <div class="signals-engine-title">Live 0DTE signals</div>
+                <div class="signals-engine-sub">Top setups — AI-ranked</div>
+              </div>
+              <button type="button" id="refreshSignalsBtn" class="btn" onclick="fetchSignals()"><span id="refreshSignalsLabel">Refresh</span></button>
+            </div>
+            <div id="signalHero" class="signal-hero" style="display:none;"></div>
+            <div id="signalsList" class="signals-list"></div>
+            <div id="signalsPlaceholder" class="hint" style="padding:12px 0;">Click Refresh to load setups.</div>
+          </div>
+        </div>
+        <div id="screenConfidence" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Confidence &amp; backtest</h1>
+            <p class="page-desc">Simple confidence metrics and follow-through stats. Run an analysis first to see data.</p>
+          </div>
+          <div class="card" style="max-width:560px;">
+            <div id="confidenceBodyPanel" class="hint">Run an analysis to see confidence scores and follow-through stats.</div>
+          </div>
+        </div>
+      </main>
+    </div>
 
+    <div class="footer-note">
+      Educational only — not trading advice. Screener/Greeks approximate. 0DTE options can go to zero.
+    </div>
+  </div>
+
+          <div id="screenerSummary" class="screener-summary">No screener results yet. Click “Run screener”.</div>
         <div id="panelChat" class="panel closed" data-panel="chat" style="top:80px;left:180px;width:400px;height:360px;">
           <div class="panel-titlebar" data-drag="panelChat">
             <span class="panel-title">Chat</span>
@@ -1145,15 +1183,6 @@
       </div>
     </div>
 
-    <!-- CHAT: nav shows main app and scrolls to chat section -->
-    <div id="pageChat" class="page">
-      <div class="card" style="max-width:400px; margin:40px auto;">
-        <div style="font-size:14px; font-weight:600; margin-bottom:8px;">Chat</div>
-        <div class="hint" style="margin-bottom:12px;">Chat is in the main view. Go to Analysis to use it.</div>
-        <button type="button" class="btn" onclick="location.hash='#/chat';">Go to Chat</button>
-      </div>
-    </div>
-
     <div class="footer-note">
       Educational only — not trading advice. Screener/Greeks approximate. 0DTE options can go to zero.
     </div>
@@ -1167,6 +1196,8 @@
     let chatHistory = [];
 
     function $(id) { return document.getElementById(id); }
+
+    function setNotificationDot(panelId, visible) { /* no-op: panels removed in favor of full-page screens */ }
 
     function apiHeaders(extra = {}) {
       const headers = { ...extra };
@@ -1202,30 +1233,36 @@
       }
     }
 
+    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenConfidence"];
+    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navConfidence"];
+
     function showPage(pageId) {
-      ["pageLogin", "pageApp", "pageChat"].forEach(id => {
-        $(id).classList.toggle("active", id === pageId);
+      ["pageLogin", "pageApp"].forEach(id => {
+        const el = $(id);
+        if (el) el.classList.toggle("active", id === pageId);
+      });
+      const header = document.querySelector(".header");
+      if (header) header.style.display = pageId === "pageLogin" ? "flex" : "none";
+    }
+
+    function showScreen(screenId) {
+      SCREEN_IDS.forEach(id => {
+        const el = $(id);
+        if (el) el.classList.toggle("active", id === screenId);
+      });
+      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenConfidence: "/confidence" };
+      const path = pathMap[screenId] || "/dashboard";
+      NAV_IDS.forEach(navId => {
+        const el = $(navId);
+        if (el) el.classList.toggle("active", el.getAttribute("href") === "#" + path);
       });
     }
 
     function setNavActive(path) {
-      $("navApp").classList.toggle("active", path === "/app");
-      $("navChat").classList.toggle("active", path === "/chat");
-    }
-
-    function setNotificationDot(panelId, show) {
-      const dotId = "notificationDot" + panelId.charAt(0).toUpperCase() + panelId.slice(1);
-      const dot = $(dotId);
-      if (dot) dot.classList.toggle("visible", !!show);
-    }
-
-    function openPanel(id) {
-      const el = $(id);
-      if (!el) return;
-      el.classList.remove("closed", "minimized", "maximized");
-      el.style.display = "flex";
-      bringPanelToFront(id);
-      setNotificationDot(id, false);
+      NAV_IDS.forEach(navId => {
+        const el = $(navId);
+        if (el) el.classList.toggle("active", (el.getAttribute("href") || "").replace("#", "") === path);
+      });
     }
 
     function closePanel(id) {
@@ -1335,12 +1372,14 @@
 
     async function route() {
       const hash = location.hash || "#/login";
-      const path = hash.replace("#", "") || "/login";
-      $("logoutBtn").onclick = logout;
+      const path = hash.replace("#", "").replace(/\/$/, "") || "/login";
+      const logoutEl = $("logoutBtn");
+      if (logoutEl) {
+        logoutEl.onclick = function(e) { e.preventDefault(); logout(); };
+      }
 
       const authed = await authCheck();
       if (!authed) {
-        setNavActive("/login");
         showPage("pageLogin");
         return;
       }
@@ -1352,29 +1391,20 @@
         chatHistory = [];
       }
 
+      showPage("pageApp");
+      const pathToScreen = { "/dashboard": "screenDashboard", "/analysis": "screenAnalysis", "/screener": "screenScreener", "/chat": "screenChat", "/signals": "screenSignals", "/confidence": "screenConfidence" };
+      const screenId = pathToScreen[path] || "screenDashboard";
+      showScreen(screenId);
+
+      if (path === "/signals") fetchSignals();
       if (path === "/chat") {
-        setNavActive("/chat");
-        showPage("pageApp");
-        if (typeof initPanelStacking === "function") initPanelStacking();
-        if (typeof initPanelDrag === "function") initPanelDrag();
-        if (typeof initPanelResize === "function") initPanelResize();
-        openPanel("panelChat");
         const pending = sessionStorage.getItem("odteai_pending_first_question");
         if (pending && $("chatInput")) {
           $("chatInput").value = pending;
           sessionStorage.removeItem("odteai_pending_first_question");
           setTimeout(runChat, 50);
         } else if ($("chatInput")) $("chatInput").focus();
-        return;
       }
-
-      setNavActive("/app");
-      showPage("pageApp");
-      fetchSignals();
-      openPanel("panelAnalysis");
-      if (typeof initPanelStacking === "function") initPanelStacking();
-      if (typeof initPanelDrag === "function") initPanelDrag();
-      if (typeof initPanelResize === "function") initPanelResize();
     }
 
     window.addEventListener("hashchange", route);
@@ -1538,7 +1568,7 @@
         if (!data.token) throw new Error("No token returned");
         saveAuthToken(data.token);
         statusEl.textContent = "Logged in.";
-        location.hash = "#/app";
+        location.hash = "#/dashboard";
       } catch {
         statusEl.textContent = "Login failed.";
         statusEl.classList.add("error");
@@ -1741,14 +1771,11 @@
     function enterChatFromFirstQuestion() {
       const input = $("firstQuestionInput");
       const q = (input && input.value || "").trim();
-      openPanel("panelChat");
+      location.hash = "#/chat";
       if (q && $("chatInput")) {
         $("chatInput").value = q;
         if (input) input.value = "";
         setTimeout(runChat, 100);
-      } else if (q && $("chatInput")) {
-        $("chatInput").value = q;
-        if (input) input.value = "";
       }
     }
 
