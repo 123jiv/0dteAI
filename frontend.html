@@ -1188,25 +1188,6 @@
             </div>
           </section>
 
-          <div class="stat-grid">
-            <div class="stat-card">
-              <div class="label">Account P&L</div>
-              <div class="value">—</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Win rate</div>
-              <div class="value">—</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Active positions</div>
-              <div class="value">0</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Market sentiment</div>
-              <div class="value">—</div>
-            </div>
-          </div>
-
           <h2 class="section-title" style="font-size:14px; margin-bottom:12px;">Quick tools</h2>
           <div class="dashboard-grid">
             <a href="#/analysis" class="dashboard-card">
@@ -1229,25 +1210,6 @@
               <h3>Confidence</h3>
               <p>Confidence scores and simple backtest metrics after you run an analysis.</p>
             </a>
-          </div>
-
-          <div class="recent-trades-wrap">
-            <div class="table-title">Recent trades</div>
-            <div class="screener-table-wrap" style="max-height:200px;">
-              <table class="table-zebra">
-                <thead>
-                  <tr>
-                    <th>Symbol</th>
-                    <th>Entry</th>
-                    <th>P&L</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="recentTradesBody">
-                  <tr><td colspan="4" style="text-align:center; padding:16px; color:var(--text-secondary);">No trades yet. Run analysis or connect a broker.</td></tr>
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
         <div id="screenAnalysis" class="screen page-content">
@@ -1874,8 +1836,9 @@
         const td = document.createElement("td");
         td.colSpan = 16;
         td.style.textAlign = "center";
-        td.style.padding = "10px";
-        td.textContent = "No contracts passed the current filters.";
+        td.style.padding = "16px";
+        td.style.color = "var(--text-secondary)";
+        td.innerHTML = "No contracts passed the current filters.<br><span style=\"font-size:11px; margin-top:8px; display:block;\">Tip: Lower Min vol (e.g. 100) or raise Max spread % (e.g. 50) above, then run again.</span>";
         tr.appendChild(td);
         tbody.appendChild(tr);
         return;
@@ -2009,7 +1972,13 @@
         renderScreenerTable(rows);
         const count = rows.length || 0;
         const tfLabel = { intraday: "0DTE / same day", "1-5d": "1–5 days", "multi-week": "multi-week", "long-term": "long-term" }[currentTimeframe] || currentTimeframe;
-        summaryEl.textContent = count + " contract" + (count === 1 ? "" : "s") + " found (" + tfLabel + "). ITM rows highlighted.";
+        if (count === 0) {
+          summaryEl.innerHTML = (data.suggestion || "No contracts passed your filters. Try lowering Min vol (e.g. 100) or raising Max spread % (e.g. 50).");
+          summaryEl.classList.add("error");
+        } else {
+          summaryEl.textContent = count + " contract" + (count === 1 ? "" : "s") + " found (" + tfLabel + "). ITM rows highlighted.";
+          summaryEl.classList.remove("error");
+        }
         setStatus("Screener complete.");
       } catch (err) {
         setStatus("Screener request failed. Check filters or backend.", true);

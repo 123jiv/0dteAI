@@ -370,6 +370,26 @@ def build_prompt(
         % (focus, style, timeframe)
     )
 
+    # Force output to match the selected timeframe (heading + content)
+    tf_heading = {
+        "intraday": "0DTE View",
+        "1-5d": "1–5 Day View",
+        "multi-week": "Multi-week View",
+        "long-term": "Long-term View",
+    }.get(timeframe, "View")
+    lines.append(
+        "\n\nCRITICAL — You MUST match the user's chosen timeframe:\n"
+        "- Timeframe selected: %s\n"
+        "- For EACH ticker use this EXACT heading style: [SYMBOL] %s:\n"
+        "  (e.g. IWM %s: or SPY %s:)\n"
+        "- For intraday: same-day 0DTE options, quick targets, intraday levels.\n"
+        "- For 1–5 days: weekly or short-dated options (1–5 day expiries), swing-style ideas.\n"
+        "- For multi-week: 2–8 week expiries, broader zones, weekly targets.\n"
+        "- For long-term: multi-month expiries, broad price zones and direction, NOT 0DTE strikes; "
+        "focus on trend and key levels, not same-day entries. Do NOT give 0DTE contract examples when timeframe is long-term."
+        % (timeframe, tf_heading, tf_heading, tf_heading)
+    )
+
     return "\n".join(lines)
 
 

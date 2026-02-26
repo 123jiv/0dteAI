@@ -205,7 +205,11 @@ def screener(
                 print("Screener 1-5d fallback skip %s: %s" % (sym, e))
 
     if not all_rows:
-        return {"rows": [], "tickers": symbols}
+        return {
+            "rows": [],
+            "tickers": symbols,
+            "suggestion": "No contracts passed your filters. Try lowering Min vol (e.g. 100) or raising Max spread % (e.g. 50) to see more contracts.",
+        }
 
     all_rows.sort(key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"])))
     return {"rows": all_rows, "tickers": symbols}
