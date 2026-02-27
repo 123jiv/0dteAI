@@ -313,7 +313,12 @@ def build_prompt(
 ) -> str:
     spec = ZERO_DTE_SPEC.strip()
     if analysis_type == "stocks":
-        spec = spec + "\n\nYou are ALSO giving STOCK (equity) ideas only for this run. Ignore options; output only the Stock idea section per ticker as described below."
+        spec = (
+            spec
+            + "\n\nCRITICAL — This run is STOCKS ONLY. You must output ONLY information about buying and selling the underlying STOCK (equity). "
+            "Do NOT include any options content: no calls, no puts, no 0DTE, no strikes, no options contracts, no options terminology. "
+            "Use the market data only to inform stock direction, key levels, and risk—then output only the Stock idea format per ticker as described below."
+        )
     elif analysis_type == "both":
         spec = spec + "\n\nYou are giving BOTH options ideas AND stock (equity) ideas for this run. For each ticker, output the usual options view AND a separate Stock idea section as described below."
 
@@ -372,9 +377,12 @@ def build_prompt(
         "- Risk style: %s (balanced/conservative/aggressive)\n"
         "- Timeframe: %s (intraday / 1–5 days / multi-week / long-term)\n"
         "- Analysis type: %s (options only / stocks only / both)\n\n"
-        "Respect these preferences when you choose which setups to highlight and how aggressive "
-        "the ideas sound. Do NOT output position sizes; only describe how "
-        "aggressive or conservative the idea is relative to typical options and 0DTE risk."
+        "Respect these preferences. Do NOT output position sizes. "
+        + (
+            "Describe how aggressive or conservative the stock idea is (e.g. tight stop vs wider hold)."
+            if analysis_type == "stocks"
+            else "Describe how aggressive or conservative the idea is relative to typical options and 0DTE risk."
+        )
         % (focus, style, timeframe, analysis_type)
     )
 
@@ -401,11 +409,12 @@ def build_prompt(
     }.get(timeframe, "View")
     if analysis_type == "stocks":
         lines.append(
-            "\n\nCRITICAL — Stock-only analysis:\n"
+            "\n\nCRITICAL — Stock-only analysis (equity only):\n"
             "- For EACH ticker use heading: [SYMBOL] Stock View:\n"
-            "- Then output ONLY the Stock idea section (Direction, Key level, Horizon, Reason, Risk).\n"
+            "- Output ONLY the Stock idea section: Direction (long/short/neutral), Key level, Horizon, Reason, Risk.\n"
+            "- All recommendations must be about buying or selling the STOCK only. Do not mention options, calls, puts, 0DTE, strikes, or any options contracts.\n"
             "- Match the user's timeframe: intraday = day-trade levels; 1–5d = swing; multi-week/long-term = position and key zones.\n"
-            "- Do NOT include options or 0DTE sections."
+            "- If you mention risk or targets, phrase them in terms of stock price levels only, not options."
         )
     else:
         lines.append(
