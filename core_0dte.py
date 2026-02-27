@@ -1243,7 +1243,9 @@ def build_forecast_prompt(
         "3) Bull case: what needs to go right (trend, macro, earnings).\n"
         "4) Bear case: main downside risks and rough drawdown range.\n"
         "5) Risk notes: 2–3 bullets on volatility, valuation, and macro sensitivity.\n"
-        "Do NOT give specific price targets or trade instructions; just qualitative ranges and guidance."
+        "6) Example plan (educational only): one or two sentences describing a hypothetical way a trader *might* think about entries and exits "
+        "using broad price ZONES (e.g. 'accumulate on pullbacks near support zone A–B, trim into resistance zone C–D, cut if price closes below E'). "
+        "Do NOT give exact order instructions; keep it high-level and clearly hypothetical."
     )
 
     return "\n".join(lines)
