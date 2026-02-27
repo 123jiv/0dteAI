@@ -1192,7 +1192,7 @@
           <div class="dashboard-grid">
             <a href="#/analysis" class="dashboard-card">
               <h3>Analysis</h3>
-              <p>AI scenario analysis for SPY, QQQ, IWM. Run analysis or screener with your chosen focus and timeframe.</p>
+              <p>AI scenario analysis for options and stocks. Choose options only, stocks only, or both; set focus and timeframe.</p>
             </a>
             <a href="#/screener" class="dashboard-card">
               <h3>Screener</h3>
@@ -1215,7 +1215,7 @@
         <div id="screenAnalysis" class="screen page-content">
           <div class="page-head">
             <h1 class="page-title">Analysis</h1>
-            <p class="page-desc">Run AI scenario analysis or screener. Set tickers, focus, risk style, and timeframe.</p>
+            <p class="page-desc">Run AI scenario analysis for options and/or stocks. Set tickers, focus, risk style, timeframe, and analysis type (options, stocks, or both).</p>
           </div>
           <div class="input-shell">
             <div class="input-row">
@@ -1246,6 +1246,14 @@
                   <div class="chip" data-timeframe="1-5d">1–5 days</div>
                   <div class="chip" data-timeframe="multi-week">Multi-week</div>
                   <div class="chip" data-timeframe="long-term">Long-term</div>
+                </div>
+              </div>
+              <div class="field">
+                <span class="field-label">Analysis type</span>
+                <div class="chip-row">
+                  <div class="chip active" data-analysis-type="options">Options only</div>
+                  <div class="chip" data-analysis-type="stocks">Stocks only</div>
+                  <div class="chip" data-analysis-type="both">Options + stocks</div>
                 </div>
               </div>
               <div class="btn-row">
@@ -1306,9 +1314,12 @@
             <div id="typingIndicator" class="typing-indicator" style="display:none;"><span></span><span></span><span></span></div>
             <div class="chat-input-shell" style="margin-top:12px;">
               <div class="chat-row">
+                <button type="button" class="btn secondary" style="min-width:72px;" onclick="openChatFilePicker()">Attach</button>
                 <input id="chatInput" class="pill-input" placeholder="Ask a follow-up..." autocomplete="off">
                 <button id="chatBtn" class="btn" style="min-width:88px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
               </div>
+              <input id="chatFileInput" type="file" accept="image/*" multiple style="display:none" onchange="handleChatFilesChange(event)">
+              <div id="chatFilesHint" class="status-line">No files attached.</div>
               <div id="chatStatus" class="status-line"></div>
             </div>
           </div>
@@ -1363,8 +1374,10 @@
     let currentFocus = "both";
     let currentStyle = "balanced";
     let currentTimeframe = "intraday";
+    let currentAnalysisType = "options";
     let authToken = null;
     let chatHistory = [];
+    let chatFiles = [];
 
     function $(id) { return document.getElementById(id); }
 
@@ -1392,6 +1405,46 @@
       authToken = null;
       chatHistory = [];
       location.hash = "#/login";
+    }
+
+    function openChatFilePicker() {
+      const input = $("chatFileInput");
+      if (input) input.click();
+    }
+
+    function updateChatFilesHint() {
+      const el = $("chatFilesHint");
+      if (!el) return;
+      if (!chatFiles || !chatFiles.length) {
+        el.textContent = "No files attached.";
+      } else {
+        el.textContent = "Attached: " + chatFiles.map(f => f.name || "image").join(", ");
+      }
+    }
+
+    function handleChatFilesChange(event) {
+      chatFiles = [];
+      const input = event.target;
+      if (!input || !input.files) {
+        updateChatFilesHint();
+        return;
+      }
+      const files = Array.from(input.files);
+      const maxFiles = 3;
+      files.slice(0, maxFiles).forEach(file => {
+        if (!file.type || !file.type.startsWith("image/")) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          chatFiles.push({
+            name: file.name,
+            type: file.type,
+            data_url: reader.result,
+          });
+          updateChatFilesHint();
+        };
+        reader.readAsDataURL(file);
+      });
+      updateChatFilesHint();
     }
 
     async function authCheck() {
@@ -1601,6 +1654,13 @@
           document.querySelectorAll('.chip[data-timeframe]').forEach(c => c.classList.remove('active'));
           chip.classList.add('active');
           currentTimeframe = chip.getAttribute('data-timeframe');
+        });
+      });
+      document.querySelectorAll('.chip[data-analysis-type]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip[data-analysis-type]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentAnalysisType = chip.getAttribute('data-analysis-type');
         });
       });
     }
@@ -1909,6 +1969,7 @@
           focus: currentFocus,
           style: currentStyle,
           timeframe: currentTimeframe,
+          analysis_type: currentAnalysisType,
         });
         const res = await fetch("/analyze?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
@@ -1918,7 +1979,7 @@
         const data = await res.json();
         const outText = data.analysis_markdown || JSON.stringify(data, null, 2);
         appendMessage(
-          tickersValue + " • focus: " + currentFocus + ", style: " + currentStyle + ", tf: " + currentTimeframe,
+          tickersValue + " • " + currentFocus + ", " + currentStyle + ", " + currentTimeframe + ", " + currentAnalysisType,
           outText,
           "conversation",
           "analysis"
@@ -1930,7 +1991,7 @@
 
         chatHistory.push({
           role: "user",
-          content: "Give me a fresh 0DTE analysis for " + tickersValue + " with focus=" + currentFocus + " and style=" + currentStyle + "."
+          content: "Give me a fresh analysis for " + tickersValue + " (focus=" + currentFocus + ", style=" + currentStyle + ", type=" + currentAnalysisType + ")."
         });
         chatHistory.push({ role: "assistant", content: outText });
         localStorage.setItem("odteai_chat_history", JSON.stringify(chatHistory.slice(-30)));
@@ -2021,6 +2082,10 @@
       localStorage.removeItem("odteai_chat_history");
       $("chatConversation").innerHTML = "";
       setChatStatus("Cleared.");
+      chatFiles = [];
+      const fileInput = $("chatFileInput");
+      if (fileInput) fileInput.value = "";
+      updateChatFilesHint();
     }
 
     async function runChat() {
@@ -2046,6 +2111,8 @@
           focus: currentFocus,
           style: currentStyle,
           timeframe: currentTimeframe,
+          analysis_type: currentAnalysisType,
+          files: chatFiles,
           history: chatHistory,
           question: question,
         };

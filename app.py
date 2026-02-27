@@ -144,6 +144,7 @@ def analyze(
     focus: str = "both",      # both | calls | puts
     style: str = "balanced",  # balanced | conservative | aggressive
     timeframe: str = "intraday",
+    analysis_type: str = "options",  # options | stocks | both
     authorization: Optional[str] = Header(default=None),
 ):
     if not os.getenv("OPENAI_API_KEY"):
@@ -154,8 +155,11 @@ def analyze(
     if not symbols:
         raise HTTPException(status_code=400, detail="No valid tickers provided")
 
+    if analysis_type not in ("options", "stocks", "both"):
+        analysis_type = "options"
+
     try:
-        result = analyze_symbols(symbols, focus=focus, style=style, timeframe=timeframe)
+        result = analyze_symbols(symbols, focus=focus, style=style, timeframe=timeframe, analysis_type=analysis_type)
         confidence = compute_confidence_for_symbols(symbols)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -262,6 +266,8 @@ class ChatRequest(BaseModel):
     focus: str = "both"
     style: str = "balanced"
     timeframe: str = "intraday"
+    analysis_type: str = "options"
+    files: List[Dict[str, Any]] = []
     history: List[ChatMessage] = []
     question: str
 
@@ -287,11 +293,12 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(default=None)):
     if not snapshots:
         raise HTTPException(status_code=500, detail="No data fetched for chat.")
 
-    base_prompt = build_prompt(snapshots, focus=req.focus, style=req.style, timeframe=req.timeframe)
+    at = req.analysis_type if req.analysis_type in ("options", "stocks", "both") else "options"
+    base_prompt = build_prompt(snapshots, focus=req.focus, style=req.style, timeframe=req.timeframe, analysis_type=at)
 
     client = OpenAI()
 
-    messages: List[Dict[str, str]] = [
+    messages: List[Dict[str, Any]] = [
         {
             "role": "system",
             "content": (
@@ -313,13 +320,39 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(default=None)):
         role = "assistant" if msg.role == "assistant" else "user"
         messages.append({"role": role, "content": msg.content})
 
-    # Latest question
-    messages.append(
-        {
-            "role": "user",
-            "content": req.question,
-        }
-    )
+    # Latest question + optional images
+    files = getattr(req, "files", []) or []
+    if files:
+        content_parts: List[Dict[str, Any]] = [
+            {"type": "text", "text": req.question}
+        ]
+        # Only include a few images to keep payload reasonable
+        for f in files[:3]:
+            try:
+                data_url = f.get("data_url") or f.get("dataURL") or ""
+                if not data_url:
+                    continue
+                content_parts.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": data_url},
+                    }
+                )
+            except Exception:
+                continue
+        messages.append(
+            {
+                "role": "user",
+                "content": content_parts,
+            }
+        )
+    else:
+        messages.append(
+            {
+                "role": "user",
+                "content": req.question,
+            }
+        )
 
     try:
         resp = client.chat.completions.create(
