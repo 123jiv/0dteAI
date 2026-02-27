@@ -520,32 +520,45 @@ def build_screener_rows(
     max_spread_pct: float,
     timeframe: str = "intraday",
 ) -> List[Dict[str, Any]]:
-    t = yf.Ticker(symbol)
-    S = _get_last_price(symbol)
-    expirations = _get_expirations_for_timeframe(t, timeframe)
-    if not expirations:
+    try:
+        t = yf.Ticker(symbol)
+        S = _get_last_price(symbol)
+    except Exception as e:
+        print("Screener init skip %s: %s" % (symbol, e))
         return []
 
-    all_rows: List[Dict[str, Any]] = []
-    for exp in expirations:
+    # Try requested timeframe first, then broader timeframes if we get no rows (helps IWM, etc.)
+    for try_tf in [timeframe, "1-5d", "multi-week", "long-term"]:
         try:
-            chain = t.option_chain(exp)
-            rows = _build_screener_rows_for_exp(
-                symbol, S, exp, chain.calls, chain.puts,
-                min_volume=min_volume, max_spread_pct=max_spread_pct,
-            )
-            all_rows.extend(rows)
-            # If we got enough rows, stop; otherwise try next expiration (e.g. illiquid expiry)
-            if len(all_rows) >= 20:
-                break
+            expirations = _get_expirations_for_timeframe(t, try_tf)
         except Exception as e:
-            print("Screener skip exp %s for %s: %s" % (exp, symbol, e))
+            print("Screener expirations skip %s (%s): %s" % (symbol, try_tf, e))
+            continue
+        if not expirations:
             continue
 
-    all_rows.sort(
-        key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"]))
-    )
-    return all_rows
+        all_rows: List[Dict[str, Any]] = []
+        for exp in expirations:
+            try:
+                chain = t.option_chain(exp)
+                rows = _build_screener_rows_for_exp(
+                    symbol, S, exp, chain.calls, chain.puts,
+                    min_volume=min_volume, max_spread_pct=max_spread_pct,
+                )
+                all_rows.extend(rows)
+                if len(all_rows) >= 20:
+                    break
+            except Exception as e:
+                print("Screener skip exp %s for %s: %s" % (exp, symbol, e))
+                continue
+
+        if all_rows:
+            all_rows.sort(
+                key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"]))
+            )
+            return all_rows
+
+    return []
 
 
 # ---------- Confidence / simple backtest metrics ----------

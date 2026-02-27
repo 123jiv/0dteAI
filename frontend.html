@@ -1277,6 +1277,7 @@
                 <input id="maxSpreadInput" class="screener-number" type="number" value="30" min="0" step="1">
               </div>
               <button type="button" class="btn" onclick="runScreener()" style="margin-left:12px;">Run screener</button>
+              <button type="button" class="btn secondary" onclick="resetScreenerFilters()">Reset filters</button>
             </div>
             <p class="page-desc" style="margin-top:8px; margin-bottom:0;">Timeframe is set on the Analysis page (e.g. Intraday / 0DTE for same-day options).</p>
             <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers above and timeframe on Analysis, then run screener.</div>
@@ -1940,6 +1941,21 @@
         btn.disabled = false;
         btnLabel.textContent = "Run analysis";
       }
+    }
+
+    function resetScreenerFilters() {
+      const tickersEl = $("screenerTickers");
+      const minVol = $("minVolumeInput");
+      const maxSpread = $("maxSpreadInput");
+      const summaryEl = $("screenerSummary");
+      if (tickersEl) tickersEl.value = "";
+      if (minVol) minVol.value = "500";
+      if (maxSpread) maxSpread.value = "30";
+      if (summaryEl) {
+        summaryEl.textContent = "No results yet. Set tickers above and timeframe on Analysis, then run screener.";
+        summaryEl.classList.remove("error");
+      }
+      renderScreenerTable([]);
     }
 
     async function runScreener() {

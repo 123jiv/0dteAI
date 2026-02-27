@@ -204,6 +204,15 @@ def screener(
             except Exception as e:
                 print("Screener 1-5d fallback skip %s: %s" % (sym, e))
 
+    # Final fallback: long-term expirations (more expirations available; helps IWM and others)
+    if not all_rows:
+        for sym in symbols:
+            try:
+                rows = build_screener_rows(sym, min_volume=0, max_spread_pct=99.0, timeframe="long-term")
+                all_rows.extend(rows)
+            except Exception as e:
+                print("Screener long-term fallback skip %s: %s" % (sym, e))
+
     if not all_rows:
         return {
             "rows": [],
