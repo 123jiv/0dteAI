@@ -479,7 +479,14 @@ def analyze_symbols(
     if not snapshots:
         detail = "No data fetched."
         if errors:
-            detail += " " + "; ".join(errors)
+            err_text = "; ".join(errors)
+            detail += " " + err_text
+            # Friendlier message when rate limited (e.g. yfinance/Yahoo)
+            if "rate limit" in err_text.lower() or "too many requests" in err_text.lower():
+                detail = (
+                    "Data provider rate limited. Wait 1–2 minutes and try again, or use fewer tickers. "
+                    "Details: " + err_text
+                )
         raise RuntimeError(detail)
 
     prompt = build_prompt(snapshots, focus=focus, style=style, timeframe=timeframe, analysis_type=analysis_type)

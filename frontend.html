@@ -2173,8 +2173,13 @@
         chatHistory.push({ role: "assistant", content: outText });
         localStorage.setItem("odteai_chat_history", JSON.stringify(chatHistory.slice(-30)));
       } catch (err) {
-        setStatus("Request failed. See last message for details.", true);
-        appendMessage(tickersValue + " • error", String(err), "conversation", "error");
+        const errStr = String(err);
+        const isRateLimit = /rate limit|too many requests/i.test(errStr);
+        setStatus(isRateLimit ? "Rate limited. Wait a minute and try again." : "Request failed. See last message for details.", true);
+        const displayMsg = isRateLimit
+          ? "Rate limited by data provider. Please wait 1–2 minutes and try again, or use fewer tickers."
+          : errStr;
+        appendMessage(tickersValue + " • error", displayMsg, "conversation", "error");
       } finally {
         btn.disabled = false;
         btnLabel.textContent = "Run analysis";
