@@ -997,14 +997,38 @@ def _compute_backtest_metrics_for_symbol(
     if std_ret > 0:
         sharpe = (avg_ret * trades_per_year) / (std_ret * np.sqrt(trades_per_year))
 
-    # Build an equity curve and compute max drawdown
+    # Build an equity curve and compute drawdown path
     eq = np.cumprod(1.0 + rets_arr)
     peak = np.maximum.accumulate(eq)
-    dd = (eq - peak) / peak
+    dd = (eq - peak) / peak  # negative numbers
     max_dd = float(dd.min()) if len(dd) else 0.0
 
     wins = int((rets_arr > 0).sum())
     win_rate = float(wins) / float(len(rets_arr)) * 100.0
+
+    # Additional risk/return metrics (educational approximations)
+    downside = rets_arr[rets_arr < 0]
+    sortino = 0.0
+    if downside.size > 0:
+        downside_std = float(downside.std(ddof=1))
+        if downside_std > 0:
+            sortino = (avg_ret * trades_per_year) / (downside_std * np.sqrt(trades_per_year))
+
+    calmar = 0.0
+    if max_dd < 0:
+        calmar = (g_ret * 100.0) / abs(max_dd * 100.0) if max_dd != 0 else 0.0
+
+    pos = rets_arr[rets_arr > 0]
+    neg = rets_arr[rets_arr < 0]
+    omega = 0.0
+    if pos.size > 0 and neg.size > 0:
+        omega = float(pos.mean() / abs(neg.mean()))
+
+    # Ulcer index: square-root of mean of squared drawdowns in percent
+    if dd.size > 0:
+        ui = float(np.sqrt(np.mean((dd * 100.0) ** 2)))
+    else:
+        ui = 0.0
 
     return {
         "symbol": symbol,
@@ -1017,6 +1041,10 @@ def _compute_backtest_metrics_for_symbol(
         "sharpe": round(sharpe, 2),
         "max_drawdown_pct": round(max_dd * 100.0, 2),
         "win_rate_pct": round(win_rate, 1),
+        "sortino": round(sortino, 2),
+        "calmar": round(calmar, 2),
+        "omega": round(omega, 2),
+        "ulcer_index": round(ui, 2),
     }
 
 

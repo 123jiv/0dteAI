@@ -235,7 +235,7 @@ def screener(
 @app.get("/options-screener")
 def options_screener(
     tickers: str = "SPY,QQQ,IWM",
-    min_volume: int = 500,
+    min_volume: int = 200,
     max_spread_pct: float = 30.0,
     min_dte: int = 0,
     max_dte: int = 30,
@@ -292,31 +292,42 @@ def options_screener(
             row["strategy_tags"] = tags
 
     all_rows: List[Dict[str, Any]] = []
-    for sym in symbols:
-        try:
-            rows = fetch_option_chains_for_dte_range(
-                sym,
-                min_volume=min_volume,
-                max_spread_pct=max_spread_pct,
-                min_dte=min_dte,
-                max_dte=max_dte,
-                call_put_filter=side_norm,
-                max_contracts=150,
-            )
-        except Exception as e:
-            print("Options screener skipping %s: %s" % (sym, e))
-            continue
 
-        for r in rows:
-            annotate_strategy(r)
-        all_rows.extend(rows)
+    def fetch_for_symbols(min_vol: int, max_spread: float) -> List[Dict[str, Any]]:
+        rows_all: List[Dict[str, Any]] = []
+        for sym in symbols:
+            try:
+                rows = fetch_option_chains_for_dte_range(
+                    sym,
+                    min_volume=min_vol,
+                    max_spread_pct=max_spread,
+                    min_dte=min_dte,
+                    max_dte=max_dte,
+                    call_put_filter=side_norm,
+                    max_contracts=150,
+                )
+            except Exception as e:
+                print("Options screener skipping %s: %s" % (sym, e))
+                continue
+            for r in rows:
+                annotate_strategy(r)
+            rows_all.extend(rows)
+        return rows_all
+
+    all_rows = fetch_for_symbols(min_volume, max_spread_pct)
+
+    # If nothing passes, automatically retry with very relaxed filters so user sees *something*
+    if not all_rows:
+        relaxed_min_vol = 0
+        relaxed_max_spread = max(max_spread_pct, 80.0)
+        all_rows = fetch_for_symbols(relaxed_min_vol, relaxed_max_spread)
 
     if not all_rows:
         return {
             "rows": [],
             "tickers": symbols,
             "summary": {
-                "message": "No contracts passed your filters. Try lowering Min vol or raising Max spread %, or widening DTE.",
+                "message": "No contracts passed even relaxed filters. Try different tickers or check market hours.",
             },
         }
 
