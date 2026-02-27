@@ -2753,21 +2753,33 @@
         const portfolio = data.portfolio || {};
         const symMetrics = data.symbols || {};
 
-        // Build a nicer HTML summary with cards + table
+        // Build a nicer HTML summary with cards + beginner-friendly table
         const lines = [];
         lines.push('<div class="hint" style="margin-bottom:12px;">');
         lines.push('<div style="font-weight:600; margin-bottom:6px;">Portfolio summary (equal-weight, ' +
           years + 'y, holding ' + holdingDays + ' days)</div>');
         lines.push('<div>Approx CAGR: <strong>' + (portfolio.approx_cagr_pct ?? "n/a") + '%</strong>, ' +
           'Max drawdown: <strong>' + (portfolio.approx_max_drawdown_pct ?? "n/a") + '%</strong>, ' +
-          'Avg Sharpe: <strong>' + (portfolio.avg_sharpe ?? "n/a") + '</strong></div>');
+          'Avg risk/reward score: <strong>' + (portfolio.avg_sharpe ?? "n/a") + '</strong></div>');
         lines.push('</div>');
 
         const symbols = Object.keys(symMetrics);
         if (symbols.length) {
           lines.push('<div style="font-weight:600; margin-bottom:4px;">Per-symbol stats</div>');
           lines.push('<div class="screener-table-wrap" style="max-height:260px;"><table class="table-zebra"><thead>');
-          lines.push('<tr><th>Ticker</th><th>CAGR %</th><th>Sharpe</th><th>Sortino</th><th>Calmar</th><th>Omega</th><th>Max DD %</th><th>Win rate %</th><th>Trades</th></tr>');
+          lines.push(
+            '<tr>' +
+            '<th>Ticker</th>' +
+            '<th>Avg per year %</th>' +                 // maps to CAGR
+            '<th>Risk vs. volatility</th>' +            // Sharpe
+            '<th>Risk on bad days</th>' +               // Sortino
+            '<th>Trend vs. biggest drop</th>' +         // Calmar
+            '<th>Quality of wins vs losses</th>' +      // Omega
+            '<th>Worst drop %</th>' +
+            '<th>Win rate %</th>' +
+            '<th>Trades</th>' +
+            '</tr>'
+          );
           lines.push('</thead><tbody>');
           symbols.forEach(sym => {
             const m = symMetrics[sym] || {};
@@ -2786,6 +2798,12 @@
             );
           });
           lines.push('</tbody></table></div>');
+          lines.push('<div class="hint" style="margin-top:6px; font-size:11px;">' +
+            'Risk vs. volatility: higher means you earned more per unit of normal ups/downs. ' +
+            'Risk on bad days: higher means losses on down days were better controlled. ' +
+            'Trend vs. biggest drop: compares long-term growth to the worst pullback. ' +
+            'Quality of wins vs losses: higher means average winning trades were stronger than losing trades.' +
+            '</div>');
         } else {
           lines.push('<div class="hint">No symbols produced backtest metrics.</div>');
         }
@@ -2835,7 +2853,27 @@
         }
         const data = await res.json();
         const text = data.forecast_text || JSON.stringify(data, null, 2);
-        resultsEl.textContent = text;
+
+        // Turn raw numbered forecast text into structured, beginner-friendly blocks
+        const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
+        const htmlParts = [];
+        lines.forEach(line => {
+          const m = line.match(/^(\d\))\s*([^:]+):\s*(.*)$/);
+          if (m) {
+            const label = m[2].trim();
+            const body = m[3].trim();
+            htmlParts.push(
+              '<div style="margin-bottom:6px;"><strong>' +
+              label +
+              ':</strong> ' +
+              body +
+              '</div>'
+            );
+          } else {
+            htmlParts.push('<div style="margin-bottom:4px;">' + line + '</div>');
+          }
+        });
+        resultsEl.innerHTML = htmlParts.join("");
         statusEl.textContent = "Forecast complete.";
       } catch (err) {
         statusEl.textContent = "Forecast failed.";
