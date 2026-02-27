@@ -371,19 +371,19 @@ def build_prompt(
             )
             lines.append(" - Realized annual volatility (close-close): %.1f%%" % (ht["vol_annual_pct"]))
 
+    pref_tail = (
+        "Describe how aggressive or conservative the stock idea is (e.g. tight stop vs wider hold)."
+        if analysis_type == "stocks"
+        else "Describe how aggressive or conservative the idea is relative to typical options and 0DTE risk."
+    )
     lines.append(
         "\n\nUser preferences for this run:\n"
         "- Focus: %s (both/calls/puts)\n"
         "- Risk style: %s (balanced/conservative/aggressive)\n"
         "- Timeframe: %s (intraday / 1–5 days / multi-week / long-term)\n"
         "- Analysis type: %s (options only / stocks only / both)\n\n"
-        "Respect these preferences. Do NOT output position sizes. "
-        + (
-            "Describe how aggressive or conservative the stock idea is (e.g. tight stop vs wider hold)."
-            if analysis_type == "stocks"
-            else "Describe how aggressive or conservative the idea is relative to typical options and 0DTE risk."
-        )
-        % (focus, style, timeframe, analysis_type)
+        "Respect these preferences. Do NOT output position sizes. %s"
+        % (focus, style, timeframe, analysis_type, pref_tail)
     )
 
     # Stock idea output format (when analysis_type is stocks or both)
