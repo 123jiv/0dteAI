@@ -1,6 +1,7 @@
 import json
 import os
 import math
+import time
 import datetime as dt
 from typing import List, Dict, Any, Literal
 
@@ -82,6 +83,10 @@ STYLE REMINDERS
 # ---------- yfinance helpers ----------
 
 
+_STOCK_FACTOR_CACHE: Dict[str, Dict[str, Any]] = {}
+_STOCK_FACTOR_CACHE_TTL_SECONDS = 15 * 60  # 15 minutes
+
+
 def _get_today_or_nearest_expiration(ticker: yf.Ticker) -> str:
     exps = ticker.options
     if not exps:
@@ -135,6 +140,51 @@ def _get_expirations_for_timeframe(ticker: yf.Ticker, timeframe: str) -> List[st
         candidates = [e for e in future if dt.date.fromisoformat(e) == today] or future[:1]
 
     return candidates[:10]
+
+
+def _get_expirations_for_dte_range(
+    ticker: yf.Ticker,
+    min_dte: int,
+    max_dte: int,
+) -> List[str]:
+    """
+    Return expirations whose days-to-expiry fall inside [min_dte, max_dte].
+
+    - min_dte / max_dte are in calendar days.
+    - If max_dte is very large (e.g. 365+), we effectively treat it as open-ended.
+    - Falls back to the nearest future expirations if nothing is strictly in range.
+    """
+    exps = ticker.options
+    if not exps:
+        raise RuntimeError("No option expirations found.")
+
+    today = dt.date.today()
+    exps_sorted = sorted(exps, key=lambda x: dt.date.fromisoformat(x))
+
+    def days_out(exp_str: str) -> int:
+        return (dt.date.fromisoformat(exp_str) - today).days
+
+    future = [e for e in exps_sorted if days_out(e) >= 0]
+    if not future:
+        future = exps_sorted
+
+    # Normalise bounds
+    min_d = max(int(min_dte), 0)
+    # Treat very large max_dte as open-ended
+    max_d = int(max_dte) if max_dte is not None and max_dte >= min_d else 365 * 5
+
+    in_range = [e for e in future if min_d <= days_out(e) <= max_d]
+
+    if not in_range:
+        # Fallback: take the nearest expirations beyond min_d, or the earliest few
+        later = [e for e in future if days_out(e) >= min_d]
+        if later:
+            in_range = later[:10]
+        else:
+            in_range = future[:10]
+
+    # Cap to a reasonable number so we don't pull huge chains
+    return in_range[:20]
 
 
 def _get_last_price(symbol: str) -> float:
@@ -507,6 +557,7 @@ def _build_screener_rows_for_exp(
 ) -> List[Dict[str, Any]]:
     """Build screener rows for one expiration. Returns list (may be empty)."""
     T = _approx_time_to_expiry_yrs(exp)
+    approx_dte = max(int(round(T * 365.0)), 0)
     r = 0.05
     rows: List[Dict[str, Any]] = []
 
@@ -544,8 +595,10 @@ def _build_screener_rows_for_exp(
             )
             rows.append({
                 "symbol": symbol,
+                "underlying_price": S,
                 "type": opt_type,
                 "expiration": exp,
+                "dte": approx_dte,
                 "strike": K,
                 "last": last,
                 "bid": bid,
@@ -611,6 +664,177 @@ def build_screener_rows(
             return all_rows
 
     return []
+
+
+def fetch_option_chains_for_dte_range(
+    symbol: str,
+    min_volume: int,
+    max_spread_pct: float,
+    min_dte: int,
+    max_dte: int,
+    call_put_filter: str = "both",
+    max_contracts: int = 100,
+) -> List[Dict[str, Any]]:
+    """
+    Unified helper to build screener-style option rows for an arbitrary DTE window.
+
+    Returns a list of normalized contract dicts with Greeks, filtered by volume/spread
+    and optionally by side (calls / puts / both).
+    """
+    today = dt.date.today()
+
+    try:
+        t = yf.Ticker(symbol)
+        S = _get_last_price(symbol)
+    except Exception as e:
+        print("Chain init skip %s: %s" % (symbol, e))
+        return []
+
+    try:
+        expirations = _get_expirations_for_dte_range(t, min_dte=min_dte, max_dte=max_dte)
+    except Exception as e:
+        print("Chain expirations skip %s: %s" % (symbol, e))
+        return []
+    if not expirations:
+        return []
+
+    all_rows: List[Dict[str, Any]] = []
+
+    side_filter = (call_put_filter or "both").lower()
+    allowed_types = {"CALL", "PUT"}
+    if side_filter in ("calls", "call"):
+        allowed_types = {"CALL"}
+    elif side_filter in ("puts", "put"):
+        allowed_types = {"PUT"}
+
+    for exp in expirations:
+        try:
+            chain = t.option_chain(exp)
+        except Exception as e:
+            print("Chain fetch skip %s %s: %s" % (symbol, exp, e))
+            continue
+
+        rows = _build_screener_rows_for_exp(
+            symbol,
+            S,
+            exp,
+            chain.calls,
+            chain.puts,
+            min_volume=min_volume,
+            max_spread_pct=max_spread_pct,
+        )
+        if not rows:
+            continue
+
+        # Make sure DTE is populated consistently (especially for non-0DTE windows)
+        try:
+            exp_date = dt.date.fromisoformat(exp)
+            dte = max((exp_date - today).days, 0)
+            for r in rows:
+                r["dte"] = dte
+        except Exception:
+            pass
+
+        if allowed_types != {"CALL", "PUT"}:
+            rows = [r for r in rows if r.get("type") in allowed_types]
+
+        all_rows.extend(rows)
+        if len(all_rows) >= max_contracts:
+            break
+
+    if not all_rows:
+        return []
+
+    all_rows.sort(
+        key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"]))
+    )
+    if max_contracts and max_contracts > 0:
+        return all_rows[:max_contracts]
+    return all_rows
+
+
+def compute_stock_factors(symbol: str) -> Dict[str, Any]:
+    """
+    Compute simple momentum / value / growth-style factors for a stock.
+
+    Uses daily price history and basic fundamentals from yfinance. Results are
+    cached for a short TTL to avoid hammering the upstream API.
+    """
+    now = time.time()
+    cached = _STOCK_FACTOR_CACHE.get(symbol)
+    if cached and (now - cached.get("_cached_at", 0.0)) < _STOCK_FACTOR_CACHE_TTL_SECONDS:
+        # Return a shallow copy without internal metadata
+        out = dict(cached)
+        out.pop("_cached_at", None)
+        return out
+
+    t = yf.Ticker(symbol)
+    hist = t.history(period="1y", interval="1d")
+    if hist.empty or len(hist) < 30:
+        raise RuntimeError("Not enough daily history for %s" % symbol)
+
+    closes = hist["Close"]
+
+    def pct_change_over_days(trading_days: int) -> float:
+        if len(closes) <= trading_days:
+            return float("nan")
+        start = float(closes.iloc[-trading_days - 1])
+        end = float(closes.iloc[-1])
+        return (end - start) / start * 100.0 if start > 0 else float("nan")
+
+    mom_1m = pct_change_over_days(21)
+    mom_3m = pct_change_over_days(63)
+    mom_6m = pct_change_over_days(126)
+
+    ma20 = float(closes.rolling(20).mean().iloc[-1])
+    ma50 = float(closes.rolling(50).mean().iloc[-1])
+    ma200 = float(closes.rolling(200).mean().iloc[-1])
+    last_price = float(closes.iloc[-1])
+
+    above_ma20 = bool(last_price > ma20) if ma20 > 0 else False
+    above_ma50 = bool(last_price > ma50) if ma50 > 0 else False
+    above_ma200 = bool(last_price > ma200) if ma200 > 0 else False
+
+    # Fundamentals – yfinance info dict can be flaky, so be defensive.
+    try:
+        info = t.info or {}
+    except Exception:
+        info = {}
+
+    pe = info.get("trailingPE") or info.get("forwardPE")
+    ps = info.get("priceToSalesTrailing12Months")
+    div_yield = info.get("dividendYield")
+    if div_yield is not None:
+        try:
+            div_yield = float(div_yield) * 100.0
+        except Exception:
+            div_yield = None
+
+    eps_growth = info.get("earningsQuarterlyGrowth") or info.get("earningsGrowth")
+    rev_growth = info.get("revenueGrowth")
+    float_shares = info.get("floatShares")
+
+    factors = {
+        "symbol": symbol,
+        "last_price": last_price,
+        "momentum_1m_pct": mom_1m,
+        "momentum_3m_pct": mom_3m,
+        "momentum_6m_pct": mom_6m,
+        "above_ma20": above_ma20,
+        "above_ma50": above_ma50,
+        "above_ma200": above_ma200,
+        "pe": pe,
+        "ps": ps,
+        "div_yield_pct": div_yield,
+        "eps_growth": eps_growth,
+        "rev_growth": rev_growth,
+        "float_shares": float_shares,
+    }
+
+    to_cache = dict(factors)
+    to_cache["_cached_at"] = now
+    _STOCK_FACTOR_CACHE[symbol] = to_cache
+    return factors
 
 
 # ---------- Confidence / simple backtest metrics ----------
@@ -706,6 +930,362 @@ def compute_confidence_for_symbols(symbols: List[str]) -> Dict[str, Any]:
     return out
 
 
+# ---------- Portfolio & strategy backtests (1–5y, educational) ----------
+
+
+def _load_history_for_backtest(symbol: str, years: int = 3) -> Any:
+    """
+    Load daily history for backtesting.
+
+    years: 1–5, mapped to a yfinance period.
+    """
+    years = max(1, min(int(years), 5))
+    # yfinance accepts e.g. "3y"
+    period = f"{years}y"
+    t = yf.Ticker(symbol)
+    hist = t.history(period=period, interval="1d")
+    if hist.empty or len(hist) < 60:
+        raise RuntimeError("Not enough history for %s over %s" % (symbol, period))
+    return hist
+
+
+def _compute_backtest_metrics_for_symbol(
+    symbol: str,
+    years: int = 3,
+    holding_days: int = 5,
+    direction: str = "long",
+) -> Dict[str, Any]:
+    """
+    Very simple rolling-hold backtest:
+    - Use daily closes over N years.
+    - Construct non-overlapping holding periods of `holding_days`.
+    - For each period, compute return from entry close to exit close.
+    - Aggregate into CAGR, Sharpe, max drawdown, win rate.
+    """
+    hist = _load_history_for_backtest(symbol, years=years)
+    closes = hist["Close"].astype(float)
+    if holding_days < 1:
+        holding_days = 1
+
+    # Slice into non-overlapping segments
+    rets: List[float] = []
+    for start_idx in range(0, len(closes) - holding_days, holding_days):
+        entry = float(closes.iloc[start_idx])
+        exit_ = float(closes.iloc[start_idx + holding_days])
+        if entry <= 0:
+            continue
+        r = (exit_ - entry) / entry
+        if direction == "short":
+            r = -r
+        rets.append(r)
+
+    if not rets:
+        raise RuntimeError("Unable to compute holding-period returns for %s" % symbol)
+
+    import numpy as np  # local import to avoid hard dependency at module import time
+
+    rets_arr = np.array(rets, dtype=float)
+    avg_ret = float(rets_arr.mean())
+    std_ret = float(rets_arr.std(ddof=1)) if len(rets_arr) > 1 else 0.0
+
+    # Approximate number of such trades per year (252 trading days)
+    trades_per_year = 252.0 / float(holding_days)
+    # Annualized CAGR from geometric mean
+    g_ret = float(np.prod(1.0 + rets_arr) ** (trades_per_year / len(rets_arr)) - 1.0)
+
+    sharpe = 0.0
+    if std_ret > 0:
+        sharpe = (avg_ret * trades_per_year) / (std_ret * np.sqrt(trades_per_year))
+
+    # Build an equity curve and compute max drawdown
+    eq = np.cumprod(1.0 + rets_arr)
+    peak = np.maximum.accumulate(eq)
+    dd = (eq - peak) / peak
+    max_dd = float(dd.min()) if len(dd) else 0.0
+
+    wins = int((rets_arr > 0).sum())
+    win_rate = float(wins) / float(len(rets_arr)) * 100.0
+
+    return {
+        "symbol": symbol,
+        "years": years,
+        "holding_days": holding_days,
+        "direction": direction,
+        "num_trades": int(len(rets_arr)),
+        "avg_trade_return_pct": round(avg_ret * 100.0, 2),
+        "cagr_pct": round(g_ret * 100.0, 2),
+        "sharpe": round(sharpe, 2),
+        "max_drawdown_pct": round(max_dd * 100.0, 2),
+        "win_rate_pct": round(win_rate, 1),
+    }
+
+
+def backtest_symbols(
+    symbols: List[str],
+    years: int = 3,
+    holding_days: int = 5,
+    direction: str = "long",
+) -> Dict[str, Any]:
+    """
+    Backtest a simple rolling-hold strategy across one or more symbols.
+
+    Returns per-symbol metrics plus a simple equal-weight portfolio view.
+    """
+    metrics: Dict[str, Any] = {}
+    for sym in symbols:
+        try:
+            metrics[sym] = _compute_backtest_metrics_for_symbol(
+                sym, years=years, holding_days=holding_days, direction=direction
+            )
+        except Exception as e:
+            print("Backtest skipping %s: %s" % (sym, e))
+
+    if not metrics:
+        raise RuntimeError("No backtests could be computed for any symbols.")
+
+    import numpy as np
+
+    # Equal-weight portfolio approximation from per-symbol CAGR and vol
+    cagr_vals = []
+    dd_vals = []
+    sharpe_vals = []
+    for sym, m in metrics.items():
+        cagr_vals.append(float(m.get("cagr_pct", 0.0)))
+        dd_vals.append(float(m.get("max_drawdown_pct", 0.0)))
+        sharpe_vals.append(float(m.get("sharpe", 0.0)))
+
+    portfolio = {
+        "approx_cagr_pct": round(float(np.mean(cagr_vals)), 2),
+        "approx_max_drawdown_pct": round(float(np.min(dd_vals)), 2),
+        "avg_sharpe": round(float(np.mean(sharpe_vals)), 2),
+        "num_symbols": len(metrics),
+    }
+
+    return {"symbols": metrics, "portfolio": portfolio}
+
+
+# ---------- VIX regime helper (for options strategies) ----------
+
+
+def compute_vix_regime() -> Dict[str, Any]:
+    """
+    Simple VIX-based regime classification:
+
+    - Uses ~6 months of daily VIX (^VIX) data.
+    - Classifies volatility regime as 'low', 'normal', or 'high'.
+    """
+    t = yf.Ticker("^VIX")
+    hist = t.history(period="6mo", interval="1d")
+    if hist.empty:
+        raise RuntimeError("No VIX data for ^VIX")
+
+    closes = hist["Close"].astype(float)
+    last = float(closes.iloc[-1])
+    ma20 = float(closes.rolling(20).mean().iloc[-1])
+    # Percentile of current VIX vs last 6 months
+    pct = float((closes <= last).sum()) / float(len(closes)) * 100.0
+
+    if last < 15 and pct < 30:
+        regime = "low"
+    elif last > 25 or pct > 70:
+        regime = "high"
+    else:
+        regime = "normal"
+
+    return {
+        "symbol": "^VIX",
+        "last": round(last, 2),
+        "ma20": round(ma20, 2),
+        "percentile_6m": round(pct, 1),
+        "regime": regime,
+        "note": (
+            "HIGH: favor defined-risk or quicker profit targets; "
+            "LOW: be more selective, avoid chasing far OTM lottos."
+        ),
+    }
+
+
+# ---------- ML-style long-term forecast helper ----------
+
+
+def build_forecast_prompt(
+    symbol: str,
+    years: int,
+    factors: Dict[str, Any],
+    confidence: Dict[str, Any] | None,
+    backtest: Dict[str, Any] | None,
+    vix_regime: Dict[str, Any] | None,
+) -> str:
+    """
+    Build a rich text prompt that looks like feature engineering for an ML model,
+    then ask the LLM to behave like a conservative long-term forecaster.
+    """
+    lines: List[str] = []
+    lines.append(
+        "You are a cautious, ML-style long-term equity forecaster. "
+        "You see engineered features (trend, volatility, valuation, growth, VIX regime) for one symbol "
+        "and you output a 6–24 month view with bull/base/bear scenarios. "
+        "Educational only — not trading advice."
+    )
+    lines.append("")
+    lines.append(f"Symbol: {symbol}")
+    lines.append(f"Horizon_years: {years}")
+    lines.append("")
+
+    if factors:
+        lines.append("--- Stock factors (momentum/value/growth) ---")
+        lines.append(f"Last price: {factors.get('last_price')}")
+        lines.append(
+            "Momentum: 1M=%s%%, 3M=%s%%, 6M=%s%%"
+            % (
+                round(factors.get("momentum_1m_pct") or 0.0, 1),
+                round(factors.get("momentum_3m_pct") or 0.0, 1),
+                round(factors.get("momentum_6m_pct") or 0.0, 1),
+            )
+        )
+        lines.append(
+            "Above MAs: 20d=%s, 50d=%s, 200d=%s"
+            % (
+                bool(factors.get("above_ma20")),
+                bool(factors.get("above_ma50")),
+                bool(factors.get("above_ma200")),
+            )
+        )
+        lines.append(
+            "Value: PE=%s, PS=%s, Div_yield=%s%%"
+            % (
+                factors.get("pe"),
+                factors.get("ps"),
+                round((factors.get("div_yield_pct") or 0.0), 2),
+            )
+        )
+        lines.append(
+            "Growth: EPS_growth=%s, Rev_growth=%s"
+            % (factors.get("eps_growth"), factors.get("rev_growth"))
+        )
+        lines.append("")
+
+    if confidence:
+        lines.append("--- 90d confidence/backtest-style stats ---")
+        lines.append(
+            "90d trend=%s%%, realized vol=%s%%, expected win prob≈%s%%, confidence_score=%s%%, pattern=%s"
+            % (
+                confidence.get("trend_pct_90d"),
+                confidence.get("vol_annual_pct"),
+                confidence.get("expected_win_prob_pct"),
+                confidence.get("confidence_score"),
+                confidence.get("pattern"),
+            )
+        )
+        lines.append("")
+
+    if backtest:
+        lines.append(f"--- {years}y rolling-hold backtest (holding {backtest.get('holding_days')} days) ---")
+        lines.append(
+            "CAGR=%s%%, Sharpe=%s, Max_drawdown=%s%%, Win_rate=%s%%, Num_trades=%s"
+            % (
+                backtest.get("cagr_pct"),
+                backtest.get("sharpe"),
+                backtest.get("max_drawdown_pct"),
+                backtest.get("win_rate_pct"),
+                backtest.get("num_trades"),
+            )
+        )
+        lines.append("")
+
+    if vix_regime:
+        lines.append("--- VIX regime context ---")
+        lines.append(
+            "VIX last=%s, 20d_MA=%s, 6m_percentile=%s%%, regime=%s"
+            % (
+                vix_regime.get("last"),
+                vix_regime.get("ma20"),
+                vix_regime.get("percentile_6m"),
+                vix_regime.get("regime"),
+            )
+        )
+        lines.append("VIX_note: %s" % (vix_regime.get("note") or ""))
+        lines.append("")
+
+    lines.append(
+        "Now, using these engineered features as if you were a trained ML model on many stocks and macro conditions, "
+        "produce a SHORT plain-text forecast with this structure:\n"
+        "1) Overall view (one line: Bullish / Neutral / Bearish and why).\n"
+        "2) Base case: 6–24 month annualized return range (e.g. 5–10%%) and key drivers.\n"
+        "3) Bull case: what needs to go right (trend, macro, earnings).\n"
+        "4) Bear case: main downside risks and rough drawdown range.\n"
+        "5) Risk notes: 2–3 bullets on volatility, valuation, and macro sensitivity.\n"
+        "Do NOT give specific price targets or trade instructions; just qualitative ranges and guidance."
+    )
+
+    return "\n".join(lines)
+
+
+def forecast_symbol(symbol: str, years: int = 3) -> Dict[str, Any]:
+    """
+    ML-style long-term forecast for a single symbol.
+
+    Uses engineered features + LLM to emulate a conservative ML forecaster.
+    """
+    sym = symbol.upper()
+    years = max(1, min(int(years), 5))
+
+    factors = compute_stock_factors(sym)
+    # 90d confidence metrics
+    try:
+        conf = _compute_confidence_metrics(sym)
+    except Exception as e:
+        print("Forecast confidence skip %s: %s" % (sym, e))
+        conf = None
+
+    # 1–5y backtest with default 5-day holding period
+    try:
+        bt_all = backtest_symbols([sym], years=years, holding_days=5, direction="long")
+        bt = bt_all["symbols"].get(sym)
+    except Exception as e:
+        print("Forecast backtest skip %s: %s" % (sym, e))
+        bt = None
+
+    # VIX regime
+    try:
+        vix = compute_vix_regime()
+    except Exception as e:
+        print("Forecast VIX skip: %s" % (e,))
+        vix = None
+
+    prompt = build_forecast_prompt(sym, years, factors, conf, bt, vix)
+
+    client = OpenAI()
+    resp = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a conservative, ML-style long-term forecaster. "
+                    "You turn engineered features into a short, realistic forecast with clear risks. "
+                    "Educational only; not trading advice."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+    )
+    text = resp.choices[0].message.content or ""
+
+    return {
+        "symbol": sym,
+        "horizon_years": years,
+        "forecast_text": text.strip(),
+        "inputs": {
+            "factors": factors,
+            "confidence": conf,
+            "backtest": bt,
+            "vix_regime": vix,
+        },
+    }
+
+
 # ---------- Signal Engine: AI-ranked top 0DTE setups ----------
 
 SIGNALS_SYSTEM = (
@@ -798,6 +1378,25 @@ def get_top_signals(symbols: List[str], limit: int = 3) -> List[Dict[str, Any]]:
     confidence = compute_confidence_for_symbols(symbols)
 
     prompt = _build_signals_prompt(snapshots, all_rows, confidence)
+
+    # Append VIX regime context so the model can tilt setups based on volatility
+    try:
+        vix = compute_vix_regime()
+        prompt = (
+            prompt
+            + "\n\n--- VIX regime (market volatility) ---\n"
+            + "VIX last=%.2f, 20d MA=%.2f, 6m percentile=%.1f%%, regime=%s\n"
+              % (
+                  vix.get("last", 0.0),
+                  vix.get("ma20", 0.0),
+                  vix.get("percentile_6m", 0.0),
+                  vix.get("regime", "unknown"),
+              )
+            + "Guidance: %s\n"
+              % (vix.get("note", ""))
+        )
+    except Exception as e:
+        print("Signals VIX regime fetch failed: %s" % e)
 
     client = OpenAI()
     resp = client.chat.completions.create(

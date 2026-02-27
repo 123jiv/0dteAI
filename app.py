@@ -18,6 +18,10 @@ from core_0dte import (
     build_prompt,
     compute_confidence_for_symbols,
     get_top_signals,
+    fetch_option_chains_for_dte_range,
+    compute_stock_factors,
+    backtest_symbols,
+    forecast_symbol,
 )
 from openai import OpenAI
 
@@ -226,6 +230,333 @@ def screener(
 
     all_rows.sort(key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"])))
     return {"rows": all_rows, "tickers": symbols}
+
+
+@app.get("/options-screener")
+def options_screener(
+    tickers: str = "SPY,QQQ,IWM",
+    min_volume: int = 500,
+    max_spread_pct: float = 30.0,
+    min_dte: int = 0,
+    max_dte: int = 30,
+    side: str = "both",  # both | calls | puts
+    strategy: Optional[str] = None,  # covered_call | wheel | straddle
+    authorization: Optional[str] = Header(default=None),
+):
+    """
+    DTE-aware options screener across 0–365+ days.
+
+    Returns normalized option rows with Greeks, DTE, IV, and optional strategy tags.
+    """
+    _require_auth(authorization)
+
+    symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
+    if not symbols:
+        raise HTTPException(status_code=400, detail="No valid tickers provided")
+
+    # Clamp DTE bounds to a reasonable window
+    min_dte = max(int(min_dte), 0)
+    max_dte = max(int(max_dte), min_dte)
+    if max_dte > 365 * 5:
+        max_dte = 365 * 5
+
+    side_norm = (side or "both").lower()
+    if side_norm not in ("both", "calls", "call", "puts", "put"):
+        side_norm = "both"
+
+    strategy_norm = (strategy or "").lower()
+    valid_strategies = {"covered_call", "wheel", "straddle"}
+    if strategy_norm and strategy_norm not in valid_strategies:
+        strategy_norm = ""
+
+    def annotate_strategy(row: Dict[str, Any]) -> None:
+        tags = []
+        opt_type = row.get("type")
+        m = float(row.get("moneyness_pct") or 0.0)
+        dte = int(row.get("dte") or 0)
+        iv_pct = float(row.get("iv_pct") or 0.0)
+
+        # Covered call: slightly OTM / ATM calls with some time to expiry
+        if opt_type == "CALL" and -12.0 <= m <= 5.0 and dte >= 7:
+            tags.append("covered_call_candidate")
+
+        # Wheel put: OTM puts near support (positive moneyness) with some yield
+        if opt_type == "PUT" and 0.0 <= m <= 18.0 and dte >= 7:
+            tags.append("wheel_candidate")
+
+        # Straddle: very near-the-money contracts with elevated IV
+        if abs(m) <= 3.0 and iv_pct >= 25.0 and dte <= 45:
+            tags.append("straddle_candidate")
+
+        if tags:
+            row["strategy_tags"] = tags
+
+    all_rows: List[Dict[str, Any]] = []
+    for sym in symbols:
+        try:
+            rows = fetch_option_chains_for_dte_range(
+                sym,
+                min_volume=min_volume,
+                max_spread_pct=max_spread_pct,
+                min_dte=min_dte,
+                max_dte=max_dte,
+                call_put_filter=side_norm,
+                max_contracts=150,
+            )
+        except Exception as e:
+            print("Options screener skipping %s: %s" % (sym, e))
+            continue
+
+        for r in rows:
+            annotate_strategy(r)
+        all_rows.extend(rows)
+
+    if not all_rows:
+        return {
+            "rows": [],
+            "tickers": symbols,
+            "summary": {
+                "message": "No contracts passed your filters. Try lowering Min vol or raising Max spread %, or widening DTE.",
+            },
+        }
+
+    if strategy_norm:
+        tag_name = {
+            "covered_call": "covered_call_candidate",
+            "wheel": "wheel_candidate",
+            "straddle": "straddle_candidate",
+        }[strategy_norm]
+        filtered = [r for r in all_rows if tag_name in r.get("strategy_tags", [])]
+        if filtered:
+            all_rows = filtered
+
+    # Keep the same sort order convention as /screener
+    all_rows.sort(key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"])))
+
+    summary = {
+        "count": len(all_rows),
+        "tickers": symbols,
+        "min_dte": min_dte,
+        "max_dte": max_dte,
+        "strategy": strategy_norm or None,
+        "side": side_norm,
+    }
+
+    return {"rows": all_rows, "tickers": symbols, "summary": summary}
+
+
+@app.get("/stock-screener")
+def stock_screener(
+    tickers: str = "SPY,QQQ,IWM",
+    style: str = "momentum",  # momentum | value | growth | all
+    min_mom_3m: float = 5.0,
+    max_pe: float = 40.0,
+    min_div_yield: float = 0.0,
+    min_eps_growth: float = 0.0,
+    authorization: Optional[str] = Header(default=None),
+):
+    """
+    Basic stock screener that computes simple momentum / value / growth factors per symbol.
+    """
+    _require_auth(authorization)
+
+    symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
+    if not symbols:
+        raise HTTPException(status_code=400, detail="No valid tickers provided")
+
+    style_norm = (style or "momentum").lower()
+    if style_norm not in ("momentum", "value", "growth", "all"):
+        style_norm = "momentum"
+
+    rows: List[Dict[str, Any]] = []
+    for sym in symbols:
+        try:
+            factors = compute_stock_factors(sym)
+        except Exception as e:
+            print("Stock screener skipping %s: %s" % (sym, e))
+            continue
+
+        mom_3m = factors.get("momentum_3m_pct")
+        pe = factors.get("pe")
+        div_yield_pct = factors.get("div_yield_pct")
+        eps_growth = factors.get("eps_growth")
+
+        passes = True
+        if style_norm in ("momentum", "all"):
+            if mom_3m is None or (not isinstance(mom_3m, float) and not isinstance(mom_3m, int)):
+                passes = False
+            else:
+                passes = passes and mom_3m >= min_mom_3m and bool(factors.get("above_ma50"))
+        if style_norm in ("value", "all"):
+            if pe is None:
+                passes = False
+            else:
+                passes = passes and pe <= max_pe
+            if min_div_yield > 0.0:
+                passes = passes and (div_yield_pct or 0.0) >= min_div_yield
+        if style_norm in ("growth", "all"):
+            if eps_growth is None:
+                passes = False
+            else:
+                passes = passes and eps_growth >= min_eps_growth
+
+        out = dict(factors)
+        out["passes_style_filter"] = passes
+        rows.append(out)
+
+    return {"rows": rows, "tickers": symbols, "style": style_norm}
+
+
+@app.get("/multi-asset-scan")
+def multi_asset_scan(
+    tickers: str = "SPY,QQQ,IWM",
+    min_volume: int = 500,
+    max_spread_pct: float = 40.0,
+    min_dte: int = 7,
+    max_dte: int = 45,
+    min_iv_pct: float = 25.0,
+    authorization: Optional[str] = Header(default=None),
+):
+    """
+    Combined stock + options scan.
+
+    Highlights symbols with high options volume and elevated IV that may be candidates
+    for straddles, strangles, or other volatility-driven strategies.
+    """
+    _require_auth(authorization)
+
+    symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
+    if not symbols:
+        raise HTTPException(status_code=400, detail="No valid tickers provided")
+
+    min_dte = max(int(min_dte), 0)
+    max_dte = max(int(max_dte), min_dte)
+    if max_dte > 365 * 5:
+        max_dte = 365 * 5
+
+    scans: List[Dict[str, Any]] = []
+
+    for sym in symbols:
+        try:
+            factors = compute_stock_factors(sym)
+        except Exception as e:
+            print("Multi-asset scan stock skip %s: %s" % (sym, e))
+            continue
+
+        try:
+            contracts = fetch_option_chains_for_dte_range(
+                sym,
+                min_volume=min_volume,
+                max_spread_pct=max_spread_pct,
+                min_dte=min_dte,
+                max_dte=max_dte,
+                call_put_filter="both",
+                max_contracts=200,
+            )
+        except Exception as e:
+            print("Multi-asset scan options skip %s: %s" % (sym, e))
+            continue
+
+        if not contracts:
+            continue
+
+        vols = [c.get("volume") or 0 for c in contracts]
+        ivs = [c.get("iv_pct") or 0.0 for c in contracts]
+        total_volume = int(sum(vols))
+        avg_iv = float(sum(ivs) / len(ivs)) if ivs else 0.0
+        max_iv = float(max(ivs)) if ivs else 0.0
+
+        if max_iv < min_iv_pct:
+            continue
+
+        # Choose a few near-ATM contracts as examples
+        near_atm = sorted(
+            contracts,
+            key=lambda c: abs(c.get("moneyness_pct") or 0.0),
+        )[:4]
+
+        scan_row = {
+            "symbol": sym,
+            "last_price": factors.get("last_price"),
+            "momentum_3m_pct": factors.get("momentum_3m_pct"),
+            "momentum_6m_pct": factors.get("momentum_6m_pct"),
+            "above_ma50": factors.get("above_ma50"),
+            "above_ma200": factors.get("above_ma200"),
+            "total_option_volume": total_volume,
+            "avg_iv_pct": avg_iv,
+            "max_iv_pct": max_iv,
+            "sample_contracts": near_atm,
+        }
+        scans.append(scan_row)
+
+    return {
+        "scans": scans,
+        "tickers": symbols,
+        "filters": {
+            "min_volume": min_volume,
+            "max_spread_pct": max_spread_pct,
+            "min_dte": min_dte,
+            "max_dte": max_dte,
+            "min_iv_pct": min_iv_pct,
+        },
+    }
+
+
+@app.get("/backtest")
+def backtest(
+    tickers: str,
+    years: int = 3,
+    holding_days: int = 5,
+    direction: str = "long",  # long | short
+    authorization: Optional[str] = Header(default=None),
+):
+    """
+    Simple rolling-hold backtest over 1–5 years for one or more symbols.
+
+    This is educational only and uses daily close data (no intraday fills).
+    """
+    _require_auth(authorization)
+
+    symbols = [t.strip().upper() for t in (tickers or "").split(",") if t.strip()]
+    if not symbols:
+        raise HTTPException(status_code=400, detail="No valid tickers provided")
+
+    direction_norm = (direction or "long").lower()
+    if direction_norm not in ("long", "short"):
+        direction_norm = "long"
+
+    try:
+        result = backtest_symbols(symbols, years=years, holding_days=holding_days, direction=direction_norm)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return result
+
+
+@app.get("/forecast")
+def forecast(
+    ticker: str,
+    years: int = 3,
+    authorization: Optional[str] = Header(default=None),
+):
+    """
+    ML-style long-term forecast endpoint.
+
+    Uses engineered features (trend, volatility, valuation, growth, VIX regime) and
+    an LLM to emulate a conservative long-horizon forecaster. Educational only.
+    """
+    _require_auth(authorization)
+
+    sym = (ticker or "").strip().upper()
+    if not sym:
+        raise HTTPException(status_code=400, detail="Ticker is required")
+
+    try:
+        result = forecast_symbol(sym, years=years)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return result
 
 
 @app.get("/signals")

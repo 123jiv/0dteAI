@@ -1254,6 +1254,7 @@
           <a href="#/chat" id="navChat">Chat</a>
           <a href="#/signals" id="navSignals">Signals</a>
           <a href="#/confidence" id="navConfidence">Confidence</a>
+          <a href="#/backtest" id="navBacktest">Backtest</a>
           <div class="nav-spacer"></div>
           <div class="theme-toggle-wrap">
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Theme">
@@ -1377,7 +1378,12 @@
         <div id="screenScreener" class="screen page-content">
           <div class="page-head">
             <h1 class="page-title">Screener</h1>
-            <p class="page-desc">Filter options by min volume and max spread. Timeframe is set on Analysis. Run screener from Analysis or here.</p>
+            <p class="page-desc">Filter options and stocks by volume, spread, and DTE. Timeframe presets live on Analysis; you can override DTE here.</p>
+          </div>
+          <div class="chip-row" style="margin-bottom:10px;">
+            <button type="button" class="chip active" data-screener-tab="options">Options</button>
+            <button type="button" class="chip" data-screener-tab="stocks">Stocks</button>
+            <button type="button" class="chip" data-screener-tab="multi">Multi-asset</button>
           </div>
           <div class="card" style="margin-bottom:16px;">
             <div class="screener-controls">
@@ -1393,13 +1399,23 @@
                 <span>Max spread %</span>
                 <input id="maxSpreadInput" class="screener-number" type="number" value="30" min="0" step="1">
               </div>
+              <div class="screener-control">
+                <span>Min DTE</span>
+                <input id="minDteInput" class="screener-number" type="number" value="0" min="0" step="1">
+              </div>
+              <div class="screener-control">
+                <span>Max DTE</span>
+                <input id="maxDteInput" class="screener-number" type="number" value="30" min="0" step="1">
+              </div>
               <button type="button" class="btn" onclick="runScreener()" style="margin-left:12px;">Run screener</button>
               <button type="button" class="btn secondary" onclick="resetScreenerFilters()">Reset filters</button>
             </div>
-            <p class="page-desc" style="margin-top:8px; margin-bottom:0;">Timeframe is set on the Analysis page (e.g. Intraday / 0DTE for same-day options).</p>
+            <p class="page-desc" style="margin-top:8px; margin-bottom:0;">For Options tab, timeframe presets come from Analysis (e.g. Intraday / 0DTE), but Min/Max DTE here win if set.</p>
             <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers above and timeframe on Analysis, then run screener.</div>
+            <div id="stockScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
+            <div id="multiScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
           </div>
-          <div class="screener-table-wrap" style="max-height:480px;">
+          <div id="optionsScreenerWrap" class="screener-table-wrap" style="max-height:480px;">
             <table class="table-zebra">
               <thead>
                 <tr>
@@ -1408,6 +1424,30 @@
               </thead>
               <tbody id="screenerBody">
                 <tr><td colspan="16" style="text-align:center; padding:16px;">No data. Run screener above.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="stockScreenerWrap" class="screener-table-wrap" style="max-height:480px; display:none;">
+            <table class="table-zebra">
+              <thead>
+                <tr>
+                  <th>Ticker</th><th>Last</th><th>1M %</th><th>3M %</th><th>6M %</th><th>Above 20D</th><th>Above 50D</th><th>Above 200D</th><th>PE</th><th>Div %</th><th>EPS growth</th><th>Passes style</th>
+                </tr>
+              </thead>
+              <tbody id="stockScreenerBody">
+                <tr><td colspan="12" style="text-align:center; padding:16px;">No data. Run screener above.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="multiScreenerWrap" class="screener-table-wrap" style="max-height:480px; display:none;">
+            <table class="table-zebra">
+              <thead>
+                <tr>
+                  <th>Ticker</th><th>Last</th><th>3M %</th><th>6M %</th><th>Above 50D</th><th>Above 200D</th><th>Total opt vol</th><th>Avg IV %</th><th>Max IV %</th><th>Sample contracts</th>
+                </tr>
+              </thead>
+              <tbody id="multiScreenerBody">
+                <tr><td colspan="10" style="text-align:center; padding:16px;">No data. Run screener above.</td></tr>
               </tbody>
             </table>
           </div>
@@ -1470,6 +1510,59 @@
             <div id="confidenceBodyPanel" class="hint">Run an analysis to see confidence scores and follow-through stats.</div>
           </div>
         </div>
+        <div id="screenBacktest" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Portfolio &amp; backtest</h1>
+            <p class="page-desc">Quick symbol-level backtests (1–5y) with Sharpe, drawdown, and simple equal-weight portfolio summary, plus ML-style forecasts.</p>
+          </div>
+          <div class="card" style="max-width:720px; margin-bottom:16px;">
+            <div class="input-row">
+              <div class="field">
+                <span class="field-label">Tickers to backtest</span>
+                <input id="backtestTickers" class="pill-input" placeholder="e.g. SPY, QQQ, IWM, AMZN">
+              </div>
+              <div class="field">
+                <span class="field-label">Lookback (years)</span>
+                <input id="backtestYears" class="screener-number" type="number" value="3" min="1" max="5" step="1">
+              </div>
+              <div class="field">
+                <span class="field-label">Holding days</span>
+                <input id="backtestHoldingDays" class="screener-number" type="number" value="5" min="1" max="60" step="1">
+              </div>
+              <div class="field">
+                <span class="field-label">Direction</span>
+                <div class="chip-row">
+                  <button type="button" class="chip active" data-backtest-direction="long">Long</button>
+                  <button type="button" class="chip" data-backtest-direction="short">Short</button>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button id="backtestBtn" class="btn" type="button" onclick="runBacktest()"><span id="backtestBtnLabel">Run backtest</span></button>
+              </div>
+            </div>
+            <div id="backtestStatus" class="status-line"></div>
+          </div>
+          <div class="card" style="max-width:900px; margin-bottom:16px;">
+            <div id="backtestResults" class="hint">No backtests run yet. Enter tickers and click Run backtest.</div>
+          </div>
+          <div class="card" style="max-width:720px;">
+            <div class="input-row">
+              <div class="field">
+                <span class="field-label">Forecast ticker</span>
+                <input id="forecastTicker" class="pill-input" placeholder="e.g. AMZN" />
+              </div>
+              <div class="field">
+                <span class="field-label">Forecast horizon (years)</span>
+                <input id="forecastYears" class="screener-number" type="number" value="3" min="1" max="5" step="1">
+              </div>
+              <div class="btn-row">
+                <button id="forecastBtn" class="btn" type="button" onclick="runForecast()"><span id="forecastBtnLabel">Run forecast</span></button>
+              </div>
+            </div>
+            <div id="forecastStatus" class="status-line"></div>
+            <div id="forecastResults" class="hint" style="margin-top:8px;">No forecast yet. Enter a ticker and click Run forecast.</div>
+          </div>
+        </div>
       </main>
     </div>
 
@@ -1484,6 +1577,9 @@
     let currentStyle = "balanced";
     let currentTimeframe = "intraday";
     let currentAnalysisType = "options";
+    let currentScreenerTab = "options"; // options | stocks | multi
+    let currentStockStyle = "momentum";
+    let currentBacktestDirection = "long";
     let authToken = null;
     let chatHistory = [];
     let chatFiles = [];
@@ -1587,8 +1683,8 @@
       }
     }
 
-    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenConfidence"];
-    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navConfidence"];
+    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenConfidence", "screenBacktest"];
+    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navConfidence", "navBacktest"];
 
     function showPage(pageId) {
       ["pageLogin", "pageApp"].forEach(id => {
@@ -1746,7 +1842,15 @@
       }
 
       showPage("pageApp");
-      const pathToScreen = { "/dashboard": "screenDashboard", "/analysis": "screenAnalysis", "/screener": "screenScreener", "/chat": "screenChat", "/signals": "screenSignals", "/confidence": "screenConfidence" };
+      const pathToScreen = {
+        "/dashboard": "screenDashboard",
+        "/analysis": "screenAnalysis",
+        "/screener": "screenScreener",
+        "/chat": "screenChat",
+        "/signals": "screenSignals",
+        "/confidence": "screenConfidence",
+        "/backtest": "screenBacktest",
+      };
       const screenId = pathToScreen[path] || "screenDashboard";
       showScreen(screenId);
 
@@ -1792,6 +1896,27 @@
           chip.classList.add('active');
           currentAnalysisType = chip.getAttribute('data-analysis-type');
           updateFocusDisabled();
+        });
+      });
+      document.querySelectorAll('.chip[data-screener-tab]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip[data-screener-tab]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentScreenerTab = chip.getAttribute('data-screener-tab');
+          const optWrap = $("optionsScreenerWrap");
+          const stockWrap = $("stockScreenerWrap");
+          const multiWrap = $("multiScreenerWrap");
+          const stockSummary = $("stockScreenerSummary");
+          const multiSummary = $("multiScreenerSummary");
+          if (optWrap && stockWrap && multiWrap) {
+            optWrap.style.display = currentScreenerTab === "options" ? "block" : "none";
+            stockWrap.style.display = currentScreenerTab === "stocks" ? "block" : "none";
+            multiWrap.style.display = currentScreenerTab === "multi" ? "block" : "none";
+          }
+          if (stockSummary && multiSummary) {
+            stockSummary.style.display = currentScreenerTab === "stocks" ? "block" : "none";
+            multiSummary.style.display = currentScreenerTab === "multi" ? "block" : "none";
+          }
         });
       });
     }
@@ -1864,6 +1989,14 @@
       chip.addEventListener("click", () => {
         document.querySelectorAll(".chip[data-signal-filter]").forEach(c => c.classList.remove("active"));
         chip.classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".chip[data-backtest-direction]").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".chip[data-backtest-direction]").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentBacktestDirection = chip.getAttribute("data-backtest-direction") || "long";
       });
     });
 
@@ -2131,6 +2264,90 @@
       });
     }
 
+    function renderStockScreenerTable(rows) {
+      const tbody = $("stockScreenerBody");
+      tbody.innerHTML = "";
+      if (!rows || !rows.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 12;
+        td.style.textAlign = "center";
+        td.style.padding = "16px";
+        td.style.color = "var(--text-secondary)";
+        td.textContent = "No stocks matched the current style filters.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        const cells = [
+          row.symbol || row.ticker || "",
+          fmtNumber(row.last_price, 2),
+          fmtNumber(row.momentum_1m_pct, 1),
+          fmtNumber(row.momentum_3m_pct, 1),
+          fmtNumber(row.momentum_6m_pct, 1),
+          row.above_ma20 ? "Yes" : "No",
+          row.above_ma50 ? "Yes" : "No",
+          row.above_ma200 ? "Yes" : "No",
+          row.pe != null ? String(row.pe) : "-",
+          row.div_yield_pct != null ? fmtNumber(row.div_yield_pct, 2) : "-",
+          row.eps_growth != null ? fmtNumber(row.eps_growth * 100.0, 1) : "-", // often given as ratio
+          row.passes_style_filter ? "Yes" : "No",
+        ];
+        cells.forEach(val => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderMultiAssetScanTable(scans) {
+      const tbody = $("multiScreenerBody");
+      tbody.innerHTML = "";
+      if (!scans || !scans.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 10;
+        td.style.textAlign = "center";
+        td.style.padding = "16px";
+        td.style.color = "var(--text-secondary)";
+        td.textContent = "No symbols met the multi-asset criteria. Try lowering min volume or IV threshold.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      scans.forEach(scan => {
+        const tr = document.createElement("tr");
+        const sample = (scan.sample_contracts || []).slice(0, 2).map(c => {
+          const t = c.type || c.option_type || "";
+          const k = c.strike;
+          const exp = c.expiration || c.exp;
+          return (scan.symbol || "") + " " + t + " " + k + "@" + (c.last || c.lastPrice || "-") + " (" + exp + ")";
+        }).join(" · ");
+        const cells = [
+          scan.symbol || "",
+          fmtNumber(scan.last_price, 2),
+          fmtNumber(scan.momentum_3m_pct, 1),
+          fmtNumber(scan.momentum_6m_pct, 1),
+          scan.above_ma50 ? "Yes" : "No",
+          scan.above_ma200 ? "Yes" : "No",
+          scan.total_option_volume != null ? Number(scan.total_option_volume).toLocaleString() : "-",
+          fmtNumber(scan.avg_iv_pct, 1),
+          fmtNumber(scan.max_iv_pct, 1),
+          sample || "-",
+        ];
+        cells.forEach(val => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
     async function runAnalysis() {
       const tickersValue = ($("tickers") && $("tickers").value && $("tickers").value.trim()) ? $("tickers").value.trim() : "SPY,QQQ,IWM";
       const btn = $("runBtn");
@@ -2191,9 +2408,13 @@
       const minVol = $("minVolumeInput");
       const maxSpread = $("maxSpreadInput");
       const summaryEl = $("screenerSummary");
+      const minDte = $("minDteInput");
+      const maxDte = $("maxDteInput");
       if (tickersEl) tickersEl.value = "";
       if (minVol) minVol.value = "500";
       if (maxSpread) maxSpread.value = "30";
+      if (minDte) minDte.value = "0";
+      if (maxDte) maxDte.value = "30";
       if (summaryEl) {
         summaryEl.textContent = "No results yet. Set tickers above and timeframe on Analysis, then run screener.";
         summaryEl.classList.remove("error");
@@ -2201,7 +2422,22 @@
       renderScreenerTable([]);
     }
 
-    async function runScreener() {
+    function _defaultDteForTimeframe() {
+      switch (currentTimeframe) {
+        case "intraday":
+          return { min: 0, max: 0 };
+        case "1-5d":
+          return { min: 1, max: 7 };
+        case "multi-week":
+          return { min: 8, max: 45 };
+        case "long-term":
+          return { min: 60, max: 365 };
+        default:
+          return { min: 0, max: 30 };
+      }
+    }
+
+    async function runOptionsScreener() {
       const tickersEl = $("screenerTickers") || $("tickers");
       const tickersValue = (tickersEl && tickersEl.value && tickersEl.value.trim()) ? tickersEl.value.trim() : "SPY,QQQ,IWM";
       const minVol = $("minVolumeInput").value || "0";
@@ -2209,6 +2445,21 @@
       const btn = $("screenerBtn");
       const btnLabel = $("screenerBtnLabel");
       const summaryEl = $("screenerSummary");
+
+       // DTE handling
+      const dteDefaults = _defaultDteForTimeframe();
+      let minDteVal = $("minDteInput").value;
+      let maxDteVal = $("maxDteInput").value;
+      let minDte = minDteVal === "" ? dteDefaults.min : Number(minDteVal);
+      let maxDte = maxDteVal === "" ? dteDefaults.max : Number(maxDteVal);
+      if (Number.isNaN(minDte)) minDte = dteDefaults.min;
+      if (Number.isNaN(maxDte)) maxDte = dteDefaults.max;
+
+      let side = "both";
+      if (currentAnalysisType !== "stocks") {
+        if (currentFocus === "calls") side = "calls";
+        else if (currentFocus === "puts") side = "puts";
+      }
 
       setStatus("Running screener...");
       btn.disabled = true;
@@ -2219,9 +2470,11 @@
           tickers: tickersValue,
           min_volume: String(minVol),
           max_spread_pct: String(maxSpread),
-          timeframe: currentTimeframe,
+          min_dte: String(minDte),
+          max_dte: String(maxDte),
+          side: side,
         });
-        const res = await fetch("/screener?" + params.toString(), { headers: apiHeaders() });
+        const res = await fetch("/options-screener?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || ("HTTP " + res.status));
@@ -2232,7 +2485,10 @@
         const count = rows.length || 0;
         const tfLabel = { intraday: "0DTE / same day", "1-5d": "1–5 days", "multi-week": "multi-week", "long-term": "long-term" }[currentTimeframe] || currentTimeframe;
         if (count === 0) {
-          summaryEl.innerHTML = (data.suggestion || "No contracts passed your filters. Try lowering Min vol (e.g. 100) or raising Max spread % (e.g. 50).");
+          const base = data.summary && data.summary.message
+            ? data.summary.message
+            : "No contracts passed your filters. Try lowering Min vol (e.g. 100), raising Max spread % (e.g. 50), or widening Min/Max DTE.";
+          summaryEl.innerHTML = base;
           summaryEl.classList.add("error");
         } else {
           summaryEl.textContent = count + " contract" + (count === 1 ? "" : "s") + " found (" + tfLabel + "). ITM rows highlighted.";
@@ -2246,6 +2502,124 @@
         btn.disabled = false;
         btnLabel.textContent = "Run screener";
       }
+    }
+
+    async function runStockScreener() {
+      const tickersEl = $("screenerTickers") || $("tickers");
+      const tickersValue = (tickersEl && tickersEl.value && tickersEl.value.trim()) ? tickersEl.value.trim() : "SPY,QQQ,IWM";
+      const summaryEl = $("stockScreenerSummary");
+      const btn = $("screenerBtn");
+      const btnLabel = $("screenerBtnLabel");
+
+      setStatus("Running stock screener...");
+      btn.disabled = true;
+      btnLabel.textContent = "Screening…";
+
+      try {
+        const params = new URLSearchParams({
+          tickers: tickersValue,
+          style: currentStockStyle,
+        });
+        const res = await fetch("/stock-screener?" + params.toString(), { headers: apiHeaders() });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        const data = await res.json();
+        const rows = normalizeContractsData(data);
+        renderStockScreenerTable(rows);
+        const count = rows.length || 0;
+        if (summaryEl) {
+          if (count === 0) {
+            summaryEl.textContent = "No stocks matched the " + currentStockStyle + " filter for these tickers.";
+            summaryEl.classList.add("error");
+          } else {
+            summaryEl.textContent = count + " stock" + (count === 1 ? "" : "s") + " scanned (" + currentStockStyle + " style).";
+            summaryEl.classList.remove("error");
+          }
+        }
+        setStatus("Stock screener complete.");
+      } catch (err) {
+        if (summaryEl) {
+          summaryEl.textContent = "Error running stock screener.";
+          summaryEl.classList.add("error");
+        }
+        setStatus("Stock screener request failed. Check backend.", true);
+      } finally {
+        btn.disabled = false;
+        btnLabel.textContent = "Run screener";
+      }
+    }
+
+    async function runMultiAssetScan() {
+      const tickersEl = $("screenerTickers") || $("tickers");
+      const tickersValue = (tickersEl && tickersEl.value && tickersEl.value.trim()) ? tickersEl.value.trim() : "SPY,QQQ,IWM";
+      const minVol = $("minVolumeInput").value || "0";
+      const maxSpread = $("maxSpreadInput").value || "100";
+      const summaryEl = $("multiScreenerSummary");
+      const btn = $("screenerBtn");
+      const btnLabel = $("screenerBtnLabel");
+
+      const dteDefaults = _defaultDteForTimeframe();
+      let minDteVal = $("minDteInput").value;
+      let maxDteVal = $("maxDteInput").value;
+      let minDte = minDteVal === "" ? dteDefaults.min : Number(minDteVal);
+      let maxDte = maxDteVal === "" ? dteDefaults.max : Number(maxDteVal);
+      if (Number.isNaN(minDte)) minDte = dteDefaults.min;
+      if (Number.isNaN(maxDte)) maxDte = dteDefaults.max;
+
+      setStatus("Running multi-asset scan...");
+      btn.disabled = true;
+      btnLabel.textContent = "Screening…";
+
+      try {
+        const params = new URLSearchParams({
+          tickers: tickersValue,
+          min_volume: String(minVol),
+          max_spread_pct: String(maxSpread),
+          min_dte: String(minDte),
+          max_dte: String(maxDte),
+          min_iv_pct: "25",
+        });
+        const res = await fetch("/multi-asset-scan?" + params.toString(), { headers: apiHeaders() });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        const data = await res.json();
+        const scans = data.scans || [];
+        renderMultiAssetScanTable(scans);
+        if (summaryEl) {
+          const count = scans.length || 0;
+          if (count === 0) {
+            summaryEl.textContent = "No high-IV, liquid symbols found. Try lowering min volume or IV threshold.";
+            summaryEl.classList.add("error");
+          } else {
+            summaryEl.textContent = count + " symbol" + (count === 1 ? "" : "s") + " with elevated IV and liquid options.";
+            summaryEl.classList.remove("error");
+          }
+        }
+        setStatus("Multi-asset scan complete.");
+      } catch (err) {
+        if (summaryEl) {
+          summaryEl.textContent = "Error running multi-asset scan.";
+          summaryEl.classList.add("error");
+        }
+        setStatus("Multi-asset scan failed. Check backend.", true);
+      } finally {
+        btn.disabled = false;
+        btnLabel.textContent = "Run screener";
+      }
+    }
+
+    async function runScreener() {
+      if (currentScreenerTab === "stocks") {
+        return runStockScreener();
+      }
+      if (currentScreenerTab === "multi") {
+        return runMultiAssetScan();
+      }
+      return runOptionsScreener();
     }
 
     function enterChatFromFirstQuestion() {
@@ -2338,6 +2712,123 @@
         runChat();
       }
     });
+
+    async function runBacktest() {
+      const tickersEl = $("backtestTickers");
+      const yearsEl = $("backtestYears");
+      const holdingEl = $("backtestHoldingDays");
+      const statusEl = $("backtestStatus");
+      const resultsEl = $("backtestResults");
+      const btn = $("backtestBtn");
+      const btnLabel = $("backtestBtnLabel");
+
+      const tickersValue = (tickersEl && tickersEl.value && tickersEl.value.trim()) ? tickersEl.value.trim() : "";
+      if (!tickersValue) {
+        statusEl.textContent = "Enter at least one ticker.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      const years = yearsEl ? yearsEl.value || "3" : "3";
+      const holdingDays = holdingEl ? holdingEl.value || "5" : "5";
+
+      statusEl.textContent = "Running backtest...";
+      statusEl.classList.remove("error");
+      btn.disabled = true;
+      btnLabel.textContent = "Running…";
+
+      try {
+        const params = new URLSearchParams({
+          tickers: tickersValue,
+          years: String(years),
+          holding_days: String(holdingDays),
+          direction: currentBacktestDirection,
+        });
+        const res = await fetch("/backtest?" + params.toString(), { headers: apiHeaders() });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        const data = await res.json();
+        const parts = [];
+        const portfolio = data.portfolio || {};
+        parts.push("Portfolio (equal-weight approximation):");
+        parts.push(
+          "- Approx CAGR: " + (portfolio.approx_cagr_pct ?? "n/a") + "%, " +
+          "Max drawdown: " + (portfolio.approx_max_drawdown_pct ?? "n/a") + "%, " +
+          "Avg Sharpe: " + (portfolio.avg_sharpe ?? "n/a") +
+          " over " + (years) + "y, holding " + holdingDays + " days per trade."
+        );
+        parts.push("");
+        parts.push("Per-symbol stats:");
+        const symMetrics = data.symbols || {};
+        Object.keys(symMetrics).forEach(sym => {
+          const m = symMetrics[sym];
+          parts.push(
+            sym + ": " +
+            "CAGR " + (m.cagr_pct ?? "n/a") + "%, " +
+            "Sharpe " + (m.sharpe ?? "n/a") + ", " +
+            "Max DD " + (m.max_drawdown_pct ?? "n/a") + "%, " +
+            "Win rate " + (m.win_rate_pct ?? "n/a") + "% over " +
+            (m.num_trades ?? 0) + " trades."
+          );
+        });
+        resultsEl.textContent = parts.join("\n");
+        statusEl.textContent = "Backtest complete.";
+      } catch (err) {
+        statusEl.textContent = "Backtest failed.";
+        statusEl.classList.add("error");
+        resultsEl.textContent = String(err);
+      } finally {
+        btn.disabled = false;
+        btnLabel.textContent = "Run backtest";
+      }
+    }
+
+    async function runForecast() {
+      const tickerEl = $("forecastTicker");
+      const yearsEl = $("forecastYears");
+      const statusEl = $("forecastStatus");
+      const resultsEl = $("forecastResults");
+      const btn = $("forecastBtn");
+      const btnLabel = $("forecastBtnLabel");
+
+      const tickerVal = (tickerEl && tickerEl.value && tickerEl.value.trim()) ? tickerEl.value.trim() : "";
+      if (!tickerVal) {
+        statusEl.textContent = "Enter a ticker to forecast.";
+        statusEl.classList.add("error");
+        return;
+      }
+      const years = yearsEl ? yearsEl.value || "3" : "3";
+
+      statusEl.textContent = "Running forecast...";
+      statusEl.classList.remove("error");
+      btn.disabled = true;
+      btnLabel.textContent = "Running…";
+
+      try {
+        const params = new URLSearchParams({
+          ticker: tickerVal,
+          years: String(years),
+        });
+        const res = await fetch("/forecast?" + params.toString(), { headers: apiHeaders() });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        const data = await res.json();
+        const text = data.forecast_text || JSON.stringify(data, null, 2);
+        resultsEl.textContent = text;
+        statusEl.textContent = "Forecast complete.";
+      } catch (err) {
+        statusEl.textContent = "Forecast failed.";
+        statusEl.classList.add("error");
+        resultsEl.textContent = String(err);
+      } finally {
+        btn.disabled = false;
+        btnLabel.textContent = "Run forecast";
+      }
+    }
   </script>
 </body>
 </html>
