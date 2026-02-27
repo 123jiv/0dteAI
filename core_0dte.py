@@ -309,9 +309,16 @@ def build_prompt(
     focus: str = "both",
     style: str = "balanced",
     timeframe: str = "intraday",
+    analysis_type: str = "options",  # options | stocks | both
 ) -> str:
+    spec = ZERO_DTE_SPEC.strip()
+    if analysis_type == "stocks":
+        spec = spec + "\n\nYou are ALSO giving STOCK (equity) ideas only for this run. Ignore options; output only the Stock idea section per ticker as described below."
+    elif analysis_type == "both":
+        spec = spec + "\n\nYou are giving BOTH options ideas AND stock (equity) ideas for this run. For each ticker, output the usual options view AND a separate Stock idea section as described below."
+
     lines = [
-        ZERO_DTE_SPEC.strip(),
+        spec,
         "\n\n---\n\nHere is the current market snapshot (delayed yfinance data):",
     ]
 
@@ -363,12 +370,27 @@ def build_prompt(
         "\n\nUser preferences for this run:\n"
         "- Focus: %s (both/calls/puts)\n"
         "- Risk style: %s (balanced/conservative/aggressive)\n"
-        "- Timeframe: %s (intraday / 1–5 days / multi-week / long-term)\n\n"
+        "- Timeframe: %s (intraday / 1–5 days / multi-week / long-term)\n"
+        "- Analysis type: %s (options only / stocks only / both)\n\n"
         "Respect these preferences when you choose which setups to highlight and how aggressive "
         "the ideas sound. Do NOT output position sizes; only describe how "
         "aggressive or conservative the idea is relative to typical options and 0DTE risk."
-        % (focus, style, timeframe)
+        % (focus, style, timeframe, analysis_type)
     )
+
+    # Stock idea output format (when analysis_type is stocks or both)
+    if analysis_type in ("stocks", "both"):
+        lines.append(
+            "\n\nSTOCK (equity) idea format — include for EACH ticker when analysis_type is stocks or both:\n"
+            "Stock idea:\n"
+            "- Direction: [Long / Short / Neutral] over the chosen timeframe.\n"
+            "- Key level: [e.g. support/resistance, 52w level, or VWAP].\n"
+            "- Horizon: [e.g. swing 1–5 days, hold for multi-week, long-term accumulate].\n"
+            "- Reason: [one short sentence: trend, level, or catalyst].\n"
+            "- Risk: [one line: e.g. stop below X, or key level to invalidate].\n"
+            "For stocks-only runs, use heading [SYMBOL] Stock View: and output ONLY the Stock idea sections (no options). "
+            "For both, output the normal options view first, then the Stock idea section for that ticker."
+        )
 
     # Force output to match the selected timeframe (heading + content)
     tf_heading = {
@@ -377,18 +399,31 @@ def build_prompt(
         "multi-week": "Multi-week View",
         "long-term": "Long-term View",
     }.get(timeframe, "View")
-    lines.append(
-        "\n\nCRITICAL — You MUST match the user's chosen timeframe:\n"
-        "- Timeframe selected: %s\n"
-        "- For EACH ticker use this EXACT heading style: [SYMBOL] %s:\n"
-        "  (e.g. IWM %s: or SPY %s:)\n"
-        "- For intraday: same-day 0DTE options, quick targets, intraday levels.\n"
-        "- For 1–5 days: weekly or short-dated options (1–5 day expiries), swing-style ideas.\n"
-        "- For multi-week: 2–8 week expiries, broader zones, weekly targets.\n"
-        "- For long-term: multi-month expiries, broad price zones and direction, NOT 0DTE strikes; "
-        "focus on trend and key levels, not same-day entries. Do NOT give 0DTE contract examples when timeframe is long-term."
-        % (timeframe, tf_heading, tf_heading, tf_heading)
-    )
+    if analysis_type == "stocks":
+        lines.append(
+            "\n\nCRITICAL — Stock-only analysis:\n"
+            "- For EACH ticker use heading: [SYMBOL] Stock View:\n"
+            "- Then output ONLY the Stock idea section (Direction, Key level, Horizon, Reason, Risk).\n"
+            "- Match the user's timeframe: intraday = day-trade levels; 1–5d = swing; multi-week/long-term = position and key zones.\n"
+            "- Do NOT include options or 0DTE sections."
+        )
+    else:
+        lines.append(
+            "\n\nCRITICAL — You MUST match the user's chosen timeframe:\n"
+            "- Timeframe selected: %s\n"
+            "- For EACH ticker use this EXACT heading style: [SYMBOL] %s:\n"
+            "  (e.g. IWM %s: or SPY %s:)\n"
+            "- For intraday: same-day 0DTE options, quick targets, intraday levels.\n"
+            "- For 1–5 days: weekly or short-dated options (1–5 day expiries), swing-style ideas.\n"
+            "- For multi-week: 2–8 week expiries, broader zones, weekly targets.\n"
+            "- For long-term: multi-month expiries, broad price zones and direction, NOT 0DTE strikes; "
+            "focus on trend and key levels, not same-day entries. Do NOT give 0DTE contract examples when timeframe is long-term."
+            % (timeframe, tf_heading, tf_heading, tf_heading)
+        )
+        if analysis_type == "both":
+            lines.append(
+                "\nAfter each ticker's options view, add the Stock idea section for that ticker (Direction, Key level, Horizon, Reason, Risk)."
+            )
 
     return "\n".join(lines)
 
@@ -420,6 +455,7 @@ def analyze_symbols(
     focus: str = "both",
     style: str = "balanced",
     timeframe: str = "intraday",
+    analysis_type: str = "options",
 ) -> str:
     snapshots: List[Dict[str, Any]] = []
     errors: List[str] = []
@@ -437,7 +473,7 @@ def analyze_symbols(
             detail += " " + "; ".join(errors)
         raise RuntimeError(detail)
 
-    prompt = build_prompt(snapshots, focus=focus, style=style, timeframe=timeframe)
+    prompt = build_prompt(snapshots, focus=focus, style=style, timeframe=timeframe, analysis_type=analysis_type)
     return call_llm(prompt)
 
 

@@ -448,6 +448,12 @@
       transition: all 0.2s ease;
     }
 
+    .chip.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     .chip:hover {
       border-color: var(--accent);
       color: var(--text-primary);
@@ -1407,6 +1413,22 @@
       location.hash = "#/login";
     }
 
+    function updateFocusDisabled() {
+      const disable = currentAnalysisType === "stocks";
+      const focusChips = document.querySelectorAll('.chip[data-focus]');
+      focusChips.forEach(chip => {
+        chip.classList.toggle("disabled", disable);
+        chip.setAttribute("aria-disabled", disable ? "true" : "false");
+      });
+      if (disable) {
+        // Force focus back to "both" when stocks-only
+        currentFocus = "both";
+        focusChips.forEach(c => c.classList.remove("active"));
+        const both = document.querySelector('.chip[data-focus="both"]');
+        if (both) both.classList.add("active");
+      }
+    }
+
     function openChatFilePicker() {
       const input = $("chatFileInput");
       if (input) input.click();
@@ -1661,10 +1683,12 @@
           document.querySelectorAll('.chip[data-analysis-type]').forEach(c => c.classList.remove('active'));
           chip.classList.add('active');
           currentAnalysisType = chip.getAttribute('data-analysis-type');
+          updateFocusDisabled();
         });
       });
     }
     setupChips();
+    updateFocusDisabled();
 
     function initTheme() {
       const theme = localStorage.getItem("odteai_theme") || "dark";
