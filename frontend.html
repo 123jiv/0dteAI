@@ -1444,14 +1444,9 @@
       }
     }
 
-    function handleChatFilesChange(event) {
-      chatFiles = [];
-      const input = event.target;
-      if (!input || !input.files) {
-        updateChatFilesHint();
-        return;
-      }
-      const files = Array.from(input.files);
+    function addChatFilesFromList(fileList) {
+      if (!fileList) return;
+      const files = Array.from(fileList);
       const maxFiles = 3;
       files.slice(0, maxFiles).forEach(file => {
         if (!file.type || !file.type.startsWith("image/")) return;
@@ -1466,6 +1461,16 @@
         };
         reader.readAsDataURL(file);
       });
+    }
+
+    function handleChatFilesChange(event) {
+      chatFiles = [];
+      const input = event.target;
+      if (!input || !input.files) {
+        updateChatFilesHint();
+        return;
+      }
+      addChatFilesFromList(input.files);
       updateChatFilesHint();
     }
 
@@ -1689,6 +1694,40 @@
     }
     setupChips();
     updateFocusDisabled();
+
+    // Drag & drop / paste for chat images
+    document.addEventListener("paste", (event) => {
+      const items = event.clipboardData && event.clipboardData.items;
+      if (!items) return;
+      const files = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === "file") {
+          const file = item.getAsFile();
+          if (file && file.type && file.type.startsWith("image/")) {
+            files.push(file);
+          }
+        }
+      }
+      if (files.length) {
+        addChatFilesFromList(files);
+        updateChatFilesHint();
+      }
+    });
+
+    const chatShell = document.querySelector(".chat-shell");
+    if (chatShell) {
+      chatShell.addEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+      chatShell.addEventListener("drop", (e) => {
+        e.preventDefault();
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+          addChatFilesFromList(e.dataTransfer.files);
+          updateChatFilesHint();
+        }
+      });
+    }
 
     function initTheme() {
       const theme = localStorage.getItem("odteai_theme") || "dark";
@@ -2115,7 +2154,9 @@
     async function runChat() {
       const tickersValue = ($("tickers") && $("tickers").value) ? $("tickers").value : "SPY,QQQ,IWM";
       const question = ($("chatInput").value || "").trim();
-      if (!question) return;
+      const hasText = !!question;
+      const hasFiles = chatFiles && chatFiles.length > 0;
+      if (!hasText && !hasFiles) return;
 
       const btn = $("chatBtn");
       const btnLabel = $("chatBtnLabel");
@@ -2124,7 +2165,7 @@
       setChatStatus("Sending...");
       btn.disabled = true;
       btnLabel.textContent = "Sending…";
-      appendMessage("you", question, "chatConversation", "user");
+      appendMessage("you", hasText ? question : "(images attached; no text question)", "chatConversation", "user");
       input.value = "";
 
       showTypingIndicator(true);
@@ -2138,7 +2179,7 @@
           analysis_type: currentAnalysisType,
           files: chatFiles,
           history: chatHistory,
-          question: question,
+          question: hasText ? question : "Please analyze the attached chart images for trading context and risk.",
         };
 
         const res = await fetch("/chat", {

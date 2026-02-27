@@ -321,32 +321,43 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(default=None)):
         messages.append({"role": role, "content": msg.content})
 
     # Latest question + optional images
-    files = getattr(req, "files", []) or []
-    if files:
-        content_parts: List[Dict[str, Any]] = [
-            {"type": "text", "text": req.question}
-        ]
-        # Only include a few images to keep payload reasonable
-        for f in files[:3]:
-            try:
-                data_url = f.get("data_url") or f.get("dataURL") or ""
-                if not data_url:
+    try:
+        files = getattr(req, "files", []) or []
+        if files:
+            content_parts: List[Dict[str, Any]] = [
+                {"type": "text", "text": req.question or "Please analyze the attached chart images."}
+            ]
+            # Only include a few images to keep payload reasonable
+            for f in files[:3]:
+                try:
+                    data_url = f.get("data_url") or f.get("dataURL") or ""
+                    if not data_url:
+                        continue
+                    content_parts.append(
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": data_url},
+                        }
+                    )
+                except Exception as e:
+                    print("Chat file ignored:", e)
                     continue
-                content_parts.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": data_url},
-                    }
-                )
-            except Exception:
-                continue
-        messages.append(
-            {
-                "role": "user",
-                "content": content_parts,
-            }
-        )
-    else:
+            messages.append(
+                {
+                    "role": "user",
+                    "content": content_parts,
+                }
+            )
+        else:
+            messages.append(
+                {
+                    "role": "user",
+                    "content": req.question,
+                }
+            )
+    except Exception as e:
+        # Fallback to text-only if anything goes wrong building image parts
+        print("Chat message build error:", e)
         messages.append(
             {
                 "role": "user",
