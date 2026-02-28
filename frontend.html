@@ -2028,7 +2028,7 @@
             statusEl.textContent = "Logged in. Redirecting…";
             statusEl.classList.remove("error");
             window.location.hash = "#/dashboard";
-            setTimeout(function() { window.location.reload(); }, 100);
+            if (typeof route === "function") { route(); }
           })
           .catch(function(err) {
             clearTimeout(timeoutId);
