@@ -279,7 +279,7 @@
     }
     .top-header-bar .page-title-header {
       font-size: 18px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--text-primary);
       letter-spacing: -0.02em;
       margin: 0;
@@ -365,7 +365,7 @@
       margin-bottom: var(--space-6);
     }
     .app-main .page-title {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 700;
       color: var(--text-primary);
       letter-spacing: -0.02em;
@@ -415,6 +415,75 @@
       margin: 0;
     }
 
+    /* ---------- VC-ready card standard ---------- */
+    .card-vc {
+      background: #0F1724;
+      border: 1px solid #1E2D45;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-vc:hover { border-color: #22C55E; box-shadow: 0 0 0 1px #22C55E, 0 4px 20px rgba(34,197,94,0.1); }
+
+    /* ---------- VC card standard (apply to every card) ---------- */
+    .card-vc, .dashboard-card, .pulse-card, .market-events-card, .quick-tool-card, .hero-signal-card,
+    .stat-card, .daily-brief-card {
+      background: #0F1724;
+      border: 1px solid #1E2D45;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-vc:hover, .dashboard-card:hover, .quick-tool-card:hover, .hero-signal-card:hover, .stat-card:hover {
+      border-color: #22C55E;
+      box-shadow: 0 0 0 1px #22C55E, 0 4px 20px rgba(34,197,94,0.1);
+    }
+    .pulse-card:hover, .market-events-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+
+    /* ---------- Daily Brief (Dashboard wow moment) ---------- */
+    .daily-brief-card {
+      margin-bottom: 24px;
+    }
+    .daily-brief-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .daily-brief-header .logo-mark { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .daily-brief-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0; }
+    .daily-brief-date { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+    .daily-brief-body { min-height: 120px; }
+    .daily-brief-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+    }
+    .daily-brief-content .brief-intro { font-size: 14px; color: var(--text-primary); margin-bottom: 14px; line-height: 1.5; }
+    .daily-brief-content .brief-section { margin-bottom: 14px; }
+    .daily-brief-content .brief-section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-primary); margin-bottom: 6px; }
+    .daily-brief-content .brief-suggestion { color: var(--primary); margin-top: 6px; font-weight: 500; }
+    .daily-brief-error { font-size: 13px; color: var(--bearish); }
+    .daily-brief-skeleton { display: flex; flex-direction: column; gap: 10px; }
+    .skeleton-line {
+      height: 14px;
+      background: linear-gradient(90deg, var(--border) 25%, var(--bg-elevated) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.2s ease-in-out infinite;
+      border-radius: 4px;
+    }
+    .skeleton-line.skeleton-title { width: 60%; height: 18px; }
+    .skeleton-line.skeleton-short { width: 75%; }
+    @keyframes skeleton-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     /* ---------- Market Pulse Strip (Dashboard) ---------- */
     .market-pulse-strip {
       display: grid;
@@ -461,8 +530,12 @@
       box-shadow: var(--shadow-card);
     }
     .market-events-card h3 { font-size: 13px; font-weight: 600; color: var(--text-primary); margin: 0 0 var(--space-3); }
-    .market-events-list { font-size: 12px; color: var(--text-secondary); }
+    .market-events-list { font-size: 12px; color: var(--text-secondary); min-height: 60px; }
     .market-events-list .event { padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .market-events-list.skeleton-loading .event-skeleton { height: 12px; background: linear-gradient(90deg, var(--border) 25%, var(--bg-elevated) 50%, var(--border) 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.2s ease-in-out infinite; border-radius: 4px; margin-bottom: 8px; }
+    .market-events-list.skeleton-loading .event-skeleton:nth-child(1) { width: 90%; }
+    .market-events-list.skeleton-loading .event-skeleton:nth-child(2) { width: 70%; }
+    .market-events-list.skeleton-loading .event-skeleton:nth-child(3) { width: 85%; }
     .market-events-list .event:last-child { border-bottom: none; }
     .market-events-list .no-events { color: var(--bullish); }
     .news-ticker-wrap {
@@ -552,9 +625,16 @@
     .hero-signals {
       margin-bottom: 28px;
     }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
     .hero-signals .section-title {
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 600;
       color: var(--text-primary);
       margin-bottom: 14px;
       letter-spacing: -0.02em;
@@ -563,7 +643,37 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 14px;
+      position: relative;
     }
+    .hero-signals-skeleton {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      width: 100%;
+    }
+    .hero-signal-skeleton {
+      height: 100px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, var(--border) 25%, var(--bg-elevated) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.2s ease-in-out infinite;
+    }
+    .hero-signals-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      width: 100%;
+    }
+    .hero-signals-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-secondary);
+    }
+    .hero-signals-empty p { margin: 0 0 12px 0; font-size: 14px; }
     .hero-signal-card {
       border-radius: var(--radius-lg);
       background: var(--bg-card);
@@ -582,7 +692,7 @@
     .hero-signal-card.call::before { background: var(--bullish); }
     .hero-signal-card.put::before { background: var(--bearish); }
     .hero-signal-card .signal-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
-    .hero-signal-card .signal-badges span { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: var(--bg-elevated); color: var(--text-secondary); }
+    .hero-signal-card .signal-badges span { font-size: 11px; font-weight: 600; font-family: var(--font-mono); padding: 3px 8px; border-radius: 6px; }
     .hero-signal-card .symbol { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
     .hero-signal-card .meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
     .hero-signal-card .prob-wrap { margin-top: 8px; }
@@ -784,11 +894,11 @@
     .btn-row { display: flex; gap: 10px; align-items: flex-end; }
 
     .btn {
-      border-radius: var(--radius);
+      border-radius: 8px;
       border: none;
       padding: 10px 20px;
-      background: var(--primary);
-      color: #FFFFFF;
+      background: #22C55E;
+      color: #000;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
@@ -796,31 +906,51 @@
       align-items: center;
       justify-content: center;
       min-width: 120px;
-      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
       white-space: nowrap;
     }
 
     .btn:hover:not([disabled]) {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-glow);
+      background: #16A34A;
+      transform: scale(1.02);
+      box-shadow: 0 4px 20px rgba(34,197,94,0.2);
     }
 
     .btn.secondary {
       background: transparent;
-      border: 1px solid var(--border-strong);
-      color: var(--text-primary);
+      border: 1px solid #1E2D45;
+      color: var(--text-secondary);
       min-width: 110px;
     }
 
     .btn.secondary:hover:not([disabled]) {
-      background: var(--accent-muted);
-      border-color: var(--primary);
-      box-shadow: 0 0 0 1px var(--primary);
+      border-color: #22C55E;
+      color: var(--text-primary);
+      box-shadow: 0 0 0 1px #22C55E;
     }
 
+    .btn.danger {
+      background: transparent;
+      border: 1px solid #F43F5E;
+      color: #F43F5E;
+    }
+    .btn.danger:hover:not([disabled]) { background: rgba(244,63,94,0.1); border-color: #F43F5E; }
     .btn:active:not([disabled]) { transform: translateY(0); }
     .btn[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ---------- Badge standard (tickers, types, status) ---------- */
+    .badge-vc, .hero-signal-card .signal-badges span, .market-badge {
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+    .badge-vc.green, .hero-signal-card.call .signal-badges span { background: rgba(34,197,94,0.15); color: #22C55E; }
+    .badge-vc.red, .hero-signal-card.put .signal-badges span { background: rgba(244,63,94,0.15); color: #F43F5E; }
+    .badge-vc.yellow { background: rgba(245,158,11,0.15); color: #F59E0B; }
+    .badge-vc.blue { background: rgba(59,130,246,0.15); color: #3B82F6; }
+    .badge-vc.gray { background: rgba(148,163,184,0.1); color: #94A3B8; }
 
     .status-line {
       margin-top: 8px;
@@ -2063,12 +2193,35 @@
         </div>
         <div class="main-scroll">
         <div id="screenDashboard" class="screen page-content">
+          <div class="daily-brief-card card-vc" id="dailyBriefCard">
+            <div class="daily-brief-header">
+              <span class="logo-mark" aria-hidden="true">🌿</span>
+              <h2 class="daily-brief-title">Midori's Daily Brief</h2>
+              <span class="daily-brief-date" id="dailyBriefDate"></span>
+            </div>
+            <div id="dailyBriefBody" class="daily-brief-body">
+              <div id="dailyBriefSkeleton" class="daily-brief-skeleton">
+                <div class="skeleton-line skeleton-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line skeleton-short"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line skeleton-short"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line skeleton-short"></div>
+              </div>
+              <div id="dailyBriefContent" class="daily-brief-content" style="display:none;"></div>
+              <div id="dailyBriefError" class="daily-brief-error" style="display:none;"></div>
+            </div>
+          </div>
+
           <div class="page-head">
             <h1 class="page-title">Dashboard</h1>
             <p class="page-desc">Your command center for options, stocks, and long-term investing. Key signals and tools below.</p>
           </div>
 
-          <section class="market-pulse-strip" id="marketPulseStrip">
+          <section class="market-pulse-strip" id="marketPulseStrip" aria-busy="true">
             <div class="pulse-card"><div class="pulse-label">SPY</div><div class="pulse-price font-mono" id="pulseSPY">--</div><div class="pulse-change" id="pulseSPYChg">--</div><div class="pulse-meta">S&P 500</div></div>
             <div class="pulse-card"><div class="pulse-label">QQQ</div><div class="pulse-price font-mono" id="pulseQQQ">--</div><div class="pulse-change" id="pulseQQQChg">--</div><div class="pulse-meta">Nasdaq 100</div></div>
             <div class="pulse-card"><div class="pulse-label">VIX</div><div class="pulse-price font-mono" id="pulseVIX">--</div><div class="pulse-change" id="pulseVIXChg">--</div><div class="pulse-meta">Volatility</div></div>
@@ -2088,7 +2241,11 @@
                 <h3 style="margin:0;">Today's Market Events</h3>
                 <button type="button" class="btn secondary" style="padding:4px 8px; font-size:11px;" onclick="loadMarketEvents()" aria-label="Refresh events">Refresh</button>
               </div>
-              <div class="market-events-list" id="marketEventsList">Loading...</div>
+              <div class="market-events-list skeleton-loading" id="marketEventsList">
+                <div class="event-skeleton"></div>
+                <div class="event-skeleton"></div>
+                <div class="event-skeleton"></div>
+              </div>
               <div class="fear-greed-gauge-wrap" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
                 <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Fear & Greed</div>
                 <div class="fear-greed-gauge" id="fearGreedGauge">
@@ -2102,26 +2259,17 @@
           <section class="hero-signals">
             <h2 class="section-title">Today's AI Trade Signals</h2>
             <div class="hero-signals-grid" id="heroSignalsGrid">
-              <a href="#/signals" class="hero-signal-card call">
-                <div class="signal-badges"><span>SPY</span><span>450C</span><span>0DTE</span></div>
-                <div class="meta">Entry $1.20 | Target $2.40 | Stop $0.60</div>
-                <div class="prob-wrap"><div class="prob">68% win prob</div><div class="prob-bar"><div class="prob-fill" style="width:68%"></div></div></div>
-              </a>
-              <a href="#/signals" class="hero-signal-card put">
-                <div class="signal-badges"><span>QQQ</span><span>395P</span><span>0DTE</span></div>
-                <div class="meta">Entry $0.85 | Target $1.70 | Stop $0.42</div>
-                <div class="prob-wrap"><div class="prob">62% win prob</div><div class="prob-bar"><div class="prob-fill" style="width:62%"></div></div></div>
-              </a>
-              <a href="#/signals" class="hero-signal-card call">
-                <div class="signal-badges"><span>SPY</span><span>448C</span><span>0DTE</span></div>
-                <div class="meta">Entry $1.45 | Target $2.90 | Stop $0.72</div>
-                <div class="prob-wrap"><div class="prob">71% win prob</div><div class="prob-bar"><div class="prob-fill" style="width:71%"></div></div></div>
-              </a>
-              <a href="#/signals" class="hero-signal-card put">
-                <div class="signal-badges"><span>IWM</span><span>205P</span><span>0DTE</span></div>
-                <div class="meta">Entry $0.92 | Target $1.84 | Stop $0.46</div>
-                <div class="prob-wrap"><div class="prob">65% win prob</div><div class="prob-bar"><div class="prob-fill" style="width:65%"></div></div></div>
-              </a>
+              <div id="heroSignalsSkeleton" class="hero-signals-skeleton">
+                <div class="hero-signal-skeleton"></div>
+                <div class="hero-signal-skeleton"></div>
+                <div class="hero-signal-skeleton"></div>
+                <div class="hero-signal-skeleton"></div>
+              </div>
+              <div id="heroSignalsContent" class="hero-signals-content" style="display:none;"></div>
+              <div id="heroSignalsEmpty" class="hero-signals-empty" style="display:none;">
+                <p>Signals load on the Signals page. Get AI-ranked setups there.</p>
+                <a href="#/signals" class="btn primary">View Signals</a>
+              </div>
             </div>
           </section>
 
@@ -2973,10 +3121,116 @@
     }
 
     async function loadDashboardData() {
+      loadDailyBrief();
       loadMarketPulse();
       loadMarketEvents();
       loadNewsTicker();
       loadTradingViewWidget();
+      loadHeroSignals();
+    }
+
+    function loadHeroSignals() {
+      const skeleton = $("heroSignalsSkeleton");
+      const content = $("heroSignalsContent");
+      const empty = $("heroSignalsEmpty");
+      if (skeleton) skeleton.style.display = "";
+      if (content) { content.style.display = "none"; content.innerHTML = ""; }
+      if (empty) empty.style.display = "none";
+      fetch("/signals?tickers=SPY,QQQ,IWM&limit=4", { headers: apiHeaders() })
+        .then(function(r) { return r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)); })
+        .then(function(data) {
+          const signals = (data && data.signals) ? data.signals : [];
+          if (skeleton) skeleton.style.display = "none";
+          if (signals.length === 0) {
+            if (empty) empty.style.display = "block";
+            return;
+          }
+          if (content) {
+            content.style.display = "grid";
+            content.innerHTML = signals.map(function(s) {
+              const isCall = (s.type || "").toUpperCase() === "CALL";
+              const cardClass = "hero-signal-card " + (isCall ? "call" : "put");
+              const ticker = (s.ticker || "").trim();
+              const strike = (s.strike_zone || "").trim();
+              const headline = (s.headline || "").substring(0, 60);
+              return '<a href="#/signals" class="' + cardClass + '">' +
+                '<div class="signal-badges"><span>' + escapeHtml(ticker) + '</span><span>' + escapeHtml(strike) + '</span><span>0DTE</span></div>' +
+                '<div class="meta">' + escapeHtml(headline) + '</div>' +
+                '<div class="prob-wrap"><div class="prob">Midori ranked</div><div class="prob-bar"><div class="prob-fill" style="width:' + Math.min(100, 60 + (s.rank || 0) * 5) + '%"></div></div></div>' +
+                '</a>';
+            }).join("");
+          }
+        })
+        .catch(function() {
+          if (skeleton) skeleton.style.display = "none";
+          if (empty) empty.style.display = "block";
+        });
+    }
+
+    async function loadDailyBrief() {
+      const dateEl = $("dailyBriefDate");
+      const skeletonEl = $("dailyBriefSkeleton");
+      const contentEl = $("dailyBriefContent");
+      const errorEl = $("dailyBriefError");
+      if (dateEl) dateEl.textContent = new Date().toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
+      if (skeletonEl) skeletonEl.style.display = "block";
+      if (contentEl) { contentEl.style.display = "none"; contentEl.innerHTML = ""; }
+      if (errorEl) { errorEl.style.display = "none"; errorEl.textContent = ""; }
+      try {
+        const res = await fetch("/api/daily-brief", { headers: apiHeaders() });
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(t || "Failed to load brief");
+        }
+        const data = await res.json();
+        const brief = (data.brief || "").trim();
+        if (skeletonEl) skeletonEl.style.display = "none";
+        if (contentEl) {
+          contentEl.style.display = "block";
+          contentEl.innerHTML = formatBriefForDisplay(brief);
+        }
+      } catch (e) {
+        if (skeletonEl) skeletonEl.style.display = "none";
+        if (errorEl) {
+          errorEl.style.display = "block";
+          errorEl.textContent = "Brief unavailable. " + (e.message || String(e));
+        }
+      }
+    }
+
+    function formatBriefForDisplay(brief) {
+      if (!brief) return "";
+      const lines = brief.split("\n");
+      let out = "";
+      let inSection = false;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        const upper = line.toUpperCase();
+        const isSection = upper.includes("MARKET MOOD") || upper.includes("TODAY'S FOCUS") || upper.includes("TOP OPPORTUNITY");
+        const isSuggestion = trimmed.startsWith("Suggestion:") || trimmed.startsWith("Good for:") || trimmed.startsWith("💡");
+        if (isSection) {
+          if (inSection) out += "</div>";
+          out += '<div class="brief-section"><div class="brief-section-title">' + escapeHtml(trimmed) + "</div>";
+          inSection = true;
+        } else if (isSuggestion) {
+          out += '<div class="brief-suggestion">' + escapeHtml(trimmed) + "</div>";
+        } else if (trimmed) {
+          if (!inSection && (trimmed.indexOf("Here's what matters today") !== -1 || trimmed.indexOf("Here’s what matters today") !== -1)) {
+            out += '<div class="brief-intro">' + escapeHtml(trimmed) + "</div>";
+          } else {
+            out += "<div>" + escapeHtml(trimmed) + "</div>";
+          }
+        }
+      }
+      if (inSection) out += "</div>";
+      return out || escapeHtml(brief);
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement("div");
+      div.textContent = s;
+      return div.innerHTML;
     }
 
     async function loadMarketPulse() {
@@ -3027,10 +3281,14 @@
         }
         const updatedEl = $("marketPulseUpdated");
         if (updatedEl) updatedEl.textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        const strip = $("marketPulseStrip");
+        if (strip) strip.removeAttribute("aria-busy");
       } catch (e) {
         console.warn("Market pulse load failed:", e);
         const updatedEl = $("marketPulseUpdated");
         if (updatedEl) updatedEl.textContent = "";
+        const strip = $("marketPulseStrip");
+        if (strip) strip.removeAttribute("aria-busy");
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = "Refresh"; }
       }
@@ -3043,6 +3301,7 @@
         const r = await fetch("/api/economic-events");
         const data = await r.json();
         const events = data.events || [];
+        el.classList.remove("skeleton-loading");
         if (!events.length) {
           el.innerHTML = '<div class="no-events">No high-impact events today ✓</div>';
           return;
@@ -3053,6 +3312,7 @@
           return '<div class="event">⚠️ ' + time + ' — ' + (title.length > 40 ? title.slice(0, 40) + "…" : title) + '</div>';
         }).join("");
       } catch (e) {
+        el.classList.remove("skeleton-loading");
         el.innerHTML = '<div class="no-events">Data temporarily unavailable</div>';
       }
     }

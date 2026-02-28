@@ -376,6 +376,58 @@ def auth_me(authorization: Optional[str] = Header(default=None)):
     return {"ok": True}
 
 
+_DAILY_BRIEF_PROMPT = """You are Midori, an expert trading AI. Based on the following real market data, write a Daily Brief in exactly this structure.
+
+Start with one greeting line: "Good morning." or "Good afternoon." or "Good evening." (match the time in the data) followed by " Here's what matters today."
+
+Then three sections. Use the exact headers below. End each section with one line starting with 💡 (suggestion).
+
+Format:
+
+[Greeting] Here's what matters today.
+
+📊 MARKET MOOD: [One label, e.g. Cautiously Bullish]
+[2 sentences max explaining SPY/VIX/trend in plain English.]
+💡 [One specific suggestion for this environment.]
+
+⚡ TODAY'S FOCUS: [Most important event or condition today]
+[1-2 sentences.]
+💡 [One specific suggestion, e.g. avoid new 0DTE after X time.]
+
+🎯 TOP OPPORTUNITY: [One specific setup with ticker]
+[1-2 sentences on the setup.]
+💡 [One specific action, e.g. watch for bounce near $X for call entry.]
+
+Keep every section to 3 lines max. Use plain English. No jargon without explanation. Every section must end with a 💡 line.
+Market data:
+
+{context}"""
+
+
+@app.get("/api/daily-brief")
+def api_daily_brief(authorization: Optional[str] = Header(default=None)):
+    """Auto-generated Daily Brief for dashboard wow moment. Uses build_master_context + one AI call."""
+    _require_auth(authorization)
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
+    try:
+        ctx = build_master_context()
+        prompt = _DAILY_BRIEF_PROMPT.format(context=ctx)
+        client = OpenAI()
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are Midori, a concise trading AI. Reply only with the Daily Brief text. Start with a greeting (Good morning/afternoon/evening) and 'Here\\'s what matters today.' Then 📊 MARKET MOOD, ⚡ TODAY'S FOCUS, 🎯 TOP OPPORTUNITY. End each section with a line starting with 💡. No other commentary."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.3,
+        )
+        brief = (resp.choices[0].message.content or "").strip()
+        return {"brief": brief, "generated_at": datetime.now(timezone.utc).isoformat()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/analyze")
 def analyze(
     tickers: str = "SPY,QQQ,IWM",
