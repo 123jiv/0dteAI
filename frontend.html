@@ -3067,7 +3067,14 @@
         logoutEl.onclick = function(e) { e.preventDefault(); logout(); };
       }
 
-      const authed = await authCheck();
+      showPage("pageLogin");
+      let authed = false;
+      try {
+        authed = await authCheck();
+      } catch (_) {
+        initLoginRemember();
+        return;
+      }
       if (!authed) {
         showPage("pageLogin");
         initLoginRemember();
