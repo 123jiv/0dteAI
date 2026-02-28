@@ -2018,7 +2018,7 @@
             localStorage.setItem("trademinds_remember", remember ? "true" : "false");
             statusEl.textContent = "Logged in.";
             window.location.hash = "#/dashboard";
-            if (typeof route === "function") route(); else window.location.reload();
+            window.location.reload();
           })
           .catch(function(err) {
             statusEl.textContent = (err && err.message) ? err.message : "Login failed. Try again.";
