@@ -810,6 +810,66 @@
     }
     .status-line.error { color: var(--danger); }
 
+    /* ---------- Confidence page ---------- */
+    .confidence-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 900px;
+    }
+    .confidence-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .confidence-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .confidence-gauge {
+      height: 8px;
+      background: var(--bg-surface);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .confidence-gauge-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .confidence-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      font-size: 12px;
+    }
+    .confidence-metric {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .confidence-metric-label {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+    .confidence-metric-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .confidence-pattern {
+      font-size: 11px;
+      color: var(--text-secondary);
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
     /* ---------- Chat: full-height GPT-style ---------- */
     .chat-page-layout {
       display: flex;
@@ -2204,11 +2264,22 @@
         <div id="screenConfidence" class="screen page-content">
           <div class="page-head">
             <h1 class="page-title">Confidence &amp; backtest</h1>
-            <p class="page-desc">Simple confidence metrics and follow-through stats. Run an analysis first to see data.</p>
+            <p class="page-desc">Simple confidence metrics and follow-through stats. Enter tickers and refresh, or run an analysis to populate.</p>
           </div>
-          <div class="card" style="max-width:560px;">
-            <div id="confidenceBodyPanel" class="hint">Run an analysis to see confidence scores and follow-through stats.</div>
+          <div class="card" style="max-width:720px; margin-bottom:16px;">
+            <div class="input-row">
+              <div class="field">
+                <span class="field-label">Tickers</span>
+                <input id="confidenceTickers" class="pill-input" placeholder="e.g. SPY, QQQ, IWM">
+              </div>
+              <div class="btn-row">
+                <button id="confidenceRefreshBtn" class="btn" type="button" onclick="runConfidence()"><span id="confidenceRefreshLabel">Refresh confidence</span></button>
+              </div>
+            </div>
+            <div id="confidenceStatus" class="status-line"></div>
           </div>
+          <div id="confidenceBodyPanel" class="confidence-grid"></div>
+          <div id="confidenceEmptyHint" class="hint" style="max-width:560px; padding:16px;">Enter tickers above and click Refresh confidence, or run an Analysis to see metrics.</div>
         </div>
         <div id="screenBacktest" class="screen page-content">
           <div class="page-head">
@@ -3604,26 +3675,104 @@
 
     function renderConfidencePanel(confidence) {
       const keys = Object.keys(confidence || {});
-      let text;
-      if (!keys.length) {
-        text = "No confidence metrics available for these tickers (not enough history).";
-      } else {
-        const lines = [];
-        keys.forEach(sym => {
-          const m = confidence[sym] || {};
-          const conf = m.confidence_score !== undefined ? m.confidence_score + "%" : "n/a";
-          const win = m.expected_win_prob_pct !== undefined ? m.expected_win_prob_pct + "%" : "n/a";
-          const trend = m.trend_pct_90d !== undefined ? m.trend_pct_90d + "%" : "n/a";
-          const vol = m.vol_annual_pct !== undefined ? m.vol_annual_pct + "%" : "n/a";
-          const samples = m.sample_trades !== undefined ? m.sample_trades : "n/a";
-          const pattern = m.pattern || "mixed days";
-          lines.push(sym + ": confidence " + conf + ", expected win ~" + win + " (pattern " + pattern + ", " + samples + " sample days, 90d trend " + trend + ", realized vol ~" + vol + ").");
-        });
-        text = lines.join(" ");
-      }
       const panelBody = $("confidenceBodyPanel");
-      if (panelBody) panelBody.textContent = text;
+      const emptyHint = $("confidenceEmptyHint");
+      if (!panelBody) return;
+
+      if (!keys.length) {
+        panelBody.innerHTML = "";
+        if (emptyHint) emptyHint.style.display = "block";
+        emptyHint && (emptyHint.textContent = "No confidence metrics available for these tickers (not enough history).");
+        return;
+      }
+
+      if (emptyHint) emptyHint.style.display = "none";
+
+      const gaugeColor = (pct) => {
+        if (pct >= 65) return "var(--success)";
+        if (pct >= 45) return "var(--primary)";
+        return "var(--danger)";
+      };
+
+      panelBody.innerHTML = keys.map(sym => {
+        const m = confidence[sym] || {};
+        const conf = m.confidence_score !== undefined ? m.confidence_score : 0;
+        const win = m.expected_win_prob_pct !== undefined ? m.expected_win_prob_pct : "n/a";
+        const trend = m.trend_pct_90d !== undefined ? m.trend_pct_90d : "n/a";
+        const vol = m.vol_annual_pct !== undefined ? m.vol_annual_pct : "n/a";
+        const samples = m.sample_trades !== undefined ? m.sample_trades : "n/a";
+        const pattern = m.pattern || "mixed days";
+
+        const winStr = typeof win === "number" ? win + "%" : win;
+        const trendStr = typeof trend === "number" ? trend + "%" : trend;
+        const volStr = typeof vol === "number" ? vol + "%" : vol;
+
+        return `<div class="confidence-card">
+          <div class="confidence-card-header">
+            <span>${(sym || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>
+            <span style="color:${gaugeColor(conf)}">${conf}%</span>
+          </div>
+          <div class="confidence-gauge">
+            <div class="confidence-gauge-fill" style="width:${Math.min(100, Math.max(0, conf))}%; background:${gaugeColor(conf)}"></div>
+          </div>
+          <div class="confidence-metrics">
+            <div class="confidence-metric" title="Historical follow-through win rate">
+              <span class="confidence-metric-label">Expected win</span>
+              <span class="confidence-metric-value">${winStr}</span>
+            </div>
+            <div class="confidence-metric" title="90-day price trend">
+              <span class="confidence-metric-label">90d trend</span>
+              <span class="confidence-metric-value">${trendStr}</span>
+            </div>
+            <div class="confidence-metric" title="Annualized realized volatility">
+              <span class="confidence-metric-label">Realized vol</span>
+              <span class="confidence-metric-value">${volStr}</span>
+            </div>
+            <div class="confidence-metric" title="Sample size for follow-through">
+              <span class="confidence-metric-label">Sample days</span>
+              <span class="confidence-metric-value">${samples}</span>
+            </div>
+          </div>
+          <div class="confidence-pattern">${(pattern || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+        </div>`;
+      }).join("");
+
       setNotificationDot("panelConfidence", true);
+    }
+
+    async function runConfidence() {
+      const tickersEl = $("confidenceTickers");
+      const tickersValue = (tickersEl && tickersEl.value && tickersEl.value.trim()) ? tickersEl.value.trim() : "SPY,QQQ,IWM";
+      const statusEl = $("confidenceStatus");
+      const btn = $("confidenceRefreshBtn");
+      const label = $("confidenceRefreshLabel");
+
+      setStatus("Loading confidence...");
+      if (btn) btn.disabled = true;
+      if (label) label.textContent = "Loading…";
+      if (statusEl) statusEl.textContent = "";
+      if (statusEl) statusEl.classList.remove("error");
+
+      try {
+        const params = new URLSearchParams({ tickers: tickersValue });
+        const res = await fetch("/confidence?" + params.toString(), { headers: apiHeaders() });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+        const data = await res.json();
+        renderConfidencePanel(data.confidence);
+        if (statusEl) statusEl.textContent = "Loaded " + (Object.keys(data.confidence || {}).length) + " ticker(s).";
+        setStatus("Confidence loaded.");
+        showToast("Confidence loaded.");
+      } catch (err) {
+        const msg = friendlyErrorMessage(err);
+        setStatus(msg, true);
+        if (statusEl) { statusEl.textContent = msg; statusEl.classList.add("error"); }
+      } finally {
+        if (btn) btn.disabled = false;
+        if (label) label.textContent = "Refresh confidence";
+      }
     }
 
     function renderScreenerTable(rows) {
@@ -3812,7 +3961,11 @@
         showToast("Analysis complete.");
         setNotificationDot("panelAnalysis", true);
 
-        if (data.confidence) renderConfidencePanel(data.confidence);
+        if (data.confidence) {
+          renderConfidencePanel(data.confidence);
+          const confTickersEl = $("confidenceTickers");
+          if (confTickersEl) confTickersEl.value = tickersValue;
+        }
 
         const recentKey = "trademinds_recent_analyses";
         let recent = [];

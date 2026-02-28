@@ -592,7 +592,12 @@ def _build_screener_rows_for_exp(
 
             if vol < min_volume:
                 continue
-            if bid <= 0 or ask <= 0:
+            # When market is closed, yfinance often returns 0 for bid/ask; use lastPrice as fallback
+            if bid <= 0:
+                bid = last
+            if ask <= 0:
+                ask = last
+            if bid <= 0 and ask <= 0:
                 continue
             spread_pct = (ask - bid) / ask * 100.0 if ask > 0 else 0.0
             if spread_pct > max_spread_pct:

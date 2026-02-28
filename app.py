@@ -360,6 +360,23 @@ def analyze(
     return {"tickers": symbols, "analysis_markdown": result, "confidence": confidence}
 
 
+@app.get("/confidence")
+def confidence_endpoint(
+    tickers: str = "SPY,QQQ,IWM",
+    authorization: Optional[str] = Header(default=None),
+):
+    """Standalone confidence metrics for given tickers."""
+    _require_auth(authorization)
+    symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
+    if not symbols:
+        raise HTTPException(status_code=400, detail="No valid tickers provided")
+    try:
+        confidence = compute_confidence_for_symbols(symbols)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"tickers": symbols, "confidence": confidence}
+
+
 @app.get("/screener")
 def screener(
     tickers: str = "SPY,QQQ,IWM",
