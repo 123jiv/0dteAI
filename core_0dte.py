@@ -3,7 +3,7 @@ import os
 import math
 import time
 import datetime as dt
-from typing import List, Dict, Any, Literal
+from typing import List, Dict, Any, Literal, Optional
 
 import yfinance as yf
 from openai import OpenAI
@@ -27,9 +27,9 @@ Use the data I provide:
 Combine these to describe what is happening and suggest ideas in plain language.
 
 IMPORTANT FORMAT RULES
-- DO NOT use markdown headings (#) or markdown symbols like ** or _.
-- Use plain text headings that end with a colon, for example: "IWM 0DTE View:".
-- Keep everything short and friendly, like you are talking to a newer trader.
+- Use ## headers for the five required sections (Market Context, Trade Setup, Key Levels, Risk Factors, Educational Takeaway).
+- Use plain text headings that end with a colon for per-ticker views, e.g. "IWM 0DTE View:".
+- You may use **bold** for key terms. Keep everything short and friendly.
 
 For EACH ticker I give you, output using EXACTLY this structure and nothing more
 (replace "IWM" with the actual ticker symbol):
@@ -484,6 +484,21 @@ def build_prompt(
                 "\nAfter each ticker's options view, add the Stock idea section for that ticker (Direction, Key level, Horizon, Reason, Risk)."
             )
 
+    lines.append(
+        "\n\nOUTPUT FORMAT — Structure your response with these markdown headers (##) so the UI can display them as cards:\n"
+        "## Market Context\n"
+        "[Brief market context: bias, key levels, big picture]\n"
+        "## Trade Setup\n"
+        "[Call and/or put ideas with contract, reason, when to consider, risk limit, target]\n"
+        "## Key Levels\n"
+        "[Support, resistance, VWAP, 52w levels, or other important price zones]\n"
+        "## Risk Factors\n"
+        "[Theta, reversal risk, timeframe mismatch, news/liquidity]\n"
+        "## Educational Takeaway\n"
+        "[One short lesson or reminder for the trader]\n"
+        "You may use **bold** for emphasis. Keep each section concise."
+    )
+
     return "\n".join(lines)
 
 
@@ -813,6 +828,7 @@ def compute_stock_factors(symbol: str) -> Dict[str, Any]:
     eps_growth = info.get("earningsQuarterlyGrowth") or info.get("earningsGrowth")
     rev_growth = info.get("revenueGrowth")
     float_shares = info.get("floatShares")
+    market_cap = info.get("marketCap")
 
     factors = {
         "symbol": symbol,
@@ -829,6 +845,7 @@ def compute_stock_factors(symbol: str) -> Dict[str, Any]:
         "eps_growth": eps_growth,
         "rev_growth": rev_growth,
         "float_shares": float_shares,
+        "market_cap": market_cap,
     }
 
     to_cache = dict(factors)
@@ -1030,6 +1047,13 @@ def _compute_backtest_metrics_for_symbol(
     else:
         ui = 0.0
 
+    # Equity curve normalized to 100 at start, downsampled to max 100 points
+    eq_norm = 100.0 * eq / float(eq[0]) if eq[0] != 0 else eq
+    step = max(1, len(eq_norm) // 100)
+    equity_curve = [round(float(eq_norm[i]), 2) for i in range(0, len(eq_norm), step)]
+    if equity_curve[-1] != eq_norm[-1]:
+        equity_curve.append(round(float(eq_norm[-1]), 2))
+
     return {
         "symbol": symbol,
         "years": years,
@@ -1045,6 +1069,7 @@ def _compute_backtest_metrics_for_symbol(
         "calmar": round(calmar, 2),
         "omega": round(omega, 2),
         "ulcer_index": round(ui, 2),
+        "equity_curve": equity_curve,
     }
 
 
@@ -1082,11 +1107,19 @@ def backtest_symbols(
         dd_vals.append(float(m.get("max_drawdown_pct", 0.0)))
         sharpe_vals.append(float(m.get("sharpe", 0.0)))
 
+    # Use first symbol's equity curve as portfolio proxy (equal-weight approximation)
+    first_sym = next(iter(metrics.keys()), None)
+    equity_curve = metrics[first_sym].get("equity_curve", []) if first_sym else []
+
     portfolio = {
         "approx_cagr_pct": round(float(np.mean(cagr_vals)), 2),
         "approx_max_drawdown_pct": round(float(np.min(dd_vals)), 2),
         "avg_sharpe": round(float(np.mean(sharpe_vals)), 2),
         "num_symbols": len(metrics),
+        "equity_curve": equity_curve,
+        "total_trades": sum(int(m.get("num_trades", 0)) for m in metrics.values()),
+        "avg_win_rate_pct": round(float(np.mean([m.get("win_rate_pct", 0) for m in metrics.values()])), 1),
+        "avg_trade_return_pct": round(float(np.mean([m.get("avg_trade_return_pct", 0) for m in metrics.values()])), 2),
     }
 
     return {"symbols": metrics, "portfolio": portfolio}
@@ -1140,9 +1173,9 @@ def build_forecast_prompt(
     symbol: str,
     years: int,
     factors: Dict[str, Any],
-    confidence: Dict[str, Any] | None,
-    backtest: Dict[str, Any] | None,
-    vix_regime: Dict[str, Any] | None,
+    confidence: Optional[Dict[str, Any]],
+    backtest: Optional[Dict[str, Any]],
+    vix_regime: Optional[Dict[str, Any]],
 ) -> str:
     """
     Build a rich text prompt that looks like feature engineering for an ML model,
@@ -1303,10 +1336,45 @@ def forecast_symbol(symbol: str, years: int = 3) -> Dict[str, Any]:
     )
     text = resp.choices[0].message.content or ""
 
+    # Price trend: history (past ~2y) + AI forecast overlay (CAGR-based projection)
+    history_dates: List[str] = []
+    history_prices: List[float] = []
+    forecast_dates: List[str] = []
+    forecast_prices: List[float] = []
+    try:
+        hist = _load_history_for_backtest(sym, years=min(years + 1, 5))
+        closes = hist["Close"].astype(float)
+        hist_idx = hist.index
+        step = max(1, len(closes) // 150)
+        for i in range(0, len(closes), step):
+            history_dates.append(hist_idx[i].strftime("%Y-%m-%d"))
+            history_prices.append(round(float(closes.iloc[i]), 2))
+        if history_dates and history_dates[-1] != hist_idx[-1].strftime("%Y-%m-%d"):
+            history_dates.append(hist_idx[-1].strftime("%Y-%m-%d"))
+            history_prices.append(round(float(closes.iloc[-1]), 2))
+        last_price = float(closes.iloc[-1])
+        cagr = (float(bt.get("cagr_pct", 0)) / 100.0) if bt else 0.0
+        # Project end-of-year prices for next `years` years
+        from datetime import date
+        end_date = hist_idx[-1]
+        if hasattr(end_date, "year"):
+            start_year = end_date.year
+        else:
+            start_year = date.today().year
+        for y in range(1, years + 1):
+            forecast_prices.append(round(last_price * (1.0 + cagr) ** y, 2))
+            forecast_dates.append("%d-12-31" % (start_year + y))
+    except Exception as e:
+        print("Forecast curve skip %s: %s" % (sym, e))
+
     return {
         "symbol": sym,
         "horizon_years": years,
         "forecast_text": text.strip(),
+        "history_dates": history_dates,
+        "history_prices": history_prices,
+        "forecast_dates": forecast_dates,
+        "forecast_prices": forecast_prices,
         "inputs": {
             "factors": factors,
             "confidence": conf,

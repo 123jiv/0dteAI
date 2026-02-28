@@ -4,8 +4,11 @@ import hashlib
 import hmac
 import json
 import time
+import xml.etree.ElementTree as ET
 from typing import Optional, List, Dict, Any, Literal
 
+import requests
+import yfinance as yf
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -26,6 +29,7 @@ from core_0dte import (
 from openai import OpenAI
 
 app = FastAPI()
+_APP_START_TIME = time.time()
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,9 +49,194 @@ def root():
     return FileResponse(html_path)
 
 
+@app.get("/manifest.json", include_in_schema=False)
+def manifest():
+    here = os.path.dirname(os.path.abspath(__file__))
+    manifest_path = os.path.join(here, "manifest.json")
+    if not os.path.exists(manifest_path):
+        raise HTTPException(status_code=500, detail="manifest.json not found")
+    return FileResponse(manifest_path, media_type="application/manifest+json")
+
+
+@app.get("/sw.js", include_in_schema=False)
+def service_worker():
+    here = os.path.dirname(os.path.abspath(__file__))
+    sw_path = os.path.join(here, "sw.js")
+    if not os.path.exists(sw_path):
+        raise HTTPException(status_code=500, detail="sw.js not found")
+    return FileResponse(sw_path, media_type="application/javascript")
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "uptime_seconds": int(time.time() - _APP_START_TIME)}
+
+
+# ---------- Market data (free, no API key) ----------
+_MARKET_DATA_CACHE: Dict[str, Any] = {}
+_MARKET_DATA_CACHE_TS = 0.0
+_CACHE_TTL = 60  # seconds
+
+
+def _get_market_data() -> Dict[str, Any]:
+    global _MARKET_DATA_CACHE, _MARKET_DATA_CACHE_TS
+    now = time.time()
+    if now - _MARKET_DATA_CACHE_TS < _CACHE_TTL and _MARKET_DATA_CACHE:
+        return _MARKET_DATA_CACHE
+    tickers = ["SPY", "QQQ", "IWM", "DIA"]
+    result: Dict[str, Any] = {"tickers": {}, "vix": {}, "timestamp": None}
+    try:
+        for sym in tickers:
+            t = yf.Ticker(sym)
+            hist = t.history(period="5d")
+            if hist is not None and not hist.empty:
+                row = hist.iloc[-1]
+                prev = hist.iloc[-2] if len(hist) > 1 else row
+                chg = ((row["Close"] - prev["Close"]) / prev["Close"] * 100) if prev["Close"] else 0
+                result["tickers"][sym] = {
+                    "price": round(row["Close"], 2),
+                    "change_pct": round(chg, 2),
+                    "high": round(row["High"], 2),
+                    "low": round(row["Low"], 2),
+                    "volume": int(row.get("Volume", 0) or 0),
+                }
+            else:
+                result["tickers"][sym] = {"price": 0, "change_pct": 0, "high": 0, "low": 0, "volume": 0}
+        vix = yf.Ticker("^VIX")
+        vhist = vix.history(period="5d")
+        if vhist is not None and not vhist.empty:
+            row = vhist.iloc[-1]
+            prev = vhist.iloc[-2] if len(vhist) > 1 else row
+            chg = ((row["Close"] - prev["Close"]) / prev["Close"] * 100) if prev["Close"] else 0
+            result["vix"] = {"price": round(row["Close"], 2), "change_pct": round(chg, 2)}
+        else:
+            result["vix"] = {"price": 0, "change_pct": 0}
+        result["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
+        _MARKET_DATA_CACHE = result
+        _MARKET_DATA_CACHE_TS = now
+    except Exception as e:
+        result["error"] = str(e)
+    return result
+
+
+@app.get("/api/market-data")
+def api_market_data():
+    return _get_market_data()
+
+
+@app.get("/api/ticker-detail")
+def api_ticker_detail(symbol: str = "AAPL"):
+    sym = symbol.strip().upper() or "AAPL"
+    try:
+        t = yf.Ticker(sym)
+        info = t.info
+        hist = t.history(period="1y")
+        result = {
+            "symbol": sym,
+            "price": info.get("currentPrice") or info.get("regularMarketPrice") or 0,
+            "change_pct": info.get("regularMarketChangePercent") or 0,
+            "high_52w": info.get("fiftyTwoWeekHigh") or 0,
+            "low_52w": info.get("fiftyTwoWeekLow") or 0,
+            "pe": info.get("trailingPE") or info.get("forwardPE"),
+            "market_cap": info.get("marketCap"),
+            "eps": info.get("trailingEps"),
+            "dividend_yield": info.get("dividendYield"),
+            "volume": info.get("volume"),
+            "avg_volume": info.get("averageVolume"),
+        }
+        if hist is not None and not hist.empty:
+            result["volume"] = int(hist.iloc[-1].get("Volume", 0) or 0)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+_FEAR_GREED_CACHE: Dict[str, Any] = {}
+_FEAR_GREED_CACHE_TS = 0.0
+
+
+@app.get("/api/fear-greed")
+def api_fear_greed():
+    global _FEAR_GREED_CACHE, _FEAR_GREED_CACHE_TS
+    now = time.time()
+    if now - _FEAR_GREED_CACHE_TS < _CACHE_TTL and _FEAR_GREED_CACHE:
+        return _FEAR_GREED_CACHE
+    try:
+        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        score, rating = 50, "Unknown"
+        if "fear_and_greed" in data:
+            fg = data["fear_and_greed"]
+            score = fg.get("score") or fg.get("y") or score
+            rating = fg.get("rating") or fg.get("label") or rating
+        elif "fear_and_greed_historical" in data:
+            hist = data["fear_and_greed_historical"].get("data") or []
+            if hist:
+                last = hist[-1]
+                score = last.get("y") or last.get("value") or score
+                rating = last.get("rating") or last.get("label") or rating
+        elif "market_misc" in data and data["market_misc"]:
+            last = data["market_misc"][-1]
+            score = last.get("y") or last.get("score") or score
+            rating = last.get("label") or last.get("rating") or rating
+        result = {"score": score, "rating": rating, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())}
+        _FEAR_GREED_CACHE = result
+        _FEAR_GREED_CACHE_TS = now
+        return result
+    except Exception as e:
+        return {"score": 50, "rating": "Unknown", "error": str(e)}
+
+
+@app.get("/api/economic-events")
+def api_economic_events():
+    from datetime import datetime
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    try:
+        r = requests.get("https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json", timeout=10)
+        r.raise_for_status()
+        raw = r.json()
+        events = raw if isinstance(raw, list) else raw.get("events", raw.get("data", []))
+        if not isinstance(events, list):
+            events = []
+        high_impact = []
+        for e in events:
+            if not isinstance(e, dict):
+                continue
+            date_str = str(e.get("date", e.get("Date", "")))[:10]
+            impact = (e.get("impact", e.get("Impact", "")) or "").lower()
+            if date_str == today and (impact == "high" or impact == "3"):
+                high_impact.append({
+                    "title": e.get("title", e.get("Title", e.get("event", "Event"))),
+                    "time": e.get("time", e.get("Time", e.get("date", ""))),
+                    "date": date_str,
+                })
+        return {"events": high_impact[:20], "date": today}
+    except Exception as e:
+        return {"events": [], "date": today, "error": str(e)}
+
+
+@app.get("/api/news")
+def api_news():
+    try:
+        r = requests.get("https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ,NVDA&region=US&lang=en-US", timeout=10)
+        r.raise_for_status()
+        root = ET.fromstring(r.content)
+        ns = {"atom": "http://www.w3.org/2005/Atom", "dc": "http://purl.org/dc/elements/1.1/", "content": "http://purl.org/rss/1.0/modules/content/"}
+        items = root.findall(".//item")[:10]
+        headlines = []
+        for item in items:
+            title = item.find("title")
+            link = item.find("link")
+            pub = item.find("pubDate")
+            headlines.append({
+                "title": title.text if title is not None else "",
+                "link": link.text if link is not None else "",
+                "pubDate": pub.text if pub is not None else "",
+            })
+        return {"headlines": headlines}
+    except Exception as e:
+        return {"headlines": [], "error": str(e)}
 
 
 # ---------- Auth (password -> signed token) ----------
@@ -418,6 +607,56 @@ def stock_screener(
     return {"rows": rows, "tickers": symbols, "style": style_norm}
 
 
+@app.get("/value-screener")
+def value_screener(
+    tickers: str = "AAPL,MSFT,JPM,XOM,PG,JNJ",
+    min_market_cap_b: float = 10.0,
+    max_pe: float = 25.0,
+    min_div_yield: float = 0.0,
+    min_eps_growth: float = 0.0,
+    authorization: Optional[str] = Header(default=None),
+):
+    """
+    Long-term value screener: min market cap (B), max P/E, min dividend yield, min EPS growth.
+    """
+    _require_auth(authorization)
+
+    symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
+    if not symbols:
+        raise HTTPException(status_code=400, detail="No valid tickers provided")
+
+    rows: List[Dict[str, Any]] = []
+    for sym in symbols:
+        try:
+            factors = compute_stock_factors(sym)
+        except Exception as e:
+            print("Value screener skipping %s: %s" % (sym, e))
+            continue
+
+        mc = factors.get("market_cap")
+        mc_b = (float(mc) / 1e9) if mc else 0.0
+        pe = factors.get("pe")
+        div = factors.get("div_yield_pct") or 0.0
+        eps_gr = factors.get("eps_growth")
+        eps_gr_pct = float(eps_gr) * 100.0 if eps_gr is not None else None
+
+        if mc_b < min_market_cap_b:
+            continue
+        if pe is not None and pe > max_pe:
+            continue
+        if div < min_div_yield:
+            continue
+        if min_eps_growth > 0 and (eps_gr_pct is None or eps_gr_pct < min_eps_growth):
+            continue
+
+        out = dict(factors)
+        out["market_cap_b"] = round(mc_b, 2)
+        out["eps_growth_pct"] = round(eps_gr_pct, 1) if eps_gr_pct is not None else None
+        rows.append(out)
+
+    return {"rows": rows, "tickers": symbols}
+
+
 @app.get("/multi-asset-scan")
 def multi_asset_scan(
     tickers: str = "SPY,QQQ,IWM",
@@ -544,6 +783,48 @@ def backtest(
     return result
 
 
+class ExplainBacktestRequest(BaseModel):
+    portfolio: Dict[str, Any] = {}
+    symbols: Dict[str, Any] = {}
+    years: int = 3
+    holding_days: int = 5
+
+
+@app.post("/explain-backtest")
+def explain_backtest(req: ExplainBacktestRequest, authorization: Optional[str] = Header(default=None)):
+    """
+    Use the LLM to explain backtest results in plain English for a real trader.
+    """
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
+    _require_auth(authorization)
+
+    portfolio = req.portfolio or {}
+    symbols = req.symbols or {}
+    years = req.years or 3
+    holding_days = req.holding_days or 5
+
+    prompt = (
+        "You are a trading educator. Explain these backtest results in plain English for a real trader. "
+        "Be concise (2–4 short paragraphs). Cover: what the numbers mean, whether the strategy looks viable, "
+        "key risks (drawdown, win rate), and one practical takeaway. No jargon without brief explanation.\n\n"
+        "Portfolio summary (equal-weight, %dy, %d-day holding): %s\n\n"
+        "Per-symbol stats: %s"
+    ) % (years, holding_days, json.dumps(portfolio, indent=2), json.dumps(symbols, indent=2))
+
+    try:
+        client = OpenAI()
+        resp = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+        )
+        explanation = resp.choices[0].message.content or ""
+        return {"explanation": explanation}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/forecast")
 def forecast(
     ticker: str,
@@ -640,17 +921,26 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(default=None)):
 
     client = OpenAI()
 
+    from datetime import datetime
+    now_et = datetime.now()
+    dow = now_et.strftime("%A")
+    dow_note = ""
+    if dow == "Monday":
+        dow_note = " It's Monday — 0DTE premium is typically lower at open."
+    elif dow == "Friday":
+        dow_note = " It's Friday — be mindful of weekend theta decay on weekly options."
+    system_content = (
+        "You are a seasoned trading educator and analyst with expertise in 0DTE options, "
+        "swing trading, technical analysis, and long-term value investing. You explain complex "
+        "concepts clearly, give structured actionable analysis, and always note this is "
+        "educational, not advice.\n\n"
+        "Context: Today is %s. Current date/time: %s.%s\n\n"
+        "Format: Use **bold** for key terms, bullet points for lists, and ## headers for "
+        "multi-section answers."
+    ) % (dow, now_et.strftime("%Y-%m-%d %H:%M ET"), dow_note)
+
     messages: List[Dict[str, Any]] = [
-        {
-            "role": "system",
-            "content": (
-                "You are a cautious options and market-scenario assistant. "
-                "You can discuss intraday 0DTE setups, short-term swings, and longer-term "
-                "multi-week or multi-month scenarios for any reasonably liquid US stock or ETF. "
-                "Always stay educational, avoid promises, and highlight that options and "
-                "price targets are uncertain and can be wrong."
-            ),
-        },
+        {"role": "system", "content": system_content},
         {
             "role": "user",
             "content": base_prompt,

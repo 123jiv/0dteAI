@@ -1,8 +1,8 @@
-# Render Blueprint — 0dteAI
+# Render Blueprint — ProjectMidori
 # Deploy: connect repo at dashboard.render.com, or use "New > Blueprint"
 services:
   - type: web
-    name: 0dteai
+    name: projectmidori
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT

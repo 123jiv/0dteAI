@@ -1,0 +1,10 @@
+{
+  "name": "ProjectMidori",
+  "short_name": "ProjectMidori",
+  "description": "AI-powered analysis for options, stocks, and long-term investing. Educational only.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070B14",
+  "theme_color": "#070B14",
+  "orientation": "portrait-primary"
+}

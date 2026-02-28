@@ -2,61 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>0dteAI</title>
+  <title>ProjectMidori — AI-powered trading intelligence</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="ProjectMidori — AI-powered analysis for options, stocks, and long-term investing. Educational only.">
+  <meta name="theme-color" content="#070B14">
+  <link rel="manifest" href="/manifest.json">
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function() { navigator.serviceWorker.register("/sw.js").catch(function() {}); });
+    }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect fill='%23070B14' width='32' height='32' rx='6'/><path fill='%233B82F6' d='M8 22V10l4 6 4-6 4 6 4-6v12h-2V14l-2 4-2-4v8h-2V14l-2 4-2-4v8H8z'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    /* ========== VELVET DESIGN SYSTEM — 0DTE Fintech ========== */
+    /* ========== ProjectMidori Design System ========== */
     :root {
-      /* Brand */
-      --primary: #0A2463;
-      --accent: #E6C229;
-      --accent-hover: #d4af28;
-      --accent-muted: rgba(230, 194, 41, 0.15);
-      /* Surfaces (dark mode default) */
-      --bg-base: #0F1A2A;
-      --bg-elevated: #1A2533;
-      --bg-card: #1E2A3A;
-      --container-bg: #1A2533;
-      --user-bubble: #1a3a5c;
-      --ai-bubble: #1E2A3A;
+      /* Surfaces */
+      --bg-page: #070B14;
+      --bg-surface: #0F1724;
+      --bg-elevated: #161F30;
+      --bg-card: #0F1724;
+      --container-bg: #0F1724;
+      --border: #1E2D45;
+      /* Accents */
+      --primary: #3B82F6;
+      --primary-hover: #2563EB;
+      --primary-muted: rgba(59, 130, 246, 0.15);
+      --secondary: #8B5CF6;
+      --accent: #3B82F6;
+      --accent-hover: #2563EB;
+      --accent-muted: rgba(59, 130, 246, 0.08);
+      /* Semantic */
+      --bullish: #10B981;
+      --bearish: #F43F5E;
+      --warn: #F59E0B;
+      --danger: #F43F5E;
+      --good: #10B981;
       /* Text */
-      --text-primary: #E8EDF4;
+      --text-primary: #F1F5F9;
       --text-secondary: #94A3B8;
-      --text-muted: #64748B;
-      /* UI */
-      --border: rgba(148, 163, 184, 0.12);
-      --border-strong: rgba(148, 163, 184, 0.2);
-      --danger: #F87171;
-      --good: #22C55E;
-      --warn: #FBBF24;
-      /* Velvet */
+      --text-muted: #475569;
+      --border-strong: #1E2D45;
+      /* Bubbles */
+      --user-bubble: #1E3A5F;
+      --ai-bubble: #161F30;
+      /* Spacing: 4px base grid */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+      /* Radius & shadows */
       --radius: 12px;
       --radius-lg: 16px;
       --radius-xl: 20px;
-      --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.25);
-      --shadow-velvet: 0 8px 32px rgba(0, 0, 0, 0.35);
-      --shadow-glow: 0 0 24px rgba(230, 194, 41, 0.12);
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px #1E2D45;
+      --shadow-elevated: 0 4px 24px rgba(0,0,0,0.5);
+      --shadow-glow: 0 0 20px rgba(59,130,246,0.15);
+      --shadow-soft: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px #1E2D45;
+      --shadow-velvet: 0 4px 24px rgba(0,0,0,0.5);
       --transition: 0.2s ease;
     }
     [data-theme="light"] {
-      --bg-base: #F1F5F9;
-      --bg-elevated: #FFFFFF;
+      --bg-page: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-elevated: #F1F5F9;
       --bg-card: #FFFFFF;
       --container-bg: #FFFFFF;
+      --border: rgba(30, 45, 69, 0.12);
       --text-primary: #0F172A;
       --text-secondary: #475569;
       --text-muted: #64748B;
-      --border: rgba(15, 23, 42, 0.08);
-      --border-strong: rgba(15, 23, 42, 0.15);
       --user-bubble: #E0F2FE;
       --ai-bubble: #F1F5F9;
-      --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.06);
-      --shadow-velvet: 0 8px 32px rgba(0, 0, 0, 0.08);
-      --shadow-glow: 0 0 24px rgba(230, 194, 41, 0.15);
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06);
+      --shadow-elevated: 0 4px 24px rgba(0,0,0,0.1);
+      --shadow-glow: 0 0 20px rgba(59,130,246,0.12);
+      --shadow-soft: var(--shadow-card);
+      --shadow-velvet: var(--shadow-elevated);
     }
 
     * { box-sizing: border-box; }
@@ -68,10 +96,15 @@
       padding: 0;
       overflow-x: hidden;
       font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-base);
+      background: var(--bg-page);
       color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
       transition: background var(--transition), color var(--transition);
+    }
+
+    .font-mono, .et-clock, .market-badge, td, th, .stat-card .value, .pill-input[type="number"] {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-feature-settings: "tnum";
     }
 
     body {
@@ -90,25 +123,58 @@
       width: 100%;
     }
 
-    /* ---------- Sidebar (Velvet) ---------- */
+    /* ---------- Sidebar — ProjectMidori ---------- */
     .app-sidebar {
       width: 240px;
       min-width: 240px;
-      background: var(--container-bg);
+      background: var(--bg-surface);
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      padding: 20px 0;
+      padding: var(--space-4) 0;
       flex-shrink: 0;
-      transition: background var(--transition), border-color var(--transition);
+      transition: width var(--transition), min-width var(--transition), background var(--transition);
     }
+    body.sidebar-collapsed .app-sidebar {
+      width: 64px;
+      min-width: 64px;
+    }
+    body.sidebar-collapsed .app-sidebar .brand-text,
+    body.sidebar-collapsed .app-sidebar .brand-tag,
+    body.sidebar-collapsed .app-sidebar .nav span.nav-label,
+    body.sidebar-collapsed .app-sidebar .theme-toggle span,
+    body.sidebar-collapsed .app-sidebar .logout-label { display: none; }
+    body.sidebar-collapsed .app-sidebar .brand { justify-content: center; padding: 0 var(--space-4); }
+    body.sidebar-collapsed .app-sidebar .nav a { justify-content: center; padding: var(--space-3) var(--space-4); }
+    body.sidebar-collapsed .app-sidebar .theme-toggle { justify-content: center; padding: var(--space-2) var(--space-4); }
+    body.sidebar-collapsed .app-sidebar .nav a.logout { justify-content: center; }
     .app-sidebar .brand {
-      padding: 0 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 0 var(--space-6) var(--space-6);
       border-bottom: 1px solid var(--border);
-      margin-bottom: 16px;
+      margin-bottom: var(--space-4);
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      transition: background var(--transition);
     }
-    .app-sidebar .brand-title {
-      font-size: 20px;
+    .app-sidebar .brand:hover { background: var(--accent-muted); }
+    .app-sidebar .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+    .app-sidebar .brand-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .app-sidebar .brand-text {
+      font-size: 16px;
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--text-primary);
@@ -116,55 +182,55 @@
     .app-sidebar .brand-tag {
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       color: var(--text-secondary);
-      margin-top: 6px;
     }
     .app-sidebar .nav {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      padding: 0 12px;
+      gap: var(--space-1);
+      padding: 0 var(--space-3);
     }
     .app-sidebar .nav a {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
       border-radius: var(--radius);
       color: var(--text-secondary);
       text-decoration: none;
       font-size: 13px;
       font-weight: 500;
-      transition: background var(--transition), color var(--transition), border-color var(--transition);
+      transition: background var(--transition), color var(--transition);
+      border-left: 3px solid transparent;
     }
     .app-sidebar .nav a:hover {
       background: var(--accent-muted);
       color: var(--text-primary);
     }
     .app-sidebar .nav a.active {
-      background: var(--accent-muted);
-      color: var(--accent);
-      box-shadow: inset 3px 0 0 var(--accent);
-      padding-left: 13px;
+      background: rgba(59, 130, 246, 0.08);
+      color: #FFFFFF;
+      border-left-color: var(--primary);
     }
+    .app-sidebar .nav a .nav-icon { width: 20px; height: 20px; flex-shrink: 0; opacity: 0.9; }
     .app-sidebar .nav-spacer { flex: 1; }
     .app-sidebar .nav a.logout {
       color: var(--text-secondary);
     }
-    .app-sidebar .nav a.logout:hover { color: var(--danger); background: rgba(248, 113, 113, 0.1); }
+    .app-sidebar .nav a.logout:hover { color: var(--danger); background: rgba(244, 63, 94, 0.1); }
 
     .theme-toggle-wrap {
-      padding: 12px 16px 0;
-      margin-top: 8px;
+      padding: var(--space-3) var(--space-4) 0;
+      margin-top: var(--space-2);
       border-top: 1px solid var(--border);
     }
     .theme-toggle {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--space-2);
       width: 100%;
-      padding: 8px 12px;
+      padding: var(--space-2) var(--space-3);
       border-radius: var(--radius);
       border: 1px solid var(--border);
       background: transparent;
@@ -182,11 +248,106 @@
       flex-direction: column;
       min-width: 0;
       width: 100%;
+      overflow: hidden;
+    }
+    .top-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-6);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      box-shadow: var(--shadow-card);
+    }
+    .top-header-bar .page-title-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+    .top-header-bar .header-right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .market-badge {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .market-badge::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .market-badge.pre-market { background: rgba(245, 158, 11, 0.2); color: var(--warn); }
+    .market-badge.market-open {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--bullish);
+      animation: marketPulse 2s ease-in-out infinite;
+    }
+    @keyframes marketPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3); }
+      50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    }
+    .market-badge.after-hours { background: rgba(245, 158, 11, 0.2); color: var(--warn); }
+    .market-badge.market-closed { background: rgba(71, 85, 105, 0.3); color: var(--text-muted); }
+    .shortcuts-hint {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+    }
+    .shortcuts-hint:hover { color: var(--primary); border-color: var(--primary); }
+
+    .et-clock {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .sidebar-collapse-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .sidebar-collapse-btn:hover { background: var(--accent-muted); color: var(--text-primary); }
+    .app-main .main-scroll {
+      flex: 1;
       overflow: auto;
-      padding: 24px 28px 32px;
+      padding: var(--space-6) var(--space-8) var(--space-8);
     }
     .app-main .page-head {
-      margin-bottom: 20px;
+      margin-bottom: var(--space-6);
     }
     .app-main .page-title {
       font-size: 24px;
@@ -222,7 +383,7 @@
       box-shadow: var(--shadow-soft);
     }
     .dashboard-card:hover {
-      border-color: var(--accent);
+      border-color: var(--primary);
       box-shadow: var(--shadow-velvet), var(--shadow-glow);
       transform: translateY(-3px);
     }
@@ -238,6 +399,103 @@
       line-height: 1.5;
       margin: 0;
     }
+
+    /* ---------- Market Pulse Strip (Dashboard) ---------- */
+    .market-pulse-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 900px) { .market-pulse-strip { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .market-pulse-strip { grid-template-columns: 1fr; } }
+    .pulse-card {
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: var(--space-4);
+      box-shadow: var(--shadow-card);
+      transition: box-shadow var(--transition), transform var(--transition);
+    }
+    .pulse-card:hover { box-shadow: var(--shadow-elevated); transform: translateY(-2px); }
+    .pulse-card .pulse-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 4px; }
+    .pulse-card .pulse-price { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+    .pulse-card .pulse-change { font-size: 12px; font-weight: 600; }
+    .pulse-card .pulse-change.positive { color: var(--bullish); }
+    .pulse-card .pulse-change.negative { color: var(--bearish); }
+    .pulse-card .pulse-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .dashboard-mid-row {
+      display: grid;
+      grid-template-columns: 65% 1fr;
+      gap: var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 900px) { .dashboard-mid-row { grid-template-columns: 1fr; } }
+    .tradingview-widget-wrap {
+      min-height: 360px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .market-events-card {
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: var(--space-4);
+      box-shadow: var(--shadow-card);
+    }
+    .market-events-card h3 { font-size: 13px; font-weight: 600; color: var(--text-primary); margin: 0 0 var(--space-3); }
+    .market-events-list { font-size: 12px; color: var(--text-secondary); }
+    .market-events-list .event { padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .market-events-list .event:last-child { border-bottom: none; }
+    .market-events-list .no-events { color: var(--bullish); }
+    .news-ticker-wrap {
+      margin-top: var(--space-6);
+      padding: var(--space-3) 0;
+      border-top: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .news-ticker {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: var(--space-8);
+      animation: tickerScroll 60s linear infinite;
+    }
+    .news-ticker:hover { animation-play-state: paused; }
+    .news-ticker a { color: var(--text-secondary); text-decoration: none; font-size: 12px; white-space: nowrap; }
+    .news-ticker a:hover { color: var(--primary); }
+    @keyframes tickerScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .quick-tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 768px) { .quick-tools-grid { grid-template-columns: repeat(2, 1fr); } }
+    .quick-tool-card {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit;
+      transition: all var(--transition);
+    }
+    .quick-tool-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-2px);
+    }
+    .quick-tool-card .icon { width: 40px; height: 40px; border-radius: var(--radius); background: var(--accent-muted); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--primary); }
+    .quick-tool-card .label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .quick-tool-card .desc { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
     /* ---------- Stat cards (Dashboard) ---------- */
     .stat-grid {
@@ -299,13 +557,22 @@
       transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
     }
     .hero-signal-card:hover {
-      border-color: var(--accent);
+      border-color: var(--primary);
       box-shadow: var(--shadow-velvet);
       transform: translateY(-2px);
     }
-    .hero-signal-card .symbol { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+    .hero-signal-card { position: relative; padding-left: 12px; }
+    .hero-signal-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 2px; }
+    .hero-signal-card.call::before { background: var(--bullish); }
+    .hero-signal-card.put::before { background: var(--bearish); }
+    .hero-signal-card .signal-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+    .hero-signal-card .signal-badges span { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: var(--bg-elevated); color: var(--text-secondary); }
+    .hero-signal-card .symbol { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
     .hero-signal-card .meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
-    .hero-signal-card .prob { font-size: 13px; font-weight: 600; color: var(--good); }
+    .hero-signal-card .prob-wrap { margin-top: 8px; }
+    .hero-signal-card .prob-bar { height: 6px; background: var(--bg-elevated); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+    .hero-signal-card .prob-fill { height: 100%; background: var(--bullish); border-radius: 3px; transition: width 0.3s ease; }
+    .hero-signal-card .prob { font-size: 12px; font-weight: 600; color: var(--good); }
 
     /* ---------- Recent trades table ---------- */
     .recent-trades-wrap {
@@ -348,7 +615,7 @@
     .nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .nav a, .nav button { border: 1px solid var(--border); background: rgba(15, 27, 45, 0.8); color: var(--text-primary); padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none; transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease; }
     .nav a:hover, .nav button:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 12px rgba(59, 130, 246, 0.15); }
-    .nav a.active { border-color: var(--accent); background: rgba(59, 130, 246, 0.18); box-shadow: var(--shadow-glow); }
+    .nav a.active { border-color: var(--primary); background: rgba(59, 130, 246, 0.18); box-shadow: var(--shadow-glow); }
 
     /* ---------- Pages ---------- */
     .page { display: none; min-height: 0; flex: 1; flex-direction: column; }
@@ -381,6 +648,33 @@
       color: var(--text-secondary);
       line-height: 1.5;
     }
+
+    .analysis-result-cards { display: flex; flex-direction: column; gap: var(--space-4); }
+    .analysis-card {
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      padding: var(--space-4);
+      box-shadow: var(--shadow-card);
+    }
+    .analysis-card h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0 0 var(--space-2); }
+    .analysis-card .content { font-size: 13px; line-height: 1.55; color: var(--text-secondary); white-space: pre-wrap; }
+    .analysis-actions { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
+    .analysis-actions .btn { min-width: 0; padding: 6px 12px; font-size: 12px; }
+    .recent-chip {
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      font-size: 11px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-block;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+    .recent-chip:hover { border-color: var(--primary); color: var(--text-primary); }
 
     /* ---------- Forms & inputs ---------- */
     .input-shell {
@@ -430,7 +724,7 @@
     .pill-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
 
     .pill-input:focus {
-      border-color: var(--accent);
+      border-color: var(--primary);
       box-shadow: 0 0 0 2px var(--accent-muted);
     }
 
@@ -455,16 +749,16 @@
     }
 
     .chip:hover {
-      border-color: var(--accent);
+      border-color: var(--primary);
       color: var(--text-primary);
-      box-shadow: 0 0 0 1px var(--accent);
+      box-shadow: 0 0 0 1px var(--primary);
     }
 
     .chip.active {
-      border-color: var(--accent);
+      border-color: var(--primary);
       background: var(--accent-muted);
       color: var(--text-primary);
-      box-shadow: 0 0 0 1px var(--accent);
+      box-shadow: 0 0 0 1px var(--primary);
     }
 
     .btn-row { display: flex; gap: 10px; align-items: flex-end; }
@@ -473,8 +767,8 @@
       border-radius: var(--radius);
       border: none;
       padding: 10px 20px;
-      background: var(--accent);
-      color: #0A2463;
+      background: var(--primary);
+      color: #FFFFFF;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
@@ -487,7 +781,7 @@
     }
 
     .btn:hover:not([disabled]) {
-      background: var(--accent-hover);
+      background: var(--primary-hover);
       transform: translateY(-1px);
       box-shadow: var(--shadow-glow);
     }
@@ -501,8 +795,8 @@
 
     .btn.secondary:hover:not([disabled]) {
       background: var(--accent-muted);
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
     }
 
     .btn:active:not([disabled]) { transform: translateY(0); }
@@ -515,6 +809,75 @@
       min-height: 16px;
     }
     .status-line.error { color: var(--danger); }
+
+    /* ---------- Chat: full-height GPT-style ---------- */
+    .chat-page-layout {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      height: calc(100vh - 180px);
+    }
+    .chat-messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-4) 0 var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .chat-welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-8);
+      text-align: center;
+    }
+    .chat-welcome.hidden { display: none; }
+    .chat-welcome-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: var(--space-4);
+    }
+    .chat-welcome-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+    .chat-welcome-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-6); }
+    .chat-quick-prompts {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-2);
+      max-width: 480px;
+    }
+    @media (min-width: 600px) { .chat-quick-prompts { grid-template-columns: repeat(3, 1fr); } }
+    .chat-quick-prompt {
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .chat-quick-prompt:hover {
+      border-color: var(--primary);
+      color: var(--text-primary);
+      background: var(--accent-muted);
+    }
+    .chat-input-sticky {
+      flex-shrink: 0;
+      padding: var(--space-4) 0;
+      border-top: 1px solid var(--border);
+      background: var(--bg-page);
+    }
 
     /* ---------- Message list (scrollable, ChatGPT-style) ---------- */
     .conversation {
@@ -534,23 +897,32 @@
       gap: 6px;
       animation: messageIn 0.2s ease-out;
     }
+    .message.user { align-items: flex-end; }
+    .message.assistant .message-inner { display: flex; gap: var(--space-3); align-items: flex-start; max-width: 85%; }
+    .message.assistant .message-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    .message.user .message-inner { max-width: 85%; }
 
     @keyframes messageIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .message-meta {
-      font-size: 11px;
-      color: var(--text-secondary);
-      margin-left: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
     }
+    .message.user .message-meta { text-align: right; }
 
     .message-card {
       border-radius: var(--radius-lg);
@@ -564,23 +936,23 @@
     }
 
     .message.user .message-card {
-      background: var(--user-bubble);
-      color: var(--text-primary);
-      margin-left: 0;
-      margin-right: 24px;
-    }
-
-    .message.assistant .message-card,
-    .message.analysis .message-card {
-      background: var(--ai-bubble);
-      color: var(--text-primary);
+      background: var(--primary);
+      color: #FFFFFF;
       margin-left: 24px;
       margin-right: 0;
     }
 
+    .message.assistant .message-card,
+    .message.analysis .message-card {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      margin-left: 0;
+      margin-right: 0;
+    }
+
     .message.error .message-card {
-      background: rgba(249, 115, 115, 0.15);
-      border-color: rgba(249, 115, 115, 0.3);
+      background: rgba(244, 63, 94, 0.15);
+      border-color: rgba(244, 63, 94, 0.3);
     }
 
     /* ---------- Typing indicator ---------- */
@@ -673,7 +1045,7 @@
     }
 
     .screener-number:focus {
-      border-color: var(--accent);
+      border-color: var(--primary);
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
 
@@ -748,8 +1120,8 @@
     .signal-rank {
       width: 26px; height: 26px;
       border-radius: 50%;
-      background: var(--accent);
-      color: var(--primary);
+      background: var(--primary);
+      color: #FFFFFF;
       font-size: 11px; font-weight: 600;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
@@ -765,6 +1137,137 @@
       color: var(--text-secondary);
       margin-top: 14px;
       text-align: center;
+    }
+
+    /* ---------- Login page: full-screen animated gradient ---------- */
+    #pageLogin.page.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-width: 100%;
+      background: linear-gradient(-45deg, #070B14, #0F1724, #0D1B3E, #0A1628);
+      background-size: 400% 400%;
+      animation: loginGradient 15s ease infinite;
+    }
+    @keyframes loginGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    #pageLogin .login-wrap {
+      max-width: 380px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 var(--space-6);
+    }
+    #pageLogin .login-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+      box-shadow: var(--shadow-elevated);
+      transition: box-shadow var(--transition);
+    }
+    #pageLogin .login-card.shake {
+      animation: loginShake 0.5s ease;
+    }
+    @keyframes loginShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+    #pageLogin .login-card.error-state input.pill-input {
+      border-color: var(--bearish);
+      box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2);
+    }
+    #pageLogin .login-logo {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    #pageLogin .login-tagline {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: var(--space-6);
+    }
+    #pageLogin .password-wrap {
+      position: relative;
+      display: flex;
+    }
+    #pageLogin .password-wrap .pill-input {
+      padding-right: 44px;
+    }
+    #pageLogin .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color var(--transition);
+    }
+    #pageLogin .password-toggle:hover { color: var(--text-primary); }
+    #pageLogin .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 16px;
+    }
+    #pageLogin .remember-row input { cursor: pointer; }
+    #pageLogin .remember-row label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    #pageLogin .login-btn-wrap {
+      position: relative;
+    }
+    #pageLogin .login-btn-wrap .btn { width: 100%; min-width: 0; }
+    #pageLogin .login-btn-wrap .btn.loading .btn-spinner { display: inline-block; }
+    #pageLogin .login-btn-wrap .btn.loading .btn-text { visibility: hidden; }
+    .btn-spinner {
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    .btn.loading { position: relative; }
+    .btn.loading > span { visibility: hidden; }
+    .btn.loading::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-left: -8px;
+      margin-top: -8px;
+      width: 16px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
     }
 
     .login-wrap {
@@ -1110,8 +1613,84 @@
     }
     .sidebar-overlay.visible { opacity: 1; }
 
+    .shortcut-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .shortcut-modal[style*="display: flex"],
+    .shortcut-modal.visible { pointer-events: auto; }
+    .shortcut-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+    .shortcut-modal-content {
+      position: relative;
+      max-width: 360px;
+      padding: 20px;
+      pointer-events: auto;
+    }
+    .shortcut-modal-content kbd {
+      display: inline-block;
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-right: 4px;
+    }
+    .shortcut-modal-content tr td:first-child { padding-right: 12px; white-space: nowrap; }
+      .shortcut-modal-content tr td:last-child { color: var(--text-secondary); }
+
+    .offline-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 300;
+      background: var(--bg-elevated);
+      border-top: 2px solid var(--warning, #eab308);
+      color: var(--text-primary);
+      padding: 10px 16px;
+      font-size: 13px;
+      text-align: center;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+    }
+    @media print { .offline-banner { display: none !important; } }
+
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 400;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 10px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      font-size: 13px;
+      color: var(--text-primary);
+      animation: toastIn 0.2s ease;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media print { .toast-container { display: none !important; } }
+
     @media (max-width: 768px) {
       .menu-toggle { display: flex; }
+      .sidebar-collapse-btn { display: none; }
       #pageApp { flex-direction: column; }
       .app-sidebar {
         position: fixed;
@@ -1168,6 +1747,8 @@
       .app-main { padding: 52px 10px 16px; }
       .header { padding: 12px 14px; }
       .app-title { font-size: 16px; }
+      .shortcut-modal-content { margin: 12px; max-width: calc(100vw - 24px); }
+      #backtestStatsGrid .card { min-width: 0; }
       .app-subtitle { font-size: 11px; }
       .page-title { font-size: 18px; }
       .card, .input-shell { padding: 12px; }
@@ -1188,6 +1769,21 @@
       .header { flex-direction: column; align-items: flex-start; }
     }
 
+    @media print {
+      #pageLogin, .menu-toggle, .sidebar-overlay, .app-sidebar, .top-header-bar .header-right,
+      .shortcuts-hint, .sidebar-collapse-btn, #marketPulseRefreshBtn,
+      .btn, button, .chip-row, .input-row,
+      #backtestExportRow, #forecastExportRow, .status-line, .footer-note { display: none !important; }
+      .top-header-bar { padding: 0; border: none; }
+      .app-main { padding: 0; }
+      body { background: #fff; }
+      .page-content, .card, .conversation { break-inside: avoid; }
+      .screen { display: none !important; }
+      .screen.active { display: flex !important; }
+      .message-card, .card { border: 1px solid #ddd; box-shadow: none; }
+      canvas { max-height: 280px !important; }
+    }
+
     .screener-table-wrap {
       -webkit-overflow-scrolling: touch;
       overflow-x: auto;
@@ -1196,41 +1792,35 @@
 </head>
 <body>
   <div class="app">
-    <div class="header">
-      <div class="header-main">
-        <div class="app-title">0dteAI</div>
-        <div class="app-subtitle">Intraday 0DTE and multi-horizon options / price scenarios. Educational only — not trading advice.</div>
-      </div>
-      <div class="nav">
-        <span class="tag">0DTE OPTIONS</span>
-      </div>
-    </div>
-
     <!-- LOGIN -->
     <div id="pageLogin" class="page">
       <div class="login-wrap">
-        <div class="card">
-          <div class="auth-card-header">
-            <div class="auth-title">Welcome to 0dteAI</div>
-            <div class="auth-subtitle">
-              Enter your app password to access analysis, screener, and chat.
-            </div>
-          </div>
+        <div class="login-card" id="loginCard">
+          <div class="login-logo">ProjectMidori</div>
+          <div class="login-tagline">AI-powered trading intelligence</div>
 
-          <div class="input-row">
-            <div class="field" style="flex: 2 1 260px;">
-              <span class="field-label">App password</span>
-              <input id="loginPassword" class="pill-input" type="password" placeholder="APP_PASSWORD">
-            </div>
-            <div class="btn-row">
-              <button id="loginBtn" class="btn" type="button" onclick="doLogin()">
-                <span id="loginBtnLabel">Login</span>
+          <div class="field">
+            <span class="field-label">App password</span>
+            <div class="password-wrap">
+              <input id="loginPassword" class="pill-input" type="password" placeholder="Enter your password" autocomplete="current-password">
+              <button type="button" class="password-toggle" id="loginPasswordToggle" aria-label="Show password" onclick="toggleLoginPassword()">
+                <svg id="loginEyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
               </button>
             </div>
           </div>
-          <div id="loginStatus" class="status-line" style="margin-top:8px;"></div>
-          <div class="auth-footer-hint">
-            You control access via Render env vars <span class="tag">APP_PASSWORD</span> and <span class="tag">APP_SECRET</span>.
+          <div class="remember-row">
+            <input type="checkbox" id="loginRemember" checked>
+            <label for="loginRemember">Remember me</label>
+          </div>
+          <div class="login-btn-wrap">
+            <button id="loginBtn" class="btn" type="button" onclick="doLogin()">
+              <span class="btn-spinner"></span>
+              <span class="btn-text" id="loginBtnLabel">Login</span>
+            </button>
+          </div>
+          <div id="loginStatus" class="status-line" style="margin-top:12px;"></div>
+          <div class="auth-footer-hint" style="margin-top:16px; text-align:center;">
+            Access controlled via <span class="tag">APP_PASSWORD</span>. Educational only.
           </div>
         </div>
       </div>
@@ -1243,18 +1833,21 @@
       </button>
       <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
       <aside class="app-sidebar">
-        <div class="brand">
-          <div class="brand-title">0dteAI</div>
-          <div class="brand-tag">0DTE OPTIONS</div>
-        </div>
-        <nav class="nav">
-          <a href="#/dashboard" id="navDashboard">Dashboard</a>
-          <a href="#/analysis" id="navAnalysis">Analysis</a>
-          <a href="#/screener" id="navScreener">Screener</a>
-          <a href="#/chat" id="navChat">Chat</a>
-          <a href="#/signals" id="navSignals">Signals</a>
-          <a href="#/confidence" id="navConfidence">Confidence</a>
-          <a href="#/backtest" id="navBacktest">Backtest</a>
+        <a href="#/dashboard" class="brand" id="brandLink">
+          <div class="brand-icon">⊡</div>
+          <div class="brand-title">
+            <span class="brand-text">ProjectMidori</span>
+            <span class="brand-tag">AI-powered trading intelligence</span>
+          </div>
+        </a>
+        <nav class="nav" aria-label="Main navigation">
+          <a href="#/dashboard" id="navDashboard" aria-label="Dashboard"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg><span class="nav-label">Dashboard</span></a>
+          <a href="#/analysis" id="navAnalysis" aria-label="Analysis"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg><span class="nav-label">Analysis</span></a>
+          <a href="#/screener" id="navScreener" aria-label="Screener"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><span class="nav-label">Screener</span></a>
+          <a href="#/chat" id="navChat" aria-label="Chat"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg><span class="nav-label">Chat</span></a>
+          <a href="#/signals" id="navSignals" aria-label="Signals"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg><span class="nav-label">Signals</span></a>
+          <a href="#/backtest" id="navBacktest" aria-label="Backtest"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg><span class="nav-label">Backtest</span></a>
+          <a href="#/confidence" id="navConfidence" aria-label="Confidence"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="nav-label">Confidence</span></a>
           <div class="nav-spacer"></div>
           <div class="theme-toggle-wrap">
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Theme">
@@ -1262,70 +1855,106 @@
               <span id="themeLabel">Dark</span>
             </button>
           </div>
-          <a href="#" id="logoutBtn" class="logout">Logout</a>
+          <a href="#" id="logoutBtn" class="logout"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg><span class="logout-label">Logout</span></a>
         </nav>
       </aside>
-      <main class="app-main">
+      <main class="app-main" role="main" id="mainContent">
+        <div class="top-header-bar">
+          <h1 class="page-title-header" id="headerPageTitle">Dashboard</h1>
+          <div class="header-right">
+            <button type="button" class="shortcuts-hint" onclick="openShortcutModal()" aria-label="Keyboard shortcuts" title="Press ? for shortcuts">?</button>
+            <span class="market-badge" id="marketStatusBadge">MARKET OPEN</span>
+            <span class="et-clock font-mono" id="etClock">12:00:00 PM ET</span>
+            <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar" title="Collapse sidebar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+            </button>
+          </div>
+        </div>
+        <div class="main-scroll">
         <div id="screenDashboard" class="screen page-content">
           <div class="page-head">
             <h1 class="page-title">Dashboard</h1>
-            <p class="page-desc">Your command center for 0DTE and multi-horizon options. Key signals and tools below.</p>
+            <p class="page-desc">Your command center for options, stocks, and long-term investing. Key signals and tools below.</p>
+          </div>
+
+          <section class="market-pulse-strip" id="marketPulseStrip">
+            <div class="pulse-card"><div class="pulse-label">SPY</div><div class="pulse-price font-mono" id="pulseSPY">--</div><div class="pulse-change" id="pulseSPYChg">--</div><div class="pulse-meta">S&P 500</div></div>
+            <div class="pulse-card"><div class="pulse-label">QQQ</div><div class="pulse-price font-mono" id="pulseQQQ">--</div><div class="pulse-change" id="pulseQQQChg">--</div><div class="pulse-meta">Nasdaq 100</div></div>
+            <div class="pulse-card"><div class="pulse-label">VIX</div><div class="pulse-price font-mono" id="pulseVIX">--</div><div class="pulse-change" id="pulseVIXChg">--</div><div class="pulse-meta">Volatility</div></div>
+            <div class="pulse-card"><div class="pulse-label">F&G Index</div><div class="pulse-price font-mono" id="pulseFG">--</div><div class="pulse-meta" id="pulseFGRating">--</div></div>
+          </section>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+            <div id="marketPulseUpdated" class="hint" style="font-size:11px;"></div>
+            <button type="button" id="marketPulseRefreshBtn" class="btn secondary" style="padding:4px 10px; font-size:12px;" onclick="loadMarketPulse()" aria-label="Refresh market data">Refresh</button>
+          </div>
+
+          <div class="dashboard-mid-row">
+            <div class="tradingview-widget-wrap">
+              <div id="tradingview-widget" style="height:360px;"></div>
+            </div>
+            <div class="market-events-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="margin:0;">Today's Market Events</h3>
+                <button type="button" class="btn secondary" style="padding:4px 8px; font-size:11px;" onclick="loadMarketEvents()" aria-label="Refresh events">Refresh</button>
+              </div>
+              <div class="market-events-list" id="marketEventsList">Loading...</div>
+            </div>
           </div>
 
           <section class="hero-signals">
-            <h2 class="section-title">Today's Zero-DTE Signals</h2>
+            <h2 class="section-title">Today's AI Trade Signals</h2>
             <div class="hero-signals-grid" id="heroSignalsGrid">
-              <a href="#/signals" class="hero-signal-card">
-                <div class="symbol">SPY 450C</div>
-                <div class="meta">@ $1.20 · 0DTE</div>
-                <div class="prob">68% win prob</div>
+              <a href="#/signals" class="hero-signal-card call">
+                <div class="signal-badges"><span>SPY</span><span>450C</span><span>0DTE</span></div>
+                <div class="meta">Entry $1.20 | Target $2.40 | Stop $0.60</div>
+                <div class="prob-wrap"><div class="prob">68% win prob</div><div class="prob-bar"><div class="prob-fill" style="width:68%"></div></div></div>
               </a>
-              <a href="#/signals" class="hero-signal-card">
-                <div class="symbol">QQQ 395P</div>
-                <div class="meta">@ $0.85 · 0DTE</div>
-                <div class="prob">62% win prob</div>
+              <a href="#/signals" class="hero-signal-card put">
+                <div class="signal-badges"><span>QQQ</span><span>395P</span><span>0DTE</span></div>
+                <div class="meta">Entry $0.85 | Target $1.70 | Stop $0.42</div>
+                <div class="prob-wrap"><div class="prob">62% win prob</div><div class="prob-bar"><div class="prob-fill" style="width:62%"></div></div></div>
               </a>
-              <a href="#/signals" class="hero-signal-card">
-                <div class="symbol">SPY 448C</div>
-                <div class="meta">@ $1.45 · 0DTE</div>
-                <div class="prob">71% win prob</div>
+              <a href="#/signals" class="hero-signal-card call">
+                <div class="signal-badges"><span>SPY</span><span>448C</span><span>0DTE</span></div>
+                <div class="meta">Entry $1.45 | Target $2.90 | Stop $0.72</div>
+                <div class="prob-wrap"><div class="prob">71% win prob</div><div class="prob-bar"><div class="prob-fill" style="width:71%"></div></div></div>
               </a>
-              <a href="#/signals" class="hero-signal-card">
-                <div class="symbol">IWM 205P</div>
-                <div class="meta">@ $0.92 · 0DTE</div>
-                <div class="prob">65% win prob</div>
+              <a href="#/signals" class="hero-signal-card put">
+                <div class="signal-badges"><span>IWM</span><span>205P</span><span>0DTE</span></div>
+                <div class="meta">Entry $0.92 | Target $1.84 | Stop $0.46</div>
+                <div class="prob-wrap"><div class="prob">65% win prob</div><div class="prob-bar"><div class="prob-fill" style="width:65%"></div></div></div>
               </a>
             </div>
           </section>
 
           <h2 class="section-title" style="font-size:14px; margin-bottom:12px;">Quick tools</h2>
-          <div class="dashboard-grid">
-            <a href="#/analysis" class="dashboard-card">
-              <h3>Analysis</h3>
-              <p>AI scenario analysis for options and stocks. Choose options only, stocks only, or both; set focus and timeframe.</p>
-            </a>
-            <a href="#/screener" class="dashboard-card">
-              <h3>Screener</h3>
-              <p>Filter options by volume and spread. See liquid contracts for your timeframe.</p>
-            </a>
-            <a href="#/chat" class="dashboard-card">
-              <h3>Chat</h3>
-              <p>Ask follow-up questions with fresh market context. Educational only.</p>
-            </a>
-            <a href="#/signals" class="dashboard-card">
-              <h3>Signals</h3>
-              <p>Top AI-ranked 0DTE setups. Refresh to load the highest-probability ideas.</p>
-            </a>
-            <a href="#/confidence" class="dashboard-card">
-              <h3>Confidence</h3>
-              <p>Confidence scores and simple backtest metrics after you run an analysis.</p>
-            </a>
+          <div class="quick-tools-grid">
+            <a href="#/analysis" class="quick-tool-card"><div class="icon">📊</div><div><div class="label">Analysis</div><div class="desc">AI scenario analysis</div></div></a>
+            <a href="#/screener" class="quick-tool-card"><div class="icon">🔍</div><div><div class="label">Screener</div><div class="desc">Filter options & stocks</div></div></a>
+            <a href="#/chat" class="quick-tool-card"><div class="icon">💬</div><div><div class="label">Chat</div><div class="desc">Ask trading questions</div></div></a>
+            <a href="#/signals" class="quick-tool-card"><div class="icon">⚡</div><div><div class="label">Signals</div><div class="desc">AI-ranked setups</div></div></a>
+            <a href="#/backtest" class="quick-tool-card"><div class="icon">📈</div><div><div class="label">Backtest</div><div class="desc">Historical performance</div></div></a>
+            <a href="#/confidence" class="quick-tool-card"><div class="icon">🎯</div><div><div class="label">Confidence</div><div class="desc">Metrics & stats</div></div></a>
+          </div>
+
+          <div class="news-ticker-wrap" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <div class="news-ticker" id="newsTicker" style="flex:1; min-width:0;">
+              <span style="color:var(--text-muted); font-size:11px;">Loading headlines...</span>
+            </div>
+            <button type="button" class="btn secondary" style="padding:4px 8px; font-size:11px; flex-shrink:0;" onclick="loadNewsTicker()" aria-label="Refresh news">Refresh</button>
           </div>
         </div>
         <div id="screenAnalysis" class="screen page-content">
           <div class="page-head">
             <h1 class="page-title">Analysis</h1>
-            <p class="page-desc">Run AI scenario analysis for options and/or stocks. Set tickers, focus, risk style, timeframe, and analysis type (options, stocks, or both).</p>
+            <p class="page-desc">Run AI scenario analysis. Choose trading mode, then set tickers and parameters.</p>
+          </div>
+          <div class="chip-row" style="margin-bottom:16px; padding:12px; background:var(--bg-surface); border-radius:var(--radius); border:1px solid var(--border);">
+            <span style="font-size:11px; color:var(--text-secondary); margin-right:8px; align-self:center;">Trading mode:</span>
+            <button type="button" class="chip active" data-trading-mode="0dte">0DTE Options</button>
+            <button type="button" class="chip" data-trading-mode="swing">Swing Trading</button>
+            <button type="button" class="chip" data-trading-mode="longterm">Long-Term Investing</button>
+            <button type="button" class="chip" data-trading-mode="stockonly">Stock Only</button>
           </div>
           <div class="input-shell">
             <div class="input-row">
@@ -1333,7 +1962,7 @@
                 <span class="field-label">Tickers</span>
                 <input id="tickers" class="pill-input" value="" placeholder="e.g. SPY, QQQ, IWM">
               </div>
-              <div class="field">
+              <div class="field" id="analysisFocusField">
                 <span class="field-label">Focus</span>
                 <div class="chip-row">
                   <div class="chip active" data-focus="both">Calls &amp; puts</div>
@@ -1349,16 +1978,16 @@
                   <div class="chip" data-style="aggressive">Aggressive</div>
                 </div>
               </div>
-              <div class="field">
+              <div class="field" id="analysisTimeframeField">
                 <span class="field-label">Timeframe</span>
-                <div class="chip-row">
+                <div class="chip-row" id="timeframeChips">
                   <div class="chip active" data-timeframe="intraday">Intraday / 0DTE</div>
                   <div class="chip" data-timeframe="1-5d">1–5 days</div>
                   <div class="chip" data-timeframe="multi-week">Multi-week</div>
                   <div class="chip" data-timeframe="long-term">Long-term</div>
                 </div>
               </div>
-              <div class="field">
+              <div class="field" id="analysisTypeField">
                 <span class="field-label">Analysis type</span>
                 <div class="chip-row">
                   <div class="chip active" data-analysis-type="options">Options only</div>
@@ -1371,7 +2000,14 @@
                 <button id="screenerBtn" class="btn secondary" onclick="runScreener()"><span id="screenerBtnLabel">Run screener</span></button>
               </div>
             </div>
-            <div id="status" class="status-line"></div>
+            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div id="status" class="status-line"></div>
+              <button type="button" id="analysisRetryBtn" class="btn secondary" style="display:none; padding:4px 10px; font-size:12px;" onclick="runAnalysis()">Retry</button>
+            </div>
+          </div>
+          <div class="chip-row" id="recentAnalysesRow" style="margin-bottom:12px; display:none;">
+            <span style="font-size:11px; color:var(--text-secondary); margin-right:8px;">Recent:</span>
+            <div id="recentAnalysesChips"></div>
           </div>
           <div id="conversation" class="conversation" style="max-height:420px;"></div>
         </div>
@@ -1384,8 +2020,9 @@
             <button type="button" class="chip active" data-screener-tab="options">Options</button>
             <button type="button" class="chip" data-screener-tab="stocks">Stocks</button>
             <button type="button" class="chip" data-screener-tab="multi">Multi-asset</button>
+            <button type="button" class="chip" data-screener-tab="value">Long-Term Value</button>
           </div>
-          <div class="card" style="margin-bottom:16px;">
+          <div class="card" id="screenerOptionsCard" style="margin-bottom:16px;">
             <div class="screener-controls">
               <div class="screener-control screener-tickers-wrap">
                 <span>Tickers</span>
@@ -1414,6 +2051,32 @@
             <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers above and timeframe on Analysis, then run screener.</div>
             <div id="stockScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
             <div id="multiScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
+          </div>
+          <div class="card" id="screenerValueCard" style="margin-bottom:16px; display:none;">
+            <div class="screener-controls">
+              <div class="screener-control screener-tickers-wrap">
+                <span>Tickers</span>
+                <input id="valueTickers" class="pill-input" type="text" value="" placeholder="e.g. AAPL, MSFT, JPM, XOM">
+              </div>
+              <div class="screener-control">
+                <span>Min market cap (B)</span>
+                <input id="valueMinMarketCap" class="screener-number" type="number" value="10" min="0" step="1">
+              </div>
+              <div class="screener-control">
+                <span>Max P/E</span>
+                <input id="valueMaxPE" class="screener-number" type="number" value="25" min="0" step="1">
+              </div>
+              <div class="screener-control">
+                <span>Min div yield %</span>
+                <input id="valueMinDivYield" class="screener-number" type="number" value="0" min="0" step="0.1">
+              </div>
+              <div class="screener-control">
+                <span>Min EPS growth %</span>
+                <input id="valueMinEpsGrowth" class="screener-number" type="number" value="0" min="-100" step="1">
+              </div>
+              <button type="button" class="btn" onclick="runValueScreener()" style="margin-left:12px;">Run value screener</button>
+            </div>
+            <div id="valueScreenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers and run value screener.</div>
           </div>
           <div id="optionsScreenerWrap" class="screener-table-wrap" style="max-height:480px;">
             <table class="table-zebra">
@@ -1451,43 +2114,80 @@
               </tbody>
             </table>
           </div>
+          <div id="valueScreenerWrap" class="screener-table-wrap" style="max-height:480px; display:none;">
+            <table class="table-zebra">
+              <thead>
+                <tr>
+                  <th>Ticker</th><th>Last</th><th>Market Cap</th><th>P/E</th><th>Div %</th><th>EPS growth</th><th>3M %</th><th>6M %</th><th>Above 200D</th>
+                </tr>
+              </thead>
+              <tbody id="valueScreenerBody">
+                <tr><td colspan="9" style="text-align:center; padding:16px;">No data. Run value screener above.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
         <div id="screenChat" class="screen page-content">
-          <div class="page-head">
+          <div class="page-head" style="margin-bottom:8px;">
             <h1 class="page-title">Chat</h1>
-            <p class="page-desc">Ask follow-up questions with a fresh snapshot per message. Educational only.</p>
+            <p class="page-desc">Ask me anything about trading. Educational only.</p>
           </div>
-          <div class="card chat-shell" style="flex:1; display:flex; flex-direction:column; min-height:0;">
-            <button type="button" class="btn secondary" style="margin-bottom:12px; align-self:flex-start;" onclick="clearChat()">Clear chat</button>
-            <div id="chatConversation" class="conversation" style="flex:1; max-height:360px;"></div>
-            <div id="typingIndicator" class="typing-indicator" style="display:none;"><span></span><span></span><span></span></div>
-            <div class="chat-input-shell" style="margin-top:12px;">
-              <div class="chat-row">
-                <button type="button" class="btn secondary" style="min-width:72px;" onclick="openChatFilePicker()">Attach</button>
-                <input id="chatInput" class="pill-input" placeholder="Ask a follow-up..." autocomplete="off">
-                <button id="chatBtn" class="btn" style="min-width:88px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
+          <div class="chat-page-layout">
+            <div class="chat-welcome" id="chatWelcome">
+              <div class="chat-welcome-icon">⊡</div>
+              <div class="chat-welcome-title">Ask me anything about trading</div>
+              <div class="chat-welcome-sub">0DTE options, swing trading, technical analysis, long-term investing — I explain clearly.</div>
+              <div class="chat-quick-prompts">
+                <button type="button" class="chat-quick-prompt" data-prompt="Best 0DTE setups for today?">Best 0DTE setups for today?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="Explain IV crush simply">Explain IV crush simply</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="NVDA long-term outlook?">NVDA long-term outlook?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="How do I build a dividend portfolio?">How do I build a dividend portfolio?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="Safest options strategy for beginners?">Safest options strategy for beginners?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="What does VIX above 20 mean for my trades?">What does VIX above 20 mean?</button>
               </div>
-              <input id="chatFileInput" type="file" accept="image/*" multiple style="display:none" onchange="handleChatFilesChange(event)">
-              <div id="chatFilesHint" class="status-line">No files attached.</div>
-              <div id="chatStatus" class="status-line"></div>
+            </div>
+            <div id="chatConversation" class="chat-messages-area" style="display:none;"></div>
+            <div id="typingIndicator" class="typing-indicator" style="display:none; margin:0 var(--space-4);"><span></span><span></span><span></span></div>
+            <div class="chat-input-sticky">
+              <div class="chat-input-shell" style="margin:0;">
+                <div class="chat-row">
+                  <button type="button" class="btn secondary" style="min-width:72px;" onclick="openChatFilePicker()">Attach</button>
+                  <input id="chatInput" class="pill-input" placeholder="Ask a follow-up..." autocomplete="off">
+                  <button id="chatBtn" class="btn" style="min-width:88px;" onclick="runChat()"><span id="chatBtnLabel">Send</span></button>
+                </div>
+                <input id="chatFileInput" type="file" accept="image/*" multiple style="display:none" onchange="handleChatFilesChange(event)">
+                <div id="chatFilesHint" class="status-line" style="margin-top:8px;">No files attached.</div>
+                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+                  <div id="chatStatus" class="status-line"></div>
+                  <button type="button" id="chatRetryBtn" class="btn secondary" style="display:none; padding:4px 10px; font-size:12px;" onclick="runChat()">Retry</button>
+                </div>
+              </div>
             </div>
           </div>
+          <button type="button" class="btn secondary" style="margin-top:8px;" onclick="clearChat()">Clear chat</button>
         </div>
         <div id="screenSignals" class="screen page-content">
           <div class="page-head">
             <h1 class="page-title">Signals</h1>
-            <p class="page-desc">Top AI-ranked 0DTE setups. Filter by direction or conviction, then refresh to load.</p>
+            <p class="page-desc">Top AI-ranked trade signals. Filter by direction or conviction, then refresh to load.</p>
           </div>
           <div class="signals-engine" id="signalsEngine">
             <div class="signals-engine-header">
               <div>
-                <div class="signals-engine-title">Live 0DTE signals</div>
-                <div class="signals-engine-sub">Symbol, strike, entry, target, stop, probability — AI-ranked</div>
+                <div class="signals-engine-title">AI Trade Signals</div>
+                <div class="signals-engine-sub">Symbol, strike, entry, target, stop, probability — AI-ranked <span id="signalsLastUpdated" class="hint" style="margin-left:6px;"></span></div>
               </div>
               <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <button type="button" id="exportSignalsBtn" class="btn secondary" onclick="exportSignalsCsv()" style="min-width:0;">Export CSV</button>
                 <button type="button" id="refreshSignalsBtn" class="btn" onclick="fetchSignals()"><span id="refreshSignalsLabel">Refresh</span></button>
               </div>
+            </div>
+            <div class="chip-row" style="margin-bottom:10px;">
+              <span style="font-size:11px; color:var(--text-secondary); margin-right:8px;">Mode:</span>
+              <button type="button" class="chip active" data-signal-mode="0dte">0DTE</button>
+              <button type="button" class="chip" data-signal-mode="swing">Swing</button>
+              <button type="button" class="chip" data-signal-mode="longterm">Long-Term</button>
+              <button type="button" class="chip" data-signal-mode="all">All</button>
             </div>
             <div class="chip-row" style="margin-bottom:14px;">
               <span style="font-size:11px; color:var(--text-secondary); margin-right:8px;">Filter:</span>
@@ -1543,7 +2243,19 @@
             <div id="backtestStatus" class="status-line"></div>
           </div>
           <div class="card" style="max-width:900px; margin-bottom:16px;">
+            <div id="backtestEquityChartWrap" style="display:none; margin-bottom:16px;">
+              <div style="font-weight:600; margin-bottom:8px;">Simulated equity curve</div>
+              <div style="height:200px;"><canvas id="backtestEquityChart"></canvas></div>
+              <div class="hint" style="margin-top:4px; font-size:11px;">Approximate growth path based on backtest stats. Not actual trade-by-trade history.</div>
+            </div>
+            <div id="backtestStatsGrid" style="display:none;"></div>
             <div id="backtestResults" class="hint">No backtests run yet. Enter tickers and click Run backtest.</div>
+            <div id="backtestExplain" style="display:none; margin-top:16px; padding:12px; background:var(--bg-elevated); border-radius:var(--radius); border-left:4px solid var(--primary);"></div>
+            <div id="backtestExportRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+              <span style="font-size:12px; color:var(--text-muted); margin-right:8px;">Export:</span>
+              <button type="button" class="btn secondary" onclick="exportBacktestCsv()">CSV</button>
+              <button type="button" class="btn secondary" onclick="exportBacktestChartPng()">Chart PNG</button>
+            </div>
           </div>
           <div class="card" style="max-width:720px;">
             <div class="input-row">
@@ -1560,33 +2272,107 @@
               </div>
             </div>
             <div id="forecastStatus" class="status-line"></div>
+            <div id="forecastChartWrap" style="display:none; margin-top:12px; margin-bottom:12px;">
+              <div style="font-weight:600; margin-bottom:8px;">Price trend &amp; AI forecast</div>
+              <div style="height:220px;"><canvas id="forecastChart"></canvas></div>
+              <div class="hint" style="margin-top:4px; font-size:11px;">Solid: historical close. Dashed: projected path from backtest CAGR (educational only).</div>
+            </div>
             <div id="forecastResults" class="hint" style="margin-top:8px;">No forecast yet. Enter a ticker and click Run forecast.</div>
+            <div id="forecastExportRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+              <span style="font-size:12px; color:var(--text-muted); margin-right:8px;">Export:</span>
+              <button type="button" class="btn secondary" onclick="exportForecastCsv()">CSV</button>
+              <button type="button" class="btn secondary" onclick="exportForecastChartPng()">Chart PNG</button>
+            </div>
           </div>
+        </div>
         </div>
       </main>
     </div>
 
     <div class="footer-note">
-      Educational only — not trading advice. Screener/Greeks approximate. 0DTE options can go to zero.
+      ProjectMidori — Educational only, not trading advice. Screener/Greeks approximate. Options can go to zero.
     </div>
+
+    <div id="shortcutModal" class="shortcut-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="shortcutModalTitle">
+      <div class="shortcut-modal-backdrop" onclick="closeShortcutModal()" aria-hidden="true"></div>
+      <div class="shortcut-modal-content card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 id="shortcutModalTitle" style="margin:0;">Keyboard shortcuts</h3>
+          <button type="button" id="shortcutModalCloseBtn" class="btn secondary" onclick="closeShortcutModal()">Close</button>
+        </div>
+        <table style="width:100%; font-size:13px;">
+          <tr><td><kbd>?</kbd></td><td>Show this help</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Close modal</td></tr>
+          <tr><td><kbd>G</kbd> then <kbd>D</kbd></td><td>Dashboard</td></tr>
+          <tr><td><kbd>G</kbd> then <kbd>A</kbd></td><td>Analysis</td></tr>
+          <tr><td><kbd>G</kbd> then <kbd>S</kbd></td><td>Signals</td></tr>
+          <tr><td><kbd>G</kbd> then <kbd>C</kbd></td><td>Chat</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div id="offlineBanner" class="offline-banner" style="display:none;" role="status" aria-live="polite">
+      You're offline. Some features may be unavailable until you're back online.
+    </div>
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
   </div>
 
-          <div id="screenerSummary" class="screener-summary">No screener results yet. Click “Run screener”.</div>
   <script>
     let currentFocus = "both";
     let currentStyle = "balanced";
     let currentTimeframe = "intraday";
     let currentAnalysisType = "options";
+    let currentTradingMode = "0dte"; // 0dte | swing | longterm | stockonly
     let currentScreenerTab = "options"; // options | stocks | multi
     let currentStockStyle = "momentum";
     let currentBacktestDirection = "long";
+    let currentSignalMode = "0dte";
+    let currentSignalFilter = "all";
     let authToken = null;
     let chatHistory = [];
     let chatFiles = [];
 
     function $(id) { return document.getElementById(id); }
 
+    function parseTickers(txt) {
+      if (!txt || !String(txt).trim()) return [];
+      return String(txt).split(/[,;\s]+/).map(s => s.trim().toUpperCase()).filter(s => s.length >= 1 && s.length <= 6);
+    }
+
+    function clampNum(val, min, max, def) {
+      const n = parseInt(val, 10);
+      if (Number.isNaN(n)) return def;
+      return Math.max(min, Math.min(max, n));
+    }
+
+    function loadChartJs() {
+      if (typeof Chart !== "undefined") return Promise.resolve();
+      if (window._chartJsLoading) return window._chartJsLoading;
+      window._chartJsLoading = new Promise(function(resolve, reject) {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/chart.js";
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error("Chart.js failed to load"));
+        document.head.appendChild(s);
+      });
+      return window._chartJsLoading;
+    }
+
     function setNotificationDot(panelId, visible) { /* no-op: panels removed in favor of full-page screens */ }
+
+    function showToast(msg) {
+      const c = $("toastContainer");
+      if (!c) return;
+      const el = document.createElement("div");
+      el.className = "toast";
+      el.textContent = msg;
+      c.appendChild(el);
+      setTimeout(function() {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.2s";
+        setTimeout(function() { el.remove(); }, 200);
+      }, 2500);
+    }
 
     function apiHeaders(extra = {}) {
       const headers = { ...extra };
@@ -1605,6 +2391,7 @@
     }
 
     function logout() {
+      if (!confirm("Log out of ProjectMidori?")) return;
       localStorage.removeItem("odteai_token");
       localStorage.removeItem("odteai_chat_history");
       authToken = null;
@@ -1612,20 +2399,66 @@
       location.hash = "#/login";
     }
 
+    function handleSessionExpired() {
+      authToken = null;
+      localStorage.removeItem("odteai_token");
+      try { sessionStorage.setItem("projectmidori_session_expired", "1"); } catch (_) {}
+      location.hash = "#/login";
+    }
+
     function updateFocusDisabled() {
-      const disable = currentAnalysisType === "stocks";
+      const disable = currentAnalysisType === "stocks" || currentTradingMode === "stockonly";
       const focusChips = document.querySelectorAll('.chip[data-focus]');
       focusChips.forEach(chip => {
         chip.classList.toggle("disabled", disable);
         chip.setAttribute("aria-disabled", disable ? "true" : "false");
       });
       if (disable) {
-        // Force focus back to "both" when stocks-only
         currentFocus = "both";
         focusChips.forEach(c => c.classList.remove("active"));
         const both = document.querySelector('.chip[data-focus="both"]');
         if (both) both.classList.add("active");
       }
+    }
+
+    function applyTradingMode() {
+      const tfChips = document.querySelectorAll('#timeframeChips .chip');
+      const typeChips = document.querySelectorAll('.chip[data-analysis-type]');
+      const focusField = $("analysisFocusField");
+      const typeField = $("analysisTypeField");
+      if (currentTradingMode === "0dte") {
+        currentTimeframe = "intraday";
+        currentAnalysisType = "options";
+        tfChips.forEach(c => { c.classList.toggle("active", c.getAttribute("data-timeframe") === "intraday"); c.classList.add("disabled"); });
+        typeChips.forEach(c => { c.classList.toggle("active", c.getAttribute("data-analysis-type") === "options"); });
+        if (focusField) focusField.style.display = "";
+        if (typeField) typeField.style.display = "";
+      } else if (currentTradingMode === "swing") {
+        currentTimeframe = "1-5d";
+        currentAnalysisType = "both";
+        tfChips.forEach(c => {
+          c.classList.remove("disabled");
+          const tf = c.getAttribute("data-timeframe");
+          if (tf === "intraday" || tf === "long-term") c.classList.add("disabled");
+          c.classList.toggle("active", tf === "1-5d");
+        });
+        typeChips.forEach(c => { c.classList.toggle("active", c.getAttribute("data-analysis-type") === "both"); });
+        if (focusField) focusField.style.display = "";
+        if (typeField) typeField.style.display = "";
+      } else if (currentTradingMode === "longterm") {
+        currentTimeframe = "long-term";
+        currentAnalysisType = "both";
+        tfChips.forEach(c => { c.classList.remove("disabled"); c.classList.toggle("active", c.getAttribute("data-timeframe") === "long-term"); });
+        typeChips.forEach(c => { c.classList.toggle("active", c.getAttribute("data-analysis-type") === "both"); });
+        if (focusField) focusField.style.display = "";
+        if (typeField) typeField.style.display = "";
+      } else {
+        currentAnalysisType = "stocks";
+        typeChips.forEach(c => { c.classList.toggle("active", c.getAttribute("data-analysis-type") === "stocks"); });
+        if (focusField) focusField.style.display = "none";
+        if (typeField) typeField.style.display = "none";
+      }
+      updateFocusDisabled();
     }
 
     function openChatFilePicker() {
@@ -1677,10 +2510,37 @@
       if (!loadAuthToken()) return false;
       try {
         const res = await fetch("/auth/me", { headers: apiHeaders() });
+        if (res.status === 401) {
+          handleSessionExpired();
+          return false;
+        }
         return res.ok;
       } catch {
         return false;
       }
+    }
+
+    (function setupFetch401Interceptor() {
+      const origFetch = window.fetch;
+      window.fetch = function(url, opts) {
+        return origFetch.apply(this, arguments).then(function(res) {
+          if (res.status === 401 && typeof url === "string" && url.indexOf("/auth/login") === -1 && loadAuthToken()) {
+            handleSessionExpired();
+          }
+          return res;
+        });
+      };
+    })();
+
+    function initOfflineBanner() {
+      const banner = $("offlineBanner");
+      if (!banner) return;
+      function update() {
+        banner.style.display = navigator.onLine ? "none" : "block";
+      }
+      update();
+      window.addEventListener("online", update);
+      window.addEventListener("offline", update);
     }
 
     const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenConfidence", "screenBacktest"];
@@ -1691,21 +2551,188 @@
         const el = $(id);
         if (el) el.classList.toggle("active", id === pageId);
       });
-      const header = document.querySelector(".header");
-      if (header) header.style.display = pageId === "pageLogin" ? "flex" : "none";
     }
+
+    const PAGE_TITLES = {
+      screenDashboard: "Dashboard",
+      screenAnalysis: "Analysis",
+      screenScreener: "Screener",
+      screenChat: "Chat",
+      screenSignals: "Signals",
+      screenConfidence: "Confidence",
+      screenBacktest: "Backtest"
+    };
 
     function showScreen(screenId) {
       SCREEN_IDS.forEach(id => {
         const el = $(id);
         if (el) el.classList.toggle("active", id === screenId);
       });
-      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenConfidence: "/confidence" };
+      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenConfidence: "/confidence", screenBacktest: "/backtest" };
       const path = pathMap[screenId] || "/dashboard";
       NAV_IDS.forEach(navId => {
         const el = $(navId);
-        if (el) el.classList.toggle("active", el.getAttribute("href") === "#" + path);
+        if (el) el.classList.toggle("active", (el.getAttribute("href") || "").replace("#", "") === path);
       });
+      const titleEl = $("headerPageTitle");
+      if (titleEl) titleEl.textContent = PAGE_TITLES[screenId] || "Dashboard";
+    }
+
+    function getMarketStatus() {
+      const now = new Date();
+      const et = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+      const day = et.getDay();
+      const hours = et.getHours();
+      const mins = et.getMinutes();
+      const timeMins = hours * 60 + mins;
+      if (day === 0 || day === 6) return { label: "MARKET CLOSED", cls: "market-closed" };
+      if (timeMins < 9 * 60 + 30) return { label: "PRE-MARKET", cls: "pre-market" };
+      if (timeMins < 16 * 60) return { label: "MARKET OPEN", cls: "market-open" };
+      return { label: "AFTER HOURS", cls: "after-hours" };
+    }
+
+    function updateMarketBadge() {
+      const el = $("marketStatusBadge");
+      if (!el) return;
+      const { label, cls } = getMarketStatus();
+      el.textContent = label;
+      el.className = "market-badge " + cls;
+    }
+
+    function updateEtClock() {
+      const el = $("etClock");
+      if (!el) return;
+      const s = new Date().toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      el.textContent = s + " ET";
+    }
+
+    function initMarketHeader() {
+      updateMarketBadge();
+      updateEtClock();
+      setInterval(updateEtClock, 1000);
+      setInterval(updateMarketBadge, 60000);
+    }
+
+    async function loadDashboardData() {
+      loadMarketPulse();
+      loadMarketEvents();
+      loadNewsTicker();
+      loadTradingViewWidget();
+    }
+
+    async function loadMarketPulse() {
+      const btn = $("marketPulseRefreshBtn");
+      if (btn) { btn.disabled = true; btn.textContent = "Refreshing…"; }
+      try {
+        const [md, fg] = await Promise.all([
+          fetch("/api/market-data").then(r => r.json()),
+          fetch("/api/fear-greed").then(r => r.json())
+        ]);
+        const fmt = (v) => (v == null || v === "" ? "--" : Number(v).toFixed(2));
+        const chg = (v) => {
+          if (v == null || v === "" || v === "--") return { text: "--", cls: "" };
+          const n = Number(v);
+          const cls = n >= 0 ? "positive" : "negative";
+          return { text: (n >= 0 ? "+" : "") + n + "%", cls };
+        };
+        if (md.tickers) {
+          ["SPY", "QQQ"].forEach(sym => {
+            const t = md.tickers[sym];
+            if (t) {
+              const el = $("pulse" + sym);
+              const chEl = $("pulse" + sym + "Chg");
+              if (el) el.textContent = "$" + fmt(t.price);
+              if (chEl) { const c = chg(t.change_pct); chEl.textContent = c.text; chEl.className = "pulse-change " + c.cls; }
+            }
+          });
+        }
+        if (md.vix && md.vix.price) {
+          const el = $("pulseVIX");
+          const chEl = $("pulseVIXChg");
+          if (el) el.textContent = fmt(md.vix.price);
+          if (chEl) { const c = chg(md.vix.change_pct); chEl.textContent = c.text; chEl.className = "pulse-change " + c.cls; }
+        }
+        if (fg && fg.score != null) {
+          const el = $("pulseFG");
+          const ratingEl = $("pulseFGRating");
+          if (el) el.textContent = (fg.score | 0) + "/100";
+          if (ratingEl) ratingEl.textContent = fg.rating || "Unknown";
+        }
+        const updatedEl = $("marketPulseUpdated");
+        if (updatedEl) updatedEl.textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      } catch (e) {
+        console.warn("Market pulse load failed:", e);
+        const updatedEl = $("marketPulseUpdated");
+        if (updatedEl) updatedEl.textContent = "";
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "Refresh"; }
+      }
+    }
+
+    async function loadMarketEvents() {
+      const el = $("marketEventsList");
+      if (!el) return;
+      try {
+        const r = await fetch("/api/economic-events");
+        const data = await r.json();
+        const events = data.events || [];
+        if (!events.length) {
+          el.innerHTML = '<div class="no-events">No high-impact events today ✓</div>';
+          return;
+        }
+        el.innerHTML = events.slice(0, 8).map(e => {
+          const time = (e.time || e.date || "").toString().slice(11, 16) || "TBD";
+          const title = e.title || e.country || "Event";
+          return '<div class="event">⚠️ ' + time + ' — ' + (title.length > 40 ? title.slice(0, 40) + "…" : title) + '</div>';
+        }).join("");
+      } catch (e) {
+        el.innerHTML = '<div class="no-events">Data temporarily unavailable</div>';
+      }
+    }
+
+    async function loadNewsTicker() {
+      const el = $("newsTicker");
+      if (!el) return;
+      try {
+        const r = await fetch("/api/news");
+        const data = await r.json();
+        const headlines = data.headlines || [];
+        if (!headlines.length) {
+          el.innerHTML = '<span style="color:var(--text-muted);">No headlines available</span>';
+          return;
+        }
+        const items = headlines.map(h => '<a href="' + (h.link || "#") + '" target="_blank" rel="noopener">' + (h.title || "").replace(/</g, "&lt;") + '</a>');
+        el.innerHTML = items.concat(items).join("");
+      } catch (e) {
+        el.innerHTML = '<span style="color:var(--text-muted);">Headlines unavailable</span>';
+      }
+    }
+
+    function loadTradingViewWidget() {
+      if (window.TradingView && document.getElementById("tradingview-widget")) return;
+      const s = document.createElement("script");
+      s.src = "https://s3.tradingview.com/tv.js";
+      s.async = true;
+      s.onload = function() {
+        if (window.TradingView && document.getElementById("tradingview-widget")) {
+          new TradingView.widget({
+            "autosize": true,
+            "symbol": "SPY",
+            "interval": "5",
+            "timezone": "America/New_York",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#0F1724",
+            "enable_publishing": false,
+            "hide_side_toolbar": false,
+            "allow_symbol_change": true,
+            "studies": ["EMA@tv-basicstudies", "VWAP@tv-basicstudies"],
+            "container_id": "tradingview-widget"
+          });
+        }
+      };
+      document.head.appendChild(s);
     }
 
     function setNavActive(path) {
@@ -1831,6 +2858,13 @@
       const authed = await authCheck();
       if (!authed) {
         showPage("pageLogin");
+        initLoginRemember();
+        const expired = sessionStorage.getItem("projectmidori_session_expired");
+        if (expired) {
+          try { sessionStorage.removeItem("projectmidori_session_expired"); } catch (_) {}
+          const statusEl = $("loginStatus");
+          if (statusEl) { statusEl.textContent = "Session expired. Please log in again."; statusEl.classList.add("error"); }
+        }
         return;
       }
 
@@ -1842,6 +2876,7 @@
       }
 
       showPage("pageApp");
+      initMarketHeader();
       const pathToScreen = {
         "/dashboard": "screenDashboard",
         "/analysis": "screenAnalysis",
@@ -1855,7 +2890,34 @@
       showScreen(screenId);
 
       if (path === "/signals") fetchSignals();
+      if (path === "/dashboard") loadDashboardData();
+      if (path === "/analysis") {
+        const lastTickers = localStorage.getItem("trademinds_last_tickers");
+        const tickersEl = $("tickers");
+        if (tickersEl && lastTickers && !tickersEl.value.trim()) tickersEl.value = lastTickers;
+        renderRecentAnalyses();
+      }
+      if (path === "/backtest") {
+        const lastTickers = localStorage.getItem("trademinds_last_tickers");
+        const btEl = $("backtestTickers");
+        if (btEl && lastTickers && !btEl.value.trim()) btEl.value = lastTickers;
+      }
       if (path === "/chat") {
+        initChatQuickPrompts();
+        const convo = $("chatConversation");
+        const welcome = $("chatWelcome");
+        if (chatHistory.length && convo) {
+          convo.innerHTML = "";
+          chatHistory.forEach((m, i) => {
+            if (m.role === "user") appendMessage("", m.content, "chatConversation", "user");
+            else appendMessage("", m.content, "chatConversation", "assistant");
+          });
+          convo.style.display = "flex";
+          if (welcome) welcome.classList.add("hidden");
+        } else if (convo) {
+          convo.style.display = "none";
+          if (welcome) welcome.classList.remove("hidden");
+        }
         const pending = sessionStorage.getItem("odteai_pending_first_question");
         if (pending && $("chatInput")) {
           $("chatInput").value = pending;
@@ -1866,7 +2928,80 @@
     }
 
     window.addEventListener("hashchange", route);
-    window.addEventListener("load", route);
+    function initNumberInputClamp() {
+      const specs = [
+        { id: "backtestYears", min: 1, max: 5, def: 3 },
+        { id: "backtestHoldingDays", min: 1, max: 60, def: 5 },
+        { id: "forecastYears", min: 1, max: 5, def: 3 },
+      ];
+      specs.forEach(function(s) {
+        const el = $(s.id);
+        if (!el) return;
+        el.addEventListener("blur", function() {
+          const v = clampNum(el.value, s.min, s.max, s.def);
+          if (String(el.value) !== String(v)) el.value = v;
+        });
+      });
+    }
+
+    window.addEventListener("load", function() {
+      route();
+      initOfflineBanner();
+      initNumberInputClamp();
+    });
+
+    let _pendingG = false;
+    let _pendingGTime = 0;
+    document.addEventListener("keydown", function(e) {
+      const inInput = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "");
+      if (e.key === "?") {
+        e.preventDefault();
+        openShortcutModal();
+        return;
+      }
+      if (e.key === "Escape") {
+        closeShortcutModal();
+        return;
+      }
+      if (inInput) return;
+      const k = (e.key || "").toLowerCase();
+      if (k === "g") {
+        _pendingG = true;
+        _pendingGTime = Date.now();
+        return;
+      }
+      if (_pendingG && (Date.now() - _pendingGTime) < 1200) {
+        _pendingG = false;
+        if (k === "d") { location.hash = "#/dashboard"; route(); return; }
+        if (k === "a") { location.hash = "#/analysis"; route(); return; }
+        if (k === "s") { location.hash = "#/signals"; route(); return; }
+        if (k === "c") { location.hash = "#/chat"; route(); return; }
+      }
+      _pendingG = false;
+    });
+
+    let _shortcutModalPrevFocus = null;
+    function openShortcutModal() {
+      _shortcutModalPrevFocus = document.activeElement;
+      const m = $("shortcutModal");
+      if (m) {
+        m.style.display = "flex";
+        m.classList.add("visible");
+        const closeBtn = $("shortcutModalCloseBtn");
+        if (closeBtn) setTimeout(function() { closeBtn.focus(); }, 50);
+      }
+    }
+    function closeShortcutModal() {
+      const m = $("shortcutModal");
+      if (m) {
+        m.style.display = "none";
+        m.classList.remove("visible");
+      }
+      if (_shortcutModalPrevFocus && typeof _shortcutModalPrevFocus.focus === "function") {
+        try { _shortcutModalPrevFocus.focus(); } catch (_) {}
+      }
+      _shortcutModalPrevFocus = null;
+    }
 
     function setupChips() {
       document.querySelectorAll('.chip[data-focus]').forEach(chip => {
@@ -1898,6 +3033,15 @@
           updateFocusDisabled();
         });
       });
+      document.querySelectorAll('.chip[data-trading-mode]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip[data-trading-mode]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentTradingMode = chip.getAttribute('data-trading-mode');
+          try { localStorage.setItem("trademinds_preferred_trading_mode", currentTradingMode); } catch (_) {}
+          applyTradingMode();
+        });
+      });
       document.querySelectorAll('.chip[data-screener-tab]').forEach(chip => {
         chip.addEventListener('click', () => {
           document.querySelectorAll('.chip[data-screener-tab]').forEach(c => c.classList.remove('active'));
@@ -1906,12 +3050,18 @@
           const optWrap = $("optionsScreenerWrap");
           const stockWrap = $("stockScreenerWrap");
           const multiWrap = $("multiScreenerWrap");
+          const valueWrap = $("valueScreenerWrap");
+          const optCard = $("screenerOptionsCard");
+          const valueCard = $("screenerValueCard");
           const stockSummary = $("stockScreenerSummary");
           const multiSummary = $("multiScreenerSummary");
-          if (optWrap && stockWrap && multiWrap) {
+          if (optCard) optCard.style.display = currentScreenerTab === "value" ? "none" : "block";
+          if (valueCard) valueCard.style.display = currentScreenerTab === "value" ? "block" : "none";
+          if (optWrap && stockWrap && multiWrap && valueWrap) {
             optWrap.style.display = currentScreenerTab === "options" ? "block" : "none";
             stockWrap.style.display = currentScreenerTab === "stocks" ? "block" : "none";
             multiWrap.style.display = currentScreenerTab === "multi" ? "block" : "none";
+            valueWrap.style.display = currentScreenerTab === "value" ? "block" : "none";
           }
           if (stockSummary && multiSummary) {
             stockSummary.style.display = currentScreenerTab === "stocks" ? "block" : "none";
@@ -1921,7 +3071,15 @@
       });
     }
     setupChips();
+    const savedMode = localStorage.getItem("trademinds_preferred_trading_mode");
+    if (savedMode && ["0dte", "swing", "longterm", "stockonly"].includes(savedMode)) {
+      currentTradingMode = savedMode;
+      document.querySelectorAll(".chip[data-trading-mode]").forEach(c => {
+        c.classList.toggle("active", c.getAttribute("data-trading-mode") === savedMode);
+      });
+    }
     updateFocusDisabled();
+    applyTradingMode();
 
     // Drag & drop / paste for chat images
     document.addEventListener("paste", (event) => {
@@ -1979,16 +3137,41 @@
     function toggleSidebar() { document.body.classList.toggle("sidebar-open"); }
     const menuToggle = $("menuToggle");
     const sidebarOverlay = $("sidebarOverlay");
+    const sidebarCollapseBtn = $("sidebarCollapseBtn");
     if (menuToggle) menuToggle.addEventListener("click", toggleSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
+    if (sidebarCollapseBtn) {
+      const saved = localStorage.getItem("trademinds_sidebar_collapsed");
+      if (saved === "true") document.body.classList.add("sidebar-collapsed");
+      sidebarCollapseBtn.addEventListener("click", function() {
+        document.body.classList.toggle("sidebar-collapsed");
+        localStorage.setItem("trademinds_sidebar_collapsed", document.body.classList.contains("sidebar-collapsed") ? "true" : "false");
+        sidebarCollapseBtn.innerHTML = document.body.classList.contains("sidebar-collapsed")
+          ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>'
+          : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>';
+      });
+      if (document.body.classList.contains("sidebar-collapsed")) {
+        sidebarCollapseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>';
+      }
+    }
     document.querySelectorAll(".app-sidebar .nav a").forEach(function(a) {
       a.addEventListener("click", function() { closeSidebar(); });
     });
 
+    document.querySelectorAll(".chip[data-signal-mode]").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".chip[data-signal-mode]").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentSignalMode = chip.getAttribute("data-signal-mode");
+        fetchSignals();
+      });
+    });
     document.querySelectorAll(".chip[data-signal-filter]").forEach(chip => {
       chip.addEventListener("click", () => {
         document.querySelectorAll(".chip[data-signal-filter]").forEach(c => c.classList.remove("active"));
         chip.classList.add("active");
+        currentSignalFilter = chip.getAttribute("data-signal-filter");
+        if (lastSignalsData) renderSignals(lastSignalsData);
       });
     });
 
@@ -2000,22 +3183,143 @@
       });
     });
 
+    function parseAnalysisSections(text) {
+      const sections = [];
+      const re = /##\s+(.+?)\s*[\r\n]+([\s\S]*?)(?=\n##\s+|$)/g;
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        sections.push({ title: m[1].trim(), content: m[2].trim() });
+      }
+      if (sections.length) return sections;
+      return [{ title: null, content: text }];
+    }
+
+    function renderRecentAnalyses() {
+      const row = $("recentAnalysesRow");
+      const chips = $("recentAnalysesChips");
+      if (!row || !chips) return;
+      let recent = [];
+      try {
+        recent = JSON.parse(localStorage.getItem("trademinds_recent_analyses") || "[]");
+      } catch (_) {}
+      if (!recent.length) {
+        row.style.display = "none";
+        return;
+      }
+      row.style.display = "flex";
+      chips.innerHTML = recent.map((r, i) => {
+        const label = r.tickers + " (" + (r.timeframe || r.type || "") + ")";
+        return '<button type="button" class="recent-chip" data-recent-idx="' + i + '">' + label + '</button>';
+      }).join("");
+      chips.querySelectorAll(".recent-chip").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const idx = parseInt(this.getAttribute("data-recent-idx"), 10);
+          const r = JSON.parse(localStorage.getItem("trademinds_recent_analyses") || "[]")[idx];
+          if (!r) return;
+          if ($("tickers")) $("tickers").value = r.tickers || "";
+          currentFocus = r.focus || "both";
+          currentStyle = r.style || "balanced";
+          currentTimeframe = r.timeframe || "intraday";
+          currentAnalysisType = r.type || "options";
+          document.querySelectorAll('.chip[data-focus]').forEach(c => c.classList.toggle("active", c.getAttribute("data-focus") === currentFocus));
+          document.querySelectorAll('.chip[data-style]').forEach(c => c.classList.toggle("active", c.getAttribute("data-style") === currentStyle));
+          document.querySelectorAll('.chip[data-timeframe]').forEach(c => c.classList.toggle("active", c.getAttribute("data-timeframe") === currentTimeframe));
+          document.querySelectorAll('.chip[data-analysis-type]').forEach(c => c.classList.toggle("active", c.getAttribute("data-analysis-type") === currentAnalysisType));
+          const fullText = r.fullText;
+          if (fullText) {
+            if (/^##\s+/m.test(fullText)) renderAnalysisCards(fullText, r.tickers, "conversation");
+            else appendMessage(r.tickers, fullText, "conversation", "analysis");
+          }
+        });
+      });
+    }
+
+    function renderAnalysisCards(text, metaText, targetId) {
+      const convo = $(targetId);
+      if (!convo) return;
+      const sections = parseAnalysisSections(text);
+      const wrap = document.createElement("div");
+      wrap.className = "message analysis";
+      const meta = document.createElement("div");
+      meta.className = "message-meta";
+      meta.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + (metaText ? " • " + metaText : "");
+      wrap.appendChild(meta);
+      const cardsWrap = document.createElement("div");
+      cardsWrap.className = "analysis-result-cards";
+      const icons = { "Market Context": "🧭", "Trade Setup": "🎯", "Key Levels": "📍", "Risk Factors": "⚠️", "Educational Takeaway": "📚" };
+      sections.forEach(s => {
+        const card = document.createElement("div");
+        card.className = "analysis-card";
+        const h3 = document.createElement("h3");
+        h3.textContent = (s.title && icons[s.title] ? icons[s.title] + " " : "") + (s.title || "Analysis");
+        card.appendChild(h3);
+        const content = document.createElement("div");
+        content.className = "content";
+        content.textContent = s.content;
+        card.appendChild(content);
+        const actions = document.createElement("div");
+        actions.className = "analysis-actions";
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "btn secondary";
+        copyBtn.textContent = "Copy";
+        copyBtn.onclick = () => { navigator.clipboard.writeText(s.content).then(() => showToast("Copied!")); };
+        actions.appendChild(copyBtn);
+        card.appendChild(actions);
+        cardsWrap.appendChild(card);
+      });
+      wrap.appendChild(cardsWrap);
+      const shareBtn = document.createElement("button");
+      shareBtn.className = "btn secondary";
+      shareBtn.textContent = "Copy all";
+      shareBtn.style.marginTop = "8px";
+      shareBtn.onclick = () => { navigator.clipboard.writeText(text).then(() => showToast("Copied all!")); };
+      wrap.appendChild(shareBtn);
+      const linkBtn = document.createElement("button");
+      linkBtn.className = "btn secondary";
+      linkBtn.textContent = "Copy link";
+      linkBtn.style.marginTop = "8px";
+      linkBtn.style.marginLeft = "8px";
+      linkBtn.onclick = () => {
+        navigator.clipboard.writeText(window.location.href).then(() => showToast("Link copied!"));
+      };
+      wrap.appendChild(linkBtn);
+      convo.appendChild(wrap);
+      convo.scrollTop = convo.scrollHeight;
+    }
+
     function appendMessage(metaText, text, targetId, role) {
       const convo = $(targetId);
+      const isChat = targetId === "chatConversation";
+      if (isChat) {
+        const welcome = $("chatWelcome");
+        if (welcome) welcome.classList.add("hidden");
+        convo.style.display = "flex";
+      }
+
       const msg = document.createElement("div");
       msg.className = "message " + (role || "analysis");
+
+      const inner = document.createElement("div");
+      inner.className = "message-inner";
+      if (isChat && (role === "assistant" || role === "analysis" || role === "error")) {
+        const avatar = document.createElement("div");
+        avatar.className = "message-avatar";
+        avatar.textContent = "⊡";
+        inner.appendChild(avatar);
+      }
+
+      const card = document.createElement("div");
+      card.className = "message-card";
+      card.textContent = text;
+      inner.appendChild(card);
+      msg.appendChild(inner);
 
       const meta = document.createElement("div");
       meta.className = "message-meta";
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      meta.textContent = timeStr + " • " + metaText;
+      meta.textContent = timeStr + (metaText ? " • " + metaText : "");
       msg.appendChild(meta);
-
-      const card = document.createElement("div");
-      card.className = "message-card";
-      card.textContent = text;
-      msg.appendChild(card);
 
       convo.appendChild(msg);
       convo.scrollTop = convo.scrollHeight;
@@ -2028,31 +3332,51 @@
       if (convo) convo.scrollTop = convo.scrollHeight;
     }
 
+    function friendlyErrorMessage(err) {
+      const s = String(err && err.message ? err.message : err);
+      if (/network|failed to fetch|load failed/i.test(s)) return "Network error. Check your connection and try again.";
+      if (/rate limit|too many requests/i.test(s)) return "Rate limited. Wait a minute and try again.";
+      if (/401|unauthorized/i.test(s)) return "Session expired. Please log in again.";
+      if (/500|internal server/i.test(s)) return "Server error. Try again in a moment.";
+      if (/404/i.test(s)) return "Endpoint not found. Check backend.";
+      if (s.length > 80) return s.slice(0, 77) + "...";
+      return s || "Something went wrong.";
+    }
+
     function setStatus(text, isError) {
       const el = $("status");
+      const retryBtn = $("analysisRetryBtn");
       if (!el) return;
       el.textContent = text || "";
       el.classList.toggle("error", !!isError);
+      if (retryBtn) retryBtn.style.display = isError ? "inline-block" : "none";
     }
 
     function setChatStatus(text, isError) {
       const el = $("chatStatus");
+      const retryBtn = $("chatRetryBtn");
       if (!el) return;
       el.textContent = text || "";
       el.classList.toggle("error", !!isError);
+      if (retryBtn) retryBtn.style.display = isError ? "inline-block" : "none";
     }
 
     let lastSignalsData = null;
+    let lastBacktestData = null;
+    let lastForecastData = null;
     function renderSignals(data) {
       lastSignalsData = data;
       const hero = $("signalHero");
       const list = $("signalsList");
       const placeholder = $("signalsPlaceholder");
-      const signals = (data && data.signals) ? data.signals : [];
+      let signals = (data && data.signals) ? data.signals : [];
+      if (currentSignalFilter === "bullish") signals = signals.filter(s => (s.type || "").toUpperCase() === "CALL");
+      else if (currentSignalFilter === "bearish") signals = signals.filter(s => (s.type || "").toUpperCase() === "PUT");
+      else if (currentSignalFilter === "high") signals = signals.filter(s => (s.rank || 99) <= 1);
       if (!signals.length) {
         placeholder.style.display = "block";
         placeholder.classList.remove("error");
-        placeholder.textContent = "Click Refresh to load the highest-probability 0DTE setups right now.";
+        placeholder.textContent = "Click Refresh to load the highest-probability trade setups right now.";
         hero.style.display = "none";
         list.innerHTML = "";
         return;
@@ -2089,7 +3413,7 @@
       if (btn) { btn.disabled = true; }
       if (label) { label.textContent = "Loading…"; }
       try {
-        const params = new URLSearchParams({ tickers: tickersValue, limit: "3" });
+        const params = new URLSearchParams({ tickers: tickersValue, limit: "3", mode: currentSignalMode || "0dte" });
         const res = await fetch("/signals?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
           const text = await res.text();
@@ -2098,11 +3422,17 @@
         const data = await res.json();
         renderSignals(data);
         if (data.signals && data.signals.length) setNotificationDot("panelSignals", true);
+        const lu = $("signalsLastUpdated");
+        if (lu) lu.textContent = "· Last updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       } catch (err) {
         renderSignals({});
-        if ($("signalsPlaceholder")) {
-          $("signalsPlaceholder").textContent = "Signals unavailable. Check API key and try again.";
-          $("signalsPlaceholder").classList.add("error");
+        const lu = $("signalsLastUpdated");
+        if (lu) lu.textContent = "";
+        const ph = $("signalsPlaceholder");
+        if (ph) {
+          const msg = friendlyErrorMessage(err);
+          ph.innerHTML = (msg || "Signals unavailable.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="fetchSignals()">Retry</button>';
+          ph.classList.add("error");
         }
       } finally {
         if (btn) { btn.disabled = false; }
@@ -2122,21 +3452,113 @@
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "0dte-signals-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.download = "projectmidori-signals-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast("Signals CSV downloaded.");
+    }
+
+    function downloadBlob(blob, filename) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(a.href);
     }
 
+    function exportBacktestCsv() {
+      if (!lastBacktestData) return;
+      const { portfolio, symbols, equity_curve, years, holdingDays, tickersValue } = lastBacktestData;
+      const rows = [];
+      rows.push("Backtest summary," + (tickersValue || ""));
+      rows.push("Years," + years + ",Holding days," + holdingDays);
+      rows.push("Metric,Value");
+      rows.push("CAGR %," + (portfolio.approx_cagr_pct ?? ""));
+      rows.push("Max drawdown %," + (portfolio.approx_max_drawdown_pct ?? ""));
+      rows.push("Avg Sharpe," + (portfolio.avg_sharpe ?? ""));
+      rows.push("Total trades," + (portfolio.total_trades ?? ""));
+      rows.push("");
+      rows.push("Symbol,CAGR %,Sharpe,Sortino,Calmar,Omega,Max DD %,Win rate %,Trades");
+      Object.keys(symbols || {}).forEach(sym => {
+        const m = symbols[sym] || {};
+        rows.push([sym, m.cagr_pct ?? "", m.sharpe ?? "", m.sortino ?? "", m.calmar ?? "", m.omega ?? "", m.max_drawdown_pct ?? "", m.win_rate_pct ?? "", m.num_trades ?? ""].join(","));
+      });
+      if (equity_curve && equity_curve.length) {
+        rows.push("");
+        rows.push("Trade index,Equity (100 = start)");
+        equity_curve.forEach((eq, i) => { rows.push((i + 1) + "," + eq); });
+      }
+      const csv = rows.join("\n");
+      downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "projectmidori-backtest-" + new Date().toISOString().slice(0, 10) + ".csv");
+      showToast("Backtest CSV downloaded.");
+    }
+
+    function exportBacktestChartPng() {
+      if (!window._backtestChart) return;
+      const url = window._backtestChart.toBase64Image("image/png");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "projectmidori-backtest-equity-" + new Date().toISOString().slice(0, 10) + ".png";
+      a.click();
+      showToast("Chart downloaded.");
+    }
+
+    function exportForecastCsv() {
+      if (!lastForecastData) return;
+      const hist = lastForecastData.history_dates || [];
+      const hp = lastForecastData.history_prices || [];
+      const fd = lastForecastData.forecast_dates || [];
+      const fp = lastForecastData.forecast_prices || [];
+      const rows = ["Date,Type,Price"];
+      hist.forEach((d, i) => { rows.push(d + ",History," + (hp[i] ?? "")); });
+      fd.forEach((d, i) => { rows.push(d + ",Forecast," + (fp[i] ?? "")); });
+      const csv = rows.join("\n");
+      downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "projectmidori-forecast-" + (lastForecastData.symbol || "symbol") + "-" + new Date().toISOString().slice(0, 10) + ".csv");
+      showToast("Forecast CSV downloaded.");
+    }
+
+    function exportForecastChartPng() {
+      if (!window._forecastChart) return;
+      const url = window._forecastChart.toBase64Image("image/png");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "projectmidori-forecast-" + (lastForecastData && lastForecastData.symbol ? lastForecastData.symbol : "chart") + "-" + new Date().toISOString().slice(0, 10) + ".png";
+      a.click();
+      showToast("Chart downloaded.");
+    }
+
+    function toggleLoginPassword() {
+      const input = $("loginPassword");
+      const icon = $("loginEyeIcon");
+      if (!input || !icon) return;
+      const isPass = input.type === "password";
+      input.type = isPass ? "text" : "password";
+      icon.innerHTML = isPass
+        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />'
+        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+    }
+
+    function initLoginRemember() {
+      const check = $("loginRemember");
+      if (check) check.checked = localStorage.getItem("trademinds_remember") !== "false";
+    }
+
     async function doLogin() {
-      const pw = $("loginPassword").value || "";
+      const pw = ($("loginPassword") && $("loginPassword").value) || "";
       const statusEl = $("loginStatus");
       const btn = $("loginBtn");
       const btnLabel = $("loginBtnLabel");
+      const card = $("loginCard");
+      const remember = $("loginRemember") && $("loginRemember").checked;
 
-      statusEl.textContent = "Logging in...";
+      statusEl.textContent = "";
       statusEl.classList.remove("error");
+      if (card) {
+        card.classList.remove("shake", "error-state");
+      }
       btn.disabled = true;
-      btnLabel.textContent = "Working…";
+      btn.classList.add("loading");
+      if (btnLabel) btnLabel.textContent = "Working…";
 
       try {
         const res = await fetch("/auth/login", {
@@ -2151,14 +3573,20 @@
         const data = await res.json();
         if (!data.token) throw new Error("No token returned");
         saveAuthToken(data.token);
+        localStorage.setItem("trademinds_remember", remember ? "true" : "false");
         statusEl.textContent = "Logged in.";
         location.hash = "#/dashboard";
       } catch {
-        statusEl.textContent = "Login failed.";
+        statusEl.textContent = "Incorrect password.";
         statusEl.classList.add("error");
+        if (card) {
+          card.classList.add("shake", "error-state");
+          setTimeout(() => card.classList.remove("shake"), 500);
+        }
       } finally {
         btn.disabled = false;
-        btnLabel.textContent = "Login";
+        btn.classList.remove("loading");
+        if (btnLabel) btnLabel.textContent = "Login";
       }
     }
 
@@ -2349,12 +3777,14 @@
     }
 
     async function runAnalysis() {
-      const tickersValue = ($("tickers") && $("tickers").value && $("tickers").value.trim()) ? $("tickers").value.trim() : "SPY,QQQ,IWM";
+      const tickersParsed = parseTickers($("tickers") && $("tickers").value ? $("tickers").value : "SPY,QQQ,IWM");
+      const tickersValue = tickersParsed.length ? tickersParsed.join(",") : "SPY,QQQ,IWM";
       const btn = $("runBtn");
       const btnLabel = $("btnLabel");
 
       setStatus("Running analysis...");
       btn.disabled = true;
+      btn.classList.add("loading");
       btnLabel.textContent = "Running…";
 
       try {
@@ -2372,33 +3802,39 @@
         }
         const data = await res.json();
         const outText = data.analysis_markdown || JSON.stringify(data, null, 2);
-        appendMessage(
-          tickersValue + " • " + currentFocus + ", " + currentStyle + ", " + currentTimeframe + ", " + currentAnalysisType,
-          outText,
-          "conversation",
-          "analysis"
-        );
+        const meta = tickersValue + " • " + currentFocus + ", " + currentStyle + ", " + currentTimeframe + ", " + currentAnalysisType;
+        if (/^##\s+/m.test(outText)) {
+          renderAnalysisCards(outText, meta, "conversation");
+        } else {
+          appendMessage(meta, outText, "conversation", "analysis");
+        }
         setStatus("Analysis complete.");
+        showToast("Analysis complete.");
         setNotificationDot("panelAnalysis", true);
 
         if (data.confidence) renderConfidencePanel(data.confidence);
 
-        chatHistory.push({
-          role: "user",
-          content: "Give me a fresh analysis for " + tickersValue + " (focus=" + currentFocus + ", style=" + currentStyle + ", type=" + currentAnalysisType + ")."
-        });
+        const recentKey = "trademinds_recent_analyses";
+        let recent = [];
+        try {
+          recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
+        } catch (_) {}
+        const entry = { tickers: tickersValue, focus: currentFocus, style: currentStyle, timeframe: currentTimeframe, type: currentAnalysisType, fullText: outText };
+        recent = [entry].concat(recent.filter(r => !(r.tickers === tickersValue && r.timeframe === currentTimeframe))).slice(0, 5);
+        localStorage.setItem(recentKey, JSON.stringify(recent));
+        try { localStorage.setItem("trademinds_last_tickers", tickersValue); } catch (_) {}
+        renderRecentAnalyses();
+
+        chatHistory.push({ role: "user", content: "Give me a fresh analysis for " + tickersValue });
         chatHistory.push({ role: "assistant", content: outText });
         localStorage.setItem("odteai_chat_history", JSON.stringify(chatHistory.slice(-30)));
       } catch (err) {
-        const errStr = String(err);
-        const isRateLimit = /rate limit|too many requests/i.test(errStr);
-        setStatus(isRateLimit ? "Rate limited. Wait a minute and try again." : "Request failed. See last message for details.", true);
-        const displayMsg = isRateLimit
-          ? "Rate limited by data provider. Please wait 1–2 minutes and try again, or use fewer tickers."
-          : errStr;
-        appendMessage(tickersValue + " • error", displayMsg, "conversation", "error");
+        const msg = friendlyErrorMessage(err);
+        setStatus(msg, true);
+        appendMessage(tickersValue + " • error", (err && err.message) || String(err), "conversation", "error");
       } finally {
         btn.disabled = false;
+        btn.classList.remove("loading");
         btnLabel.textContent = "Run analysis";
       }
     }
@@ -2410,16 +3846,21 @@
       const summaryEl = $("screenerSummary");
       const minDte = $("minDteInput");
       const maxDte = $("maxDteInput");
+      const valueTickers = $("valueTickers");
+      const valueSummary = $("valueScreenerSummary");
       if (tickersEl) tickersEl.value = "";
       if (minVol) minVol.value = "500";
       if (maxSpread) maxSpread.value = "30";
       if (minDte) minDte.value = "0";
       if (maxDte) maxDte.value = "30";
+      if (valueTickers) valueTickers.value = "";
+      if (valueSummary) { valueSummary.textContent = "No results yet. Run value screener."; valueSummary.classList.remove("error"); }
       if (summaryEl) {
         summaryEl.textContent = "No results yet. Set tickers above and timeframe on Analysis, then run screener.";
         summaryEl.classList.remove("error");
       }
       renderScreenerTable([]);
+      renderValueScreenerTable([]);
     }
 
     function _defaultDteForTimeframe() {
@@ -2495,9 +3936,12 @@
           summaryEl.classList.remove("error");
         }
         setStatus("Screener complete.");
+        showToast("Screener complete.");
       } catch (err) {
-        setStatus("Screener request failed. Check filters or backend.", true);
-        summaryEl.textContent = "Error running screener.";
+        const msg = friendlyErrorMessage(err);
+        setStatus(msg, true);
+        summaryEl.innerHTML = (msg || "Error running screener.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="runScreener()">Retry</button>';
+        summaryEl.classList.add("error");
       } finally {
         btn.disabled = false;
         btnLabel.textContent = "Run screener";
@@ -2539,12 +3983,14 @@
           }
         }
         setStatus("Stock screener complete.");
+        showToast("Stock screener complete.");
       } catch (err) {
+        const msg = friendlyErrorMessage(err);
+        setStatus(msg, true);
         if (summaryEl) {
-          summaryEl.textContent = "Error running stock screener.";
+          summaryEl.innerHTML = (msg || "Error running stock screener.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="runScreener()">Retry</button>';
           summaryEl.classList.add("error");
         }
-        setStatus("Stock screener request failed. Check backend.", true);
       } finally {
         btn.disabled = false;
         btnLabel.textContent = "Run screener";
@@ -2600,25 +4046,79 @@
           }
         }
         setStatus("Multi-asset scan complete.");
+        showToast("Multi-asset scan complete.");
       } catch (err) {
+        const msg = friendlyErrorMessage(err);
+        setStatus(msg, true);
         if (summaryEl) {
-          summaryEl.textContent = "Error running multi-asset scan.";
+          summaryEl.innerHTML = (msg || "Error running multi-asset scan.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="runScreener()">Retry</button>';
           summaryEl.classList.add("error");
         }
-        setStatus("Multi-asset scan failed. Check backend.", true);
       } finally {
         btn.disabled = false;
         btnLabel.textContent = "Run screener";
       }
     }
 
+    function renderValueScreenerTable(rows) {
+      const tbody = $("valueScreenerBody");
+      const summary = $("valueScreenerSummary");
+      if (!tbody) return;
+      if (!rows || !rows.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:16px;">No data. Run value screener above.</td></tr>';
+        if (summary) summary.textContent = "No stocks matched the value filters.";
+        return;
+      }
+      tbody.innerHTML = rows.map(r => {
+        const mc = r.market_cap_b != null ? r.market_cap_b + "B" : "-";
+        const pe = r.pe != null ? Number(r.pe).toFixed(1) : "-";
+        const div = r.div_yield_pct != null ? Number(r.div_yield_pct).toFixed(2) + "%" : "-";
+        const eps = r.eps_growth_pct != null ? Number(r.eps_growth_pct).toFixed(1) + "%" : "-";
+        const m3 = r.momentum_3m_pct != null ? Number(r.momentum_3m_pct).toFixed(1) + "%" : "-";
+        const m6 = r.momentum_6m_pct != null ? Number(r.momentum_6m_pct).toFixed(1) + "%" : "-";
+        const above = r.above_ma200 ? "Y" : "N";
+        const last = r.last_price != null ? Number(r.last_price).toFixed(2) : "-";
+        return "<tr><td>" + (r.symbol || "") + "</td><td>" + last + "</td><td>" + mc + "</td><td>" + pe + "</td><td>" + div + "</td><td>" + eps + "</td><td>" + m3 + "</td><td>" + m6 + "</td><td>" + above + "</td></tr>";
+      }).join("");
+      if (summary) summary.textContent = rows.length + " stock(s) matched value filters.";
+    }
+
+    async function runValueScreener() {
+      const tickersEl = $("valueTickers");
+      const tickersValue = (tickersEl && tickersEl.value && tickersEl.value.trim()) ? tickersEl.value.trim() : "AAPL,MSFT,JPM,XOM,PG,JNJ";
+      const minCap = $("valueMinMarketCap").value || "10";
+      const maxPE = $("valueMaxPE").value || "25";
+      const minDiv = $("valueMinDivYield").value || "0";
+      const minEps = $("valueMinEpsGrowth").value || "0";
+      const summary = $("valueScreenerSummary");
+      if (summary) summary.textContent = "Running value screener...";
+      try {
+        const params = new URLSearchParams({
+          tickers: tickersValue,
+          min_market_cap_b: minCap,
+          max_pe: maxPE,
+          min_div_yield: minDiv,
+          min_eps_growth: minEps,
+        });
+        const res = await fetch("/value-screener?" + params.toString(), { headers: apiHeaders() });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        renderValueScreenerTable(data.rows || []);
+        showToast("Value screener complete.");
+      } catch (e) {
+        renderValueScreenerTable([]);
+        if (summary) {
+          const msg = friendlyErrorMessage(e);
+          summary.innerHTML = (msg || "Value screener failed.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="runScreener()">Retry</button>';
+          summary.classList.add("error");
+        }
+      }
+    }
+
     async function runScreener() {
-      if (currentScreenerTab === "stocks") {
-        return runStockScreener();
-      }
-      if (currentScreenerTab === "multi") {
-        return runMultiAssetScan();
-      }
+      if (currentScreenerTab === "stocks") return runStockScreener();
+      if (currentScreenerTab === "multi") return runMultiAssetScan();
+      if (currentScreenerTab === "value") return runValueScreener();
       return runOptionsScreener();
     }
 
@@ -2634,14 +4134,27 @@
     }
 
     function clearChat() {
+      if (!confirm("Clear all chat history? This cannot be undone.")) return;
       chatHistory = [];
       localStorage.removeItem("odteai_chat_history");
-      $("chatConversation").innerHTML = "";
+      const convo = $("chatConversation");
+      if (convo) { convo.innerHTML = ""; convo.style.display = "none"; }
+      const welcome = $("chatWelcome");
+      if (welcome) welcome.classList.remove("hidden");
       setChatStatus("Cleared.");
       chatFiles = [];
       const fileInput = $("chatFileInput");
       if (fileInput) fileInput.value = "";
       updateChatFilesHint();
+    }
+
+    function initChatQuickPrompts() {
+      document.querySelectorAll(".chat-quick-prompt").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const p = this.getAttribute("data-prompt") || "";
+          if (p && $("chatInput")) { $("chatInput").value = p; runChat(); }
+        });
+      });
     }
 
     async function runChat() {
@@ -2696,8 +4209,9 @@
 
         setNotificationDot("panelChat", true);
         setChatStatus("Done.");
+        showToast("Reply received.");
       } catch (err) {
-        setChatStatus("Chat failed.", true);
+        setChatStatus(friendlyErrorMessage(err), true);
         appendMessage("error", String(err), "chatConversation", "error");
       } finally {
         showTypingIndicator(false);
@@ -2722,26 +4236,27 @@
       const btn = $("backtestBtn");
       const btnLabel = $("backtestBtnLabel");
 
-      const tickersValue = (tickersEl && tickersEl.value && tickersEl.value.trim()) ? tickersEl.value.trim() : "";
-      if (!tickersValue) {
-        statusEl.textContent = "Enter at least one ticker.";
+      const tickersParsed = parseTickers(tickersEl && tickersEl.value ? tickersEl.value : "");
+      if (!tickersParsed.length) {
+        statusEl.textContent = "Enter at least one ticker (e.g. SPY, QQQ).";
         statusEl.classList.add("error");
         return;
       }
-
-      const years = yearsEl ? yearsEl.value || "3" : "3";
-      const holdingDays = holdingEl ? holdingEl.value || "5" : "5";
+      const tickersValue = tickersParsed.join(",");
+      const years = clampNum(yearsEl ? yearsEl.value : "3", 1, 5, 3);
+      const holdingDays = clampNum(holdingEl ? holdingEl.value : "5", 1, 60, 5);
 
       statusEl.textContent = "Running backtest...";
       statusEl.classList.remove("error");
       btn.disabled = true;
+      btn.classList.add("loading");
       btnLabel.textContent = "Running…";
 
       try {
         const params = new URLSearchParams({
           tickers: tickersValue,
-          years: String(years),
-          holding_days: String(holdingDays),
+          years: years,
+          holding_days: holdingDays,
           direction: currentBacktestDirection,
         });
         const res = await fetch("/backtest?" + params.toString(), { headers: apiHeaders() });
@@ -2752,6 +4267,80 @@
         const data = await res.json();
         const portfolio = data.portfolio || {};
         const symMetrics = data.symbols || {};
+
+        // Equity curve chart
+        const chartWrap = $("backtestEquityChartWrap");
+        const statsGrid = $("backtestStatsGrid");
+        const explainEl = $("backtestExplain");
+        const curve = portfolio.equity_curve || [];
+        if (curve.length > 0) {
+          await loadChartJs();
+          chartWrap.style.display = "block";
+          const canvas = document.getElementById("backtestEquityChart");
+          if (window._backtestChart) window._backtestChart.destroy();
+          window._backtestChart = new Chart(canvas, {
+            type: "line",
+            data: {
+              labels: curve.map((_, i) => "Trade " + (i + 1)),
+              datasets: [{
+                label: "Equity",
+                data: curve,
+                borderColor: "#3B82F6",
+                backgroundColor: "rgba(59, 130, 246, 0.1)",
+                fill: true,
+                tension: 0.2,
+              }],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { maxTicksLimit: 10, color: "var(--text-muted)" } },
+                y: { ticks: { color: "var(--text-muted)" }, beginAtZero: false },
+              },
+            },
+          });
+        } else {
+          chartWrap.style.display = "none";
+        }
+
+        // Stats grid
+        const totalTrades = portfolio.total_trades ?? Object.values(symMetrics).reduce((s, m) => s + (m.num_trades || 0), 0);
+        const avgWinRate = portfolio.avg_win_rate_pct ?? (Object.values(symMetrics).length ? Object.values(symMetrics).reduce((s, m) => s + (m.win_rate_pct || 0), 0) / Object.values(symMetrics).length : 0);
+        const avgPnl = portfolio.avg_trade_return_pct ?? (Object.values(symMetrics).length ? Object.values(symMetrics).reduce((s, m) => s + (m.avg_trade_return_pct || 0), 0) / Object.values(symMetrics).length : 0);
+        statsGrid.style.display = "block";
+        statsGrid.innerHTML = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:8px; margin-bottom:12px;">' +
+          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Win Rate</div><div style="font-weight:600;">' + avgWinRate + '%</div></div>' +
+          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Total Trades</div><div style="font-weight:600;">' + totalTrades + '</div></div>' +
+          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Avg P&L/Trade</div><div style="font-weight:600;">' + avgPnl + '%</div></div>' +
+          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Sharpe</div><div style="font-weight:600;">' + (portfolio.avg_sharpe ?? "n/a") + '</div></div>' +
+          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Max Drawdown</div><div style="font-weight:600;">' + (portfolio.approx_max_drawdown_pct ?? "n/a") + '%</div></div>' +
+          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">CAGR</div><div style="font-weight:600;">' + (portfolio.approx_cagr_pct ?? "n/a") + '%</div></div>' +
+          '</div>';
+
+        // Strategy explanation (AI)
+        explainEl.style.display = "none";
+        explainEl.innerHTML = "";
+        try {
+          const explainRes = await fetch("/explain-backtest", {
+            method: "POST",
+            headers: { ...apiHeaders(), "Content-Type": "application/json" },
+            body: JSON.stringify({
+              portfolio,
+              symbols: symMetrics,
+              years: parseInt(years, 10),
+              holding_days: parseInt(holdingDays, 10),
+            }),
+          });
+          if (explainRes.ok) {
+            const expData = await explainRes.json();
+            if (expData.explanation) {
+              explainEl.innerHTML = '<div style="font-weight:600; margin-bottom:6px;">Strategy explanation</div><div style="white-space:pre-wrap; font-size:13px; line-height:1.5;">' + (expData.explanation || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;") + '</div>';
+              explainEl.style.display = "block";
+            }
+          }
+        } catch (_) { /* ignore if explain fails */ }
 
         // Build a nicer HTML summary with cards + beginner-friendly table
         const lines = [];
@@ -2809,13 +4398,26 @@
         }
 
         resultsEl.innerHTML = lines.join("");
+        try { localStorage.setItem("trademinds_last_tickers", tickersValue); } catch (_) {}
+        lastBacktestData = { portfolio, symbols: symMetrics, equity_curve: portfolio.equity_curve || [], years, holdingDays, tickersValue };
+        const exportRow = $("backtestExportRow");
+        if (exportRow) exportRow.style.display = "block";
         statusEl.textContent = "Backtest complete.";
+        showToast("Backtest complete.");
       } catch (err) {
-        statusEl.textContent = "Backtest failed.";
+        const msg = friendlyErrorMessage(err);
+        statusEl.innerHTML = (msg || "Backtest failed.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="runBacktest()">Retry</button>';
         statusEl.classList.add("error");
         resultsEl.textContent = String(err);
+        const cw = $("backtestEquityChartWrap"), sg = $("backtestStatsGrid"), ex = $("backtestExplain"), er = $("backtestExportRow");
+        if (cw) cw.style.display = "none";
+        if (sg) { sg.style.display = "none"; sg.innerHTML = ""; }
+        if (ex) { ex.style.display = "none"; ex.innerHTML = ""; }
+        if (er) er.style.display = "none";
+        lastBacktestData = null;
       } finally {
         btn.disabled = false;
+        btn.classList.remove("loading");
         btnLabel.textContent = "Run backtest";
       }
     }
@@ -2828,23 +4430,25 @@
       const btn = $("forecastBtn");
       const btnLabel = $("forecastBtnLabel");
 
-      const tickerVal = (tickerEl && tickerEl.value && tickerEl.value.trim()) ? tickerEl.value.trim() : "";
+      const tickerParsed = parseTickers(tickerEl && tickerEl.value ? tickerEl.value : "");
+      const tickerVal = tickerParsed.length ? tickerParsed[0] : "";
       if (!tickerVal) {
-        statusEl.textContent = "Enter a ticker to forecast.";
+        statusEl.textContent = "Enter a ticker to forecast (e.g. AMZN).";
         statusEl.classList.add("error");
         return;
       }
-      const years = yearsEl ? yearsEl.value || "3" : "3";
+      const years = clampNum(yearsEl ? yearsEl.value : "3", 1, 5, 3);
 
       statusEl.textContent = "Running forecast...";
       statusEl.classList.remove("error");
       btn.disabled = true;
+      btn.classList.add("loading");
       btnLabel.textContent = "Running…";
 
       try {
         const params = new URLSearchParams({
           ticker: tickerVal,
-          years: String(years),
+          years: years,
         });
         const res = await fetch("/forecast?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
@@ -2853,6 +4457,45 @@
         }
         const data = await res.json();
         const text = data.forecast_text || JSON.stringify(data, null, 2);
+
+        // Price trend chart: history (solid) + forecast overlay (dashed)
+        const chartWrap = $("forecastChartWrap");
+        const histDates = data.history_dates || [];
+        const histPrices = data.history_prices || [];
+        const fcastDates = data.forecast_dates || [];
+        const fcastPrices = data.forecast_prices || [];
+        if (histDates.length && histPrices.length && fcastDates.length && fcastPrices.length) {
+          await loadChartJs();
+          chartWrap.style.display = "block";
+          const canvas = document.getElementById("forecastChart");
+          if (window._forecastChart) window._forecastChart.destroy();
+          const lastHistPrice = histPrices[histPrices.length - 1];
+          const labels = histDates.concat(fcastDates);
+          const historyData = histPrices.concat(Array(fcastDates.length).fill(null));
+          const forecastData = Array(histDates.length - 1).fill(null).concat([lastHistPrice], fcastPrices);
+          window._forecastChart = new Chart(canvas, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                { label: "History", data: historyData, borderColor: "#3B82F6", backgroundColor: "rgba(59, 130, 246, 0.08)", fill: true, tension: 0.2 },
+                { label: "AI forecast", data: forecastData, borderColor: "#8B5CF6", borderDash: [6, 4], tension: 0.2 },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { intersect: false, mode: "index" },
+              plugins: { legend: { display: true } },
+              scales: {
+                x: { ticks: { maxTicksLimit: 12, color: "var(--text-muted)" } },
+                y: { ticks: { color: "var(--text-muted)" }, beginAtZero: false },
+              },
+            },
+          });
+        } else {
+          chartWrap.style.display = "none";
+        }
 
         // Turn raw numbered forecast text into structured, beginner-friendly blocks
         const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
@@ -2874,13 +4517,24 @@
           }
         });
         resultsEl.innerHTML = htmlParts.join("");
+        lastForecastData = data;
+        const fExportRow = $("forecastExportRow");
+        if (fExportRow) fExportRow.style.display = "block";
         statusEl.textContent = "Forecast complete.";
+        showToast("Forecast complete.");
       } catch (err) {
-        statusEl.textContent = "Forecast failed.";
+        const msg = friendlyErrorMessage(err);
+        statusEl.innerHTML = (msg || "Forecast failed.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="runForecast()">Retry</button>';
         statusEl.classList.add("error");
         resultsEl.textContent = String(err);
+        const cw = $("forecastChartWrap");
+        if (cw) cw.style.display = "none";
+        const fExportRow = $("forecastExportRow");
+        if (fExportRow) fExportRow.style.display = "none";
+        lastForecastData = null;
       } finally {
         btn.disabled = false;
+        btn.classList.remove("loading");
         btnLabel.textContent = "Run forecast";
       }
     }
