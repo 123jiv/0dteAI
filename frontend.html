@@ -181,6 +181,12 @@
       flex-shrink: 0;
       font-size: 16px;
     }
+    .logo-mark {
+      font-weight: 800;
+      letter-spacing: -0.06em;
+      color: inherit;
+    }
+    .app-sidebar .brand-icon .logo-mark { color: #fff; font-size: 16px; }
     .app-sidebar .brand-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .app-sidebar .brand-text {
       font-size: 16px;
@@ -503,6 +509,7 @@
       transform: translateY(-2px);
     }
     .quick-tool-card .icon { width: 40px; height: 40px; border-radius: var(--radius); background: var(--accent-muted); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--primary); }
+    .quick-tool-card .icon .quick-icon { width: 22px; height: 22px; flex-shrink: 0; }
     .quick-tool-card .label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
     .quick-tool-card .desc { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
@@ -920,6 +927,7 @@
       font-size: 28px;
       margin-bottom: var(--space-4);
     }
+    .chat-welcome-icon .logo-mark { color: rgba(255,255,255,0.95); font-size: 28px; }
     .chat-welcome-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
     .chat-welcome-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-6); }
     .chat-quick-prompts {
@@ -1095,6 +1103,21 @@
     .screener-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
     .screener-subtitle { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
+    .screener-style-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .screener-style-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .chip-row-inline { display: flex; flex-wrap: wrap; gap: 8px; }
+    .screener-options-only { display: flex; flex-wrap: wrap; align-items: center; gap: 0; }
     .screener-controls {
       display: flex;
       flex-wrap: wrap;
@@ -1299,6 +1322,7 @@
       text-align: center;
       margin-bottom: 4px;
     }
+    #pageLogin .login-logo .logo-mark { color: var(--primary); margin-right: 4px; }
     #pageLogin .login-tagline {
       font-size: 12px;
       color: var(--text-secondary);
@@ -1941,7 +1965,7 @@
     <div id="pageLogin" class="page active">
       <div class="login-wrap">
         <div class="login-card" id="loginCard">
-          <div class="login-logo">🌿 Project Midori</div>
+          <div class="login-logo"><span class="logo-mark">M</span> Project Midori</div>
           <div class="login-tagline">Grow your edge.</div>
 
           <div class="field">
@@ -1994,7 +2018,7 @@
       <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
       <aside class="app-sidebar">
         <a href="#/dashboard" class="brand" id="brandLink">
-          <div class="brand-icon">🌿</div>
+          <div class="brand-icon"><span class="logo-mark">M</span></div>
           <div class="brand-title">
             <span class="brand-text">Project Midori</span>
             <span class="brand-tag">Grow your edge</span>
@@ -2103,11 +2127,11 @@
 
           <h2 class="section-title" style="font-size:14px; margin-bottom:12px;">Quick tools</h2>
           <div class="quick-tools-grid">
-            <a href="#/analysis" class="quick-tool-card"><div class="icon">📊</div><div><div class="label">Analysis</div><div class="desc">AI scenario analysis</div></div></a>
-            <a href="#/screener" class="quick-tool-card"><div class="icon">🔍</div><div><div class="label">Screener</div><div class="desc">Filter options & stocks</div></div></a>
-            <a href="#/chat" class="quick-tool-card"><div class="icon">💬</div><div><div class="label">Chat</div><div class="desc">Ask trading questions</div></div></a>
-            <a href="#/signals" class="quick-tool-card"><div class="icon">⚡</div><div><div class="label">Signals</div><div class="desc">AI-ranked setups</div></div></a>
-            <a href="#/backtest" class="quick-tool-card"><div class="icon">📈</div><div><div class="label">Backtest</div><div class="desc">Historical performance</div></div></a>
+            <a href="#/analysis" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></div><div><div class="label">Analysis</div><div class="desc">AI scenario analysis</div></div></a>
+            <a href="#/screener" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div><div class="label">Screener</div><div class="desc">Filter options & stocks</div></div></a>
+            <a href="#/chat" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><div class="label">Chat</div><div class="desc">Ask trading questions</div></div></a>
+            <a href="#/signals" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div><div class="label">Signals</div><div class="desc">AI-ranked setups</div></div></a>
+            <a href="#/backtest" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/><path d="M8 21l4-4 4 4"/></svg></div><div><div class="label">Backtest</div><div class="desc">Historical performance</div></div></a>
             <a href="#/confidence" class="quick-tool-card"><div class="icon">🎯</div><div><div class="label">Confidence</div><div class="desc">Metrics & stats</div></div></a>
           </div>
 
@@ -2125,10 +2149,10 @@
           </div>
           <div class="chip-row" style="margin-bottom:16px; padding:12px; background:var(--bg-surface); border-radius:var(--radius); border:1px solid var(--border);">
             <span style="font-size:11px; color:var(--text-secondary); margin-right:8px; align-self:center;">Mode:</span>
-            <button type="button" class="chip active" data-trading-mode="0dte">⚡ 0DTE</button>
-            <button type="button" class="chip" data-trading-mode="swing">📅 Swing</button>
-            <button type="button" class="chip" data-trading-mode="longterm">🌱 Long-Term</button>
-            <button type="button" class="chip" data-trading-mode="stockonly">📊 Stocks Only</button>
+            <button type="button" class="chip active" data-trading-mode="0dte">0DTE</button>
+            <button type="button" class="chip" data-trading-mode="swing">Swing</button>
+            <button type="button" class="chip" data-trading-mode="longterm">Long-Term</button>
+            <button type="button" class="chip" data-trading-mode="stockonly">Stocks Only</button>
           </div>
           <div class="input-shell">
             <div class="input-row">
@@ -2190,33 +2214,43 @@
             <h1 class="page-title">Screener</h1>
             <p class="page-desc">Filter options and stocks by volume, spread, and DTE. Timeframe presets live on Analysis; you can override DTE here.</p>
           </div>
-          <div class="chip-row" style="margin-bottom:10px;">
+          <div class="chip-row screener-tabs" style="margin-bottom:14px;">
             <button type="button" class="chip active" data-screener-tab="options">Options</button>
             <button type="button" class="chip" data-screener-tab="stocks">Stocks</button>
             <button type="button" class="chip" data-screener-tab="multi">Multi-asset</button>
             <button type="button" class="chip" data-screener-tab="value">Long-Term Value</button>
           </div>
           <div class="card" id="screenerOptionsCard" style="margin-bottom:16px;">
+            <div id="screenerStyleRow" class="screener-style-row" style="margin-bottom:12px;">
+              <span class="screener-style-label">Trading style</span>
+              <div class="chip-row chip-row-inline">
+                <button type="button" class="chip" data-screener-style="day">Day trading</button>
+                <button type="button" class="chip active" data-screener-style="swing">Swing</button>
+                <button type="button" class="chip" data-screener-style="longterm">Long-term</button>
+              </div>
+            </div>
             <div class="screener-controls">
               <div class="screener-control screener-tickers-wrap">
                 <span>Tickers</span>
                 <input id="screenerTickers" class="pill-input" type="text" value="" placeholder="e.g. SPY, QQQ, IWM">
               </div>
-              <div class="screener-control">
-                <span>Min vol</span>
-                <input id="minVolumeInput" class="screener-number" type="number" value="500" min="0" step="100">
-              </div>
-              <div class="screener-control">
-                <span>Max spread %</span>
-                <input id="maxSpreadInput" class="screener-number" type="number" value="30" min="0" step="1">
-              </div>
-              <div class="screener-control">
-                <span>Min DTE</span>
-                <input id="minDteInput" class="screener-number" type="number" value="0" min="0" step="1">
-              </div>
-              <div class="screener-control">
-                <span>Max DTE</span>
-                <input id="maxDteInput" class="screener-number" type="number" value="30" min="0" step="1">
+              <div id="screenerOptionsOnly" class="screener-options-only">
+                <div class="screener-control">
+                  <span>Min vol</span>
+                  <input id="minVolumeInput" class="screener-number" type="number" value="500" min="0" step="100">
+                </div>
+                <div class="screener-control">
+                  <span>Max spread %</span>
+                  <input id="maxSpreadInput" class="screener-number" type="number" value="30" min="0" step="1">
+                </div>
+                <div class="screener-control">
+                  <span>Min DTE</span>
+                  <input id="minDteInput" class="screener-number" type="number" value="2" min="0" step="1">
+                </div>
+                <div class="screener-control">
+                  <span>Max DTE</span>
+                  <input id="maxDteInput" class="screener-number" type="number" value="30" min="0" step="1">
+                </div>
               </div>
               <button type="button" class="btn" onclick="runScreener()" style="margin-left:12px;">Run screener</button>
               <button type="button" class="btn secondary" onclick="resetScreenerFilters()">Reset filters</button>
@@ -2225,7 +2259,7 @@
                 <option value="">Load preset…</option>
               </select>
             </div>
-            <p class="page-desc" style="margin-top:8px; margin-bottom:0;">For Options tab, timeframe presets come from Analysis (e.g. Intraday / 0DTE), but Min/Max DTE here win if set.</p>
+            <p class="page-desc screener-options-only page-desc-dte" style="margin-top:8px; margin-bottom:0;">Options: Min/Max DTE set by trading style; override above if needed.</p>
             <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers above and timeframe on Analysis, then run screener.</div>
             <div id="stockScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
             <div id="multiScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
@@ -2312,7 +2346,7 @@
           </div>
           <div class="chat-page-layout">
             <div class="chat-welcome" id="chatWelcome">
-              <div class="chat-welcome-icon">🌿</div>
+              <div class="chat-welcome-icon"><span class="logo-mark">M</span></div>
               <div class="chat-welcome-title" id="chatWelcomeGreeting">Good morning, I'm Midori.</div>
               <div class="chat-welcome-sub">Ask me anything about trading, options, or investing.</div>
               <div class="chat-quick-prompts">
@@ -2530,7 +2564,8 @@
     let currentTimeframe = "intraday";
     let currentAnalysisType = "options";
     let currentTradingMode = "0dte"; // 0dte | swing | longterm | stockonly
-    let currentScreenerTab = "options"; // options | stocks | multi
+    let currentScreenerTab = "options"; // options | stocks | multi | value
+    let currentScreenerStyle = "swing";   // day | swing | longterm (Options: DTE presets; Stocks: style param)
     let currentStockStyle = "momentum";
     let currentBacktestDirection = "long";
     let currentSignalMode = "0dte";
@@ -3442,8 +3477,14 @@
           const valueCard = $("screenerValueCard");
           const stockSummary = $("stockScreenerSummary");
           const multiSummary = $("multiScreenerSummary");
+          const styleRow = $("screenerStyleRow");
+          const optionsOnly = document.querySelector(".screener-options-only");
           if (optCard) optCard.style.display = currentScreenerTab === "value" ? "none" : "block";
           if (valueCard) valueCard.style.display = currentScreenerTab === "value" ? "block" : "none";
+          if (styleRow) styleRow.style.display = (currentScreenerTab === "options" || currentScreenerTab === "stocks") ? "flex" : "none";
+          if (optionsOnly) optionsOnly.style.display = (currentScreenerTab === "options" || currentScreenerTab === "multi") ? "flex" : "none";
+          const dteDesc = document.querySelector(".page-desc-dte");
+          if (dteDesc) dteDesc.style.display = (currentScreenerTab === "options" || currentScreenerTab === "multi") ? "block" : "none";
           if (optWrap && stockWrap && multiWrap && valueWrap) {
             optWrap.style.display = currentScreenerTab === "options" ? "block" : "none";
             stockWrap.style.display = currentScreenerTab === "stocks" ? "block" : "none";
@@ -3453,6 +3494,20 @@
           if (stockSummary && multiSummary) {
             stockSummary.style.display = currentScreenerTab === "stocks" ? "block" : "none";
             multiSummary.style.display = currentScreenerTab === "multi" ? "block" : "none";
+          }
+        });
+      });
+      document.querySelectorAll('.chip[data-screener-style]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip[data-screener-style]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentScreenerStyle = chip.getAttribute('data-screener-style');
+          const minDteEl = $("minDteInput");
+          const maxDteEl = $("maxDteInput");
+          if (minDteEl && maxDteEl) {
+            const dte = { day: { min: 0, max: 1 }, swing: { min: 2, max: 30 }, longterm: { min: 31, max: 365 } }[currentScreenerStyle] || { min: 2, max: 30 };
+            minDteEl.value = String(dte.min);
+            maxDteEl.value = String(dte.max);
           }
         });
       });
@@ -3702,7 +3757,7 @@
         }
         const avatar = document.createElement("div");
         avatar.className = "message-avatar";
-        avatar.textContent = "🌿";
+        avatar.textContent = "M";
         rowWrap.appendChild(avatar);
       }
 
@@ -3819,7 +3874,7 @@
       const list = $("signalsList");
       if (btn) { btn.disabled = true; }
       if (label) { label.textContent = "Scanning…"; }
-      if (placeholder) { placeholder.style.display = "block"; placeholder.innerHTML = '<span class="signals-loading-text">🌿 Midori is scanning the market...</span>'; placeholder.classList.remove("error"); }
+      if (placeholder) { placeholder.style.display = "block"; placeholder.innerHTML = '<span class="signals-loading-text">Midori is scanning the market...</span>'; placeholder.classList.remove("error"); }
       if (list) list.innerHTML = "";
       try {
         const params = new URLSearchParams({ tickers: tickersValue, limit: "3", mode: currentSignalMode || "0dte" });
@@ -4455,6 +4510,10 @@
           return { min: 0, max: 30 };
       }
     }
+    function _defaultDteForScreenerStyle() {
+      const dte = { day: { min: 0, max: 1 }, swing: { min: 2, max: 30 }, longterm: { min: 31, max: 365 } };
+      return dte[currentScreenerStyle] || dte.swing;
+    }
 
     async function runOptionsScreener() {
       const tickersEl = $("screenerTickers") || $("tickers");
@@ -4465,8 +4524,8 @@
       const btnLabel = $("screenerBtnLabel");
       const summaryEl = $("screenerSummary");
 
-       // DTE handling
-      const dteDefaults = _defaultDteForTimeframe();
+       // DTE handling: screener style (day/swing/longterm) drives defaults when on Options tab
+      const dteDefaults = _defaultDteForScreenerStyle();
       let minDteVal = $("minDteInput").value;
       let maxDteVal = $("maxDteInput").value;
       let minDte = minDteVal === "" ? dteDefaults.min : Number(minDteVal);
@@ -4537,10 +4596,12 @@
       btn.disabled = true;
       btnLabel.textContent = "Screening…";
 
+      // Map screener style to API: day/swing -> momentum, longterm -> value
+      const stockStyleParam = currentScreenerStyle === "longterm" ? "value" : "momentum";
       try {
         const params = new URLSearchParams({
           tickers: tickersValue,
-          style: currentStockStyle,
+          style: stockStyleParam,
         });
         const res = await fetch("/stock-screener?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
@@ -4553,10 +4614,10 @@
         const count = rows.length || 0;
         if (summaryEl) {
           if (count === 0) {
-            summaryEl.textContent = "No stocks matched the " + currentStockStyle + " filter for these tickers.";
+            summaryEl.textContent = "No stocks matched the " + stockStyleParam + " filter for these tickers.";
             summaryEl.classList.add("error");
           } else {
-            summaryEl.textContent = count + " stock" + (count === 1 ? "" : "s") + " scanned (" + currentStockStyle + " style).";
+            summaryEl.textContent = count + " stock" + (count === 1 ? "" : "s") + " scanned (" + stockStyleParam + " style).";
             summaryEl.classList.remove("error");
           }
         }
