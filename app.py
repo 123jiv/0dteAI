@@ -642,34 +642,58 @@ def value_screener(
     if not symbols:
         raise HTTPException(status_code=400, detail="No valid tickers provided")
 
-    rows: List[Dict[str, Any]] = []
-    for sym in symbols:
-        try:
-            factors = compute_stock_factors(sym)
-        except Exception as e:
-            print("Value screener skipping %s: %s" % (sym, e))
-            continue
+    def _run_value_filter(
+        min_cap: float,
+        max_pe: float,
+        min_div: float,
+        min_eps: float,
+    ) -> List[Dict[str, Any]]:
+        out_rows: List[Dict[str, Any]] = []
+        for sym in symbols:
+            try:
+                factors = compute_stock_factors(sym)
+            except Exception as e:
+                print("Value screener skipping %s: %s" % (sym, e))
+                continue
 
-        mc = factors.get("market_cap")
-        mc_b = (float(mc) / 1e9) if mc else 0.0
-        pe = factors.get("pe")
-        div = factors.get("div_yield_pct") or 0.0
-        eps_gr = factors.get("eps_growth")
-        eps_gr_pct = float(eps_gr) * 100.0 if eps_gr is not None else None
+            mc = factors.get("market_cap")
+            mc_b = (float(mc) / 1e9) if mc else 0.0
+            pe = factors.get("pe")
+            div = factors.get("div_yield_pct") or 0.0
+            eps_gr = factors.get("eps_growth")
+            eps_gr_pct = float(eps_gr) * 100.0 if eps_gr is not None else None
 
-        if mc_b < min_market_cap_b:
-            continue
-        if pe is not None and pe > max_pe:
-            continue
-        if div < min_div_yield:
-            continue
-        if min_eps_growth > 0 and (eps_gr_pct is None or eps_gr_pct < min_eps_growth):
-            continue
+            if mc_b < min_cap:
+                continue
+            if pe is not None and pe > max_pe:
+                continue
+            if div < min_div:
+                continue
+            if min_eps > 0 and (eps_gr_pct is None or eps_gr_pct < min_eps):
+                continue
 
-        out = dict(factors)
-        out["market_cap_b"] = round(mc_b, 2)
-        out["eps_growth_pct"] = round(eps_gr_pct, 1) if eps_gr_pct is not None else None
-        rows.append(out)
+            out = dict(factors)
+            out["market_cap_b"] = round(mc_b, 2)
+            out["eps_growth_pct"] = round(eps_gr_pct, 1) if eps_gr_pct is not None else None
+            out_rows.append(out)
+        return out_rows
+
+    rows = _run_value_filter(
+        min_market_cap_b, max_pe, min_div_yield, min_eps_growth
+    )
+
+    # If nothing passes (e.g. NVDA with max P/E 25), show all tickers with relaxed filters
+    # so user can see actual metrics and adjust filters
+    if not rows:
+        rows = _run_value_filter(0.0, 999.0, -1.0, -999.0)
+        if rows:
+            return {
+                "rows": rows,
+                "tickers": symbols,
+                "relaxed": True,
+                "hint": "No stocks matched your filters. Showing all tickers with relaxed filters—check P/E, div yield, etc. and adjust.",
+            }
+        return {"rows": [], "tickers": symbols}
 
     return {"rows": rows, "tickers": symbols}
 
