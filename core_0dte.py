@@ -354,12 +354,29 @@ def _option_greeks(
     return {"delta": delta, "gamma": gamma, "theta": theta, "vega": vega}
 
 
+MIDORI_SYSTEM = (
+    "You are MIDORI, an elite AI trading analyst and educator with deep expertise in 0DTE options, "
+    "swing trading, technical analysis, options Greeks, risk management, and long-term value investing. "
+    "You have the analytical precision of a quant hedge fund, the clarity of the best trading educators, "
+    "and the strategic thinking of a seasoned portfolio manager.\n\n"
+    "You always:\n"
+    "- Ground your analysis in the current market context provided\n"
+    "- Give specific, actionable, structured analysis\n"
+    "- Explain the WHY behind every setup, not just the WHAT\n"
+    "- Quantify risk/reward wherever possible\n"
+    "- Flag any upcoming events that could impact the trade\n"
+    "- Think like an agent — anticipate what the user needs next and proactively include it\n\n"
+    "You never give generic advice. Every response is specific to current market conditions."
+)
+
+
 def build_prompt(
     symbol_snapshots: List[Dict[str, Any]],
     focus: str = "both",
     style: str = "balanced",
     timeframe: str = "intraday",
     analysis_type: str = "options",  # options | stocks | both
+    master_context: Optional[str] = None,
 ) -> str:
     spec = ZERO_DTE_SPEC.strip()
     if analysis_type == "stocks":
@@ -372,10 +389,12 @@ def build_prompt(
     elif analysis_type == "both":
         spec = spec + "\n\nYou are giving BOTH options ideas AND stock (equity) ideas for this run. For each ticker, output the usual options view AND a separate Stock idea section as described below."
 
-    lines = [
-        spec,
-        "\n\n---\n\nHere is the current market snapshot (delayed yfinance data):",
-    ]
+    lines = []
+    if master_context:
+        lines.append(master_context)
+        lines.append("")
+    lines.append(spec)
+    lines.append("\n\n---\n\nHere is the current market snapshot (delayed yfinance data):")
 
     for snap in symbol_snapshots:
         lines.append("\n### %s snapshot" % snap["symbol"])
@@ -502,21 +521,19 @@ def build_prompt(
     return "\n".join(lines)
 
 
-def call_llm(prompt: str) -> str:
+def call_llm(prompt: str, system_content: Optional[str] = None) -> str:
     client = OpenAI()
+    system = system_content or (
+        "You are a cautious options and market-scenario assistant. "
+        "You can discuss intraday 0DTE setups, short-term swings, and longer-term "
+        "multi-week or multi-month scenarios for any reasonably liquid US stock or ETF. "
+        "Always stay educational, avoid promises, and highlight that options and "
+        "price targets are uncertain and can be wrong."
+    )
     resp = client.chat.completions.create(
         model="gpt-4.1-mini",
         messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a cautious options and market-scenario assistant. "
-                    "You can discuss intraday 0DTE setups, short-term swings, and longer-term "
-                    "multi-week or multi-month scenarios for any reasonably liquid US stock or ETF. "
-                    "Always stay educational, avoid promises, and highlight that options and "
-                    "price targets are uncertain and can be wrong."
-                ),
-            },
+            {"role": "system", "content": system},
             {"role": "user", "content": prompt},
         ],
         temperature=0.4,
@@ -530,6 +547,7 @@ def analyze_symbols(
     style: str = "balanced",
     timeframe: str = "intraday",
     analysis_type: str = "options",
+    master_context: Optional[str] = None,
 ) -> str:
     snapshots: List[Dict[str, Any]] = []
     errors: List[str] = []
@@ -554,8 +572,8 @@ def analyze_symbols(
                 )
         raise RuntimeError(detail)
 
-    prompt = build_prompt(snapshots, focus=focus, style=style, timeframe=timeframe, analysis_type=analysis_type)
-    return call_llm(prompt)
+    prompt = build_prompt(snapshots, focus=focus, style=style, timeframe=timeframe, analysis_type=analysis_type, master_context=master_context)
+    return call_llm(prompt, system_content=MIDORI_SYSTEM)
 
 
 # ---------- Screener API helpers (with Greeks) ----------
@@ -1424,12 +1442,17 @@ def _build_signals_prompt(
     snapshots: List[Dict[str, Any]],
     screener_rows: List[Dict[str, Any]],
     confidence: Dict[str, Any],
+    master_context: Optional[str] = None,
 ) -> str:
-    lines = [
+    lines = []
+    if master_context:
+        lines.append(master_context)
+        lines.append("")
+    lines.extend([
         "Here is the current 0DTE snapshot and liquid contracts. Pick the top 1–3 setups RIGHT NOW.",
         "",
         "--- Snapshot summary ---",
-    ]
+    ])
     for snap in snapshots:
         sym = snap["symbol"]
         lines.append("%s: last=%.2f, exp=%s" % (sym, snap["last_price"], snap["expiration"]))
@@ -1454,7 +1477,7 @@ def _build_signals_prompt(
     return "\n".join(lines)
 
 
-def get_top_signals(symbols: List[str], limit: int = 3) -> List[Dict[str, Any]]:
+def get_top_signals(symbols: List[str], limit: int = 3, master_context: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Fetch snapshots, screener, and confidence; ask LLM for top N 0DTE setups.
     Returns list of { rank, ticker, type, strike_zone, headline, reason }.
@@ -1480,7 +1503,7 @@ def get_top_signals(symbols: List[str], limit: int = 3) -> List[Dict[str, Any]]:
     all_rows.sort(key=lambda r: (-r["volume"], r["spread_pct"], abs(r["moneyness_pct"])))
     confidence = compute_confidence_for_symbols(symbols)
 
-    prompt = _build_signals_prompt(snapshots, all_rows, confidence)
+    prompt = _build_signals_prompt(snapshots, all_rows, confidence, master_context=master_context)
 
     # Append VIX regime context so the model can tilt setups based on volatility
     try:
@@ -1501,11 +1524,17 @@ def get_top_signals(symbols: List[str], limit: int = 3) -> List[Dict[str, Any]]:
     except Exception as e:
         print("Signals VIX regime fetch failed: %s" % e)
 
+    signals_system = (
+        "You are MIDORI, an elite 0DTE signal engine. Given the PROJECT MIDORI MARKET CONTEXT above, "
+        "live snapshot data, screener rows, and confidence metrics, you pick the single best and top N "
+        "0DTE setups right now. Ground every signal in actual current conditions (VIX, trend, events). "
+        "You respond ONLY with valid JSON, no other text. Educational only; not trading advice."
+    )
     client = OpenAI()
     resp = client.chat.completions.create(
         model="gpt-4.1-mini",
         messages=[
-            {"role": "system", "content": SIGNALS_SYSTEM},
+            {"role": "system", "content": signals_system},
             {"role": "user", "content": prompt},
         ],
         temperature=0.3,

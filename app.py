@@ -26,6 +26,7 @@ from core_0dte import (
     backtest_symbols,
     forecast_symbol,
 )
+from master_context import build_master_context
 from openai import OpenAI
 
 app = FastAPI()
@@ -69,7 +70,12 @@ def service_worker():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "uptime_seconds": int(time.time() - _APP_START_TIME)}
+    return {
+        "status": "ok",
+        "uptime_seconds": int(time.time() - _APP_START_TIME),
+        "version": "Midori 2.0",
+        "last_data_refresh": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()),
+    }
 
 
 # ---------- Market data (free, no API key) ----------
@@ -190,7 +196,18 @@ def api_fear_greed():
             last = data["market_misc"][-1]
             score = last.get("y") or last.get("score") or score
             rating = last.get("label") or last.get("rating") or rating
-        result = {"score": score, "rating": rating, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())}
+        interpretation = ""
+        if score < 25:
+            interpretation = "Extreme fear — contrarian buy signals elevated"
+        elif score < 45:
+            interpretation = "Fear — cautious positioning recommended"
+        elif score < 55:
+            interpretation = "Neutral — follow technicals"
+        elif score < 75:
+            interpretation = "Greed — momentum favors bulls but watch for reversals"
+        else:
+            interpretation = "Extreme greed — elevated reversal risk"
+        result = {"score": score, "rating": rating, "interpretation": interpretation, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())}
         _FEAR_GREED_CACHE = result
         _FEAR_GREED_CACHE_TS = now
         return result
@@ -362,7 +379,8 @@ def analyze(
         analysis_type = "options"
 
     try:
-        result = analyze_symbols(symbols, focus=focus, style=style, timeframe=timeframe, analysis_type=analysis_type)
+        ctx = build_master_context()
+        result = analyze_symbols(symbols, focus=focus, style=style, timeframe=timeframe, analysis_type=analysis_type, master_context=ctx)
         confidence = compute_confidence_for_symbols(symbols)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -863,10 +881,13 @@ def explain_backtest(req: ExplainBacktestRequest, authorization: Optional[str] =
     years = req.years or 3
     holding_days = req.holding_days or 5
 
+    ctx = build_master_context()
     prompt = (
-        "You are a trading educator. Explain these backtest results in plain English for a real trader. "
+        ctx + "\n\n---\n\n"
+        "You are MIDORI, a trading educator. Explain these backtest results in plain English for a real trader. "
         "Be concise (2–4 short paragraphs). Cover: what the numbers mean, whether the strategy looks viable, "
-        "key risks (drawdown, win rate), and one practical takeaway. No jargon without brief explanation.\n\n"
+        "key risks (drawdown, win rate), and one practical takeaway. End with: ## 📊 What This Means For You — "
+        "[Plain English interpretation]. No jargon without brief explanation.\n\n"
         "Portfolio summary (equal-weight, %dy, %d-day holding): %s\n\n"
         "Per-symbol stats: %s"
     ) % (years, holding_days, json.dumps(portfolio, indent=2), json.dumps(symbols, indent=2))
@@ -875,7 +896,10 @@ def explain_backtest(req: ExplainBacktestRequest, authorization: Optional[str] =
         client = OpenAI()
         resp = client.chat.completions.create(
             model="gpt-4.1-mini",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": "You are MIDORI, an elite trading analyst. Be clear and concise. End with a section: ## 📊 What This Means For You"},
+                {"role": "user", "content": prompt},
+            ],
             temperature=0.3,
         )
         explanation = resp.choices[0].message.content or ""
@@ -925,8 +949,8 @@ def signals(
         raise HTTPException(status_code=400, detail="No valid tickers provided")
 
     try:
-        from datetime import datetime, timezone
-        signal_list = get_top_signals(symbols, limit=min(int(limit), 5))
+        ctx = build_master_context()
+        signal_list = get_top_signals(symbols, limit=min(int(limit), 5), master_context=ctx)
         return {
             "signals": signal_list,
             "tickers": symbols,
@@ -977,33 +1001,20 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(default=None)):
 
     at = req.analysis_type if req.analysis_type in ("options", "stocks", "both") else "options"
     base_prompt = build_prompt(snapshots, focus=req.focus, style=req.style, timeframe=req.timeframe, analysis_type=at)
+    ctx = build_master_context()
+    midori_system = (
+        "You are MIDORI, an elite AI trading analyst and educator with deep expertise in 0DTE options, "
+        "swing trading, technical analysis, options Greeks, risk management, and long-term value investing. "
+        "You always ground your analysis in the current market context provided. Use **bold** for key terms, "
+        "bullet points for lists, and ## headers for multi-section answers. End every response with "
+        "a single line: 💡 Midori's Tip: [one practical takeaway]. Educational only, not advice."
+    )
+    user_content = ctx + "\n\n---\n\n" + base_prompt
 
     client = OpenAI()
-
-    from datetime import datetime
-    now_et = datetime.now()
-    dow = now_et.strftime("%A")
-    dow_note = ""
-    if dow == "Monday":
-        dow_note = " It's Monday — 0DTE premium is typically lower at open."
-    elif dow == "Friday":
-        dow_note = " It's Friday — be mindful of weekend theta decay on weekly options."
-    system_content = (
-        "You are a seasoned trading educator and analyst with expertise in 0DTE options, "
-        "swing trading, technical analysis, and long-term value investing. You explain complex "
-        "concepts clearly, give structured actionable analysis, and always note this is "
-        "educational, not advice.\n\n"
-        "Context: Today is %s. Current date/time: %s.%s\n\n"
-        "Format: Use **bold** for key terms, bullet points for lists, and ## headers for "
-        "multi-section answers."
-    ) % (dow, now_et.strftime("%Y-%m-%d %H:%M ET"), dow_note)
-
     messages: List[Dict[str, Any]] = [
-        {"role": "system", "content": system_content},
-        {
-            "role": "user",
-            "content": base_prompt,
-        },
+        {"role": "system", "content": midori_system},
+        {"role": "user", "content": user_content},
     ]
 
     # Append prior chat history

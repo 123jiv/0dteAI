@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>ProjectMidori — AI-powered trading intelligence</title>
+  <title>Project Midori — AI Trading Intelligence</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="ProjectMidori — AI-powered analysis for options, stocks, and long-term investing. Educational only.">
+  <meta name="description" content="Project Midori: AI-powered analysis for options trading, swing trading, and long-term investing. Educational only.">
   <meta name="theme-color" content="#070B14">
   <link rel="manifest" href="/manifest.json">
   <script>
@@ -18,29 +18,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    /* ========== ProjectMidori Design System ========== */
+    /* ========== Project Midori Design System ========== */
     :root {
       /* Surfaces */
+      --bg-primary: #070B14;
       --bg-page: #070B14;
       --bg-surface: #0F1724;
       --bg-elevated: #161F30;
       --bg-card: #0F1724;
       --container-bg: #0F1724;
       --border: #1E2D45;
-      /* Accents */
-      --primary: #3B82F6;
-      --primary-hover: #2563EB;
-      --primary-muted: rgba(59, 130, 246, 0.15);
-      --secondary: #8B5CF6;
-      --accent: #3B82F6;
-      --accent-hover: #2563EB;
-      --accent-muted: rgba(59, 130, 246, 0.08);
+      /* Accents — green (Midori = green) */
+      --accent-primary: #22C55E;
+      --accent-secondary: #16A34A;
+      --accent-glow: rgba(34, 197, 94, 0.15);
+      --primary: #22C55E;
+      --primary-hover: #16A34A;
+      --primary-muted: rgba(34, 197, 94, 0.15);
+      --secondary: #16A34A;
+      --accent: #22C55E;
+      --accent-hover: #16A34A;
+      --accent-muted: rgba(34, 197, 94, 0.08);
       /* Semantic */
       --bullish: #10B981;
       --bearish: #F43F5E;
+      --warning: #F59E0B;
       --warn: #F59E0B;
       --danger: #F43F5E;
       --good: #10B981;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
       /* Text */
       --text-primary: #F1F5F9;
       --text-secondary: #94A3B8;
@@ -66,6 +73,7 @@
       --shadow-glow: 0 0 20px rgba(59,130,246,0.15);
       --shadow-soft: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px #1E2D45;
       --shadow-velvet: 0 4px 24px rgba(0,0,0,0.5);
+      --shadow-glow: 0 0 20px rgba(34, 197, 94, 0.15);
       --transition: 0.2s ease;
     }
     [data-theme="light"] {
@@ -165,7 +173,8 @@
       width: 32px;
       height: 32px;
       border-radius: 8px;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -209,9 +218,9 @@
       color: var(--text-primary);
     }
     .app-sidebar .nav a.active {
-      background: rgba(59, 130, 246, 0.08);
+      background: rgba(34, 197, 94, 0.12);
       color: #FFFFFF;
-      border-left-color: var(--primary);
+      border-left: 3px solid var(--accent-primary);
     }
     .app-sidebar .nav a .nav-icon { width: 20px; height: 20px; flex-shrink: 0; opacity: 0.9; }
     .app-sidebar .nav-spacer { flex: 1; }
@@ -573,6 +582,10 @@
     .hero-signal-card .prob-bar { height: 6px; background: var(--bg-elevated); border-radius: 3px; overflow: hidden; margin-top: 4px; }
     .hero-signal-card .prob-fill { height: 100%; background: var(--bullish); border-radius: 3px; transition: width 0.3s ease; }
     .hero-signal-card .prob { font-size: 12px; font-weight: 600; color: var(--good); }
+    .fear-greed-gauge-bar { height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
+    .fear-greed-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+    .signals-loading-text { display: inline-block; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
     /* ---------- Recent trades table ---------- */
     .recent-trades-wrap {
@@ -615,7 +628,7 @@
     .nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .nav a, .nav button { border: 1px solid var(--border); background: rgba(15, 27, 45, 0.8); color: var(--text-primary); padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none; transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease; }
     .nav a:hover, .nav button:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 12px rgba(59, 130, 246, 0.15); }
-    .nav a.active { border-color: var(--primary); background: rgba(59, 130, 246, 0.18); box-shadow: var(--shadow-glow); }
+    .nav a.active { border-color: var(--accent-primary); background: rgba(34, 197, 94, 0.18); box-shadow: var(--shadow-glow); }
 
     /* ---------- Pages ---------- */
     .page { display: none; min-height: 0; flex: 1; flex-direction: column; }
@@ -958,7 +971,8 @@
       animation: messageIn 0.2s ease-out;
     }
     .message.user { align-items: flex-end; }
-    .message.assistant .message-inner { display: flex; gap: var(--space-3); align-items: flex-start; max-width: 85%; }
+    .message.assistant .message-inner { display: flex; flex-direction: column; align-items: flex-start; max-width: 85%; }
+    .message.assistant .message-inner-row { display: flex; gap: var(--space-3); align-items: flex-start; }
     .message.assistant .message-avatar {
       width: 28px;
       height: 28px;
@@ -996,19 +1010,28 @@
     }
 
     .message.user .message-card {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--accent-secondary) 0%, #15803D 100%);
       color: #FFFFFF;
       margin-left: 24px;
       margin-right: 0;
+      border-color: rgba(22, 163, 74, 0.4);
     }
+
+    .message.assistant .message-avatar { font-size: 16px; background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); }
+    .message-assistant-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+    .typing-text { font-size: 12px; color: var(--text-secondary); }
 
     .message.assistant .message-card,
     .message.analysis .message-card {
-      background: var(--bg-surface);
+      background: var(--bg-elevated);
       color: var(--text-primary);
       margin-left: 0;
       margin-right: 0;
+      border: 1px solid var(--border);
     }
+    .message.assistant .message-card.content-markdown { white-space: normal; }
+    .message.assistant .message-card.content-markdown strong { font-weight: 600; }
+    .message.assistant .message-card.content-markdown h2 { font-size: 14px; margin: 10px 0 6px; }
 
     .message.error .message-card {
       background: rgba(244, 63, 94, 0.15);
@@ -1109,12 +1132,37 @@
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
 
+    .screener-preset-select {
+      margin-left: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-primary);
+      min-width: 140px;
+    }
+
     .screener-summary { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
 
     .screener-table-wrap {
       flex: 1;
       overflow: auto;
       border-radius: var(--radius);
+    }
+    .screener-table-wrap thead th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-surface);
+      z-index: 1;
+      cursor: pointer;
+      user-select: none;
+    }
+    .screener-table-wrap thead th:hover {
+      color: var(--accent-primary);
+    }
+    .screener-table-wrap tbody tr:hover {
+      background: var(--accent-muted);
       border: 1px solid var(--border);
       background: rgba(15, 23, 42, 0.5);
       min-height: 0;
@@ -1206,9 +1254,9 @@
       justify-content: center;
       min-height: 100vh;
       min-width: 100%;
-      background: linear-gradient(-45deg, #070B14, #0F1724, #0D1B3E, #0A1628);
+      background: linear-gradient(-45deg, #070B14, #0F1724, #071A0F, #0A1F0A);
       background-size: 400% 400%;
-      animation: loginGradient 15s ease infinite;
+      animation: loginGradient 8s ease infinite;
     }
     @keyframes loginGradient {
       0% { background-position: 0% 50%; }
@@ -1708,6 +1756,9 @@
     }
     .shortcut-modal-content tr td:first-child { padding-right: 12px; white-space: nowrap; }
       .shortcut-modal-content tr td:last-child { color: var(--text-secondary); }
+    .onboarding-modal { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .onboarding-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+    .onboarding-content { position: relative; max-width: 420px; width: 100%; padding: 24px; }
 
     .offline-banner {
       position: fixed;
@@ -1829,8 +1880,8 @@
       .header { flex-direction: column; align-items: flex-start; }
     }
 
-    @media print {
-      #pageLogin, .menu-toggle, .sidebar-overlay, .app-sidebar, .top-header-bar .header-right,
+      @media print {
+      #pageLogin, #onboardingModal, .menu-toggle, .sidebar-overlay, .app-sidebar, .bottom-tab-bar, .top-header-bar .header-right,
       .shortcuts-hint, .sidebar-collapse-btn, #marketPulseRefreshBtn,
       .btn, button, .chip-row, .input-row,
       #backtestExportRow, #forecastExportRow, .status-line, .footer-note { display: none !important; }
@@ -1848,6 +1899,40 @@
       -webkit-overflow-scrolling: touch;
       overflow-x: auto;
     }
+
+    @media (max-width: 768px) {
+      .bottom-tab-bar {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: var(--bg-surface);
+        border-top: 1px solid var(--border);
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 8px;
+      }
+      .bottom-tab-bar a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        min-width: 44px;
+        min-height: 44px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 10px;
+        border-radius: var(--radius);
+      }
+      .bottom-tab-bar a:hover, .bottom-tab-bar a.active { color: var(--accent-primary); }
+      .bottom-tab-bar a svg { width: 22px; height: 22px; margin-bottom: 2px; }
+      .main-scroll { padding-bottom: 64px; }
+    }
+    .bottom-tab-bar { display: none; }
   </style>
 </head>
 <body>
@@ -1856,8 +1941,8 @@
     <div id="pageLogin" class="page">
       <div class="login-wrap">
         <div class="login-card" id="loginCard">
-          <div class="login-logo">ProjectMidori</div>
-          <div class="login-tagline">AI-powered trading intelligence</div>
+          <div class="login-logo">🌿 Project Midori</div>
+          <div class="login-tagline">Grow your edge.</div>
 
           <div class="field">
             <span class="field-label">App password</span>
@@ -1880,7 +1965,7 @@
           </div>
           <div id="loginStatus" class="status-line" style="margin-top:12px;"></div>
           <div class="auth-footer-hint" style="margin-top:16px; text-align:center;">
-            Access controlled via <span class="tag">APP_PASSWORD</span>. Educational only.
+            Educational only — not financial advice.
           </div>
         </div>
       </div>
@@ -1894,10 +1979,10 @@
       <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
       <aside class="app-sidebar">
         <a href="#/dashboard" class="brand" id="brandLink">
-          <div class="brand-icon">⊡</div>
+          <div class="brand-icon">🌿</div>
           <div class="brand-title">
-            <span class="brand-text">ProjectMidori</span>
-            <span class="brand-tag">AI-powered trading intelligence</span>
+            <span class="brand-text">Project Midori</span>
+            <span class="brand-tag">Grow your edge</span>
           </div>
         </a>
         <nav class="nav" aria-label="Main navigation">
@@ -1918,6 +2003,13 @@
           <a href="#" id="logoutBtn" class="logout"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg><span class="logout-label">Logout</span></a>
         </nav>
       </aside>
+      <nav class="bottom-tab-bar" id="bottomTabBar" aria-label="Mobile navigation">
+        <a href="#/dashboard" id="btDashboard" data-path="/dashboard"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>Dashboard</a>
+        <a href="#/analysis" id="btAnalysis" data-path="/analysis"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>Analysis</a>
+        <a href="#/screener" id="btScreener" data-path="/screener"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>Screener</a>
+        <a href="#/chat" id="btChat" data-path="/chat"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>Chat</a>
+        <a href="#/signals" id="btSignals" data-path="/signals"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>Signals</a>
+      </nav>
       <main class="app-main" role="main" id="mainContent">
         <div class="top-header-bar">
           <h1 class="page-title-header" id="headerPageTitle">Dashboard</h1>
@@ -1958,6 +2050,13 @@
                 <button type="button" class="btn secondary" style="padding:4px 8px; font-size:11px;" onclick="loadMarketEvents()" aria-label="Refresh events">Refresh</button>
               </div>
               <div class="market-events-list" id="marketEventsList">Loading...</div>
+              <div class="fear-greed-gauge-wrap" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+                <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Fear & Greed</div>
+                <div class="fear-greed-gauge" id="fearGreedGauge">
+                  <div class="fear-greed-gauge-bar"><div class="fear-greed-fill" id="fearGreedFill" style="width:50%;"></div></div>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="fearGreedRating">--</div>
+              </div>
             </div>
           </div>
 
@@ -2010,11 +2109,11 @@
             <p class="page-desc">Run AI scenario analysis. Choose trading mode, then set tickers and parameters.</p>
           </div>
           <div class="chip-row" style="margin-bottom:16px; padding:12px; background:var(--bg-surface); border-radius:var(--radius); border:1px solid var(--border);">
-            <span style="font-size:11px; color:var(--text-secondary); margin-right:8px; align-self:center;">Trading mode:</span>
-            <button type="button" class="chip active" data-trading-mode="0dte">0DTE Options</button>
-            <button type="button" class="chip" data-trading-mode="swing">Swing Trading</button>
-            <button type="button" class="chip" data-trading-mode="longterm">Long-Term Investing</button>
-            <button type="button" class="chip" data-trading-mode="stockonly">Stock Only</button>
+            <span style="font-size:11px; color:var(--text-secondary); margin-right:8px; align-self:center;">Mode:</span>
+            <button type="button" class="chip active" data-trading-mode="0dte">⚡ 0DTE</button>
+            <button type="button" class="chip" data-trading-mode="swing">📅 Swing</button>
+            <button type="button" class="chip" data-trading-mode="longterm">🌱 Long-Term</button>
+            <button type="button" class="chip" data-trading-mode="stockonly">📊 Stocks Only</button>
           </div>
           <div class="input-shell">
             <div class="input-row">
@@ -2106,6 +2205,10 @@
               </div>
               <button type="button" class="btn" onclick="runScreener()" style="margin-left:12px;">Run screener</button>
               <button type="button" class="btn secondary" onclick="resetScreenerFilters()">Reset filters</button>
+              <button type="button" class="btn secondary" onclick="saveScreenerPreset()" title="Save current filters">Save Preset</button>
+              <select id="screenerPresetSelect" class="screener-preset-select" onchange="loadScreenerPreset(this.value)" title="Load a saved preset">
+                <option value="">Load preset…</option>
+              </select>
             </div>
             <p class="page-desc" style="margin-top:8px; margin-bottom:0;">For Options tab, timeframe presets come from Analysis (e.g. Intraday / 0DTE), but Min/Max DTE here win if set.</p>
             <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers above and timeframe on Analysis, then run screener.</div>
@@ -2189,25 +2292,28 @@
         </div>
         <div id="screenChat" class="screen page-content">
           <div class="page-head" style="margin-bottom:8px;">
-            <h1 class="page-title">Chat</h1>
-            <p class="page-desc">Ask me anything about trading. Educational only.</p>
+            <h1 class="page-title">Chat with Midori</h1>
+            <p class="page-desc">Ask Midori anything about trading, options, or investing. Educational only.</p>
           </div>
           <div class="chat-page-layout">
             <div class="chat-welcome" id="chatWelcome">
-              <div class="chat-welcome-icon">⊡</div>
-              <div class="chat-welcome-title">Ask me anything about trading</div>
-              <div class="chat-welcome-sub">0DTE options, swing trading, technical analysis, long-term investing — I explain clearly.</div>
+              <div class="chat-welcome-icon">🌿</div>
+              <div class="chat-welcome-title" id="chatWelcomeGreeting">Good morning, I'm Midori.</div>
+              <div class="chat-welcome-sub">Ask me anything about trading, options, or investing.</div>
               <div class="chat-quick-prompts">
-                <button type="button" class="chat-quick-prompt" data-prompt="Best 0DTE setups for today?">Best 0DTE setups for today?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="What's the market doing today?">What's the market doing today?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="Best 0DTE setup right now?">Best 0DTE setup right now?</button>
                 <button type="button" class="chat-quick-prompt" data-prompt="Explain IV crush simply">Explain IV crush simply</button>
                 <button type="button" class="chat-quick-prompt" data-prompt="NVDA long-term outlook?">NVDA long-term outlook?</button>
-                <button type="button" class="chat-quick-prompt" data-prompt="How do I build a dividend portfolio?">How do I build a dividend portfolio?</button>
-                <button type="button" class="chat-quick-prompt" data-prompt="Safest options strategy for beginners?">Safest options strategy for beginners?</button>
-                <button type="button" class="chat-quick-prompt" data-prompt="What does VIX above 20 mean for my trades?">What does VIX above 20 mean?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="How do I size a position?">How do I size a position?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="Build me a dividend portfolio">Build me a dividend portfolio</button>
               </div>
             </div>
             <div id="chatConversation" class="chat-messages-area" style="display:none;"></div>
-            <div id="typingIndicator" class="typing-indicator" style="display:none; margin:0 var(--space-4);"><span></span><span></span><span></span></div>
+            <div id="typingIndicator" class="typing-indicator" style="display:none; margin:0 var(--space-4); align-items:center; gap:10px;">
+              <span></span><span></span><span></span>
+              <span class="typing-text">Midori is analyzing...</span>
+            </div>
             <div class="chat-input-sticky">
               <div class="chat-input-shell" style="margin:0;">
                 <div class="chat-row">
@@ -2228,7 +2334,7 @@
         </div>
         <div id="screenSignals" class="screen page-content">
           <div class="page-head">
-            <h1 class="page-title">Signals</h1>
+            <h1 class="page-title">Midori's Signals</h1>
             <p class="page-desc">Top AI-ranked trade signals. Filter by direction or conviction, then refresh to load.</p>
           </div>
           <div class="signals-engine" id="signalsEngine">
@@ -2321,7 +2427,7 @@
             </div>
             <div id="backtestStatsGrid" style="display:none;"></div>
             <div id="backtestResults" class="hint">No backtests run yet. Enter tickers and click Run backtest.</div>
-            <div id="backtestExplain" style="display:none; margin-top:16px; padding:12px; background:var(--bg-elevated); border-radius:var(--radius); border-left:4px solid var(--primary);"></div>
+            <div id="backtestExplain" style="display:none; margin-top:16px; padding:12px; background:var(--bg-elevated); border-radius:var(--radius); border-left:4px solid var(--accent-primary);"></div>
             <div id="backtestExportRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
               <span style="font-size:12px; color:var(--text-muted); margin-right:8px;">Export:</span>
               <button type="button" class="btn secondary" onclick="exportBacktestCsv()">CSV</button>
@@ -2361,7 +2467,20 @@
     </div>
 
     <div class="footer-note">
-      ProjectMidori — Educational only, not trading advice. Screener/Greeks approximate. Options can go to zero.
+      Project Midori — Educational only, not trading advice. Screener/Greeks approximate. Options can go to zero.
+    </div>
+
+    <div id="onboardingModal" class="onboarding-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+      <div class="onboarding-backdrop" onclick="dismissOnboarding()"></div>
+      <div class="onboarding-content card">
+        <h3 id="onboardingTitle" style="margin:0 0 12px;">Welcome to Project Midori</h3>
+        <div id="onboardingStepBody" style="min-height:60px; margin-bottom:16px;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" id="onboardingPrev" class="btn secondary" style="visibility:hidden;" onclick="onboardingPrev()">Back</button>
+          <span id="onboardingDots" style="font-size:12px; color:var(--text-muted);"></span>
+          <button type="button" id="onboardingNext" class="btn" onclick="onboardingNext()">Next</button>
+        </div>
+      </div>
     </div>
 
     <div id="shortcutModal" class="shortcut-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="shortcutModalTitle">
@@ -2378,6 +2497,8 @@
           <tr><td><kbd>G</kbd> then <kbd>A</kbd></td><td>Analysis</td></tr>
           <tr><td><kbd>G</kbd> then <kbd>S</kbd></td><td>Signals</td></tr>
           <tr><td><kbd>G</kbd> then <kbd>C</kbd></td><td>Chat</td></tr>
+          <tr><td><kbd>G</kbd> then <kbd>B</kbd></td><td>Backtest</td></tr>
+          <tr><td><kbd>R</kbd></td><td>Refresh current page data</td></tr>
         </table>
       </div>
     </div>
@@ -2628,8 +2749,8 @@
       screenDashboard: "Dashboard",
       screenAnalysis: "Analysis",
       screenScreener: "Screener",
-      screenChat: "Chat",
-      screenSignals: "Signals",
+      screenChat: "Chat with Midori",
+      screenSignals: "Midori's Signals",
       screenConfidence: "Confidence",
       screenBacktest: "Backtest"
     };
@@ -2647,6 +2768,11 @@
       });
       const titleEl = $("headerPageTitle");
       if (titleEl) titleEl.textContent = PAGE_TITLES[screenId] || "Dashboard";
+      const path = pathMap[screenId] || "/dashboard";
+      document.querySelectorAll(".bottom-tab-bar a").forEach(a => {
+        a.classList.toggle("active", (a.getAttribute("data-path") || a.getAttribute("href") || "").replace("#", "") === path);
+      });
+      if (screenId === "screenScreener") refreshScreenerPresetSelect();
     }
 
     function getMarketStatus() {
@@ -2682,6 +2808,13 @@
       updateEtClock();
       setInterval(updateEtClock, 1000);
       setInterval(updateMarketBadge, 60000);
+      const greetingEl = $("chatWelcomeGreeting");
+      if (greetingEl) {
+        const hour = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" })).getHours();
+        if (hour < 12) greetingEl.textContent = "Good morning, I'm Midori.";
+        else if (hour < 17) greetingEl.textContent = "Good afternoon, I'm Midori.";
+        else greetingEl.textContent = "Good evening, I'm Midori.";
+      }
     }
 
     async function loadDashboardData() {
@@ -2728,6 +2861,14 @@
           const ratingEl = $("pulseFGRating");
           if (el) el.textContent = (fg.score | 0) + "/100";
           if (ratingEl) ratingEl.textContent = fg.rating || "Unknown";
+          const fill = $("fearGreedFill");
+          const gaugeRating = $("fearGreedRating");
+          if (fill) {
+            const s = Math.min(100, Math.max(0, fg.score | 0));
+            fill.style.width = s + "%";
+            fill.style.background = s < 25 ? "var(--bearish)" : s < 45 ? "var(--warn)" : s < 55 ? "#94A3B8" : s < 75 ? "var(--accent-primary)" : "var(--bullish)";
+          }
+          if (gaugeRating) gaugeRating.textContent = (fg.rating || "Unknown") + (fg.interpretation ? " — " + fg.interpretation : "");
         }
         const updatedEl = $("marketPulseUpdated");
         if (updatedEl) updatedEl.textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -2948,6 +3089,7 @@
 
       showPage("pageApp");
       initMarketHeader();
+      showOnboarding();
       const pathToScreen = {
         "/dashboard": "screenDashboard",
         "/analysis": "screenAnalysis",
@@ -3015,6 +3157,44 @@
       });
     }
 
+    const ONBOARDING_STEPS = [
+      "Welcome to Project Midori — AI trading intelligence. Your command center for 0DTE options, swing trading, and long-term investing.",
+      "Midori analyzes real market conditions for every response: live prices, VIX, Fear & Greed, economic events, and news.",
+      "Start with the Dashboard for a market snapshot, or ask Midori anything in Chat. Educational only — not financial advice.",
+    ];
+    let onboardingStep = 0;
+    function showOnboarding() {
+      if (localStorage.getItem("midori_onboarding_done")) return;
+      const m = $("onboardingModal");
+      if (!m) return;
+      onboardingStep = 0;
+      m.style.display = "flex";
+      renderOnboardingStep();
+    }
+    function renderOnboardingStep() {
+      const body = $("onboardingStepBody");
+      const nextBtn = $("onboardingNext");
+      const prevBtn = $("onboardingPrev");
+      const dots = $("onboardingDots");
+      if (body) body.textContent = ONBOARDING_STEPS[onboardingStep] || "";
+      if (nextBtn) nextBtn.textContent = onboardingStep >= ONBOARDING_STEPS.length - 1 ? "Get started" : "Next";
+      if (prevBtn) prevBtn.style.visibility = onboardingStep > 0 ? "visible" : "hidden";
+      if (dots) dots.textContent = (onboardingStep + 1) + " / " + ONBOARDING_STEPS.length;
+    }
+    function onboardingNext() {
+      if (onboardingStep >= ONBOARDING_STEPS.length - 1) { dismissOnboarding(); return; }
+      onboardingStep++;
+      renderOnboardingStep();
+    }
+    function onboardingPrev() {
+      if (onboardingStep > 0) { onboardingStep--; renderOnboardingStep(); }
+    }
+    function dismissOnboarding() {
+      const m = $("onboardingModal");
+      if (m) m.style.display = "none";
+      try { localStorage.setItem("midori_onboarding_done", "true"); } catch (_) {}
+    }
+
     window.addEventListener("load", function() {
       route();
       initOfflineBanner();
@@ -3032,6 +3212,8 @@
       }
       if (e.key === "Escape") {
         closeShortcutModal();
+        const onb = $("onboardingModal");
+        if (onb && onb.style.display === "flex") dismissOnboarding();
         return;
       }
       if (inInput) return;
@@ -3047,8 +3229,16 @@
         if (k === "a") { location.hash = "#/analysis"; route(); return; }
         if (k === "s") { location.hash = "#/signals"; route(); return; }
         if (k === "c") { location.hash = "#/chat"; route(); return; }
+        if (k === "b") { location.hash = "#/backtest"; route(); return; }
       }
       _pendingG = false;
+      if (k === "r") {
+        const path = (location.hash || "#/dashboard").replace("#", "").replace(/\/$/, "") || "/dashboard";
+        if (path === "/dashboard") loadDashboardData();
+        else if (path === "/signals") fetchSignals();
+        else if (path === "/analysis") { /* no auto-refresh */ }
+        else if (path === "/screener") runScreener();
+      }
     });
 
     let _shortcutModalPrevFocus = null;
@@ -3318,9 +3508,11 @@
       const cardsWrap = document.createElement("div");
       cardsWrap.className = "analysis-result-cards";
       const icons = { "Market Context": "🧭", "Trade Setup": "🎯", "Key Levels": "📍", "Risk Factors": "⚠️", "Educational Takeaway": "📚" };
+      const borderColors = { "Market Context": "var(--accent-primary)", "Trade Setup": "var(--bullish)", "Key Levels": "var(--primary)", "Risk Factors": "var(--warning)", "Educational Takeaway": "var(--accent-secondary)" };
       sections.forEach(s => {
         const card = document.createElement("div");
         card.className = "analysis-card";
+        if (s.title && borderColors[s.title]) card.style.borderLeftColor = borderColors[s.title];
         const h3 = document.createElement("h3");
         h3.textContent = (s.title && icons[s.title] ? icons[s.title] + " " : "") + (s.title || "Analysis");
         card.appendChild(h3);
@@ -3372,17 +3564,33 @@
 
       const inner = document.createElement("div");
       inner.className = "message-inner";
+      const rowWrap = document.createElement("div");
+      rowWrap.className = "message-inner-row";
       if (isChat && (role === "assistant" || role === "analysis" || role === "error")) {
+        const isFirstAssistant = !convo.querySelector(".message.assistant");
+        if (isFirstAssistant && role === "assistant") {
+          const label = document.createElement("div");
+          label.className = "message-assistant-label";
+          label.textContent = "Midori";
+          inner.appendChild(label);
+        }
         const avatar = document.createElement("div");
         avatar.className = "message-avatar";
-        avatar.textContent = "⊡";
-        inner.appendChild(avatar);
+        avatar.textContent = "🌿";
+        rowWrap.appendChild(avatar);
       }
 
       const card = document.createElement("div");
-      card.className = "message-card";
-      card.textContent = text;
-      inner.appendChild(card);
+      card.className = "message-card" + (isChat && (role === "assistant" || role === "analysis") ? " content-markdown" : "");
+      if (card.classList.contains("content-markdown")) {
+        const html = (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+        card.innerHTML = html;
+      } else {
+        card.textContent = text;
+      }
+      rowWrap.appendChild(card);
+      inner.appendChild(rowWrap);
       msg.appendChild(inner);
 
       const meta = document.createElement("div");
@@ -3481,8 +3689,12 @@
       const tickersValue = ($("tickers") && $("tickers").value) ? $("tickers").value : "SPY,QQQ,IWM";
       const btn = $("refreshSignalsBtn");
       const label = $("refreshSignalsLabel");
+      const placeholder = $("signalsPlaceholder");
+      const list = $("signalsList");
       if (btn) { btn.disabled = true; }
-      if (label) { label.textContent = "Loading…"; }
+      if (label) { label.textContent = "Scanning…"; }
+      if (placeholder) { placeholder.style.display = "block"; placeholder.innerHTML = '<span class="signals-loading-text">🌿 Midori is scanning the market...</span>'; placeholder.classList.remove("error"); }
+      if (list) list.innerHTML = "";
       try {
         const params = new URLSearchParams({ tickers: tickersValue, limit: "3", mode: currentSignalMode || "0dte" });
         const res = await fetch("/signals?" + params.toString(), { headers: apiHeaders() });
@@ -3507,7 +3719,7 @@
         }
       } finally {
         if (btn) { btn.disabled = false; }
-        if (label) { label.textContent = "Refresh signals"; }
+        if (label) { label.textContent = "Refresh"; }
       }
     }
 
@@ -3775,7 +3987,78 @@
       }
     }
 
+    let lastScreenerRows = [];
+    const SCREENER_COL_KEYS = ["symbol", "type", "expiration", "strike", "last", "bid", "ask", "spread_pct", "volume", "open_interest", "moneyness_pct", "delta", "gamma", "theta", "vega", "iv_pct"];
+    function sortScreenerBy(colIndex) {
+      if (!lastScreenerRows.length) return;
+      const key = SCREENER_COL_KEYS[colIndex];
+      if (!key) return;
+      const rev = lastScreenerRows._sortKey === key && !lastScreenerRows._sortRev;
+      lastScreenerRows._sortKey = key;
+      lastScreenerRows._sortRev = rev;
+      lastScreenerRows.sort((a, b) => {
+        let va = a[key];
+        let vb = b[key];
+        if (typeof va === "string") { va = (va || "").toLowerCase(); vb = (vb || "").toLowerCase(); return rev ? (vb > va ? 1 : vb < va ? -1 : 0) : (va > vb ? 1 : va < vb ? -1 : 0); }
+        va = Number(va); vb = Number(vb);
+        if (Number.isNaN(va)) va = 0; if (Number.isNaN(vb)) vb = 0;
+        return rev ? vb - va : va - vb;
+      });
+      renderScreenerTable(lastScreenerRows);
+    }
+    function saveScreenerPreset() {
+      const name = prompt("Preset name (e.g. 0DTE SPY)");
+      if (!name || !name.trim()) return;
+      const preset = {
+        name: name.trim(),
+        tickers: ($("screenerTickers") && $("screenerTickers").value) ? $("screenerTickers").value.trim() : "",
+        minVol: ($("minVolumeInput") && $("minVolumeInput").value) ? $("minVolumeInput").value : "500",
+        maxSpread: ($("maxSpreadInput") && $("maxSpreadInput").value) ? $("maxSpreadInput").value : "30",
+        minDte: ($("minDteInput") && $("minDteInput").value) ? $("minDteInput").value : "0",
+        maxDte: ($("maxDteInput") && $("maxDteInput").value) ? $("maxDteInput").value : "30",
+      };
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem("midori_screener_presets") || "[]"); } catch (_) {}
+      list = list.filter(p => p.name !== preset.name);
+      list.unshift(preset);
+      list = list.slice(0, 10);
+      localStorage.setItem("midori_screener_presets", JSON.stringify(list));
+      refreshScreenerPresetSelect();
+      showToast("Preset saved.");
+    }
+    function refreshScreenerPresetSelect() {
+      const sel = $("screenerPresetSelect");
+      if (!sel) return;
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem("midori_screener_presets") || "[]"); } catch (_) {}
+      const val = sel.value;
+      sel.innerHTML = "<option value=\"\">Load preset…</option>";
+      list.forEach((p, i) => {
+        const opt = document.createElement("option");
+        opt.value = p.name;
+        opt.textContent = p.name;
+        sel.appendChild(opt);
+      });
+      sel.value = val || "";
+    }
+    function loadScreenerPreset(name) {
+      if (!name) return;
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem("midori_screener_presets") || "[]"); } catch (_) {}
+      const preset = list.find(p => p.name === name);
+      if (!preset) return;
+      const set = (id, v) => { const el = $(id); if (el && v !== undefined) el.value = v; };
+      set("screenerTickers", preset.tickers);
+      set("minVolumeInput", preset.minVol);
+      set("maxSpreadInput", preset.maxSpread);
+      set("minDteInput", preset.minDte);
+      set("maxDteInput", preset.maxDte);
+      showToast('Loaded preset "' + name + '".');
+      const sel = $("screenerPresetSelect");
+      if (sel) sel.value = "";
+    }
     function renderScreenerTable(rows) {
+      lastScreenerRows = Array.isArray(rows) ? rows.slice() : [];
       const tbody = $("screenerBody");
       tbody.innerHTML = "";
 
@@ -3839,6 +4122,12 @@
         });
         tbody.appendChild(tr);
       });
+      const thead = tbody && tbody.closest("table") && tbody.closest("table").querySelector("thead");
+      if (thead && rows && rows.length) {
+        thead.querySelectorAll("th").forEach((th, i) => {
+          th.onclick = () => sortScreenerBy(i);
+        });
+      }
     }
 
     function renderStockScreenerTable(rows) {
