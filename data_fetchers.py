@@ -49,15 +49,21 @@ def normalize_trade_type(raw: str) -> str:
 
 
 def _parse_date(s: str) -> Optional[datetime]:
-    """Parse date string; support YYYY-MM-DD and MM/DD/YYYY."""
+    """Parse date string; support YYYY-MM-DD, MM/DD/YYYY, and ISO with time."""
     if not s or len(s) < 8:
         return None
-    s = s.strip()[:10]
-    for fmt in ("%Y-%m-%d", "%m/%d/%Y"):
+    s = s.strip()
+    s_short = s[:10] if len(s) >= 10 else s
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y"):
         try:
-            return datetime.strptime(s, fmt)
+            return datetime.strptime(s_short, fmt)
         except ValueError:
             continue
+    if "T" in s:
+        try:
+            return datetime.strptime(s[:19], "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            pass
     return None
 
 
@@ -198,8 +204,19 @@ def get_all_politician_trades(
 
     all_trades: List[Dict[str, Any]] = list(house.get("trades", [])) + list(senate.get("trades", []))
 
-    cutoff = (datetime.now(pytz.UTC) - timedelta(days=days_back)).strftime("%Y-%m-%d")
-    all_trades = [t for t in all_trades if (t.get("date_disclosed") or "") >= cutoff]
+    cutoff_dt = datetime.now(pytz.UTC) - timedelta(days=days_back)
+    cutoff_dt = cutoff_dt.replace(tzinfo=None)
+
+    def disclosed_on_or_after_cutoff(t: Dict[str, Any]) -> bool:
+        raw = t.get("date_disclosed") or ""
+        if not raw:
+            return True
+        parsed = _parse_date(raw)
+        if parsed is None:
+            return True
+        return parsed >= cutoff_dt
+
+    all_trades = [t for t in all_trades if disclosed_on_or_after_cutoff(t)]
 
     if ticker:
         ticker_upper = ticker.upper().strip()
