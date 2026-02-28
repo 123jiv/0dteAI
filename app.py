@@ -352,6 +352,23 @@ def auth_login(req: LoginRequest):
     return {"success": True, "token": token}
 
 
+class ApiLoginRequest(BaseModel):
+    password: str = ""
+
+
+@app.post("/api/login")
+def api_login(req: ApiLoginRequest):
+    """Bulletproof login endpoint: returns success + message for frontend."""
+    try:
+        correct = _get_app_password()
+    except Exception:
+        raise HTTPException(status_code=500, detail="Server error")
+    if (req.password or "").strip() == correct:
+        token = _issue_token("user")
+        return {"success": True, "message": "Authenticated", "token": token}
+    raise HTTPException(status_code=401, detail="Invalid password")
+
+
 @app.get("/auth/me")
 def auth_me(authorization: Optional[str] = Header(default=None)):
     _require_auth(authorization)

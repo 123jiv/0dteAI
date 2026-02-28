@@ -1963,7 +1963,7 @@
               <span class="btn-text" id="loginBtnLabel">Login</span>
             </button>
           </div>
-          <div id="loginStatus" class="status-line" style="margin-top:12px;"></div>
+          <div id="loginStatus" class="status-line" style="margin-top:12px; min-height:20px; text-align:center;"></div>
           <div class="auth-footer-hint" style="margin-top:16px; text-align:center;">
             Educational only — not financial advice.
           </div>
@@ -1973,132 +1973,16 @@
 
     <script>
     (function() {
-      function id(x) { return document.getElementById(x); }
+      var toggle = document.getElementById("loginPasswordToggle");
+      var input = document.getElementById("loginPassword");
+      var check = document.getElementById("loginRemember");
+      if (check) check.checked = localStorage.getItem("trademinds_remember") !== "false";
       function togglePw() {
-        var input = id("loginPassword");
-        var icon = id("loginEyeIcon");
-        if (!input || !icon) return;
+        if (!input || !document.getElementById("loginEyeIcon")) return;
         var isPass = input.type === "password";
         input.type = isPass ? "text" : "password";
-        icon.setAttribute("aria-label", isPass ? "Hide password" : "Show password");
-        icon.innerHTML = isPass
-          ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />'
-          : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
       }
-      function initRemember() {
-        var check = id("loginRemember");
-        if (check) check.checked = localStorage.getItem("trademinds_remember") !== "false";
-      }
-      function redirectToDashboard(token, remember, statusEl, btn, btnLabel) {
-        localStorage.setItem("odteai_token", token);
-        localStorage.setItem("midori_auth", "true");
-        localStorage.setItem("midori_authenticated", "true");
-        localStorage.setItem("pm_auth", "true");
-        localStorage.setItem("loggedIn", "true");
-        localStorage.setItem("isLoggedIn", "true");
-        sessionStorage.setItem("midori_authenticated", "true");
-        localStorage.setItem("trademinds_remember", remember ? "true" : "false");
-        if (statusEl) {
-          statusEl.textContent = "Logged in. Redirecting…";
-          statusEl.classList.remove("error");
-          statusEl.classList.add("redirecting-text");
-        }
-        var origin = window.location.origin;
-        var pathname = window.location.pathname || "/";
-        var search = window.location.search || "";
-        var dashboardUrl = origin + pathname + search + "#/dashboard";
-        window.location.hash = "";
-        setTimeout(function() {
-          window.location.hash = "#/dashboard";
-        }, 50);
-        setTimeout(function() {
-          if (window.location.hash !== "#/dashboard" && window.location.hash !== "#dashboard") {
-            window.location.href = dashboardUrl;
-            window.location.reload();
-          }
-        }, 300);
-        setTimeout(function() {
-          if (window.location.hash !== "#/dashboard" && window.location.hash !== "#dashboard") {
-            window.location.href = dashboardUrl;
-          }
-          if (btn) { btn.disabled = false; btn.classList.remove("loading"); }
-          if (btnLabel) btnLabel.textContent = "Login";
-        }, 3000);
-        setTimeout(function() {
-          if (statusEl && statusEl.classList.contains("redirecting-text") && window.location.hash !== "#/dashboard" && window.location.hash !== "#dashboard") {
-            statusEl.innerHTML = "Logged in. Redirecting…<br><br><a href=\"#/dashboard\" id=\"loginRedirectLink\" style=\"color:#22C55E;text-decoration:underline;cursor:pointer;font-size:14px;\">Click here if not redirected automatically →</a>";
-            statusEl.classList.remove("error");
-            var link = id("loginRedirectLink");
-            if (link) link.addEventListener("click", function(e) {
-              e.preventDefault();
-              localStorage.setItem("midori_authenticated", "true");
-              window.location.hash = "";
-              setTimeout(function() { window.location.hash = "#/dashboard"; }, 10);
-            });
-          }
-        }, 2000);
-      }
-      function doLoginClick() {
-        var pwEl = id("loginPassword");
-        var pw = (pwEl && pwEl.value) ? pwEl.value : "";
-        var statusEl = id("loginStatus");
-        var btn = id("loginBtn");
-        var btnLabel = id("loginBtnLabel");
-        var card = id("loginCard");
-        var rememberEl = id("loginRemember");
-        var remember = rememberEl ? !!rememberEl.checked : true;
-        if (!statusEl) return;
-        statusEl.textContent = "";
-        statusEl.classList.remove("error");
-        if (card) card.classList.remove("shake", "error-state");
-        if (btn) { btn.disabled = true; btn.classList.add("loading"); }
-        if (btnLabel) btnLabel.textContent = "Working…";
-        var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-        var timeoutId = setTimeout(function() {
-          if (controller) controller.abort();
-        }, 15000);
-        var redirecting = false;
-        var opts = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "user", password: pw }) };
-        if (controller) opts.signal = controller.signal;
-        fetch("/auth/login", opts)
-          .then(function(res) { return res.text().then(function(text) { return { ok: res.ok, status: res.status, text: text }; }); })
-          .then(function(r) {
-            clearTimeout(timeoutId);
-            if (!r.ok) {
-              var msg = r.status === 401 ? "Incorrect password." : (r.text || "Server error. Set APP_PASSWORD on Render.");
-              throw new Error(msg);
-            }
-            var data;
-            try { data = JSON.parse(r.text); } catch (_) { throw new Error("Invalid response"); }
-            if (!data.token) throw new Error("No token returned");
-            redirectToDashboard(data.token, remember, statusEl, btn, btnLabel);
-            redirecting = true;
-          })
-          .catch(function(err) {
-            clearTimeout(timeoutId);
-            var msg = (err && err.message) ? err.message : "Login failed. Try again.";
-            if (err && err.name === "AbortError") msg = "Login timed out. Check your connection and try again.";
-            statusEl.textContent = msg;
-            statusEl.classList.add("error");
-            if (card) { card.classList.add("shake", "error-state"); setTimeout(function() { card.classList.remove("shake"); }, 500); }
-          })
-          .finally(function() {
-            clearTimeout(timeoutId);
-            if (!redirecting && btn) { btn.disabled = false; btn.classList.remove("loading"); }
-            if (!redirecting && btnLabel) btnLabel.textContent = "Login";
-          });
-      }
-      function init() {
-        var btn = id("loginBtn");
-        var pw = id("loginPassword");
-        var toggle = id("loginPasswordToggle");
-        if (btn) btn.addEventListener("click", function(e) { e.preventDefault(); doLoginClick(); });
-        if (pw) pw.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); doLoginClick(); } });
-        if (toggle) toggle.addEventListener("click", function(e) { e.preventDefault(); togglePw(); });
-        initRemember();
-      }
-      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-      else init();
+      if (toggle) toggle.addEventListener("click", function(e) { e.preventDefault(); togglePw(); });
     })();
     </script>
 
@@ -2715,30 +2599,15 @@
 
     function logout() {
       if (!confirm("Log out of ProjectMidori?")) return;
-      localStorage.removeItem("odteai_token");
-      localStorage.removeItem("midori_auth");
-      localStorage.removeItem("midori_authenticated");
-      localStorage.removeItem("pm_auth");
-      localStorage.removeItem("loggedIn");
-      localStorage.removeItem("isLoggedIn");
-      sessionStorage.removeItem("midori_authenticated");
-      localStorage.removeItem("odteai_chat_history");
-      authToken = null;
+      Auth.logout();
       chatHistory = [];
-      location.hash = "#/login";
+      Router.go("login");
     }
 
     function handleSessionExpired() {
-      authToken = null;
-      localStorage.removeItem("odteai_token");
-      localStorage.removeItem("midori_auth");
-      localStorage.removeItem("midori_authenticated");
-      localStorage.removeItem("pm_auth");
-      localStorage.removeItem("loggedIn");
-      localStorage.removeItem("isLoggedIn");
-      sessionStorage.removeItem("midori_authenticated");
+      Auth.logout();
       try { sessionStorage.setItem("projectmidori_session_expired", "1"); } catch (_) {}
-      location.hash = "#/login";
+      Router.go("login");
     }
 
     function updateFocusDisabled() {
@@ -2911,11 +2780,119 @@
       });
       const titleEl = $("headerPageTitle");
       if (titleEl) titleEl.textContent = PAGE_TITLES[screenId] || "Dashboard";
-      const path = pathMap[screenId] || "/dashboard";
       document.querySelectorAll(".bottom-tab-bar a").forEach(a => {
         a.classList.toggle("active", (a.getAttribute("data-path") || a.getAttribute("href") || "").replace("#", "") === path);
       });
       if (screenId === "screenScreener") refreshScreenerPresetSelect();
+    }
+
+    const Auth = {
+      key: "midori_auth_v2",
+      isLoggedIn() { return localStorage.getItem(this.key) === "true"; },
+      login(token) {
+        localStorage.setItem(this.key, "true");
+        if (token) { authToken = token; localStorage.setItem("odteai_token", token); }
+      },
+      logout() {
+        localStorage.removeItem(this.key);
+        authToken = null;
+        localStorage.removeItem("odteai_token");
+        localStorage.removeItem("odteai_chat_history");
+      }
+    };
+
+    const Router = {
+      go(page) {
+        if (page === "dashboard") {
+          showPage("pageApp");
+          if (window.location.hash !== "#/dashboard") window.location.hash = "#/dashboard";
+          initMarketHeader();
+          showOnboarding();
+          showScreen("screenDashboard");
+          loadDashboardData();
+        } else if (page === "login") {
+          showPage("pageLogin");
+          resetLoginForm();
+          initLoginRemember();
+        }
+      }
+    };
+
+    function resetLoginForm() {
+      const btn = $("loginBtn");
+      const label = $("loginBtnLabel");
+      const status = $("loginStatus");
+      const pw = $("loginPassword");
+      const card = $("loginCard");
+      if (btn) { btn.disabled = false; btn.classList.remove("loading"); }
+      if (label) label.textContent = "Login";
+      if (status) { status.textContent = ""; status.classList.remove("error"); }
+      if (pw) pw.value = "";
+      if (card) card.classList.remove("shake", "error-state");
+    }
+
+    function showLoginError(message) {
+      const btn = $("loginBtn");
+      const label = $("loginBtnLabel");
+      const status = $("loginStatus");
+      const pw = $("loginPassword");
+      const card = $("loginCard");
+      if (btn) { btn.disabled = false; btn.classList.remove("loading"); }
+      if (label) label.textContent = "Login";
+      if (status) { status.textContent = message; status.classList.add("error"); }
+      if (pw) { pw.style.borderColor = "#F43F5E"; setTimeout(() => { pw.style.borderColor = ""; }, 3000); }
+      if (card) { card.classList.add("shake", "error-state"); setTimeout(() => card.classList.remove("shake"), 500); }
+    }
+
+    async function handleLoginSubmit(e) {
+      if (e) e.preventDefault();
+      const pwEl = $("loginPassword");
+      const password = (pwEl && pwEl.value) ? pwEl.value.trim() : "";
+      const statusEl = $("loginStatus");
+      const btn = $("loginBtn");
+      const label = $("loginBtnLabel");
+      const rememberEl = $("loginRemember");
+      const remember = rememberEl ? !!rememberEl.checked : true;
+
+      if (!password) { showLoginError("Please enter your password"); return; }
+
+      if (btn) { btn.disabled = true; btn.classList.add("loading"); }
+      if (label) label.textContent = "Verifying…";
+      if (statusEl) { statusEl.textContent = "Verifying…"; statusEl.classList.remove("error"); }
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password })
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success) {
+          Auth.login(data.token || "");
+          localStorage.setItem("trademinds_remember", remember ? "true" : "false");
+          if (statusEl) { statusEl.textContent = "✓ Success!"; statusEl.style.color = "#22C55E"; }
+          setTimeout(() => Router.go("dashboard"), 400);
+        } else {
+          showLoginError(data.detail || data.message || "Incorrect password");
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        showLoginError("Connection error — please try again");
+      }
+    }
+
+    function attachLoginHandlers() {
+      const btn = $("loginBtn");
+      const pw = $("loginPassword");
+      const form = $("loginCard");
+      if (btn) btn.addEventListener("click", (e) => { e.preventDefault(); handleLoginSubmit(e); });
+      if (pw) pw.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); handleLoginSubmit(e); } });
+    }
+
+    function initLoginRemember() {
+      const check = $("loginRemember");
+      if (check) check.checked = localStorage.getItem("trademinds_remember") !== "false";
     }
 
     function getMarketStatus() {
@@ -3202,7 +3179,7 @@
       });
     }
 
-    async function route() {
+    function route() {
       const hash = location.hash || "#/login";
       const path = hash.replace("#", "").replace(/\/$/, "") || "/login";
       const logoutEl = $("logoutBtn");
@@ -3210,30 +3187,7 @@
         logoutEl.onclick = function(e) { e.preventDefault(); logout(); };
       }
 
-      showPage("pageLogin");
-      function isAuthenticated() {
-        return (
-          localStorage.getItem("midori_authenticated") === "true" ||
-          localStorage.getItem("pm_auth") === "true" ||
-          localStorage.getItem("midori_auth") === "true" ||
-          localStorage.getItem("loggedIn") === "true" ||
-          localStorage.getItem("isLoggedIn") === "true" ||
-          sessionStorage.getItem("midori_authenticated") === "true" ||
-          !!localStorage.getItem("odteai_token")
-        );
-      }
-      let authed = false;
-      const hasToken = !!localStorage.getItem("odteai_token");
-      try {
-        const authPromise = authCheck();
-        const timeoutMs = 3500;
-        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(isAuthenticated()), timeoutMs));
-        authed = await Promise.race([authPromise, timeoutPromise]);
-      } catch (_) {
-        authed = isAuthenticated();
-        if (!authed) { initLoginRemember(); return; }
-      }
-      if (!authed) {
+      if (!Auth.isLoggedIn()) {
         showPage("pageLogin");
         initLoginRemember();
         const expired = sessionStorage.getItem("projectmidori_session_expired");
@@ -3244,6 +3198,7 @@
         }
         return;
       }
+      loadAuthToken();
 
       try {
         const saved = localStorage.getItem("odteai_chat_history");
@@ -3306,20 +3261,6 @@
     }
 
     window.addEventListener("hashchange", route);
-    window.addEventListener("midori-login-success", function(e) {
-      var path = (e.detail && e.detail.path) || "/dashboard";
-      loadAuthToken();
-      try { var saved = localStorage.getItem("odteai_chat_history"); chatHistory = saved ? (JSON.parse(saved) || []) : []; } catch (_) { chatHistory = []; }
-      showPage("pageApp");
-      initMarketHeader();
-      showOnboarding();
-      var pathToScreen = { "/dashboard": "screenDashboard", "/analysis": "screenAnalysis", "/screener": "screenScreener", "/chat": "screenChat", "/signals": "screenSignals", "/confidence": "screenConfidence", "/backtest": "screenBacktest" };
-      showScreen(pathToScreen[path] || "screenDashboard");
-      if (path === "/signals") fetchSignals();
-      if (path === "/dashboard") loadDashboardData();
-      if (path === "/analysis") { var tickersEl = $("tickers"); if (tickersEl && localStorage.getItem("trademinds_last_tickers") && !tickersEl.value.trim()) tickersEl.value = localStorage.getItem("trademinds_last_tickers"); renderRecentAnalyses(); }
-      if (path === "/chat") { initChatQuickPrompts(); var convo = $("chatConversation"); var welcome = $("chatWelcome"); if (chatHistory.length && convo) { convo.innerHTML = ""; chatHistory.forEach(function(m, i) { if (m.role === "user") appendMessage("", m.content, "chatConversation", "user"); else appendMessage("", m.content, "chatConversation", "assistant"); }); convo.style.display = "flex"; if (welcome) welcome.classList.add("hidden"); } else if (convo) { convo.style.display = "none"; if (welcome) welcome.classList.remove("hidden"); } if ($("chatInput")) $("chatInput").focus(); }
-    });
     function initNumberInputClamp() {
       const specs = [
         { id: "backtestYears", min: 1, max: 5, def: 3 },
@@ -3375,7 +3316,13 @@
     }
 
     window.addEventListener("load", function() {
-      route();
+      if (Auth.isLoggedIn()) {
+        Router.go("dashboard");
+        route();
+      } else {
+        Router.go("login");
+        attachLoginHandlers();
+      }
       initOfflineBanner();
       initNumberInputClamp();
     });
@@ -3998,11 +3945,6 @@
       icon.innerHTML = isPass
         ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />'
         : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
-    }
-
-    function initLoginRemember() {
-      const check = $("loginRemember");
-      if (check) check.checked = localStorage.getItem("trademinds_remember") !== "false";
     }
 
     async function doLogin() {
