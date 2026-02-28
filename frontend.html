@@ -2004,9 +2004,17 @@
         if (card) card.classList.remove("shake", "error-state");
         if (btn) { btn.disabled = true; btn.classList.add("loading"); }
         if (btnLabel) btnLabel.textContent = "Working…";
-        fetch("/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "user", password: pw }) })
+        var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var timeoutId = setTimeout(function() {
+          if (controller) controller.abort();
+        }, 15000);
+        var redirecting = false;
+        var opts = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "user", password: pw }) };
+        if (controller) opts.signal = controller.signal;
+        fetch("/auth/login", opts)
           .then(function(res) { return res.text().then(function(text) { return { ok: res.ok, status: res.status, text: text }; }); })
           .then(function(r) {
+            clearTimeout(timeoutId);
             if (!r.ok) {
               var msg = r.status === 401 ? "Incorrect password." : (r.text || "Server error. Set APP_PASSWORD on Render.");
               throw new Error(msg);
@@ -2016,18 +2024,24 @@
             if (!data.token) throw new Error("No token returned");
             localStorage.setItem("odteai_token", data.token);
             localStorage.setItem("trademinds_remember", remember ? "true" : "false");
-            statusEl.textContent = "Logged in.";
+            redirecting = true;
+            statusEl.textContent = "Logged in. Redirecting…";
+            statusEl.classList.remove("error");
             window.location.hash = "#/dashboard";
-            window.location.reload();
+            setTimeout(function() { window.location.reload(); }, 100);
           })
           .catch(function(err) {
-            statusEl.textContent = (err && err.message) ? err.message : "Login failed. Try again.";
+            clearTimeout(timeoutId);
+            var msg = (err && err.message) ? err.message : "Login failed. Try again.";
+            if (err && err.name === "AbortError") msg = "Login timed out. Check your connection and try again.";
+            statusEl.textContent = msg;
             statusEl.classList.add("error");
             if (card) { card.classList.add("shake", "error-state"); setTimeout(function() { card.classList.remove("shake"); }, 500); }
           })
           .finally(function() {
-            if (btn) { btn.disabled = false; btn.classList.remove("loading"); }
-            if (btnLabel) btnLabel.textContent = "Login";
+            clearTimeout(timeoutId);
+            if (!redirecting && btn) { btn.disabled = false; btn.classList.remove("loading"); }
+            if (!redirecting && btnLabel) btnLabel.textContent = "Login";
           });
       }
       function init() {
