@@ -2028,7 +2028,11 @@
             statusEl.textContent = "Logged in. Redirecting…";
             statusEl.classList.remove("error");
             window.location.hash = "#/dashboard";
-            if (typeof route === "function") { route(); }
+            try {
+              window.dispatchEvent(new CustomEvent("midori-login-success", { detail: { path: "/dashboard" } }));
+            } catch (_) {
+              if (typeof route === "function") { route(); }
+            }
           })
           .catch(function(err) {
             clearTimeout(timeoutId);
@@ -3235,6 +3239,20 @@
     }
 
     window.addEventListener("hashchange", route);
+    window.addEventListener("midori-login-success", function(e) {
+      var path = (e.detail && e.detail.path) || "/dashboard";
+      loadAuthToken();
+      try { var saved = localStorage.getItem("odteai_chat_history"); chatHistory = saved ? (JSON.parse(saved) || []) : []; } catch (_) { chatHistory = []; }
+      showPage("pageApp");
+      initMarketHeader();
+      showOnboarding();
+      var pathToScreen = { "/dashboard": "screenDashboard", "/analysis": "screenAnalysis", "/screener": "screenScreener", "/chat": "screenChat", "/signals": "screenSignals", "/confidence": "screenConfidence", "/backtest": "screenBacktest" };
+      showScreen(pathToScreen[path] || "screenDashboard");
+      if (path === "/signals") fetchSignals();
+      if (path === "/dashboard") loadDashboardData();
+      if (path === "/analysis") { var tickersEl = $("tickers"); if (tickersEl && localStorage.getItem("trademinds_last_tickers") && !tickersEl.value.trim()) tickersEl.value = localStorage.getItem("trademinds_last_tickers"); renderRecentAnalyses(); }
+      if (path === "/chat") { initChatQuickPrompts(); var convo = $("chatConversation"); var welcome = $("chatWelcome"); if (chatHistory.length && convo) { convo.innerHTML = ""; chatHistory.forEach(function(m, i) { if (m.role === "user") appendMessage("", m.content, "chatConversation", "user"); else appendMessage("", m.content, "chatConversation", "assistant"); }); convo.style.display = "flex"; if (welcome) welcome.classList.add("hidden"); } else if (convo) { convo.style.display = "none"; if (welcome) welcome.classList.remove("hidden"); } if ($("chatInput")) $("chatInput").focus(); }
+    });
     function initNumberInputClamp() {
       const specs = [
         { id: "backtestYears", min: 1, max: 5, def: 3 },
