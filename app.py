@@ -168,14 +168,24 @@ def api_fear_greed():
         score, rating = 50, "Unknown"
         if "fear_and_greed" in data:
             fg = data["fear_and_greed"]
-            score = fg.get("score") or fg.get("y") or score
-            rating = fg.get("rating") or fg.get("label") or rating
+            raw = fg.get("score") or fg.get("y")
+            if raw is not None:
+                score = int(round(float(raw)))
+            rating = (fg.get("rating") or fg.get("label") or rating).replace("_", " ").title()
         elif "fear_and_greed_historical" in data:
-            hist = data["fear_and_greed_historical"].get("data") or []
-            if hist:
-                last = hist[-1]
-                score = last.get("y") or last.get("value") or score
-                rating = last.get("rating") or last.get("label") or rating
+            fgh = data["fear_and_greed_historical"]
+            raw_score = fgh.get("score")
+            if raw_score is not None:
+                score = int(round(float(raw_score)))
+                rating = (fgh.get("rating") or rating).replace("_", " ").title()
+            else:
+                hist = fgh.get("data") or []
+                if hist:
+                    last = max(hist, key=lambda p: float(p.get("x") or 0))
+                    raw = last.get("y") or last.get("value")
+                    if raw is not None:
+                        score = int(round(float(raw)))
+                    rating = (last.get("rating") or last.get("label") or rating).replace("_", " ").title()
         elif "market_misc" in data and data["market_misc"]:
             last = data["market_misc"][-1]
             score = last.get("y") or last.get("score") or score
@@ -499,7 +509,11 @@ def options_screener(
 
     all_rows: List[Dict[str, Any]] = []
 
-    def fetch_for_symbols(min_vol: int, max_spread: float) -> List[Dict[str, Any]]:
+    def fetch_for_symbols(
+        min_vol: int, max_spread: float, use_min_dte: int = None, use_max_dte: int = None
+    ) -> List[Dict[str, Any]]:
+        dte_lo = use_min_dte if use_min_dte is not None else min_dte
+        dte_hi = use_max_dte if use_max_dte is not None else max_dte
         rows_all: List[Dict[str, Any]] = []
         for sym in symbols:
             try:
@@ -507,8 +521,8 @@ def options_screener(
                     sym,
                     min_volume=min_vol,
                     max_spread_pct=max_spread,
-                    min_dte=min_dte,
-                    max_dte=max_dte,
+                    min_dte=dte_lo,
+                    max_dte=dte_hi,
                     call_put_filter=side_norm,
                     max_contracts=150,
                 )
@@ -522,11 +536,15 @@ def options_screener(
 
     all_rows = fetch_for_symbols(min_volume, max_spread_pct)
 
-    # If nothing passes, automatically retry with very relaxed filters so user sees *something*
+    # If nothing passes, retry with very relaxed filters (min vol 0, max spread 80%)
     if not all_rows:
         relaxed_min_vol = 0
         relaxed_max_spread = max(max_spread_pct, 80.0)
         all_rows = fetch_for_symbols(relaxed_min_vol, relaxed_max_spread)
+
+    # When market is closed, near-term chains are often empty; try wider DTE (0–365)
+    if not all_rows and (min_dte, max_dte) != (0, 365):
+        all_rows = fetch_for_symbols(0, 80.0, 0, 365)
 
     if not all_rows:
         return {
