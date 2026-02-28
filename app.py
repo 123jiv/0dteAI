@@ -349,7 +349,7 @@ def auth_login(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = _issue_token(req.username or "user")
-    return {"token": token}
+    return {"success": True, "token": token}
 
 
 @app.get("/auth/me")

@@ -2023,16 +2023,29 @@
             try { data = JSON.parse(r.text); } catch (_) { throw new Error("Invalid response"); }
             if (!data.token) throw new Error("No token returned");
             localStorage.setItem("odteai_token", data.token);
+            localStorage.setItem("midori_auth", "true");
             localStorage.setItem("trademinds_remember", remember ? "true" : "false");
             redirecting = true;
             statusEl.textContent = "Logged in. Redirecting…";
             statusEl.classList.remove("error");
-            window.location.hash = "#/dashboard";
-            try {
-              window.dispatchEvent(new CustomEvent("midori-login-success", { detail: { path: "/dashboard" } }));
-            } catch (_) {
-              if (typeof route === "function") { route(); }
-            }
+            var base = window.location.pathname + (window.location.search || "");
+            if (!base || base === "/") base = "/";
+            var dashboardUrl = base + "#/dashboard";
+            setTimeout(function() {
+              window.location.href = dashboardUrl;
+            }, 100);
+            setTimeout(function() {
+              if (window.location.hash !== "#/dashboard") {
+                window.location.replace(dashboardUrl);
+              }
+            }, 500);
+            setTimeout(function() {
+              if (window.location.hash !== "#/dashboard") {
+                window.location.href = dashboardUrl;
+              }
+              if (btn) { btn.disabled = false; btn.classList.remove("loading"); }
+              if (btnLabel) btnLabel.textContent = "Login";
+            }, 3000);
           })
           .catch(function(err) {
             clearTimeout(timeoutId);
@@ -2676,6 +2689,7 @@
     function logout() {
       if (!confirm("Log out of ProjectMidori?")) return;
       localStorage.removeItem("odteai_token");
+      localStorage.removeItem("midori_auth");
       localStorage.removeItem("odteai_chat_history");
       authToken = null;
       chatHistory = [];
@@ -2685,6 +2699,7 @@
     function handleSessionExpired() {
       authToken = null;
       localStorage.removeItem("odteai_token");
+      localStorage.removeItem("midori_auth");
       try { sessionStorage.setItem("projectmidori_session_expired", "1"); } catch (_) {}
       location.hash = "#/login";
     }
@@ -3160,11 +3175,16 @@
 
       showPage("pageLogin");
       let authed = false;
+      const hasToken = !!localStorage.getItem("odteai_token");
+      const hasMidoriAuth = localStorage.getItem("midori_auth") === "true";
       try {
-        authed = await authCheck();
+        const authPromise = authCheck();
+        const timeoutMs = 3500;
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(hasToken && hasMidoriAuth), timeoutMs));
+        authed = await Promise.race([authPromise, timeoutPromise]);
       } catch (_) {
-        initLoginRemember();
-        return;
+        if (hasToken && hasMidoriAuth) authed = true;
+        else { initLoginRemember(); return; }
       }
       if (!authed) {
         showPage("pageLogin");
