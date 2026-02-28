@@ -166,30 +166,35 @@ def api_fear_greed():
     if now - _FEAR_GREED_CACHE_TS < _CACHE_TTL and _FEAR_GREED_CACHE:
         return _FEAR_GREED_CACHE
     try:
-        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", timeout=10)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+            "Referer": "https://edition.cnn.com/",
+        }
+        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", headers=headers, timeout=10)
         r.raise_for_status()
         data = r.json()
         score, rating = 50, "Unknown"
         if "fear_and_greed" in data:
             fg = data["fear_and_greed"]
-            raw = fg.get("score") or fg.get("y")
+            raw = fg.get("score") or fg.get("y") or fg.get("fg_value")
             if raw is not None:
                 score = int(round(float(raw)))
-            rating = (fg.get("rating") or fg.get("label") or rating).replace("_", " ").title()
+            rating = (fg.get("rating") or fg.get("label") or fg.get("fg_rating") or rating).replace("_", " ").title()
         elif "fear_and_greed_historical" in data:
             fgh = data["fear_and_greed_historical"]
-            raw_score = fgh.get("score")
+            raw_score = fgh.get("score") or fgh.get("y") or fgh.get("fg_value")
             if raw_score is not None:
                 score = int(round(float(raw_score)))
-                rating = (fgh.get("rating") or rating).replace("_", " ").title()
+                rating = (fgh.get("rating") or fgh.get("label") or fgh.get("fg_rating") or rating).replace("_", " ").title()
             else:
                 hist = fgh.get("data") or []
                 if hist:
                     last = max(hist, key=lambda p: float(p.get("x") or 0))
-                    raw = last.get("y") or last.get("value")
+                    raw = last.get("y") or last.get("value") or last.get("fg_value")
                     if raw is not None:
                         score = int(round(float(raw)))
-                    rating = (last.get("rating") or last.get("label") or rating).replace("_", " ").title()
+                    rating = (last.get("rating") or last.get("label") or last.get("fg_rating") or rating).replace("_", " ").title()
         elif "market_misc" in data and data["market_misc"]:
             last = data["market_misc"][-1]
             score = last.get("y") or last.get("score") or score

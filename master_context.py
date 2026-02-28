@@ -214,15 +214,20 @@ def _economic_events() -> List[Dict[str, Any]]:
 def _fear_greed() -> Dict[str, Any]:
     out: Dict[str, Any] = {"score": 50, "rating": "Unknown", "interpretation": ""}
     try:
-        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", timeout=10)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+            "Referer": "https://edition.cnn.com/",
+        }
+        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", headers=headers, timeout=10)
         r.raise_for_status()
         data = r.json()
         if "fear_and_greed" in data:
             fg = data["fear_and_greed"]
-            raw = fg.get("score") or fg.get("y")
+            raw = fg.get("score") or fg.get("y") or fg.get("fg_value")
             if raw is not None:
                 out["score"] = int(round(float(raw)))
-            out["rating"] = (fg.get("rating") or fg.get("label") or "Unknown").replace("_", " ").upper()
+            out["rating"] = (fg.get("rating") or fg.get("label") or fg.get("fg_rating") or "Unknown").replace("_", " ").upper()
         s = out["score"]
         if s < 25:
             out["interpretation"] = "Extreme fear — contrarian buy signals elevated"
