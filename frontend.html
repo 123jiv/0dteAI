@@ -1948,7 +1948,7 @@
             <span class="field-label">App password</span>
             <div class="password-wrap">
               <input id="loginPassword" class="pill-input" type="password" placeholder="Enter your password" autocomplete="current-password">
-              <button type="button" class="password-toggle" id="loginPasswordToggle" aria-label="Show password" onclick="toggleLoginPassword()">
+              <button type="button" class="password-toggle" id="loginPasswordToggle" aria-label="Show password">
                 <svg id="loginEyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
               </button>
             </div>
@@ -1958,7 +1958,7 @@
             <label for="loginRemember">Remember me</label>
           </div>
           <div class="login-btn-wrap">
-            <button id="loginBtn" class="btn" type="button" onclick="doLogin()">
+            <button id="loginBtn" class="btn" type="button">
               <span class="btn-spinner"></span>
               <span class="btn-text" id="loginBtnLabel">Login</span>
             </button>
@@ -1970,6 +1970,79 @@
         </div>
       </div>
     </div>
+
+    <script>
+    (function() {
+      function id(x) { return document.getElementById(x); }
+      function togglePw() {
+        var input = id("loginPassword");
+        var icon = id("loginEyeIcon");
+        if (!input || !icon) return;
+        var isPass = input.type === "password";
+        input.type = isPass ? "text" : "password";
+        icon.setAttribute("aria-label", isPass ? "Hide password" : "Show password");
+        icon.innerHTML = isPass
+          ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />'
+          : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+      }
+      function initRemember() {
+        var check = id("loginRemember");
+        if (check) check.checked = localStorage.getItem("trademinds_remember") !== "false";
+      }
+      function doLoginClick() {
+        var pwEl = id("loginPassword");
+        var pw = (pwEl && pwEl.value) ? pwEl.value : "";
+        var statusEl = id("loginStatus");
+        var btn = id("loginBtn");
+        var btnLabel = id("loginBtnLabel");
+        var card = id("loginCard");
+        var rememberEl = id("loginRemember");
+        var remember = rememberEl ? !!rememberEl.checked : true;
+        if (!statusEl) return;
+        statusEl.textContent = "";
+        statusEl.classList.remove("error");
+        if (card) card.classList.remove("shake", "error-state");
+        if (btn) { btn.disabled = true; btn.classList.add("loading"); }
+        if (btnLabel) btnLabel.textContent = "Working…";
+        fetch("/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "user", password: pw }) })
+          .then(function(res) { return res.text().then(function(text) { return { ok: res.ok, status: res.status, text: text }; }); })
+          .then(function(r) {
+            if (!r.ok) {
+              var msg = r.status === 401 ? "Incorrect password." : (r.text || "Server error. Set APP_PASSWORD on Render.");
+              throw new Error(msg);
+            }
+            var data;
+            try { data = JSON.parse(r.text); } catch (_) { throw new Error("Invalid response"); }
+            if (!data.token) throw new Error("No token returned");
+            localStorage.setItem("odteai_token", data.token);
+            localStorage.setItem("trademinds_remember", remember ? "true" : "false");
+            statusEl.textContent = "Logged in.";
+            window.location.hash = "#/dashboard";
+            if (typeof route === "function") route(); else window.location.reload();
+          })
+          .catch(function(err) {
+            statusEl.textContent = (err && err.message) ? err.message : "Login failed. Try again.";
+            statusEl.classList.add("error");
+            if (card) { card.classList.add("shake", "error-state"); setTimeout(function() { card.classList.remove("shake"); }, 500); }
+          })
+          .finally(function() {
+            if (btn) { btn.disabled = false; btn.classList.remove("loading"); }
+            if (btnLabel) btnLabel.textContent = "Login";
+          });
+      }
+      function init() {
+        var btn = id("loginBtn");
+        var pw = id("loginPassword");
+        var toggle = id("loginPasswordToggle");
+        if (btn) btn.addEventListener("click", function(e) { e.preventDefault(); doLoginClick(); });
+        if (pw) pw.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); doLoginClick(); } });
+        if (toggle) toggle.addEventListener("click", function(e) { e.preventDefault(); togglePw(); });
+        initRemember();
+      }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+      else init();
+    })();
+    </script>
 
     <!-- Authenticated app: sidebar + screens -->
     <div id="pageApp" class="page">
@@ -3841,13 +3914,16 @@
       const card = $("loginCard");
       const remember = $("loginRemember") && $("loginRemember").checked;
 
+      if (!statusEl) return;
       statusEl.textContent = "";
       statusEl.classList.remove("error");
       if (card) {
         card.classList.remove("shake", "error-state");
       }
-      btn.disabled = true;
-      btn.classList.add("loading");
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add("loading");
+      }
       if (btnLabel) btnLabel.textContent = "Working…";
 
       try {
@@ -3856,28 +3932,40 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: "user", password: pw }),
         });
+        const text = await res.text();
         if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || ("HTTP " + res.status));
+          const msg = res.status === 401 ? "Incorrect password." : (text || "Server error. Check APP_PASSWORD on Render.");
+          throw new Error(msg);
         }
-        const data = await res.json();
+        let data;
+        try { data = JSON.parse(text); } catch (_) { throw new Error("Invalid response"); }
         if (!data.token) throw new Error("No token returned");
         saveAuthToken(data.token);
         localStorage.setItem("trademinds_remember", remember ? "true" : "false");
         statusEl.textContent = "Logged in.";
         location.hash = "#/dashboard";
-      } catch {
-        statusEl.textContent = "Incorrect password.";
+        route();
+      } catch (err) {
+        statusEl.textContent = err && err.message ? err.message : "Login failed. Try again.";
         statusEl.classList.add("error");
         if (card) {
           card.classList.add("shake", "error-state");
           setTimeout(() => card.classList.remove("shake"), 500);
         }
       } finally {
-        btn.disabled = false;
-        btn.classList.remove("loading");
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove("loading");
+        }
         if (btnLabel) btnLabel.textContent = "Login";
       }
+    }
+
+    function initLoginButton() {
+      const btn = $("loginBtn");
+      const pw = $("loginPassword");
+      if (btn) btn.addEventListener("click", function(e) { e.preventDefault(); doLogin(); });
+      if (pw) pw.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); doLogin(); } });
     }
 
     function fmtNumber(value, digits) {
