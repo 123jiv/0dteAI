@@ -26,6 +26,7 @@ from core_0dte import (
 )
 from master_context import build_master_context
 from openai import OpenAI
+from data_fetchers import get_all_politician_trades
 
 app = FastAPI()
 _APP_START_TIME = time.time()
@@ -267,6 +268,32 @@ def api_news():
         return {"headlines": headlines}
     except Exception as e:
         return {"headlines": [], "error": str(e)}
+
+
+# ---------- Politician trades (House + Senate, free data) ----------
+@app.get("/api/politician-trades")
+def api_politician_trades(
+    ticker: Optional[str] = None,
+    politician: Optional[str] = None,
+    chamber: Optional[str] = None,
+    party: Optional[str] = None,
+    days_back: int = 90,
+    limit: int = 200,
+):
+    """Combined House + Senate stock trades with optional filters. Data from House/Senate Stock Watcher (free)."""
+    days_back = max(1, min(365, int(days_back)))
+    limit = max(1, min(500, int(limit)))
+    try:
+        return get_all_politician_trades(
+            ticker=ticker,
+            politician=politician,
+            chamber=chamber,
+            party=party,
+            days_back=days_back,
+            limit=limit,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 _DAILY_BRIEF_PROMPT = """You are Midori, an expert trading AI. Based on the following real market data, write a Daily Brief in exactly this structure.

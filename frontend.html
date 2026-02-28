@@ -2162,6 +2162,7 @@
           <a href="#/signals" id="navSignals" aria-label="Signals"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg><span class="nav-label">Signals</span></a>
           <a href="#/backtest" id="navBacktest" aria-label="Backtest"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg><span class="nav-label">Backtest</span></a>
           <a href="#/confidence" id="navConfidence" aria-label="Confidence"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="nav-label">Confidence</span></a>
+          <a href="#/trades" id="navPoliticianTrades" aria-label="Politician Trades"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg><span class="nav-label">Politician Trades</span></a>
           <div class="nav-spacer"></div>
           <div class="theme-toggle-wrap">
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Theme">
@@ -2659,6 +2660,66 @@
             </div>
           </div>
         </div>
+        <div id="screenPoliticianTrades" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Politician Trades</h1>
+            <p class="page-desc">Congressional stock disclosures (House &amp; Senate). Free data from House Stock Watcher and Senate Stock Watcher. Filter by ticker, politician, chamber, or party.</p>
+          </div>
+          <div class="card card-vc" style="margin-bottom:20px;">
+            <div class="input-row" style="flex-wrap:wrap; gap:12px; align-items:flex-end;">
+              <div class="field">
+                <span class="field-label">Ticker</span>
+                <input id="polTicker" class="pill-input" type="text" placeholder="e.g. AAPL, NVDA" />
+              </div>
+              <div class="field">
+                <span class="field-label">Politician name</span>
+                <input id="polPolitician" class="pill-input" type="text" placeholder="e.g. Pelosi" />
+              </div>
+              <div class="field">
+                <span class="field-label">Chamber</span>
+                <select id="polChamber" class="pill-input" style="min-width:120px;">
+                  <option value="all">All</option>
+                  <option value="House">House</option>
+                  <option value="Senate">Senate</option>
+                </select>
+              </div>
+              <div class="field">
+                <span class="field-label">Party</span>
+                <select id="polParty" class="pill-input" style="min-width:100px;">
+                  <option value="all">All</option>
+                  <option value="Democrat">Democrat</option>
+                  <option value="Republican">Republican</option>
+                  <option value="Independent">Independent</option>
+                </select>
+              </div>
+              <div class="field">
+                <span class="field-label">Days back</span>
+                <input id="polDaysBack" class="pill-input" type="number" value="90" min="1" max="365" style="width:80px;" />
+              </div>
+              <div class="field">
+                <span class="field-label">Limit</span>
+                <input id="polLimit" class="pill-input" type="number" value="200" min="1" max="500" style="width:80px;" />
+              </div>
+              <button type="button" class="btn" onclick="loadPoliticianTrades()"><span id="polBtnLabel">Load trades</span></button>
+            </div>
+            <div id="polStatus" class="status-line" style="margin-top:8px;"></div>
+          </div>
+          <div class="card card-vc">
+            <div id="polSummary" class="hint" style="margin-bottom:12px;">No data yet. Set filters and click Load trades.</div>
+            <div id="polTableWrap" style="overflow-x:auto; max-height:520px; overflow-y:auto;">
+              <table class="table-zebra">
+                <thead>
+                  <tr>
+                    <th>Politician</th><th>Chamber</th><th>Party</th><th>State</th><th>Ticker</th><th>Asset</th><th>Type</th><th>Amount</th><th>Date traded</th><th>Disclosed</th><th>Days to disclose</th>
+                  </tr>
+                </thead>
+                <tbody id="polTbody">
+                  <tr><td colspan="11" style="text-align:center; padding:20px;">No trades loaded.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
         </div>
       </main>
     </div>
@@ -2896,8 +2957,8 @@
       window.addEventListener("offline", update);
     }
 
-    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenConfidence", "screenBacktest"];
-    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navConfidence", "navBacktest"];
+    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenConfidence", "screenBacktest", "screenPoliticianTrades"];
+    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navConfidence", "navBacktest", "navPoliticianTrades"];
 
     function showPage(pageId) {
       ["pageLogin", "pageApp"].forEach(id => {
@@ -2913,7 +2974,8 @@
       screenChat: "Chat with Midori",
       screenSignals: "Midori's Signals",
       screenConfidence: "Confidence",
-      screenBacktest: "Backtest"
+      screenBacktest: "Backtest",
+      screenPoliticianTrades: "Politician Trades"
     };
 
     function showScreen(screenId) {
@@ -2921,7 +2983,7 @@
         const el = $(id);
         if (el) el.classList.toggle("active", id === screenId);
       });
-      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenConfidence: "/confidence", screenBacktest: "/backtest" };
+      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenConfidence: "/confidence", screenBacktest: "/backtest", screenPoliticianTrades: "/trades" };
       const path = pathMap[screenId] || "/dashboard";
       NAV_IDS.forEach(navId => {
         const el = $(navId);
@@ -3457,12 +3519,14 @@
         "/signals": "screenSignals",
         "/confidence": "screenConfidence",
         "/backtest": "screenBacktest",
+        "/trades": "screenPoliticianTrades",
       };
       const screenId = pathToScreen[path] || "screenDashboard";
       showScreen(screenId);
 
       if (path === "/signals") fetchSignals();
       if (path === "/dashboard") loadDashboardData();
+      if (path === "/trades") loadPoliticianTrades();
       if (path === "/analysis") {
         const lastTickers = localStorage.getItem("trademinds_last_tickers");
         const tickersEl = $("tickers");
@@ -3596,6 +3660,7 @@
         const path = (location.hash || "#/dashboard").replace("#", "").replace(/\/$/, "") || "/dashboard";
         if (path === "/dashboard") loadDashboardData();
         else if (path === "/signals") fetchSignals();
+        else if (path === "/trades") loadPoliticianTrades();
         else if (path === "/analysis") { /* no auto-refresh */ }
         else if (path === "/screener") runScreener();
       }
@@ -4119,6 +4184,56 @@
       a.click();
       URL.revokeObjectURL(a.href);
       showToast("Signals CSV downloaded.");
+    }
+
+    async function loadPoliticianTrades() {
+      const btnLabel = $("polBtnLabel");
+      const statusEl = $("polStatus");
+      const summaryEl = $("polSummary");
+      const tbody = $("polTbody");
+      if (btnLabel) btnLabel.textContent = "Loading…";
+      if (statusEl) { statusEl.textContent = "Loading…"; statusEl.classList.remove("error"); }
+      const ticker = ($("polTicker") && $("polTicker").value) ? $("polTicker").value.trim() : "";
+      const politician = ($("polPolitician") && $("polPolitician").value) ? $("polPolitician").value.trim() : "";
+      const chamber = ($("polChamber") && $("polChamber").value) ? $("polChamber").value : "all";
+      const party = ($("polParty") && $("polParty").value) ? $("polParty").value : "all";
+      const daysBack = clampNum(($("polDaysBack") && $("polDaysBack").value) ? $("polDaysBack").value : 90, 1, 365, 90);
+      const limit = clampNum(($("polLimit") && $("polLimit").value) ? $("polLimit").value : 200, 1, 500, 200);
+      const params = new URLSearchParams();
+      if (ticker) params.set("ticker", ticker);
+      if (politician) params.set("politician", politician);
+      if (chamber && chamber !== "all") params.set("chamber", chamber);
+      if (party && party !== "all") params.set("party", party);
+      params.set("days_back", String(daysBack));
+      params.set("limit", String(limit));
+      try {
+        const res = await fetch("/api/politician-trades?" + params.toString(), { headers: apiHeaders() });
+        if (!res.ok) throw new Error(await res.text() || "HTTP " + res.status);
+        const data = await res.json();
+        if (summaryEl) {
+          const n = (data.trades && data.trades.length) || 0;
+          summaryEl.textContent = "Showing " + n + " trade(s) (last " + (data.days_back || 90) + " days). " + (data.last_updated ? "Updated " + new Date(data.last_updated).toLocaleString() : "");
+        }
+        if (tbody) {
+          const trades = data.trades || [];
+          if (!trades.length) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px;">No trades match your filters.</td></tr>';
+          } else {
+            tbody.innerHTML = trades.map(function(t) {
+              const pol = (t.politician || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+              const asset = (t.asset_description || "").substring(0, 40).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+              const days = t.days_to_disclose != null ? String(t.days_to_disclose) : "—";
+              return "<tr><td>" + pol + "</td><td>" + (t.chamber || "") + "</td><td>" + (t.party || "") + "</td><td>" + (t.state || "") + "</td><td class=\"font-mono\">" + (t.ticker || "") + "</td><td title=\"" + (t.asset_description || "").replace(/"/g, "&quot;") + "\">" + asset + (asset.length >= 40 ? "…" : "") + "</td><td>" + (t.type || "") + "</td><td>" + (t.amount || "") + "</td><td>" + (t.date_traded || "") + "</td><td>" + (t.date_disclosed || "") + "</td><td>" + days + "</td></tr>";
+            }).join("");
+          }
+        }
+        if (statusEl) statusEl.textContent = "";
+      } catch (e) {
+        if (statusEl) { statusEl.textContent = (e.message || String(e)); statusEl.classList.add("error"); }
+        if (summaryEl) summaryEl.textContent = "Error loading trades.";
+        if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:var(--danger);">Failed to load. Check connection and try again.</td></tr>';
+      }
+      if (btnLabel) btnLabel.textContent = "Load trades";
     }
 
     function downloadBlob(blob, filename) {
