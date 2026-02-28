@@ -1,7 +1,4 @@
 import os
-import base64
-import hashlib
-import hmac
 import json
 import time
 import xml.etree.ElementTree as ET
@@ -10,7 +7,7 @@ from typing import Optional, List, Dict, Any, Literal
 
 import requests
 import yfinance as yf
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -267,115 +264,6 @@ def api_news():
         return {"headlines": [], "error": str(e)}
 
 
-# ---------- Auth (password -> signed token) ----------
-
-def _get_auth_secret() -> str:
-    secret = os.getenv("APP_SECRET", "").strip()
-    if not secret:
-        raise RuntimeError("APP_SECRET is not set")
-    return secret
-
-
-def _get_app_password() -> str:
-    pw = os.getenv("APP_PASSWORD", "").strip()
-    if not pw:
-        raise RuntimeError("APP_PASSWORD is not set")
-    return pw
-
-
-def _b64url_encode(raw: bytes) -> str:
-    return base64.urlsafe_b64encode(raw).decode("utf-8").rstrip("=")
-
-
-def _b64url_decode(s: str) -> bytes:
-    pad = "=" * (-len(s) % 4)
-    return base64.urlsafe_b64decode((s + pad).encode("utf-8"))
-
-
-def _sign(data: bytes, secret: str) -> str:
-    sig = hmac.new(secret.encode("utf-8"), data, hashlib.sha256).digest()
-    return _b64url_encode(sig)
-
-
-def _issue_token(username: str) -> str:
-    secret = _get_auth_secret()
-    payload = {"sub": username, "exp": int(time.time()) + 60 * 60 * 24 * 7}  # 7 days
-    payload_b = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
-    payload_s = _b64url_encode(payload_b)
-    sig_s = _sign(payload_s.encode("utf-8"), secret)
-    return f"{payload_s}.{sig_s}"
-
-
-def _verify_token(token: str) -> Dict[str, Any]:
-    secret = _get_auth_secret()
-    parts = token.split(".")
-    if len(parts) != 2:
-        raise HTTPException(status_code=401, detail="Invalid token format")
-    payload_s, sig_s = parts
-    expected = _sign(payload_s.encode("utf-8"), secret)
-    if not hmac.compare_digest(expected, sig_s):
-        raise HTTPException(status_code=401, detail="Invalid token signature")
-    try:
-        payload = json.loads(_b64url_decode(payload_s).decode("utf-8"))
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    exp = int(payload.get("exp") or 0)
-    if exp <= int(time.time()):
-        raise HTTPException(status_code=401, detail="Token expired")
-    return payload
-
-
-def _require_auth(authorization: Optional[str]):
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    if not authorization.lower().startswith("bearer "):
-        raise HTTPException(status_code=401, detail="Invalid Authorization header")
-    token = authorization.split(" ", 1)[1].strip()
-    _verify_token(token)
-
-
-class LoginRequest(BaseModel):
-    username: str = "user"
-    password: str
-
-
-@app.post("/auth/login")
-def auth_login(req: LoginRequest):
-    try:
-        expected = _get_app_password()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    if req.password != expected:
-        raise HTTPException(status_code=401, detail="Invalid password")
-
-    token = _issue_token(req.username or "user")
-    return {"success": True, "token": token}
-
-
-class ApiLoginRequest(BaseModel):
-    password: str = ""
-
-
-@app.post("/api/login")
-def api_login(req: ApiLoginRequest):
-    """Bulletproof login endpoint: returns success + message for frontend."""
-    try:
-        correct = _get_app_password()
-    except Exception:
-        raise HTTPException(status_code=500, detail="Server error")
-    if (req.password or "").strip() == correct:
-        token = _issue_token("user")
-        return {"success": True, "message": "Authenticated", "token": token}
-    raise HTTPException(status_code=401, detail="Invalid password")
-
-
-@app.get("/auth/me")
-def auth_me(authorization: Optional[str] = Header(default=None)):
-    _require_auth(authorization)
-    return {"ok": True}
-
-
 _DAILY_BRIEF_PROMPT = """You are Midori, an expert trading AI. Based on the following real market data, write a Daily Brief in exactly this structure.
 
 Start with one greeting line: "Good morning." or "Good afternoon." or "Good evening." (match the time in the data) followed by " Here's what matters today."
@@ -405,9 +293,8 @@ Market data:
 
 
 @app.get("/api/daily-brief")
-def api_daily_brief(authorization: Optional[str] = Header(default=None)):
+def api_daily_brief():
     """Auto-generated Daily Brief for dashboard wow moment. Uses build_master_context + one AI call."""
-    _require_auth(authorization)
     if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
     try:
@@ -435,11 +322,9 @@ def analyze(
     style: str = "balanced",  # balanced | conservative | aggressive
     timeframe: str = "intraday",
     analysis_type: str = "options",  # options | stocks | both
-    authorization: Optional[str] = Header(default=None),
 ):
     if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-    _require_auth(authorization)
 
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
@@ -459,12 +344,8 @@ def analyze(
 
 
 @app.get("/confidence")
-def confidence_endpoint(
-    tickers: str = "SPY,QQQ,IWM",
-    authorization: Optional[str] = Header(default=None),
-):
+def confidence_endpoint(tickers: str = "SPY,QQQ,IWM"):
     """Standalone confidence metrics for given tickers."""
-    _require_auth(authorization)
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
         raise HTTPException(status_code=400, detail="No valid tickers provided")
@@ -481,9 +362,7 @@ def screener(
     min_volume: int = 1000,
     max_spread_pct: float = 25.0,
     timeframe: str = "intraday",  # intraday | 1-5d | multi-week | long-term
-    authorization: Optional[str] = Header(default=None),
 ):
-    _require_auth(authorization)
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
         raise HTTPException(status_code=400, detail="No valid tickers provided")
@@ -545,14 +424,12 @@ def options_screener(
     max_dte: int = 30,
     side: str = "both",  # both | calls | puts
     strategy: Optional[str] = None,  # covered_call | wheel | straddle
-    authorization: Optional[str] = Header(default=None),
 ):
     """
     DTE-aware options screener across 0–365+ days.
 
     Returns normalized option rows with Greeks, DTE, IV, and optional strategy tags.
     """
-    _require_auth(authorization)
 
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
@@ -676,12 +553,10 @@ def stock_screener(
     max_pe: float = 40.0,
     min_div_yield: float = 0.0,
     min_eps_growth: float = 0.0,
-    authorization: Optional[str] = Header(default=None),
 ):
     """
     Basic stock screener that computes simple momentum / value / growth factors per symbol.
     """
-    _require_auth(authorization)
 
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
@@ -737,12 +612,10 @@ def value_screener(
     max_pe: float = 25.0,
     min_div_yield: float = 0.0,
     min_eps_growth: float = 0.0,
-    authorization: Optional[str] = Header(default=None),
 ):
     """
     Long-term value screener: min market cap (B), max P/E, min dividend yield, min EPS growth.
     """
-    _require_auth(authorization)
 
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
@@ -812,7 +685,6 @@ def multi_asset_scan(
     min_dte: int = 7,
     max_dte: int = 45,
     min_iv_pct: float = 25.0,
-    authorization: Optional[str] = Header(default=None),
 ):
     """
     Combined stock + options scan.
@@ -820,7 +692,6 @@ def multi_asset_scan(
     Highlights symbols with high options volume and elevated IV that may be candidates
     for straddles, strangles, or other volatility-driven strategies.
     """
-    _require_auth(authorization)
 
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
@@ -905,14 +776,12 @@ def backtest(
     years: int = 3,
     holding_days: int = 5,
     direction: str = "long",  # long | short
-    authorization: Optional[str] = Header(default=None),
 ):
     """
     Simple rolling-hold backtest over 1–5 years for one or more symbols.
 
     This is educational only and uses daily close data (no intraday fills).
     """
-    _require_auth(authorization)
 
     symbols = [t.strip().upper() for t in (tickers or "").split(",") if t.strip()]
     if not symbols:
@@ -938,13 +807,12 @@ class ExplainBacktestRequest(BaseModel):
 
 
 @app.post("/explain-backtest")
-def explain_backtest(req: ExplainBacktestRequest, authorization: Optional[str] = Header(default=None)):
+def explain_backtest(req: ExplainBacktestRequest):
     """
     Use the LLM to explain backtest results in plain English for a real trader.
     """
     if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-    _require_auth(authorization)
 
     portfolio = req.portfolio or {}
     symbols = req.symbols or {}
@@ -979,18 +847,13 @@ def explain_backtest(req: ExplainBacktestRequest, authorization: Optional[str] =
 
 
 @app.get("/forecast")
-def forecast(
-    ticker: str,
-    years: int = 3,
-    authorization: Optional[str] = Header(default=None),
-):
+def forecast(ticker: str, years: int = 3):
     """
     ML-style long-term forecast endpoint.
 
     Uses engineered features (trend, volatility, valuation, growth, VIX regime) and
     an LLM to emulate a conservative long-horizon forecaster. Educational only.
     """
-    _require_auth(authorization)
 
     sym = (ticker or "").strip().upper()
     if not sym:
@@ -1005,14 +868,9 @@ def forecast(
 
 
 @app.get("/signals")
-def signals(
-    tickers: str = "SPY,QQQ,IWM",
-    limit: int = 3,
-    authorization: Optional[str] = Header(default=None),
-):
+def signals(tickers: str = "SPY,QQQ,IWM", limit: int = 3):
     if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-    _require_auth(authorization)
 
     symbols = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not symbols:
@@ -1049,10 +907,9 @@ class ChatRequest(BaseModel):
 
 
 @app.post("/chat")
-def chat(req: ChatRequest, authorization: Optional[str] = Header(default=None)):
+def chat(req: ChatRequest):
     if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-    _require_auth(authorization)
 
     symbols = [t.strip().upper() for t in req.tickers.split(",") if t.strip()]
     if not symbols:

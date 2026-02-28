@@ -2092,7 +2092,7 @@
 <body>
   <div class="app">
     <!-- LOGIN (active by default so content shows before JS runs) -->
-    <div id="pageLogin" class="page active">
+    <div id="pageLogin" class="page">
       <div class="login-wrap">
         <div class="login-card" id="loginCard">
           <div class="login-logo"><span class="logo-mark">M</span> Project Midori</div>
@@ -2141,7 +2141,7 @@
     </script>
 
     <!-- Authenticated app: sidebar + screens -->
-    <div id="pageApp" class="page">
+    <div id="pageApp" class="page active">
       <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
       </button>
@@ -2718,7 +2718,7 @@
     let currentBacktestDirection = "long";
     let currentSignalMode = "0dte";
     let currentSignalFilter = "all";
-    let authToken = null;
+    let authToken = null; // unused; auth removed until Google/email signup
     let chatHistory = [];
     let chatFiles = [];
 
@@ -2765,32 +2765,13 @@
     }
 
     function apiHeaders(extra = {}) {
-      const headers = { ...extra };
-      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
-      return headers;
-    }
-
-    function saveAuthToken(token) {
-      authToken = token;
-      localStorage.setItem("odteai_token", token);
-    }
-
-    function loadAuthToken() {
-      authToken = localStorage.getItem("odteai_token");
-      return authToken;
+      return { ...extra };
     }
 
     function logout() {
-      if (!confirm("Log out of ProjectMidori?")) return;
-      Auth.logout();
+      if (!confirm("Log out of Project Midori?")) return;
       chatHistory = [];
-      Router.go("login");
-    }
-
-    function handleSessionExpired() {
-      Auth.logout();
-      try { sessionStorage.setItem("projectmidori_session_expired", "1"); } catch (_) {}
-      Router.go("login");
+      Router.go("dashboard");
     }
 
     function updateFocusDisabled() {
@@ -2894,28 +2875,13 @@
     }
 
     async function authCheck() {
-      if (!loadAuthToken()) return false;
-      try {
-        const res = await fetch("/auth/me", { headers: apiHeaders() });
-        if (res.status === 401) {
-          handleSessionExpired();
-          return false;
-        }
-        return res.ok;
-      } catch {
-        return false;
-      }
+      return true;
     }
 
     (function setupFetch401Interceptor() {
       const origFetch = window.fetch;
       window.fetch = function(url, opts) {
-        return origFetch.apply(this, arguments).then(function(res) {
-          if (res.status === 401 && typeof url === "string" && url.indexOf("/auth/login") === -1 && loadAuthToken()) {
-            handleSessionExpired();
-          }
-          return res;
-        });
+        return origFetch.apply(this, arguments);
       };
     })();
 
@@ -2971,17 +2937,9 @@
 
     const Auth = {
       key: "midori_auth_v2",
-      isLoggedIn() { return localStorage.getItem(this.key) === "true"; },
-      login(token) {
-        localStorage.setItem(this.key, "true");
-        if (token) { authToken = token; localStorage.setItem("odteai_token", token); }
-      },
-      logout() {
-        localStorage.removeItem(this.key);
-        authToken = null;
-        localStorage.removeItem("odteai_token");
-        localStorage.removeItem("odteai_chat_history");
-      }
+      isLoggedIn() { return true; },
+      login() { },
+      logout() { }
     };
 
     const Router = {
@@ -2994,9 +2952,7 @@
           showScreen("screenDashboard");
           loadDashboardData();
         } else if (page === "login") {
-          showPage("pageLogin");
-          resetLoginForm();
-          initLoginRemember();
+          Router.go("dashboard");
         }
       }
     };
@@ -3475,26 +3431,14 @@
     }
 
     function route() {
-      const hash = location.hash || "#/login";
-      const path = hash.replace("#", "").replace(/\/$/, "") || "/login";
+      const hash = location.hash || "#/dashboard";
+      const path = hash.replace("#", "").replace(/\/$/, "") || "/dashboard";
       const logoutEl = $("logoutBtn");
       if (logoutEl) {
         logoutEl.onclick = function(e) { e.preventDefault(); logout(); };
       }
 
-      if (!Auth.isLoggedIn()) {
-        showPage("pageLogin");
-        initLoginRemember();
-        const expired = sessionStorage.getItem("projectmidori_session_expired");
-        if (expired) {
-          try { sessionStorage.removeItem("projectmidori_session_expired"); } catch (_) {}
-          const statusEl = $("loginStatus");
-          if (statusEl) { statusEl.textContent = "Session expired. Please log in again."; statusEl.classList.add("error"); }
-        }
-        return;
-      }
-      loadAuthToken();
-
+      showPage("pageApp");
       try {
         const saved = localStorage.getItem("odteai_chat_history");
         chatHistory = saved ? (JSON.parse(saved) || []) : [];
@@ -3611,13 +3555,8 @@
     }
 
     window.addEventListener("load", function() {
-      if (Auth.isLoggedIn()) {
-        Router.go("dashboard");
-        route();
-      } else {
-        Router.go("login");
-        attachLoginHandlers();
-      }
+      Router.go("dashboard");
+      route();
       initOfflineBanner();
       initNumberInputClamp();
     });
