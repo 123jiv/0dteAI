@@ -587,6 +587,16 @@
       border: 1px solid var(--border);
       overflow: hidden;
       position: relative;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    .midori-chart-wrap.chart-fullscreen {
+      position: fixed;
+      inset: 16px;
+      z-index: 1200;
+      border-radius: 16px;
+      box-shadow: 0 25px 80px rgba(15, 23, 42, 0.9);
+      background: var(--bg-surface);
     }
     .market-events-card {
       border-radius: var(--radius-lg);
@@ -2652,12 +2662,13 @@
                   <input id="chart-ticker" type="text" value="SPY" maxlength="6" placeholder="Ticker" class="chart-input"/>
                   <button type="button" class="btn secondary btn-sm" onclick="updateChart()">Update</button>
                 </div>
-                <div class="chart-interval-btns" style="display:flex; gap:4px;">
+                <div class="chart-interval-btns" style="display:flex; gap:4px; margin-left:auto; align-items:center;">
                   <button type="button" class="interval-btn" data-interval="1m">1m</button>
                   <button type="button" class="interval-btn active" data-interval="5m">5m</button>
                   <button type="button" class="interval-btn" data-interval="15m">15m</button>
                   <button type="button" class="interval-btn" data-interval="1h">1h</button>
                   <button type="button" class="interval-btn" data-interval="1d">1D</button>
+                  <button type="button" id="chart-fullscreen-toggle" class="btn secondary btn-sm" style="padding:4px 8px; font-size:11px;" onclick="toggleChartFullscreen()" aria-label="Toggle fullscreen">⛶</button>
                 </div>
               </div>
               <div id="midori-chart" style="width:100%;height:340px;background:#070B14;border-radius:0 0 12px 12px;"></div>
@@ -2684,6 +2695,9 @@
                   <div class="fear-greed-gauge-bar"><div class="fear-greed-fill" id="fearGreedFill" style="width:50%;"></div></div>
                 </div>
                 <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="fearGreedRating">--</div>
+                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">
+                  Source: Alternative.me (CNN index replica)
+                </div>
               </div>
             </div>
           </div>
@@ -4657,6 +4671,7 @@
 
     let lwChart = null, lwCandleSeries = null, lwVolumeSeries = null, lwMaSeries = {};
     let currentChartTicker = "SPY", currentInterval = "5m";
+    let chartIsFullscreen = false;
 
     function initLightweightChart() {
       const container = document.getElementById("midori-chart");
@@ -4664,9 +4679,10 @@
       const errEl = document.getElementById("chart-error");
       if (errEl) errEl.style.display = "none";
       if (lwChart) { lwChart.remove(); lwChart = null; }
+      const height = chartIsFullscreen ? Math.max(window.innerHeight - 140, 360) : 340;
       lwChart = LightweightCharts.createChart(container, {
         width: container.clientWidth,
-        height: 340,
+        height,
         layout: { background: { color: "#070B14" }, textColor: "#94A3B8" },
         grid: { vertLines: { color: "#1E2D45" }, horzLines: { color: "#1E2D45" } },
         crosshair: {
@@ -4688,7 +4704,11 @@
       });
       lwMaSeries["ema9"] = lwChart.addLineSeries({ color: "#F59E0B", lineWidth: 1, title: "EMA9" });
       lwMaSeries["ema21"] = lwChart.addLineSeries({ color: "#3B82F6", lineWidth: 1, title: "EMA21" });
-      const ro = new ResizeObserver(() => { if (lwChart && container) lwChart.applyOptions({ width: container.clientWidth }); });
+      const ro = new ResizeObserver(() => {
+        if (lwChart && container) {
+          lwChart.applyOptions({ width: container.clientWidth });
+        }
+      });
       ro.observe(container);
       loadChartData(currentChartTicker, currentInterval);
       document.querySelectorAll(".interval-btn").forEach(btn => {
@@ -4741,6 +4761,17 @@
       if (overlay) overlay.style.display = "none";
       if (msgEl) msgEl.textContent = "Chart data unavailable for " + (ticker || "ticker");
       if (errEl) errEl.style.display = "flex";
+    }
+
+    function toggleChartFullscreen() {
+      const wrap = document.querySelector(".midori-chart-wrap");
+      const btn = document.getElementById("chart-fullscreen-toggle");
+      if (!wrap) return;
+      chartIsFullscreen = !chartIsFullscreen;
+      wrap.classList.toggle("chart-fullscreen", chartIsFullscreen);
+      if (btn) btn.textContent = chartIsFullscreen ? "✕" : "⛶";
+      // Recreate chart at new size to avoid layout glitches
+      initLightweightChart();
     }
 
     function setNavActive(path) {
