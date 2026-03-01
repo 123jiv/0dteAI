@@ -33,16 +33,6 @@ from market_data import (
     get_economic_events,
     get_fred_data,
 )
-from politician_trades import (
-    load_all_trades,
-    filter_trades,
-    build_summary,
-    get_ticker_activity,
-    get_notable_trades,
-    get_politician_profile,
-    warm_cache,
-    cache_age_minutes,
-)
 
 app = FastAPI()
 _APP_START_TIME = time.time()
@@ -54,9 +44,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-warm_cache()
 
 @app.get("/", include_in_schema=False)
 def root():
@@ -227,136 +214,13 @@ def api_chart_data(ticker: str = "SPY", interval: str = "5m"):
 # ============================================
 
 
-@app.get("/api/politician-trades")
-def api_politician_trades(
-    ticker: str = "",
-    politician: str = "",
-    chamber: str = "all",
-    party: str = "all",
-    type: str = "all",
-    days: int = 30,
-    limit: int = 50,
-):
-    try:
-        limit = min(max(int(limit), 1), 500)
-        days_back = int(days)
-
-        data = load_all_trades()
-        if not data or not data.get("trades"):
-            return {
-                "trades": [],
-                "total_filtered": 0,
-                "summary": {
-                    "total": 0,
-                    "purchases": 0,
-                    "sales": 0,
-                    "net_sentiment": "NEUTRAL",
-                    "top_tickers": [],
-                    "most_active_politicians": [],
-                    "most_recent_disclosure": None,
-                },
-                "error": data.get("error", "No data available") if data else "No data available",
-                "cache_age_minutes": cache_age_minutes(),
-            }
-
-        filtered = filter_trades(
-            data["trades"],
-            ticker=ticker.strip() or None,
-            politician=politician.strip() or None,
-            chamber=chamber,
-            party=party,
-            trade_type=type,
-            days_back=days_back,
-        )
-
-        summary = build_summary(filtered)
-
-        return {
-            "trades": filtered[:limit],
-            "total_filtered": len(filtered),
-            "total_in_cache": data.get("total", 0),
-            "summary": summary,
-            "cache_age_minutes": cache_age_minutes(),
-            "data_note": (
-                "STOCK Act public disclosures. "
-                "Up to 45-day lag by federal law."
-            ),
-        }
-    except Exception as e:
-        print(f"[PT] Route error: {e}")
-        return {
-            "trades": [],
-            "total_filtered": 0,
-            "error": str(e),
-            "summary": {
-                "total": 0,
-                "purchases": 0,
-                "sales": 0,
-                "net_sentiment": "NEUTRAL",
-                "top_tickers": [],
-                "most_active_politicians": [],
-                "most_recent_disclosure": None,
-            },
-        }
-
-
-@app.get("/api/politician-trades/ticker/{ticker}")
-def api_trades_by_ticker(ticker: str):
-    try:
-        activity = get_ticker_activity(ticker.upper(), days_back=60)
-        if not activity:
-            return {
-                "ticker": ticker.upper(),
-                "total_trades": 0,
-                "message": "No recent congressional activity found",
-            }
-        return activity
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/politician-trades/notable")
-def api_notable_trades(days: int = 14, limit: int = 5):
-    try:
-        trades = get_notable_trades(days_back=int(days), limit=int(limit))
-        return {"trades": trades, "total": len(trades)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/politician-trades/profile/{name:path}")
-def api_politician_profile(name: str):
-    try:
-        profile = get_politician_profile(name)
-        if not profile:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Politician not found: {name}",
-            )
-        return profile
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/politician-trades/cache-status")
-def api_pt_cache_status():
-    """Debug endpoint to check cache health."""
-    from politician_trades import _cache, cache_is_valid
-
+@app.get("/health")
+def health():
     return {
-        "cache_valid": cache_is_valid(),
-        "total_trades": (
-            _cache["trades"].get("total", 0)
-            if _cache["trades"]
-            else 0
-        ),
-        "house_count": _cache.get("total_house", 0),
-        "senate_count": _cache.get("total_senate", 0),
-        "age_minutes": cache_age_minutes(),
-        "is_fetching": _cache.get("is_fetching", False),
-        "last_error": _cache.get("fetch_error"),
+        "status": "ok",
+        "uptime_seconds": int(time.time() - _APP_START_TIME),
+        "version": "Midori 2.0",
+        "last_data_refresh": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()),
     }
 
 
