@@ -283,23 +283,33 @@ def api_politician_trades(
     politician: Optional[str] = None,
     chamber: Optional[str] = None,
     party: Optional[str] = None,
-    days_back: int = 90,
+    days: Optional[int] = None,
+    days_back: Optional[int] = None,
     limit: int = 200,
+    search: Optional[str] = None,
 ):
     """Combined House + Senate stock trades with optional filters. Data from House/Senate Stock Watcher (free)."""
-    days_back = max(1, min(365, int(days_back)))
+    days_val = days if days is not None else days_back
+    days_back = max(1, min(365, int(days_val or 90)))
     limit = max(1, min(500, int(limit)))
+    search_val = search or politician or ""
     try:
         return get_all_politician_trades(
             ticker=ticker,
-            politician=politician,
+            politician=politician if not search else None,
             chamber=chamber,
             party=party,
             days_back=days_back,
             limit=limit,
+            search=search_val.strip() or None,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print("Politician trades route error: %s" % e)
+        return {
+            "error": str(e),
+            "trades": [],
+            "summary": {"purchases": 0, "sales": 0, "top_tickers": []},
+        }
 
 
 _DAILY_BRIEF_PROMPT = """You are Midori, an expert trading AI. Based on the following real market data, write a Daily Brief in exactly this structure.

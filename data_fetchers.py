@@ -31,25 +31,132 @@ def set_cache(key: str, data: Any) -> Any:
 
 
 # ================================================
-# HELPERS
+# POLITICIAN TRADES — ROBUST FETCH (Render free tier)
 # ================================================
 
-def normalize_trade_type(raw: str) -> str:
-    """Normalize transaction type to a readable label."""
-    if not raw:
-        return "Unknown"
-    s = str(raw).strip().lower()
-    if s in ("purchase", "buy", "p"):
+HOUSE_URL = "https://house-stock-watcher-data.s3-us-east-2.amazonaws.com/data/all_transactions.json"
+SENATE_URL = "https://senate-stock-watcher-data.s3-us-east-2.amazonaws.com/aggregate/all_transactions.json"
+
+
+def clean_trade_type(raw: str) -> str:
+    """Normalize transaction type to Purchase/Sale/Exchange."""
+    r = str(raw or "").lower()
+    if any(x in r for x in ["purchase", "buy"]):
         return "Purchase"
-    if s in ("sale", "sell", "s"):
+    if any(x in r for x in ["sale", "sell"]):
         return "Sale"
-    if s in ("exchange", "exchange (full)", "exchange (partial)"):
+    if "exchange" in r:
         return "Exchange"
-    return str(raw).strip().title() or "Unknown"
+    return str(raw).strip().title() if raw else "Unknown"
+
+
+def days_between(d1: str, d2: str) -> Optional[int]:
+    """Days between transaction_date and disclosure_date."""
+    try:
+        a = datetime.strptime((d1 or "")[:10], "%Y-%m-%d")
+        b = datetime.strptime((d2 or "")[:10], "%Y-%m-%d")
+        return abs((b - a).days)
+    except Exception:
+        return None
+
+
+def fetch_politician_trades_safe() -> Dict[str, Any]:
+    """
+    Fetch congressional trades from both chambers.
+    Returns combined list sorted by most recent first.
+    Cache 6 hours to avoid hammering S3 on free tier.
+    """
+    cached = get_cached("all_politician_trades", 21600)
+    if cached:
+        return cached
+
+    all_trades: List[Dict[str, Any]] = []
+
+    # Fetch House trades
+    try:
+        r = requests.get(
+            HOUSE_URL,
+            timeout=45,
+            headers={"User-Agent": "ProjectMidori/1.0"},
+        )
+        r.raise_for_status()
+        raw = r.json()
+        for t in raw:
+            ticker = str(t.get("ticker", "")).upper().strip()
+            if not ticker or ticker == "--" or len(ticker) > 6:
+                continue
+            all_trades.append({
+                "politician": t.get("representative", "Unknown"),
+                "chamber": "House",
+                "party": t.get("party", ""),
+                "state": t.get("state", ""),
+                "ticker": ticker,
+                "asset": t.get("asset_description", ticker),
+                "type": clean_trade_type(t.get("type", "")),
+                "amount": t.get("amount", ""),
+                "date_traded": (t.get("transaction_date", "") or "")[:10],
+                "date_disclosed": (t.get("disclosure_date", "") or "")[:10],
+                "days_late": days_between(
+                    t.get("transaction_date", ""),
+                    t.get("disclosure_date", ""),
+                ),
+            })
+    except Exception as e:
+        print("House fetch error: %s" % e)
+
+    # Fetch Senate trades
+    try:
+        r = requests.get(
+            SENATE_URL,
+            timeout=45,
+            headers={"User-Agent": "ProjectMidori/1.0"},
+        )
+        r.raise_for_status()
+        raw = r.json()
+        for t in raw:
+            ticker = str(t.get("ticker", "")).upper().strip()
+            if not ticker or ticker == "--" or len(ticker) > 6:
+                continue
+            all_trades.append({
+                "politician": t.get("senator", "Unknown"),
+                "chamber": "Senate",
+                "party": t.get("party", ""),
+                "state": t.get("state", ""),
+                "ticker": ticker,
+                "asset": t.get("asset_description", ticker),
+                "type": clean_trade_type(t.get("type", "")),
+                "amount": t.get("amount", ""),
+                "date_traded": (t.get("transaction_date", "") or "")[:10],
+                "date_disclosed": (t.get("disclosure_date", "") or "")[:10],
+                "days_late": days_between(
+                    t.get("transaction_date", ""),
+                    t.get("disclosure_date", ""),
+                ),
+            })
+    except Exception as e:
+        print("Senate fetch error: %s" % e)
+
+    # Sort most recent first
+    all_trades.sort(key=lambda x: x.get("date_disclosed", ""), reverse=True)
+
+    result: Dict[str, Any] = {
+        "trades": all_trades,
+        "total": len(all_trades),
+        "cached_at": datetime.now(pytz.UTC).isoformat(),
+    }
+
+    if all_trades:
+        set_cache("all_politician_trades", result)
+
+    return result
+
+
+# Legacy aliases for compatibility
+def normalize_trade_type(raw: str) -> str:
+    return clean_trade_type(raw)
 
 
 def _parse_date(s: str) -> Optional[datetime]:
-    """Parse date string; support YYYY-MM-DD, MM/DD/YYYY, and ISO with time."""
     if not s or len(s) < 8:
         return None
     s = s.strip()
@@ -59,132 +166,11 @@ def _parse_date(s: str) -> Optional[datetime]:
             return datetime.strptime(s_short, fmt)
         except ValueError:
             continue
-    if "T" in s:
-        try:
-            return datetime.strptime(s[:19], "%Y-%m-%dT%H:%M:%S")
-        except ValueError:
-            pass
     return None
 
 
 def calc_days_between(date_traded_str: str, date_disclosed_str: str) -> Optional[int]:
-    """Return days between transaction_date and disclosure_date. Positive = disclosed after trade."""
-    t = _parse_date(date_traded_str)
-    d = _parse_date(date_disclosed_str)
-    if t is None or d is None:
-        return None
-    return (d - t).days
-
-
-# ================================================
-# POLITICIAN TRADES — HOUSE OF REPRESENTATIVES
-# ================================================
-
-HOUSE_TRADES_URL = "https://house-stock-watcher-data.s3-us-east-2.amazonaws.com/data/all_transactions.json"
-SENATE_TRADES_URL = "https://senate-stock-watcher-data.s3-us-east-2.amazonaws.com/aggregate/all_transactions.json"
-
-
-def fetch_house_trades() -> Dict[str, Any]:
-    """Fetch all House member stock trades. Cache 6 hours."""
-    cached = get_cached("house_trades", 21600)
-    if cached:
-        return cached
-
-    try:
-        response = requests.get(HOUSE_TRADES_URL, timeout=30)
-        response.raise_for_status()
-        raw = response.json()
-
-        trades: List[Dict[str, Any]] = []
-        for t in raw:
-            try:
-                trade = {
-                    "politician": t.get("representative", "Unknown"),
-                    "chamber": "House",
-                    "party": t.get("party", "Unknown"),
-                    "state": t.get("state", ""),
-                    "ticker": (t.get("ticker") or "").upper().strip(),
-                    "asset_description": t.get("asset_description", ""),
-                    "type": normalize_trade_type(t.get("type", "")),
-                    "amount": t.get("amount", "Unknown"),
-                    "date_traded": t.get("transaction_date", ""),
-                    "date_disclosed": t.get("disclosure_date", ""),
-                    "days_to_disclose": calc_days_between(
-                        t.get("transaction_date", ""),
-                        t.get("disclosure_date", ""),
-                    ),
-                    "district": t.get("district", ""),
-                    "source": "house",
-                }
-                if trade["ticker"] and trade["ticker"] != "--":
-                    trades.append(trade)
-            except Exception:
-                continue
-
-        trades.sort(key=lambda x: x.get("date_disclosed", ""), reverse=True)
-
-        result: Dict[str, Any] = {
-            "trades": trades,
-            "total": len(trades),
-            "source": "House Stock Watcher",
-            "last_updated": datetime.now(pytz.UTC).isoformat(),
-        }
-        return set_cache("house_trades", result)
-
-    except Exception as e:
-        print("House trades fetch error: %s" % e)
-        return {"trades": [], "total": 0, "error": str(e)}
-
-
-def fetch_senate_trades() -> Dict[str, Any]:
-    """Fetch all Senate stock trades. Cache 6 hours."""
-    cached = get_cached("senate_trades", 21600)
-    if cached:
-        return cached
-
-    try:
-        response = requests.get(SENATE_TRADES_URL, timeout=30)
-        response.raise_for_status()
-        raw = response.json()
-
-        trades: List[Dict[str, Any]] = []
-        for t in raw:
-            try:
-                trade = {
-                    "politician": t.get("senator", "Unknown"),
-                    "chamber": "Senate",
-                    "party": t.get("party", "Unknown"),
-                    "state": t.get("state", ""),
-                    "ticker": (t.get("ticker") or "").upper().strip(),
-                    "asset_description": t.get("asset_description", ""),
-                    "type": normalize_trade_type(t.get("type", "")),
-                    "amount": t.get("amount", "Unknown"),
-                    "date_traded": t.get("transaction_date", ""),
-                    "date_disclosed": t.get("disclosure_date", ""),
-                    "days_to_disclose": calc_days_between(
-                        t.get("transaction_date", ""),
-                        t.get("disclosure_date", ""),
-                    ),
-                    "source": "senate",
-                }
-                if trade["ticker"] and trade["ticker"] != "--":
-                    trades.append(trade)
-            except Exception:
-                continue
-
-        trades.sort(key=lambda x: x.get("date_disclosed", ""), reverse=True)
-
-        result = {
-            "trades": trades,
-            "total": len(trades),
-            "source": "Senate Stock Watcher",
-            "last_updated": datetime.now(pytz.UTC).isoformat(),
-        }
-        return set_cache("senate_trades", result)
-
-    except Exception as e:
-        print("Senate trades fetch error: %s" % e)
-        return {"trades": [], "total": 0, "error": str(e)}
+    return days_between(date_traded_str, date_disclosed_str)
 
 
 def get_all_politician_trades(
@@ -194,55 +180,69 @@ def get_all_politician_trades(
     party: Optional[str] = None,
     days_back: int = 90,
     limit: int = 200,
+    search: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Get combined politician trades with optional filters.
-    Default: last 90 days, max 200 results.
+    Uses fetch_politician_trades_safe for robust S3 fetching.
     """
-    house = fetch_house_trades()
-    senate = fetch_senate_trades()
+    from collections import Counter
 
-    all_trades: List[Dict[str, Any]] = list(house.get("trades", [])) + list(senate.get("trades", []))
+    data = fetch_politician_trades_safe()
+    trades = list(data.get("trades", []))
 
-    cutoff_dt = datetime.now(pytz.UTC) - timedelta(days=days_back)
-    cutoff_dt = cutoff_dt.replace(tzinfo=None)
+    # Filter by date
+    cutoff = (datetime.now(pytz.UTC) - timedelta(days=days_back)).strftime("%Y-%m-%d")
+    trades = [t for t in trades if (t.get("date_disclosed") or "") >= cutoff]
 
-    def disclosed_on_or_after_cutoff(t: Dict[str, Any]) -> bool:
-        raw = t.get("date_disclosed") or ""
-        if not raw:
-            return True
-        parsed = _parse_date(raw)
-        if parsed is None:
-            return True
-        return parsed >= cutoff_dt
-
-    all_trades = [t for t in all_trades if disclosed_on_or_after_cutoff(t)]
-
+    # Apply filters
     if ticker:
         ticker_upper = ticker.upper().strip()
-        all_trades = [t for t in all_trades if (t.get("ticker") or "").upper() == ticker_upper]
-
+        trades = [t for t in trades if (t.get("ticker") or "").upper() == ticker_upper]
     if politician:
         pol_lower = politician.lower()
-        all_trades = [t for t in all_trades if pol_lower in (t.get("politician") or "").lower()]
-
+        trades = [t for t in trades if pol_lower in (t.get("politician") or "").lower()]
+    if search:
+        s = search.lower().strip()
+        trades = [
+            t
+            for t in trades
+            if s in (t.get("politician") or "").lower()
+            or s in (t.get("ticker") or "").lower()
+        ]
     if chamber and str(chamber).lower() != "all":
-        all_trades = [t for t in all_trades if (t.get("chamber") or "").lower() == str(chamber).lower()]
-
+        trades = [
+            t
+            for t in trades
+            if (t.get("chamber") or "").lower() == str(chamber).lower()
+        ]
     if party and str(party).lower() != "all":
-        all_trades = [t for t in all_trades if (t.get("party") or "").upper().strip() == str(party).upper().strip()]
+        trades = [
+            t
+            for t in trades
+            if (t.get("party") or "").upper().strip().startswith(
+                str(party).upper().strip()[:1]
+            )
+        ]
 
-    all_trades = all_trades[:limit]
+    # Summary stats
+    purchases = sum(1 for t in trades if t.get("type") == "Purchase")
+    sales = sum(1 for t in trades if t.get("type") == "Sale")
+    top_tickers = Counter(t.get("ticker") for t in trades if t.get("ticker")).most_common(
+        5
+    )
+
+    limited = trades[:limit]
 
     return {
-        "trades": all_trades,
-        "total": len(all_trades),
-        "days_back": days_back,
-        "filters": {
-            "ticker": ticker,
-            "politician": politician,
-            "chamber": chamber,
-            "party": party,
+        "trades": limited,
+        "total": len(trades),
+        "summary": {
+            "purchases": purchases,
+            "sales": sales,
+            "top_tickers": [{"ticker": t, "count": c} for t, c in top_tickers],
         },
-        "last_updated": datetime.now(pytz.UTC).isoformat(),
+        "data_note": "STOCK Act disclosures. Up to 45-day lag.",
+        "cached_at": data.get("cached_at", ""),
+        "days_back": days_back,
     }
