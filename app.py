@@ -24,7 +24,7 @@ from core_0dte import (
     backtest_symbols,
     forecast_symbol,
 )
-from master_context import build_master_context
+from master_context import build_master_context, get_market_regime
 from openai import OpenAI
 from data_fetchers import get_all_politician_trades
 
@@ -217,6 +217,12 @@ def api_fear_greed():
         return result
     except Exception as e:
         return {"score": 50, "rating": "Unknown", "error": str(e)}
+
+
+@app.get("/api/market-regime")
+def api_market_regime():
+    """Market regime from SPY SMAs, RSI, VIX (yfinance only)."""
+    return get_market_regime()
 
 
 @app.get("/api/economic-events")
@@ -920,6 +926,59 @@ def signals(tickers: str = "SPY,QQQ,IWM", limit: int = 3):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class StressTestPosition(BaseModel):
+    symbol: str
+    qty: int = 1
+    entry: float
+    stop: Optional[float] = None
+
+
+class StressTestRequest(BaseModel):
+    positions: List[StressTestPosition]
+
+
+@app.post("/api/stress-test")
+def api_stress_test(req: StressTestRequest):
+    """AI-generated portfolio stress scenarios (up to 5 positions)."""
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
+    positions = req.positions[:5]
+    if not positions:
+        raise HTTPException(status_code=400, detail="No positions provided")
+    ctx = build_master_context()
+    regime = get_market_regime()
+    pos_text = "\n".join(
+        "  - %s: qty=%d, entry=$%.2f%s"
+        % (p.symbol.upper(), p.qty, p.entry, ", stop=$%.2f" % p.stop if p.stop else "")
+        for p in positions
+    )
+    prompt = (
+        ctx
+        + "\n\n--- PORTFOLIO STRESS TEST REQUEST ---\n"
+        + "Current regime: %s — %s\n\n"
+        % (regime.get("regime", "UNKNOWN"), regime.get("description", ""))
+        + "Positions to stress test:\n%s\n\n"
+        % pos_text
+        + "Provide a brief stress test analysis (2–4 paragraphs) covering:\n"
+        "1) Best-case scenario: what would need to happen for this portfolio to perform well.\n"
+        "2) Worst-case scenario: what could cause significant loss and how much.\n"
+        "3) Correlated risk: if SPY/QQQ drops 5–10%%, how might these positions move together.\n"
+        "4) One concrete action: what the user should consider (hedge, reduce, hold, etc.).\n"
+        "Be specific to the symbols and current regime. Educational only."
+    )
+    client = OpenAI()
+    resp = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[
+            {"role": "system", "content": "You are Midori, a risk-first trading coach. Give concise, educational stress test analysis. No guarantees."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+    )
+    content = (resp.choices[0].message.content or "").strip()
+    return {"analysis": content, "regime": regime.get("regime"), "positions": [{"symbol": p.symbol, "qty": p.qty, "entry": p.entry, "stop": p.stop} for p in positions]}
+
+
 # -------- Chat API models --------
 
 class ChatMessage(BaseModel):
@@ -962,11 +1021,44 @@ def chat(req: ChatRequest):
     base_prompt = build_prompt(snapshots, focus=req.focus, style=req.style, timeframe=req.timeframe, analysis_type=at)
     ctx = build_master_context()
     midori_system = (
-        "You are MIDORI, an elite AI trading analyst and educator with deep expertise in 0DTE options, "
-        "swing trading, technical analysis, options Greeks, risk management, and long-term value investing. "
-        "You always ground your analysis in the current market context provided. Use **bold** for key terms, "
-        "bullet points for lists, and ## headers for multi-section answers. End every response with "
-        "a single line: 💡 Midori's Tip: [one practical takeaway]. Educational only, not advice."
+        "You are MIDORI, an elite AI trading analyst, risk manager, and trading coach with deep expertise in 0DTE options, "
+        "swing trading, technical analysis, options Greeks, risk management, and long-term value investing.\n\n"
+        "POSITIONING:\n"
+        "- You are NOT a trade-picking oracle. You are a risk-first AI cockpit that helps users become smarter, safer traders.\n"
+        "- Everything you say should be framed as probability-based, educational analysis — never guarantees or get-rich-quick claims.\n\n"
+        "FORMATTING:\n"
+        "- Use **bold** for key terms, bullet points for lists, and ## headers for multi-section answers.\n"
+        "- After trade-focused answers, include a section titled '## HOW MIDORI DECIDED THIS' that:\n"
+        "  * Lists bullish signals used with emoji ✅.\n"
+        "  * Lists bearish/contrarian signals with emoji ❌.\n"
+        "  * Lists key risk factors with emoji ⚠️.\n"
+        "  * Explains in plain English why your confidence is Very High / High / Moderate / Low / Speculative.\n"
+        "  * States what would change your mind on the trade.\n\n"
+        "CONFIDENCE CALIBRATION:\n"
+        "- When you mention confidence or probability, always map it to these labels and SAY the label explicitly:\n"
+        "  * 90–100% → 'Very High — rare setup, strong confluence'.\n"
+        "  * 70–89%  → 'High — multiple signals aligned'.\n"
+        "  * 55–69%  → 'Moderate — favorable but not ideal conditions'.\n"
+        "  * 40–54%  → 'Low — mixed signals, trade with caution'.\n"
+        "  * <40%    → 'Speculative — high uncertainty, size very small'.\n"
+        "- Clarify that these are historical/conditional probabilities, NOT guarantees.\n\n"
+        "LOSS EXPLANATION:\n"
+        "- If the user asks why a trade did not work, or why the market moved against a prior signal, always explain:\n"
+        "  1) What the market actually did and plausible reasons.\n"
+        "  2) Which risk factor from the original analysis played out (validate the risk warnings).\n"
+        "  3) What this means going forward for that asset or strategy.\n"
+        "  4) One practical lesson the user can apply in future trading.\n"
+        "- Be honest, calm, and educational — never defensive.\n\n"
+        "EMOTIONAL TRADING DETECTION:\n"
+        "- If the user's language suggests emotional trading (e.g. 'I need to make it back', 'double down', 'revenge trade', personifying the market, or urgent attempts to recover losses):\n"
+        "  * Internally treat this as EMOTIONAL_TRADING_DETECTED.\n"
+        "  * First acknowledge their frustration empathetically.\n"
+        "  * Then gently but firmly redirect to risk management: discuss position sizing, daily loss limits, and the risk of revenge trading.\n"
+        "  * Suggest taking a short break (e.g. 15 minutes) before placing new trades.\n"
+        "  * Emphasize that protecting capital matters more than any single trade.\n\n"
+        "CLOSING:\n"
+        "- End every response with a single line: '💡 Midori's Tip: [one practical takeaway]'.\n"
+        "- All content is educational only, not financial advice."
     )
     user_content = ctx + "\n\n---\n\n" + base_prompt
 

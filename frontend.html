@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Project Midori — AI Trading Intelligence</title>
+  <title>Project Midori — AI Risk Manager &amp; Trading Coach</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Project Midori: AI-powered analysis for options trading, swing trading, and long-term investing. Educational only.">
+  <meta name="description" content="Project Midori helps you become a smarter, safer trader with risk-first, AI-powered analysis for options, swing trading, and long-term investing. Educational only — not financial advice.">
   <meta name="theme-color" content="#070B14">
   <link rel="manifest" href="/manifest.json">
   <script>
@@ -1016,6 +1016,12 @@
       font-weight: 600;
       font-size: 16px;
     }
+    .confidence-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      max-width: 180px;
+    }
     .confidence-gauge {
       height: 8px;
       background: var(--bg-surface);
@@ -1051,6 +1057,103 @@
       color: var(--text-secondary);
       padding-top: 8px;
       border-top: 1px solid var(--border);
+    }
+
+    .confidence-explainer {
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .confidence-explainer button {
+      border: none;
+      background: transparent;
+      color: var(--accent-primary);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+
+    .guardrail-reminder {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      border-left: 4px solid var(--warn);
+      background: rgba(234, 179, 8, 0.08);
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+    .guardrail-reminder-link {
+      color: var(--accent-primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .guardrail-reminder-link:hover { text-decoration: underline; }
+    .guardrail-reminder-dismiss {
+      margin-left: auto;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .guardrail-reminder-dismiss:hover { color: var(--text-primary); }
+    .pre-trade-checklist a:hover { text-decoration: underline; }
+    .methodology-link {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      background: var(--bg-elevated);
+      color: var(--accent-primary);
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      border: 1px solid var(--border);
+    }
+    .methodology-link:hover { border-color: var(--accent-primary); background: rgba(34,197,94,0.08); }
+    .regime-banner {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      border-left: 4px solid var(--accent-primary);
+      background: var(--bg-elevated);
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+    .regime-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      text-decoration: none;
+    }
+    .regime-pill:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .regime-banner .regime-label { font-weight: 600; margin-right: 8px; }
+    .regime-banner .regime-desc { color: var(--text-secondary); margin-top: 4px; }
+    .regime-banner .regime-strategies { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .backtest-integrity-card {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(245, 158, 11, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 12px;
+      color: var(--text-secondary);
     }
 
     /* ---------- Chat: full-height GPT-style ---------- */
@@ -1424,6 +1527,43 @@
     .signal-card-headline { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
     .signal-card-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
     .signal-card-reason { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+    .signal-explainer-toggle {
+      margin-top: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+    .signal-explainer-toggle::after {
+      content: "▾";
+      font-size: 10px;
+      opacity: 0.7;
+    }
+    .signal-explainer-toggle.open::after {
+      content: "▴";
+    }
+    .signal-explainer-toggle:hover {
+      border-color: var(--accent-primary);
+      color: var(--text-primary);
+      background: rgba(34,197,94,0.05);
+    }
+    .signal-explainer {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(34,197,94,0.3);
+    }
     .signals-engine .hint.error { color: var(--danger); }
 
     .footer-note {
@@ -2189,7 +2329,7 @@
           <div class="brand-icon"><span class="logo-mark">M</span></div>
           <div class="brand-title">
             <span class="brand-text">Project Midori</span>
-            <span class="brand-tag">Grow your edge</span>
+            <span class="brand-tag">Smarter, safer trading</span>
           </div>
         </a>
         <nav class="nav" aria-label="Main navigation">
@@ -2198,10 +2338,12 @@
           <a href="#/screener" id="navScreener" aria-label="Screener"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><span class="nav-label">Screener</span></a>
           <a href="#/chat" id="navChat" aria-label="Chat"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg><span class="nav-label">Chat</span></a>
           <a href="#/signals" id="navSignals" aria-label="Signals"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg><span class="nav-label">Signals</span></a>
+          <a href="#/risk" id="navRisk" aria-label="Risk Center"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg><span class="nav-label">Risk Center</span></a>
           <a href="#/backtest" id="navBacktest" aria-label="Backtest"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg><span class="nav-label">Backtest</span></a>
           <a href="#/confidence" id="navConfidence" aria-label="Confidence"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="nav-label">Confidence</span></a>
           <a href="#/trades" id="navPoliticianTrades" aria-label="Politician Trades"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg><span class="nav-label">Politician Trades</span></a>
           <div class="nav-spacer"></div>
+          <a href="#/methodology" id="navMethodology" aria-label="Methodology"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317a1 1 0 011.35-.936l8.65 3.11a1 1 0 01.675.94V12a8 8 0 11-4.293-7.11l-6.382-2.3z" /></svg><span class="nav-label">Methodology</span></a>
           <div class="theme-toggle-wrap">
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Theme">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -2214,9 +2356,9 @@
       <nav class="bottom-tab-bar" id="bottomTabBar" aria-label="Mobile navigation">
         <a href="#/dashboard" id="btDashboard" data-path="/dashboard"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>Dashboard</a>
         <a href="#/analysis" id="btAnalysis" data-path="/analysis"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>Analysis</a>
-        <a href="#/screener" id="btScreener" data-path="/screener"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>Screener</a>
-        <a href="#/chat" id="btChat" data-path="/chat"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>Chat</a>
         <a href="#/signals" id="btSignals" data-path="/signals"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>Signals</a>
+        <a href="#/chat" id="btChat" data-path="/chat"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>Chat</a>
+        <a href="#/risk" id="btRisk" data-path="/risk"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>Risk</a>
       </nav>
       <main class="app-main" role="main" id="mainContent">
         <div class="top-header-bar">
@@ -2266,8 +2408,9 @@
             <div class="pulse-card"><div class="pulse-label">VIX</div><div class="pulse-price font-mono" id="pulseVIX">--</div><div class="pulse-change" id="pulseVIXChg">--</div><div class="pulse-meta">Volatility</div></div>
             <div class="pulse-card"><div class="pulse-label">F&G Index</div><div class="pulse-price font-mono" id="pulseFG">--</div><div class="pulse-meta" id="pulseFGRating">--</div></div>
           </section>
-          <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
             <div id="marketPulseUpdated" class="hint" style="font-size:11px;"></div>
+            <a href="#/risk" id="dashboardRegimePill" class="regime-pill" style="display:none;" title="View regime details in Risk Center"></a>
             <button type="button" id="marketPulseRefreshBtn" class="btn secondary" style="padding:4px 10px; font-size:12px;" onclick="loadMarketPulse()" aria-label="Refresh market data">Refresh</button>
           </div>
 
@@ -2296,7 +2439,7 @@
           </div>
 
           <section class="hero-signals">
-            <h2 class="section-title">Today's AI Trade Signals</h2>
+            <h2 class="section-title">Today's Educational Setups</h2>
             <div class="hero-signals-grid" id="heroSignalsGrid">
               <div id="heroSignalsSkeleton" class="hero-signals-skeleton">
                 <div class="hero-signal-skeleton"></div>
@@ -2306,18 +2449,19 @@
               </div>
               <div id="heroSignalsContent" class="hero-signals-content" style="display:none;"></div>
               <div id="heroSignalsEmpty" class="hero-signals-empty" style="display:none;">
-                <p>Signals load on the Signals page. Get AI-ranked setups there.</p>
-                <a href="#/signals" class="btn primary">View Signals</a>
+                <p>Setups load on the Signals page. Get AI-generated educational setups with explained reasoning there.</p>
+                <a href="#/signals" class="btn primary">View setups</a>
               </div>
             </div>
           </section>
 
           <h2 class="section-title" style="font-size:14px; margin-bottom:12px;">Quick tools</h2>
           <div class="quick-tools-grid">
+            <a href="#/risk" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div><div><div class="label">Risk Center</div><div class="desc">Guardrails, sizing, stress test</div></div></a>
             <a href="#/analysis" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></div><div><div class="label">Analysis</div><div class="desc">AI scenario analysis</div></div></a>
             <a href="#/screener" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div><div class="label">Screener</div><div class="desc">Filter options & stocks</div></div></a>
             <a href="#/chat" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><div class="label">Chat</div><div class="desc">Ask trading questions</div></div></a>
-            <a href="#/signals" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div><div class="label">Signals</div><div class="desc">AI-ranked setups</div></div></a>
+            <a href="#/signals" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div><div class="label">Signals</div><div class="desc">Educational setups with reasoning</div></div></a>
             <a href="#/backtest" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/><path d="M8 21l4-4 4 4"/></svg></div><div><div class="label">Backtest</div><div class="desc">Historical performance</div></div></a>
             <a href="#/confidence" class="quick-tool-card"><div class="icon">🎯</div><div><div class="label">Confidence</div><div class="desc">Metrics & stats</div></div></a>
           </div>
@@ -2333,6 +2477,17 @@
           <div class="page-head">
             <h1 class="page-title">Analysis</h1>
             <p class="page-desc">Run AI scenario analysis. Choose trading mode, then set tickers and parameters.</p>
+          </div>
+          <div id="analysisGuardrailReminder" class="guardrail-reminder" style="display:none; margin-bottom:16px;">
+            <span>🛡️ Set your daily limits in Risk Center before trading.</span>
+            <a href="#/risk" class="guardrail-reminder-link">Set guardrails</a>
+            <button type="button" class="guardrail-reminder-dismiss" onclick="dismissGuardrailReminder('analysisGuardrailReminder')" aria-label="Dismiss">×</button>
+          </div>
+          <div class="pre-trade-checklist" style="margin-bottom:14px; padding:8px 12px; background:var(--bg-elevated); border-radius:var(--radius); font-size:12px; color:var(--text-secondary);">
+            <span style="margin-right:8px;">Before you trade:</span>
+            <a href="#/risk" style="color:var(--accent-primary); text-decoration:none;">Set guardrails</a>
+            <span style="margin:0 6px;">·</span>
+            <a href="#/risk" style="color:var(--accent-primary); text-decoration:none;">Check position size</a>
           </div>
           <div class="chip-row" style="margin-bottom:16px; padding:12px; background:var(--bg-surface); border-radius:var(--radius); border:1px solid var(--border);">
             <span style="font-size:11px; color:var(--text-secondary); margin-right:8px; align-self:center;">Mode:</span>
@@ -2539,9 +2694,11 @@
               <div class="chat-quick-prompts">
                 <button type="button" class="chat-quick-prompt" data-prompt="What's the market doing today?">What's the market doing today?</button>
                 <button type="button" class="chat-quick-prompt" data-prompt="Best 0DTE setup right now?">Best 0DTE setup right now?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="How do I size a position?">How do I size a position?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="When should I reduce position size?">When should I reduce size?</button>
+                <button type="button" class="chat-quick-prompt" data-prompt="How do I avoid revenge trading?">How do I avoid revenge trading?</button>
                 <button type="button" class="chat-quick-prompt" data-prompt="Explain IV crush simply">Explain IV crush simply</button>
                 <button type="button" class="chat-quick-prompt" data-prompt="NVDA long-term outlook?">NVDA long-term outlook?</button>
-                <button type="button" class="chat-quick-prompt" data-prompt="How do I size a position?">How do I size a position?</button>
                 <button type="button" class="chat-quick-prompt" data-prompt="Build me a dividend portfolio">Build me a dividend portfolio</button>
               </div>
             </div>
@@ -2571,13 +2728,19 @@
         <div id="screenSignals" class="screen page-content">
           <div class="page-head">
             <h1 class="page-title">Midori's Signals</h1>
-            <p class="page-desc">Top AI-ranked trade signals. Filter by direction or conviction, then refresh to load.</p>
+            <p class="page-desc">AI-generated educational trade setups. Filter by direction or conviction, then refresh to load.</p>
           </div>
+          <div id="signalsGuardrailReminder" class="guardrail-reminder" style="display:none; margin-bottom:16px;">
+            <span>🛡️ Set your daily limits in Risk Center before trading.</span>
+            <a href="#/risk" class="guardrail-reminder-link">Set guardrails</a>
+            <button type="button" class="guardrail-reminder-dismiss" onclick="dismissGuardrailReminder('signalsGuardrailReminder')" aria-label="Dismiss">×</button>
+          </div>
+          <div id="signalsRegimeBanner" class="regime-banner" style="display:none; margin-bottom:16px;"></div>
           <div class="signals-engine" id="signalsEngine">
             <div class="signals-engine-header">
               <div>
-                <div class="signals-engine-title">AI Trade Signals</div>
-                <div class="signals-engine-sub">Symbol, strike, entry, target, stop, probability — AI-ranked <span id="signalsLastUpdated" class="hint" style="margin-left:6px;"></span></div>
+                <div class="signals-engine-title">AI Educational Setups</div>
+                <div class="signals-engine-sub">Symbol, strike, entry, target, stop, historical probability — explained setups <span id="signalsLastUpdated" class="hint" style="margin-left:6px;"></span></div>
               </div>
               <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <button type="button" id="exportSignalsBtn" class="btn secondary" onclick="exportSignalsCsv()" style="min-width:0;">Export CSV</button>
@@ -2598,9 +2761,116 @@
               <button type="button" class="chip" data-signal-filter="bearish">Bearish</button>
               <button type="button" class="chip" data-signal-filter="high">High conviction</button>
             </div>
+            <div class="pre-trade-checklist" style="margin-bottom:14px; padding:8px 12px; background:var(--bg-elevated); border-radius:var(--radius); font-size:12px; color:var(--text-secondary);">
+              <span style="margin-right:8px;">Before you trade:</span>
+              <a href="#/risk" style="color:var(--accent-primary); text-decoration:none;">Set guardrails</a>
+              <span style="margin:0 6px;">·</span>
+              <a href="#/risk" style="color:var(--accent-primary); text-decoration:none;">Check position size</a>
+            </div>
             <div id="signalHero" class="signal-hero" style="display:none;"></div>
             <div id="signalsList" class="signals-list"></div>
-            <div id="signalsPlaceholder" class="hint" style="padding:12px 0;">Click Refresh to load setups.</div>
+            <div id="signalsPlaceholder" class="hint" style="padding:12px 0;">Click Refresh to load educational setups. Midori scans SPY, QQQ, and IWM for explained trade ideas.</div>
+          </div>
+        </div>
+        <div id="screenRisk" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Risk Center</h1>
+            <p class="page-desc">Daily guardrails, position sizing, stress testing, and regime awareness. Smarter, safer trading.</p>
+          </div>
+          <div id="regimeBannerRisk" class="regime-banner" style="display:none; margin-bottom:16px;"></div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">1. Daily Risk Guardrails</h2>
+            <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Set limits to protect your capital. Stored locally in your browser.</p>
+            <div class="input-row" style="flex-wrap:wrap; gap:12px;">
+              <div class="field">
+                <span class="field-label">Max daily loss ($)</span>
+                <input id="riskMaxDailyLoss" class="pill-input" type="number" min="0" step="50" placeholder="e.g. 500">
+              </div>
+              <div class="field">
+                <span class="field-label">Max positions</span>
+                <input id="riskMaxPositions" class="pill-input" type="number" min="1" max="20" value="5" placeholder="5">
+              </div>
+              <div class="field">
+                <span class="field-label">Max single trade ($)</span>
+                <input id="riskMaxSingleTrade" class="pill-input" type="number" min="0" step="50" placeholder="e.g. 200">
+              </div>
+              <div class="field">
+                <span class="field-label">Risk per trade (%)</span>
+                <input id="riskPerTrade" class="pill-input" type="number" min="0" max="10" step="0.5" placeholder="e.g. 1">
+              </div>
+            </div>
+            <div id="riskGuardrailsCommentary" class="hint" style="margin-top:10px; font-size:12px;"></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">2. Position Size Calculator</h2>
+            <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Calculate how many shares/contracts to trade based on risk.</p>
+            <div class="input-row" style="flex-wrap:wrap; gap:12px;">
+              <div class="field">
+                <span class="field-label">Account size ($)</span>
+                <input id="riskAccountSize" class="pill-input" type="number" min="0" step="1000" placeholder="e.g. 25000">
+              </div>
+              <div class="field">
+                <span class="field-label">Risk %</span>
+                <input id="riskCalcRiskPct" class="pill-input" type="number" min="0" max="5" step="0.25" placeholder="1">
+              </div>
+              <div class="field">
+                <span class="field-label">Entry ($)</span>
+                <input id="riskEntry" class="pill-input" type="number" min="0" step="0.01" placeholder="e.g. 450">
+              </div>
+              <div class="field">
+                <span class="field-label">Stop ($)</span>
+                <input id="riskStop" class="pill-input" type="number" min="0" step="0.01" placeholder="e.g. 445">
+              </div>
+            </div>
+            <div id="riskCalcResult" class="hint" style="margin-top:10px; font-size:13px; font-weight:500;"></div>
+            <div id="riskCalcVixHint" class="hint" style="margin-top:4px; font-size:11px;"></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">3. Portfolio Stress Test</h2>
+            <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Enter up to 5 positions for AI-generated stress scenarios.</p>
+            <div id="stressTestPositions">
+              <div class="input-row stress-position-row" style="gap:8px; margin-bottom:8px;">
+                <input class="pill-input" type="text" placeholder="Symbol" data-symbol style="width:80px;">
+                <input class="pill-input" type="number" placeholder="Qty" data-qty min="1" style="width:60px;">
+                <input class="pill-input" type="number" placeholder="Entry $" data-entry step="0.01" style="width:90px;">
+                <input class="pill-input" type="number" placeholder="Stop $" data-stop step="0.01" style="width:90px;">
+              </div>
+            </div>
+            <button type="button" class="btn secondary" style="margin-bottom:10px; font-size:12px;" onclick="addStressTestRow()">+ Add position</button>
+            <div style="margin-bottom:10px;">
+              <button type="button" id="stressTestBtn" class="btn" onclick="runStressTest()"><span id="stressTestBtnLabel">Run stress test</span></button>
+            </div>
+            <div id="stressTestStatus" class="status-line"></div>
+            <div id="stressTestResult" class="hint" style="display:none; margin-top:12px; padding:12px; background:var(--bg-elevated); border-radius:var(--radius); white-space:pre-wrap; font-size:13px;"></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">4. Max Drawdown Tracker</h2>
+            <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Track your peak-to-trough decline. Reset when you start a new tracking period.</p>
+            <div class="input-row" style="flex-wrap:wrap; gap:12px; align-items:flex-end;">
+              <div class="field">
+                <span class="field-label">Peak equity ($)</span>
+                <input id="riskPeakEquity" class="pill-input" type="number" min="0" step="100" placeholder="e.g. 30000">
+              </div>
+              <div class="field">
+                <span class="field-label">Current equity ($)</span>
+                <input id="riskCurrentEquity" class="pill-input" type="number" min="0" step="100" placeholder="e.g. 27500">
+              </div>
+              <button type="button" class="btn secondary" onclick="updateDrawdownGauge()">Update</button>
+            </div>
+            <div id="drawdownGaugeWrap" style="margin-top:12px; display:none;">
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+                <div style="flex:1; height:20px; background:var(--bg-elevated); border-radius:10px; overflow:hidden;">
+                  <div id="drawdownGaugeFill" style="height:100%; width:0%; background:var(--bearish); border-radius:10px; transition:width 0.3s;"></div>
+                </div>
+                <span id="drawdownGaugePct" style="font-weight:600; font-size:14px;">0%</span>
+              </div>
+              <div class="hint" style="font-size:11px;">Max drawdown from peak</div>
+            </div>
+          </div>
+          <div class="card">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">5. Regime Detection</h2>
+            <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Current market regime from SPY SMAs, RSI, and VIX.</p>
+            <div id="riskRegimeWidget" class="hint">Loading regime…</div>
           </div>
         </div>
         <div id="screenConfidence" class="screen page-content">
@@ -2608,6 +2878,7 @@
             <h1 class="page-title">Confidence &amp; backtest</h1>
             <p class="page-desc">Simple confidence metrics and follow-through stats. Enter tickers and refresh, or run an analysis to populate.</p>
           </div>
+          <div id="confidenceRegimeBanner" class="regime-banner" style="display:none; margin-bottom:16px;"></div>
           <div class="card" style="max-width:720px; margin-bottom:16px;">
             <div class="input-row">
               <div class="field">
@@ -2620,8 +2891,12 @@
             </div>
             <div id="confidenceStatus" class="status-line"></div>
           </div>
+          <div id="confidenceExplainer" class="confidence-explainer" style="display:none;">
+            <span><strong>What does confidence mean?</strong> In similar historical conditions, the predicted outcome occurred at approximately this rate. It is a probability estimate, <strong>not</strong> a guarantee.</span>
+            <button type="button" onclick="dismissConfidenceExplainer()">Got it</button>
+          </div>
           <div id="confidenceBodyPanel" class="confidence-grid"></div>
-          <div id="confidenceEmptyHint" class="hint" style="max-width:560px; padding:16px;">Enter tickers above and click Refresh confidence, or run an Analysis to see metrics.</div>
+          <div id="confidenceEmptyHint" class="hint" style="max-width:560px; padding:16px;">Enter tickers above and click Refresh confidence, or run an <a href="#/analysis" style="color:var(--accent-primary);">Analysis</a> to see metrics.</div>
         </div>
         <div id="screenBacktest" class="screen page-content">
           <div class="page-head">
@@ -2664,6 +2939,19 @@
             <div id="backtestStatsGrid" style="display:none;"></div>
             <div id="backtestResults" class="hint">No backtests run yet. Enter tickers and click Run backtest.</div>
             <div id="backtestExplain" style="display:none; margin-top:16px; padding:12px; background:var(--bg-elevated); border-radius:var(--radius); border-left:4px solid var(--accent-primary);"></div>
+            <div id="backtestRegimeNote" class="hint" style="display:none; margin-top:12px; padding:10px 12px; background:var(--bg-elevated); border-radius:var(--radius); font-size:12px;"></div>
+            <div class="backtest-integrity-card">
+              <div style="font-size:13px; font-weight:600; margin-bottom:4px;">⚠️ Backtest integrity notes</div>
+              <ul style="padding-left:18px; margin:0 0 6px; font-size:12px; color:var(--text-secondary);">
+                <li>Look-ahead bias: Midori avoids using future data when computing stats ✅</li>
+                <li>Survivorship bias: Free historical data may exclude delisted symbols ⚠️</li>
+                <li>Overfitting risk: The more parameters you optimize, the higher the chance you are curve-fitting past noise.</li>
+                <li>If the same idea performs very differently on different years, it may be overfitted. Always test on out-of-sample periods.</li>
+              </ul>
+              <p style="font-size:12px; color:var(--text-secondary); margin:0;">
+                💡 A backtest is a hypothesis, not a guarantee. Use paper trading to validate any strategy before risking real capital.
+              </p>
+            </div>
             <div id="backtestExportRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
               <span style="font-size:12px; color:var(--text-muted); margin-right:8px;">Export:</span>
               <button type="button" class="btn secondary" onclick="exportBacktestCsv()">CSV</button>
@@ -2758,6 +3046,122 @@
             </div>
           </div>
         </div>
+        <div id="screenMethodology" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">How Midori Thinks</h1>
+            <p class="page-desc">Transparency and education first. This page explains how Project Midori works, what data it uses, and what its limitations are.</p>
+          </div>
+          <div class="card methodology-quick-links" style="margin-bottom:16px; padding:14px 16px;">
+            <h2 style="font-size:13px; font-weight:600; margin:0 0 10px;">Quick links</h2>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              <a href="#/risk" class="methodology-link">Risk Center</a>
+              <a href="#/analysis" class="methodology-link">Analysis</a>
+              <a href="#/signals" class="methodology-link">Signals</a>
+              <a href="#/chat" class="methodology-link">Chat</a>
+              <a href="#/confidence" class="methodology-link">Confidence</a>
+              <a href="#/backtest" class="methodology-link">Backtest</a>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">1. What Project Midori Is</h2>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 4px;">
+              Midori is an AI-powered trading intelligence and coaching tool. It helps you understand market conditions, risk, and trade scenarios.
+            </p>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+              Midori is <strong>not</strong> a broker, adviser, or signal service. All outputs are educational scenarios to help you make your own decisions.
+            </p>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">2. How Signals &amp; Analysis Are Generated</h2>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 4px;">
+              Midori combines delayed market data (prices, volatility, moving averages, VIX, macro events) with an LLM to build structured scenarios.
+            </p>
+            <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:4px 0 0;">
+              <li>Data in: yfinance prices/volatility, CNN Fear &amp; Greed, economic calendar, news headlines, basic fundamentals.</li>
+              <li>Reasoning: the AI looks for patterns, regimes, risk factors, and common technical structures.</li>
+              <li>Output: scenarios with entry/exit ideas, risk levels, and a <strong>HOW MIDORI DECIDED THIS</strong> explainability section.</li>
+            </ul>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">3. What Confidence Scores Mean</h2>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 4px;">
+              Confidence is a <strong>historical pattern match</strong> score, not a promise. When Midori shows a % confidence, it should be read as:
+            </p>
+            <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:4px 0 0;">
+              <li><strong>Very High</strong> (90–100%): rare setup with strong confluence of signals.</li>
+              <li><strong>High</strong> (70–89%): multiple signals aligned in the same direction.</li>
+              <li><strong>Moderate</strong> (55–69%): favorable but not ideal conditions.</li>
+              <li><strong>Low</strong> (40–54%): mixed signals; trade with caution and small size.</li>
+              <li><strong>Speculative</strong> (&lt; 40%): high uncertainty; only appropriate for very small, educational sizing.</li>
+            </ul>
+            <p style="font-size:13px; color:var(--text-secondary); margin:6px 0 0;">
+              These ranges are based on how similar setups behaved historically in backtests and factor studies. They are <strong>not guarantees</strong>.
+            </p>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">4. Data Sources Used</h2>
+            <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:0;">
+              <li><strong>yfinance</strong> — delayed prices, volume, volatility, options chains, moving averages.</li>
+              <li><strong>CNN Fear &amp; Greed Index</strong> — broad sentiment regime.</li>
+              <li><strong>Forex Factory / economic calendar</strong> — high impact macro events.</li>
+              <li><strong>Yahoo Finance RSS</strong> — major SPY/QQQ/NVDA headlines.</li>
+              <li><strong>House &amp; Senate STOCK Act</strong> — congressional trading disclosures.</li>
+              <li><strong>SEC 13F filings</strong> — institutional positioning (quarterly).</li>
+            </ul>
+            <p style="font-size:13px; color:var(--text-secondary); margin:6px 0 0;">
+              All of these are free/public data sources. Some are delayed or approximate; Midori reflects these limitations in its commentary.
+            </p>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">5. Known Limitations</h2>
+            <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:0;">
+              <li>No real-time options tape or order book — Greeks and IV are approximate.</li>
+              <li>Congressional trading data can lag real trades by up to 45 days.</li>
+              <li>13F filings are quarterly snapshots and may be stale.</li>
+              <li>The AI can be wrong, biased by past regimes, or overfit to noisy patterns.</li>
+              <li>Past patterns never guarantee future results, especially in regime shifts.</li>
+            </ul>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">6. Educational Purpose Statement</h2>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 6px;">
+              Midori is a <strong>learning tool</strong>. It helps you understand how markets, options, and risk management work in different conditions.
+            </p>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 6px;">
+              Nothing in this app is financial advice. Midori is not a licensed adviser, broker, or money manager.
+            </p>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+              Trade only with money you can afford to lose, and always do your own research. When in doubt, size down or step aside.
+            </p>
+          </div>
+          <div class="card">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">Your Activity Log</h2>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 8px;">
+              Midori can keep a local-only log of analyses and signals to help you review decisions. Entries are stored in your browser only and never sent to a server.
+            </p>
+            <div id="activityLogControls" style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+              <button type="button" class="btn secondary" style="min-width:0; padding:6px 10px; font-size:12px;" onclick="exportActivityLog()">Export CSV</button>
+              <button type="button" class="btn secondary" style="min-width:0; padding:6px 10px; font-size:12px;" onclick="clearActivityLog()">Clear log</button>
+            </div>
+            <div id="activityLogEmpty" class="hint">No activity logged yet. Run an <a href="#/analysis" style="color:var(--accent-primary);">Analysis</a> or refresh <a href="#/signals" style="color:var(--accent-primary);">Signals</a> to populate entries.</div>
+            <div id="activityLogTableWrap" style="display:none; max-height:260px; overflow:auto; margin-top:8px;">
+              <table class="table-zebra" style="font-size:11px;">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Feature</th>
+                    <th>Tickers</th>
+                    <th>Mode</th>
+                    <th>Summary</th>
+                    <th>Confidence</th>
+                    <th>Regime</th>
+                  </tr>
+                </thead>
+                <tbody id="activityLogBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
         </div>
       </main>
     </div>
@@ -2794,6 +3198,7 @@
           <tr><td><kbd>G</kbd> then <kbd>S</kbd></td><td>Signals</td></tr>
           <tr><td><kbd>G</kbd> then <kbd>C</kbd></td><td>Chat</td></tr>
           <tr><td><kbd>G</kbd> then <kbd>B</kbd></td><td>Backtest</td></tr>
+          <tr><td><kbd>G</kbd> then <kbd>R</kbd></td><td>Risk Center</td></tr>
           <tr><td><kbd>R</kbd></td><td>Refresh current page data</td></tr>
         </table>
       </div>
@@ -3000,8 +3405,8 @@
       window.addEventListener("offline", update);
     }
 
-    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenConfidence", "screenBacktest", "screenPoliticianTrades"];
-    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navConfidence", "navBacktest", "navPoliticianTrades"];
+    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenRisk", "screenConfidence", "screenBacktest", "screenPoliticianTrades", "screenMethodology"];
+    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navRisk", "navConfidence", "navBacktest", "navPoliticianTrades", "navMethodology"];
 
     function showPage(pageId) {
       ["pageLogin", "pageApp"].forEach(id => {
@@ -3022,9 +3427,11 @@
       screenScreener: "Screener",
       screenChat: "Chat with Midori",
       screenSignals: "Midori's Signals",
+      screenRisk: "Risk Center",
       screenConfidence: "Confidence",
       screenBacktest: "Backtest",
-      screenPoliticianTrades: "Politician Trades"
+      screenPoliticianTrades: "Politician Trades",
+      screenMethodology: "How Midori Thinks"
     };
 
     let _lastScreenId = null;
@@ -3067,10 +3474,397 @@
       gsap.to(fill, { width: targetW, duration: 1.0, ease: "power2.out", delay: 0.3, onComplete: () => fill.classList.add("animated") });
     }
 
+    function confidenceBucketLabel(pct) {
+      const n = Number(pct) || 0;
+      if (n >= 90) return "Very High — rare setup, strong confluence";
+      if (n >= 70) return "High — multiple signals aligned";
+      if (n >= 55) return "Moderate — favorable but not ideal conditions";
+      if (n >= 40) return "Low — mixed signals, trade with caution";
+      return "Speculative — high uncertainty, size very small";
+    }
+
+    function dismissConfidenceExplainer() {
+      const el = $("confidenceExplainer");
+      if (el) el.style.display = "none";
+      try { localStorage.setItem("midori_confidence_explained", "true"); } catch (_) {}
+    }
+
+    const ACTIVITY_LOG_KEY = "midori_activity_log_v1";
+
+    function readActivityLog() {
+      try {
+        const raw = localStorage.getItem(ACTIVITY_LOG_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveActivityLog(entries) {
+      try {
+        const trimmed = Array.isArray(entries) ? entries.slice(-500) : [];
+        localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(trimmed));
+      } catch (_) {}
+    }
+
+    function renderActivityLog() {
+      const body = $("activityLogBody");
+      const wrap = $("activityLogTableWrap");
+      const empty = $("activityLogEmpty");
+      if (!body || !wrap || !empty) return;
+      const entries = readActivityLog();
+      if (!entries.length) {
+        body.innerHTML = "";
+        wrap.style.display = "none";
+        empty.style.display = "block";
+        return;
+      }
+      empty.style.display = "none";
+      wrap.style.display = "block";
+      body.innerHTML = entries
+        .slice()
+        .sort((a, b) => String(a.timestamp || "").localeCompare(String(b.timestamp || "")))
+        .map((e) => {
+          const ts = e.timestamp ? new Date(e.timestamp).toLocaleString() : "";
+          const feature = e.feature || "";
+          const tickerStr = Array.isArray(e.tickers) ? e.tickers.join(",") : (e.ticker || "");
+          const mode = e.mode || "";
+          const summary = e.result_summary || "";
+          const conf = e.confidence != null ? e.confidence : "";
+          const regime = e.regime_at_time || "";
+          return (
+            "<tr>" +
+            "<td>" + escapeHtml(String(ts)) + "</td>" +
+            "<td>" + escapeHtml(String(feature)) + "</td>" +
+            "<td>" + escapeHtml(String(tickerStr)) + "</td>" +
+            "<td>" + escapeHtml(String(mode)) + "</td>" +
+            "<td>" + escapeHtml(String(summary)) + "</td>" +
+            "<td>" + escapeHtml(String(conf)) + "</td>" +
+            "<td>" + escapeHtml(String(regime)) + "</td>" +
+            "</tr>"
+          );
+        })
+        .join("");
+    }
+
+    function exportActivityLog() {
+      const entries = readActivityLog();
+      if (!entries.length) {
+        showToast("No activity to export yet.");
+        return;
+      }
+      const rows = [["timestamp", "feature", "tickers", "mode", "result_summary", "confidence", "regime_at_time"]];
+      entries.forEach((e) => {
+        rows.push([
+          e.timestamp || "",
+          e.feature || "",
+          Array.isArray(e.tickers) ? e.tickers.join(",") : (e.ticker || ""),
+          e.mode || "",
+          e.result_summary || "",
+          e.confidence != null ? String(e.confidence) : "",
+          e.regime_at_time || "",
+        ]);
+      });
+      const csv = rows
+        .map((r) => r.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(","))
+        .join("\n");
+      downloadBlob(
+        new Blob([csv], { type: "text/csv;charset=utf-8" }),
+        "midori-activity-log-" + new Date().toISOString().slice(0, 10) + ".csv"
+      );
+      showToast("Activity log exported.");
+    }
+
+    function clearActivityLog() {
+      try {
+        localStorage.removeItem(ACTIVITY_LOG_KEY);
+      } catch (_) {}
+      renderActivityLog();
+      showToast("Activity log cleared.");
+    }
+
+    const RISK_GUARDRAILS_KEY = "midori_risk_guardrails_v1";
+    const RISK_DRAWDOWN_KEY = "midori_drawdown_v1";
+    const GUARDRAIL_REMINDER_DISMISSED_KEY = "midori_guardrail_reminder_dismissed";
+
+    function hasGuardrailsSet() {
+      try {
+        const raw = localStorage.getItem(RISK_GUARDRAILS_KEY);
+        if (!raw) return false;
+        const o = JSON.parse(raw);
+        return !!(o.maxDailyLoss && parseFloat(o.maxDailyLoss) > 0) ||
+          !!(o.maxPositions && parseInt(o.maxPositions, 10) > 0) ||
+          !!(o.maxSingleTrade && parseFloat(o.maxSingleTrade) > 0) ||
+          !!(o.riskPerTrade && parseFloat(o.riskPerTrade) > 0);
+      } catch (_) { return false; }
+    }
+
+    function showGuardrailReminderIfNeeded(containerId) {
+      const el = $(containerId);
+      if (!el) return;
+      if (hasGuardrailsSet()) { el.style.display = "none"; return; }
+      if (sessionStorage.getItem(GUARDRAIL_REMINDER_DISMISSED_KEY)) { el.style.display = "none"; return; }
+      el.style.display = "block";
+    }
+
+    function dismissGuardrailReminder(containerId) {
+      try { sessionStorage.setItem(GUARDRAIL_REMINDER_DISMISSED_KEY, "1"); } catch (_) {}
+      const el = $(containerId);
+      if (el) el.style.display = "none";
+    }
+
+    async function loadRegimeBanner(bannerId) {
+      const el = $(bannerId);
+      if (!el) return;
+      try {
+        const res = await fetch("/api/market-regime");
+        const data = await res.json();
+        const regime = data.regime || "UNKNOWN";
+        const desc = data.description || "";
+        const strat = data.strategies || {};
+        const vix = data.vix != null ? data.vix : null;
+        el.innerHTML =
+          '<div class="regime-label">📊 ' + escapeHtml(regime.replace(/_/g, " ")) + "</div>" +
+          (desc ? '<div class="regime-desc">' + escapeHtml(desc) + "</div>" : "") +
+          (strat.intermediate ? '<div class="regime-strategies">Favored: ' + escapeHtml(strat.intermediate) + "</div>" : "") +
+          (vix != null ? '<div class="regime-strategies">VIX: ' + vix + "</div>" : "");
+        el.style.display = "block";
+      } catch (_) {
+        el.style.display = "none";
+      }
+    }
+
+    function loadRiskCenter() {
+      loadRiskGuardrails();
+      updateGuardrailsCommentary();
+      loadRiskRegimeWidget();
+      loadRegimeBanner("regimeBannerRisk");
+      updatePositionSizeCalc();
+      updateDrawdownFromStorage();
+      ["riskAccountSize", "riskCalcRiskPct", "riskEntry", "riskStop"].forEach((id) => {
+        const inp = $(id);
+        if (inp) inp.addEventListener("input", updatePositionSizeCalc);
+      });
+      ["riskMaxDailyLoss", "riskMaxPositions", "riskMaxSingleTrade", "riskPerTrade"].forEach((id) => {
+        const inp = $(id);
+        if (inp) inp.addEventListener("change", saveRiskGuardrails);
+      });
+    }
+
+    function loadRiskGuardrails() {
+      try {
+        const raw = localStorage.getItem(RISK_GUARDRAILS_KEY);
+        if (!raw) return;
+        const o = JSON.parse(raw);
+        const set = (id, v) => { const el = $(id); if (el && v != null) el.value = String(v); };
+        set("riskMaxDailyLoss", o.maxDailyLoss);
+        set("riskMaxPositions", o.maxPositions);
+        set("riskMaxSingleTrade", o.maxSingleTrade);
+        set("riskPerTrade", o.riskPerTrade);
+      } catch (_) {}
+      updateGuardrailsCommentary();
+    }
+
+    function saveRiskGuardrails() {
+      try {
+        const get = (id) => { const el = $(id); return el ? el.value : ""; };
+        const o = {
+          maxDailyLoss: get("riskMaxDailyLoss") || null,
+          maxPositions: get("riskMaxPositions") || null,
+          maxSingleTrade: get("riskMaxSingleTrade") || null,
+          riskPerTrade: get("riskPerTrade") || null,
+        };
+        localStorage.setItem(RISK_GUARDRAILS_KEY, JSON.stringify(o));
+        updateGuardrailsCommentary();
+      } catch (_) {}
+    }
+
+    async function updateGuardrailsCommentary() {
+      const el = $("riskGuardrailsCommentary");
+      if (!el) return;
+      try {
+        const res = await fetch("/api/market-data");
+        const md = await res.json();
+        const vix = md.vix && md.vix.price ? md.vix.price : null;
+        let msg = "";
+        if (vix != null) {
+          if (vix > 25) msg = "⚠️ VIX at " + vix.toFixed(1) + " — consider reducing size and max positions.";
+          else if (vix > 20) msg = "VIX elevated. Stick to your guardrails.";
+          else msg = "VIX calm. Still respect your limits.";
+        }
+        el.textContent = msg;
+      } catch (_) {
+        el.textContent = "";
+      }
+    }
+
+    function updatePositionSizeCalc() {
+      const account = parseFloat(($("riskAccountSize") || {}).value) || 0;
+      const riskPct = parseFloat(($("riskCalcRiskPct") || {}).value) || 1;
+      const entry = parseFloat(($("riskEntry") || {}).value) || 0;
+      const stop = parseFloat(($("riskStop") || {}).value) || 0;
+      const resultEl = $("riskCalcResult");
+      const vixEl = $("riskCalcVixHint");
+      if (!resultEl) return;
+      if (!account || !entry || !stop || stop >= entry) {
+        resultEl.textContent = "Enter account size, entry, and stop (stop must be below entry).";
+        if (vixEl) vixEl.textContent = "";
+        return;
+      }
+      const riskDollars = account * (riskPct / 100);
+      const riskPerShare = entry - stop;
+      if (riskPerShare <= 0) {
+        resultEl.textContent = "Stop must be below entry.";
+        return;
+      }
+      const shares = Math.floor(riskDollars / riskPerShare);
+      const maxLoss = shares * riskPerShare;
+      resultEl.textContent = "Position size: " + shares + " shares | Max risk: $" + maxLoss.toFixed(0) + " (" + riskPct + "% of account)";
+      if (vixEl) {
+        fetch("/api/market-data").then((r) => r.json()).then((md) => {
+          const vix = md.vix && md.vix.price ? md.vix.price : null;
+          if (vix != null && vix > 22) vixEl.textContent = "VIX at " + vix.toFixed(1) + " — consider using " + (riskPct * 0.75).toFixed(1) + "% risk instead.";
+          else vixEl.textContent = "";
+        }).catch(() => {});
+      }
+    }
+
+    function addStressTestRow() {
+      const wrap = $("stressTestPositions");
+      if (!wrap) return;
+      const rows = wrap.querySelectorAll(".stress-position-row");
+      if (rows.length >= 5) { showToast("Max 5 positions."); return; }
+      const row = document.createElement("div");
+      row.className = "input-row stress-position-row";
+      row.style.cssText = "gap:8px; margin-bottom:8px;";
+      row.innerHTML =
+        '<input class="pill-input" type="text" placeholder="Symbol" data-symbol style="width:80px;">' +
+        '<input class="pill-input" type="number" placeholder="Qty" data-qty min="1" style="width:60px;">' +
+        '<input class="pill-input" type="number" placeholder="Entry $" data-entry step="0.01" style="width:90px;">' +
+        '<input class="pill-input" type="number" placeholder="Stop $" data-stop step="0.01" style="width:90px;">';
+      wrap.appendChild(row);
+    }
+
+    async function runStressTest() {
+      const wrap = $("stressTestPositions");
+      const statusEl = $("stressTestStatus");
+      const resultEl = $("stressTestResult");
+      const btn = $("stressTestBtn");
+      const btnLabel = $("stressTestBtnLabel");
+      if (!wrap || !statusEl || !resultEl) return;
+      const rows = wrap.querySelectorAll(".stress-position-row");
+      const positions = [];
+      rows.forEach((r) => {
+        const sym = (r.querySelector("[data-symbol]") || {}).value;
+        const qty = parseInt((r.querySelector("[data-qty]") || {}).value, 10) || 1;
+        const entry = parseFloat((r.querySelector("[data-entry]") || {}).value);
+        const stopEl = r.querySelector("[data-stop]");
+        const stop = stopEl && stopEl.value ? parseFloat(stopEl.value) : null;
+        if (sym && entry > 0) positions.push({ symbol: sym.trim().toUpperCase(), qty, entry, stop: stop || undefined });
+      });
+      if (!positions.length) {
+        statusEl.textContent = "Enter at least one position (symbol, qty, entry).";
+        return;
+      }
+      statusEl.textContent = "Running stress test…";
+      resultEl.style.display = "none";
+      if (btn) btn.disabled = true;
+      if (btnLabel) btnLabel.textContent = "Running…";
+      try {
+        const res = await fetch("/api/stress-test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ positions }),
+        });
+        const data = await res.json();
+        if (data.analysis) {
+          resultEl.textContent = data.analysis;
+          resultEl.style.display = "block";
+          statusEl.textContent = "";
+        } else statusEl.textContent = "No analysis returned.";
+      } catch (e) {
+        statusEl.textContent = "Error: " + (e.message || "Failed");
+      }
+      if (btn) btn.disabled = false;
+      if (btnLabel) btnLabel.textContent = "Run stress test";
+    }
+
+    function updateDrawdownGauge() {
+      const peak = parseFloat(($("riskPeakEquity") || {}).value) || 0;
+      const current = parseFloat(($("riskCurrentEquity") || {}).value) || 0;
+      const wrap = $("drawdownGaugeWrap");
+      const fill = $("drawdownGaugeFill");
+      const pctEl = $("drawdownGaugePct");
+      if (!wrap || !fill || !pctEl) return;
+      if (!peak || peak <= 0) {
+        wrap.style.display = "none";
+        return;
+      }
+      const dd = peak > current ? ((peak - current) / peak) * 100 : 0;
+      fill.style.width = Math.min(100, dd) + "%";
+      pctEl.textContent = dd.toFixed(1) + "%";
+      wrap.style.display = "block";
+      try {
+        localStorage.setItem(RISK_DRAWDOWN_KEY, JSON.stringify({ peak, current, updated: new Date().toISOString() }));
+      } catch (_) {}
+    }
+
+    function updateDrawdownFromStorage() {
+      try {
+        const raw = localStorage.getItem(RISK_DRAWDOWN_KEY);
+        if (!raw) return;
+        const o = JSON.parse(raw);
+        const set = (id, v) => { const el = $(id); if (el && v != null) el.value = String(v); };
+        set("riskPeakEquity", o.peak);
+        set("riskCurrentEquity", o.current);
+      } catch (_) {}
+      updateDrawdownGauge();
+    }
+
+    async function loadRiskRegimeWidget() {
+      const el = $("riskRegimeWidget");
+      if (!el) return;
+      try {
+        const res = await fetch("/api/market-regime");
+        const data = await res.json();
+        const regime = data.regime || "UNKNOWN";
+        const desc = data.description || "";
+        const strat = data.strategies || {};
+        const vix = data.vix != null ? " VIX: " + data.vix : "";
+        const rsi = data.rsi != null ? " RSI: " + data.rsi : "";
+        el.innerHTML =
+          '<div style="font-weight:600; margin-bottom:4px;">' + escapeHtml(regime.replace(/_/g, " ")) + vix + rsi + "</div>" +
+          (desc ? '<div style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">' + escapeHtml(desc) + "</div>" : "") +
+          (strat.beginner ? '<div style="font-size:11px; color:var(--text-muted);"><strong>Beginner:</strong> ' + escapeHtml(strat.beginner) + "</div>" : "") +
+          (strat.intermediate ? '<div style="font-size:11px; color:var(--text-muted);"><strong>Intermediate:</strong> ' + escapeHtml(strat.intermediate) + "</div>" : "") +
+          (strat.advanced ? '<div style="font-size:11px; color:var(--text-muted);"><strong>Advanced:</strong> ' + escapeHtml(strat.advanced) + "</div>" : "");
+      } catch (_) {
+        el.textContent = "Regime unavailable.";
+      }
+    }
+
+    function appendActivityLogEntry(entry) {
+      try {
+        const current = readActivityLog();
+        current.push({
+          timestamp: entry.timestamp || new Date().toISOString(),
+          feature: entry.feature || "",
+          tickers: entry.tickers || entry.ticker || [],
+          mode: entry.mode || "",
+          result_summary: entry.result_summary || "",
+          confidence: entry.confidence,
+          regime_at_time: entry.regime_at_time || "",
+        });
+        saveActivityLog(current);
+      } catch (_) {}
+    }
+
     function showScreen(screenId) {
       const newScreen = $(screenId);
       const currentScreen = document.querySelector(".screen.active");
-      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenConfidence: "/confidence", screenBacktest: "/backtest", screenPoliticianTrades: "/trades" };
+      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenRisk: "/risk", screenConfidence: "/confidence", screenBacktest: "/backtest", screenPoliticianTrades: "/trades", screenMethodology: "/methodology" };
       const path = pathMap[screenId] || "/dashboard";
 
       function doSwitchAndAnimateIn() {
@@ -3255,6 +4049,21 @@
       loadNewsTicker();
       loadTradingViewWidget();
       loadHeroSignals();
+      loadDashboardRegime();
+    }
+
+    async function loadDashboardRegime() {
+      const el = $("dashboardRegimePill");
+      if (!el) return;
+      try {
+        const res = await fetch("/api/market-regime");
+        const data = await res.json();
+        const regime = (data.regime || "UNKNOWN").replace(/_/g, " ");
+        el.textContent = "📊 " + regime;
+        el.style.display = "inline-flex";
+      } catch (_) {
+        el.style.display = "none";
+      }
     }
 
     function loadHeroSignals() {
@@ -3634,17 +4443,22 @@
         "/screener": "screenScreener",
         "/chat": "screenChat",
         "/signals": "screenSignals",
+        "/risk": "screenRisk",
         "/confidence": "screenConfidence",
         "/backtest": "screenBacktest",
         "/trades": "screenPoliticianTrades",
+        "/methodology": "screenMethodology",
       };
       const screenId = pathToScreen[path] || "screenDashboard";
       showScreen(screenId);
 
-      if (path === "/signals") fetchSignals();
+      if (path === "/signals") { fetchSignals(); loadRegimeBanner("signalsRegimeBanner"); showGuardrailReminderIfNeeded("signalsGuardrailReminder"); }
+      if (path === "/confidence") loadRegimeBanner("confidenceRegimeBanner");
+      if (path === "/risk") loadRiskCenter();
       if (path === "/dashboard") loadDashboardData();
       if (path === "/trades") loadPoliticianTrades();
       if (path === "/analysis") {
+        showGuardrailReminderIfNeeded("analysisGuardrailReminder");
         const lastTickers = localStorage.getItem("trademinds_last_tickers");
         const tickersEl = $("tickers");
         if (tickersEl && lastTickers && !tickersEl.value.trim()) tickersEl.value = lastTickers;
@@ -3655,6 +4469,7 @@
         const btEl = $("backtestTickers");
         if (btEl && lastTickers && !btEl.value.trim()) btEl.value = lastTickers;
       }
+      if (path === "/methodology") renderActivityLog();
       if (path === "/chat") {
         initChatQuickPrompts();
         const convo = $("chatConversation");
@@ -3698,9 +4513,10 @@
     }
 
     const ONBOARDING_STEPS = [
-      "Welcome to Project Midori — AI trading intelligence. Your command center for 0DTE options, swing trading, and long-term investing.",
-      "Midori analyzes real market conditions for every response: live prices, VIX, Fear & Greed, economic events, and news.",
-      "Start with the Dashboard for a market snapshot, or ask Midori anything in Chat. Educational only — not financial advice.",
+      "Welcome to Project Midori — your AI risk manager and trading coach. The goal is to make you a smarter, safer trader, not to promise perfect signals.",
+      "Set your limits first: visit Risk Center to define max daily loss, max positions, and risk per trade. These guardrails help protect your capital.",
+      "Midori analyzes real market conditions for every response: prices, VIX, Fear & Greed, economic events, and news, then explains how it decided on each setup.",
+      "Start with the Dashboard and Risk tools, or ask Midori anything in Chat. Everything here is educational only — never financial advice.",
     ];
     let onboardingStep = 0;
     function showOnboarding() {
@@ -3740,6 +4556,7 @@
       route();
       initOfflineBanner();
       initNumberInputClamp();
+      renderActivityLog();
     });
 
     let _pendingG = false;
@@ -3771,6 +4588,7 @@
         if (k === "s") { location.hash = "#/signals"; route(); return; }
         if (k === "c") { location.hash = "#/chat"; route(); return; }
         if (k === "b") { location.hash = "#/backtest"; route(); return; }
+        if (k === "r") { location.hash = "#/risk"; route(); return; }
       }
       _pendingG = false;
       if (k === "r") {
@@ -4217,7 +5035,7 @@
       if (!signals.length) {
         placeholder.style.display = "block";
         placeholder.classList.remove("error");
-        placeholder.textContent = "Click Refresh to load the highest-probability trade setups right now.";
+        placeholder.textContent = "Click Refresh to load educational trade setups based on historical probabilities.";
         hero.style.display = "none";
         list.innerHTML = "";
         return;
@@ -4226,25 +5044,51 @@
       placeholder.classList.remove("error");
       const top = signals[0];
       hero.style.display = "block";
+      const topWhy = (top.how_midori_decided || "");
+      const topWhyHtml = topWhy ? escapeHtml(topWhy).replace(/\n/g, "<br>") : "";
       hero.innerHTML =
-        "<div class=\"signal-hero-label\">Highest probability trade right now</div>" +
+        "<div class=\"signal-hero-label\">Top educational setup right now</div>" +
         "<div class=\"signal-hero-headline\">" + (top.headline || "") + "</div>" +
         "<div class=\"signal-hero-meta\">" + (top.ticker || "") + " " + (top.type || "") + " · Strike zone " + (top.strike_zone || "—") + "</div>" +
-        "<div class=\"signal-hero-reason\">" + (top.reason || "") + "</div>";
+        "<div class=\"signal-hero-reason\">" + (top.reason || "") + "</div>" +
+        (topWhyHtml ? '<button type="button" class="signal-explainer-toggle" data-scope="hero">How Midori Decided This</button><div class="signal-explainer" style="display:none;">' + topWhyHtml + "</div>" : "");
       list.innerHTML = "";
       signals.forEach(function(s, i) {
         if (i === 0) return;
         const card = document.createElement("div");
         card.className = "signal-card";
+        const why = s.how_midori_decided || "";
+        const whyHtml = why ? escapeHtml(why).replace(/\n/g, "<br>") : "";
         card.innerHTML =
           "<span class=\"signal-rank\">" + (s.rank || i + 1) + "</span>" +
           "<div class=\"signal-card-body\">" +
           "<div class=\"signal-card-headline\">" + (s.headline || "") + "</div>" +
           "<div class=\"signal-card-meta\">" + (s.ticker || "") + " " + (s.type || "") + " · " + (s.strike_zone || "—") + "</div>" +
           "<div class=\"signal-card-reason\">" + (s.reason || "") + "</div>" +
+          (whyHtml ? '<button type="button" class="signal-explainer-toggle">How Midori Decided This</button><div class="signal-explainer" style="display:none;">' + whyHtml + "</div>" : "") +
           "</div>";
         list.appendChild(card);
       });
+      // Wire up explainability accordions
+      list.querySelectorAll(".signal-explainer-toggle").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          const panel = btn.nextElementSibling;
+          if (!panel) return;
+          const isOpen = panel.style.display === "block";
+          panel.style.display = isOpen ? "none" : "block";
+          btn.classList.toggle("open", !isOpen);
+        });
+      });
+      const heroToggle = hero.querySelector(".signal-explainer-toggle");
+      if (heroToggle) {
+        heroToggle.addEventListener("click", function() {
+          const panel = heroToggle.nextElementSibling;
+          if (!panel) return;
+          const isOpen = panel.style.display === "block";
+          panel.style.display = isOpen ? "none" : "block";
+          heroToggle.classList.toggle("open", !isOpen);
+        });
+      }
       if (window.gsap) {
         const signalCards = list.querySelectorAll(".signal-card:not(.animated)");
         if (signalCards.length) {
@@ -4275,6 +5119,22 @@
         if (data.signals && data.signals.length) setNotificationDot("panelSignals", true);
         const lu = $("signalsLastUpdated");
         if (lu) lu.textContent = "· Last updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        fetch("/api/market-regime").then(r => r.json()).then(reg => {
+          appendActivityLogEntry({
+            feature: "Signals",
+            tickers: data.tickers || tickersValue.split(",").map(s => s.trim()),
+            mode: currentSignalMode || "0dte",
+            result_summary: (data.signals && data.signals.length) ? data.signals.length + " setup(s)" : "No setups",
+            regime_at_time: reg.regime || "",
+          });
+        }).catch(() => {
+          appendActivityLogEntry({
+            feature: "Signals",
+            tickers: data.tickers || tickersValue.split(",").map(s => s.trim()),
+            mode: currentSignalMode || "0dte",
+            result_summary: (data.signals && data.signals.length) ? data.signals.length + " setup(s)" : "No setups",
+          });
+        });
       } catch (err) {
         renderSignals({});
         const lu = $("signalsLastUpdated");
@@ -4523,10 +5383,18 @@
         panelBody.innerHTML = "";
         if (emptyHint) emptyHint.style.display = "block";
         emptyHint && (emptyHint.textContent = "No confidence metrics available for these tickers (not enough history).");
+        const explainer = $("confidenceExplainer");
+        if (explainer) explainer.style.display = "none";
         return;
       }
 
       if (emptyHint) emptyHint.style.display = "none";
+      const explainer = $("confidenceExplainer");
+      if (explainer) {
+        let dismissed = false;
+        try { dismissed = localStorage.getItem("midori_confidence_explained") === "true"; } catch (_) { dismissed = false; }
+        explainer.style.display = dismissed ? "none" : "flex";
+      }
 
       const gaugeColor = (pct) => {
         if (pct >= 65) return "var(--success)";
@@ -4546,11 +5414,15 @@
         const winStr = typeof win === "number" ? win + "%" : win;
         const trendStr = typeof trend === "number" ? trend + "%" : trend;
         const volStr = typeof vol === "number" ? vol + "%" : vol;
+        const label = confidenceBucketLabel(conf);
 
         return `<div class="confidence-card">
           <div class="confidence-card-header">
             <span>${(sym || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>
-            <span class="conviction-number" style="color:${gaugeColor(conf)}"><span class="conviction-num-value" data-target="${conf}">${conf}</span>%</span>
+            <div style="text-align:right;">
+              <span class="conviction-number" style="color:${gaugeColor(conf)}"><span class="conviction-num-value" data-target="${conf}">${conf}</span>%</span>
+              <div class="confidence-label">${label}</div>
+            </div>
           </div>
           <div class="confidence-gauge">
             <div class="confidence-gauge-fill conviction-fill" style="width:${Math.min(100, Math.max(0, conf))}%; background:${gaugeColor(conf)}"></div>
@@ -4902,6 +5774,27 @@
         setStatus("Analysis complete.");
         showToast("Analysis complete.");
         setNotificationDot("panelAnalysis", true);
+
+        fetch("/api/market-regime").then(r => r.json()).then(reg => {
+          const confVal = (data.confidence && typeof data.confidence === "object" && Object.keys(data.confidence).length) ? Math.max(...Object.values(data.confidence)) : null;
+          appendActivityLogEntry({
+            feature: "Analysis",
+            tickers: tickersValue.split(",").map(s => s.trim()),
+            mode: currentTimeframe + " " + currentFocus,
+            result_summary: (outText || "").slice(0, 80).replace(/\n/g, " ") + (outText && outText.length > 80 ? "…" : ""),
+            confidence: confVal,
+            regime_at_time: reg.regime || "",
+          });
+        }).catch(() => {
+          const confVal = (data.confidence && typeof data.confidence === "object" && Object.keys(data.confidence).length) ? Math.max(...Object.values(data.confidence)) : null;
+          appendActivityLogEntry({
+            feature: "Analysis",
+            tickers: tickersValue.split(",").map(s => s.trim()),
+            mode: currentTimeframe + " " + currentFocus,
+            result_summary: (outText || "").slice(0, 80).replace(/\n/g, " ") + (outText && outText.length > 80 ? "…" : ""),
+            confidence: confVal,
+          });
+        });
 
         if (data.confidence) {
           renderConfidencePanel(data.confidence);
@@ -5506,6 +6399,13 @@
         lastBacktestData = { portfolio, symbols: symMetrics, equity_curve: portfolio.equity_curve || [], years, holdingDays, tickersValue };
         const exportRow = $("backtestExportRow");
         if (exportRow) exportRow.style.display = "block";
+        fetch("/api/market-regime").then(r => r.json()).then(reg => {
+          const noteEl = $("backtestRegimeNote");
+          if (noteEl && reg.regime) {
+            noteEl.innerHTML = "📊 Current regime: <strong>" + escapeHtml((reg.regime || "").replace(/_/g, " ")) + "</strong>" + (reg.description ? " — " + escapeHtml(reg.description) : "") + ". Backtest uses historical data; current regime may differ.";
+            noteEl.style.display = "block";
+          }
+        }).catch(() => {});
         statusEl.textContent = "Backtest complete.";
         showToast("Backtest complete.");
       } catch (err) {
@@ -5513,11 +6413,12 @@
         statusEl.innerHTML = (msg || "Backtest failed.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="runBacktest()">Retry</button>';
         statusEl.classList.add("error");
         resultsEl.textContent = String(err);
-        const cw = $("backtestEquityChartWrap"), sg = $("backtestStatsGrid"), ex = $("backtestExplain"), er = $("backtestExportRow");
+        const cw = $("backtestEquityChartWrap"), sg = $("backtestStatsGrid"), ex = $("backtestExplain"), er = $("backtestExportRow"), rn = $("backtestRegimeNote");
         if (cw) cw.style.display = "none";
         if (sg) { sg.style.display = "none"; sg.innerHTML = ""; }
         if (ex) { ex.style.display = "none"; ex.innerHTML = ""; }
         if (er) er.style.display = "none";
+        if (rn) { rn.style.display = "none"; rn.innerHTML = ""; }
         lastBacktestData = null;
       } finally {
         btn.disabled = false;
