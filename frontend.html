@@ -17,6 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
 
   <style>
     /* ========== Project Midori Design System ========== */
@@ -548,12 +549,44 @@
       margin-bottom: var(--space-6);
     }
     @media (max-width: 900px) { .dashboard-mid-row { grid-template-columns: 1fr; } }
-    .tradingview-widget-wrap {
+    .chart-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .chart-ticker-input { display: flex; gap: 8px; align-items: center; }
+    .chart-input {
+      width: 80px;
+      padding: 6px 10px;
+      font-size: 13px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+    }
+    .interval-btn {
+      padding: 4px 10px;
+      font-size: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .interval-btn:hover, .interval-btn.active {
+      background: var(--accent-muted);
+      color: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+    .midori-chart-wrap {
       min-height: 360px;
       border-radius: var(--radius-lg);
       background: var(--bg-surface);
       border: 1px solid var(--border);
       overflow: hidden;
+      position: relative;
     }
     .market-events-card {
       border-radius: var(--radius-lg);
@@ -2461,8 +2494,27 @@
           </div>
 
           <div class="dashboard-mid-row">
-            <div class="tradingview-widget-wrap">
-              <div id="tradingview-widget" style="height:360px;"></div>
+            <div class="midori-chart-wrap">
+              <div class="chart-controls" style="padding:10px 12px 0;">
+                <div class="chart-ticker-input">
+                  <input id="chart-ticker" type="text" value="SPY" maxlength="6" placeholder="Ticker" class="chart-input"/>
+                  <button type="button" class="btn secondary btn-sm" onclick="updateChart()">Update</button>
+                </div>
+                <div class="chart-interval-btns" style="display:flex; gap:4px;">
+                  <button type="button" class="interval-btn" data-interval="1m">1m</button>
+                  <button type="button" class="interval-btn active" data-interval="5m">5m</button>
+                  <button type="button" class="interval-btn" data-interval="15m">15m</button>
+                  <button type="button" class="interval-btn" data-interval="1h">1h</button>
+                  <button type="button" class="interval-btn" data-interval="1d">1D</button>
+                </div>
+              </div>
+              <div id="midori-chart" style="width:100%;height:340px;background:#070B14;border-radius:0 0 12px 12px;"></div>
+              <div id="chart-loading" style="display:none; position:absolute; inset:0; background:rgba(7,11,20,0.8); align-items:center; justify-content:center; color:#94A3B8;">Loading...</div>
+              <div id="chart-error" style="display:none; position:absolute; inset:0; background:rgba(7,11,20,0.9); align-items:center; justify-content:center; flex-direction:column; gap:12px; color:#94A3B8;">
+                <div style="font-size:32px">📊</div>
+                <div id="chart-error-msg">Chart data unavailable</div>
+                <button type="button" class="btn secondary btn-sm" onclick="document.getElementById('chart-error').style.display='none'; currentChartTicker='SPY'; currentInterval='5m'; loadChartData('SPY','5m');">Load SPY</button>
+              </div>
             </div>
             <div class="market-events-card">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -2510,6 +2562,13 @@
             <a href="#/signals" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div><div class="label">Signals</div><div class="desc">Educational setups with reasoning</div></div></a>
             <a href="#/backtest" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/><path d="M8 21l4-4 4 4"/></svg></div><div><div class="label">Backtest</div><div class="desc">Historical performance</div></div></a>
             <a href="#/confidence" class="quick-tool-card"><div class="icon">🎯</div><div><div class="label">Confidence</div><div class="desc">Metrics & stats</div></div></a>
+          </div>
+
+          <div class="fred-macro-card" style="margin-bottom:16px; padding:12px 16px; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-lg);">
+            <h3 style="font-size:13px; margin:0 0 8px;">Macro Data (FRED — US Gov Public Domain)</h3>
+            <div id="fredMacroList" class="fred-macro-list" style="font-size:12px; color:var(--text-secondary); display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px;">
+              <span class="hint">Loading...</span>
+            </div>
           </div>
 
           <div class="news-ticker-wrap" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -3089,7 +3148,36 @@
             <button type="button" id="pt-load-more" onclick="loadMorePTTrades()" class="btn secondary" style="display:none;">Load 20 more trades</button>
           </div>
           <div class="pt-disclaimer">
-            Data sourced from House Stock Watcher and Senate Stock Watcher — public STOCK Act disclosures. All congressional members must report trades within 45 days under federal law. Educational purposes only.
+            Congressional trade data is public domain information published under the STOCK Act (2012). Source: <a href="https://disclosures-clerk.house.gov/FinancialDisclosure" target="_blank" rel="noopener">disclosures-clerk.house.gov</a> and <a href="https://efts.senate.gov" target="_blank" rel="noopener">senate.gov</a>. Aggregated via House/Senate Stock Watcher. Data lags up to 45 days by law. Educational purposes only — not financial advice.
+          </div>
+        </div>
+        <div id="screenTerms" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Terms of Service</h1>
+            <p class="page-desc">Last updated: February 2025</p>
+          </div>
+          <div class="card" style="padding:20px;">
+            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 12px;">Project Midori is an educational tool. By using this service, you agree that:</p>
+            <ul style="font-size:13px; color:var(--text-secondary); margin:0 0 12px; padding-left:20px;">
+              <li>Nothing in this app is financial advice. Midori is not a licensed adviser, broker, or money manager.</li>
+              <li>You trade at your own risk. Past performance does not guarantee future results.</li>
+              <li>We may update these terms. Continued use constitutes acceptance.</li>
+            </ul>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;"><a href="#/dashboard">Back to dashboard</a></p>
+          </div>
+        </div>
+        <div id="screenPrivacy" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">Privacy Policy</h1>
+            <p class="page-desc">Last updated: February 2025</p>
+          </div>
+          <div class="card" style="padding:20px;">
+            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 12px;">We collect minimal data:</p>
+            <ul style="font-size:13px; color:var(--text-secondary); margin:0 0 12px; padding-left:20px;">
+              <li>Session data for analytics and improving the service.</li>
+              <li>We do not sell your data.</li>
+            </ul>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;"><a href="#/dashboard">Back to dashboard</a></p>
           </div>
         </div>
         <div id="screenMethodology" class="screen page-content">
@@ -3106,6 +3194,8 @@
               <a href="#/chat" class="methodology-link">Chat</a>
               <a href="#/confidence" class="methodology-link">Confidence</a>
               <a href="#/backtest" class="methodology-link">Backtest</a>
+              <a href="#/terms" class="methodology-link">Terms</a>
+              <a href="#/privacy" class="methodology-link">Privacy</a>
             </div>
           </div>
           <div class="card" style="margin-bottom:16px;">
@@ -3123,7 +3213,7 @@
               Midori combines delayed market data (prices, volatility, moving averages, VIX, macro events) with an LLM to build structured scenarios.
             </p>
             <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:4px 0 0;">
-              <li>Data in: yfinance prices/volatility, CNN Fear &amp; Greed, economic calendar, news headlines, basic fundamentals.</li>
+              <li>Data in: Alpaca/Polygon prices, Alternative.me Fear &amp; Greed, Finnhub economic calendar &amp; news, FRED macro, basic fundamentals.</li>
               <li>Reasoning: the AI looks for patterns, regimes, risk factors, and common technical structures.</li>
               <li>Output: scenarios with entry/exit ideas, risk levels, and a <strong>HOW MIDORI DECIDED THIS</strong> explainability section.</li>
             </ul>
@@ -3145,17 +3235,20 @@
             </p>
           </div>
           <div class="card" style="margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">4. Data Sources Used</h2>
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">4. Data Sources (All Commercially Licensed)</h2>
             <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:0;">
-              <li><strong>yfinance</strong> — delayed prices, volume, volatility, options chains, moving averages.</li>
-              <li><strong>CNN Fear &amp; Greed Index</strong> — broad sentiment regime.</li>
-              <li><strong>Forex Factory / economic calendar</strong> — high impact macro events.</li>
-              <li><strong>Yahoo Finance RSS</strong> — major SPY/QQQ/NVDA headlines.</li>
-              <li><strong>House &amp; Senate STOCK Act</strong> — congressional trading disclosures.</li>
-              <li><strong>SEC 13F filings</strong> — institutional positioning (quarterly).</li>
+              <li><strong>Alpaca Markets</strong> — real-time delayed stock quotes. Free commercial use. alpaca.markets</li>
+              <li><strong>Polygon.io</strong> — market data and VIX. Free tier, commercial use allowed. polygon.io</li>
+              <li><strong>Finnhub.io</strong> — financial news and economic calendar. Free tier, commercial use allowed. finnhub.io</li>
+              <li><strong>FRED (Federal Reserve)</strong> — macro economic indicators. US Government public domain. fred.stlouisfed.org</li>
+              <li><strong>Alternative.me</strong> — Fear &amp; Greed Index. Free, commercial use allowed. alternative.me/fng</li>
+              <li><strong>STOCK Act (Congress.gov)</strong> — congressional trade disclosures. US Government public domain. disclosures-clerk.house.gov, senate.gov</li>
+              <li><strong>SEC EDGAR</strong> — institutional 13F filings. US Government public domain.</li>
+              <li><strong>TradingView Lightweight Charts</strong> — MIT licensed open source charting. tradingview.github.io/lightweight-charts</li>
+              <li><strong>OpenAI GPT</strong> — AI analysis and coaching. Commercial use permitted.</li>
             </ul>
             <p style="font-size:13px; color:var(--text-secondary); margin:6px 0 0;">
-              All of these are free/public data sources. Some are delayed or approximate; Midori reflects these limitations in its commentary.
+              All sources are free for commercial use. Some data is delayed; Midori reflects these limitations in its commentary.
             </p>
           </div>
           <div class="card" style="margin-bottom:16px;">
@@ -3214,6 +3307,8 @@
 
     <div class="footer-note">
       Project Midori — Educational only, not trading advice. Screener/Greeks approximate. Options can go to zero.
+      <a href="#/terms" style="color:var(--text-muted); margin-left:6px;">Terms</a>
+      <a href="#/privacy" style="color:var(--text-muted); margin-left:6px;">Privacy</a>
     </div>
 
     <div id="onboardingModal" class="onboarding-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
@@ -3451,7 +3546,7 @@
       window.addEventListener("offline", update);
     }
 
-    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenRisk", "screenConfidence", "screenBacktest", "screenPoliticianTrades", "screenMethodology"];
+    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenRisk", "screenConfidence", "screenBacktest", "screenPoliticianTrades", "screenMethodology", "screenTerms", "screenPrivacy"];
     const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navRisk", "navConfidence", "navBacktest", "navPoliticianTrades", "navMethodology"];
 
     function showPage(pageId) {
@@ -4093,7 +4188,8 @@
       loadMarketPulse();
       loadMarketEvents();
       loadNewsTicker();
-      loadTradingViewWidget();
+      loadFredMacro();
+      initLightweightChart();
       loadHeroSignals();
       loadDashboardRegime();
     }
@@ -4284,6 +4380,29 @@
       }
     }
 
+    async function loadFredMacro() {
+      const el = document.getElementById("fredMacroList");
+      if (!el) return;
+      try {
+        const r = await fetch("/api/fred-macro");
+        const data = await r.json();
+        const keys = Object.keys(data);
+        if (!keys.length) {
+          el.innerHTML = '<span class="hint">FRED data unavailable (add FRED_KEY)</span>';
+          return;
+        }
+        el.innerHTML = keys.map(k => {
+          const v = data[k];
+          const label = (v && v.label) || k;
+          const val = (v && v.value) != null ? v.value : "--";
+          const date = (v && v.date) ? " (" + v.date + ")" : "";
+          return '<div><span style="color:var(--text-muted);">' + escapeHtml(label) + ':</span> <span class="font-mono">' + escapeHtml(String(val)) + '</span>' + escapeHtml(date) + '</div>';
+        }).join("");
+      } catch (e) {
+        el.innerHTML = '<span class="hint">Macro data unavailable</span>';
+      }
+    }
+
     async function loadMarketEvents() {
       const el = $("marketEventsList");
       if (!el) return;
@@ -4325,31 +4444,92 @@
       }
     }
 
-    function loadTradingViewWidget() {
-      if (window.TradingView && document.getElementById("tradingview-widget")) return;
-      const s = document.createElement("script");
-      s.src = "https://s3.tradingview.com/tv.js";
-      s.async = true;
-      s.onload = function() {
-        if (window.TradingView && document.getElementById("tradingview-widget")) {
-          new TradingView.widget({
-            "autosize": true,
-            "symbol": "SPY",
-            "interval": "5",
-            "timezone": "America/New_York",
-            "theme": "dark",
-            "style": "1",
-            "locale": "en",
-            "toolbar_bg": "#0F1724",
-            "enable_publishing": false,
-            "hide_side_toolbar": false,
-            "allow_symbol_change": true,
-            "studies": ["EMA@tv-basicstudies", "VWAP@tv-basicstudies"],
-            "container_id": "tradingview-widget"
-          });
+    let lwChart = null, lwCandleSeries = null, lwVolumeSeries = null, lwMaSeries = {};
+    let currentChartTicker = "SPY", currentInterval = "5m";
+
+    function initLightweightChart() {
+      const container = document.getElementById("midori-chart");
+      if (!container || typeof LightweightCharts === "undefined") return;
+      const errEl = document.getElementById("chart-error");
+      if (errEl) errEl.style.display = "none";
+      if (lwChart) { lwChart.remove(); lwChart = null; }
+      lwChart = LightweightCharts.createChart(container, {
+        width: container.clientWidth,
+        height: 340,
+        layout: { background: { color: "#070B14" }, textColor: "#94A3B8" },
+        grid: { vertLines: { color: "#1E2D45" }, horzLines: { color: "#1E2D45" } },
+        crosshair: {
+          mode: LightweightCharts.CrosshairMode.Normal,
+          vertLine: { color: "#22C55E", labelBackgroundColor: "#22C55E" },
+          horzLine: { color: "#22C55E", labelBackgroundColor: "#22C55E" },
+        },
+        rightPriceScale: { borderColor: "#1E2D45" },
+        timeScale: { borderColor: "#1E2D45", timeVisible: true, secondsVisible: false },
+      });
+      lwCandleSeries = lwChart.addCandlestickSeries({
+        upColor: "#22C55E", downColor: "#F43F5E",
+        borderUpColor: "#22C55E", borderDownColor: "#F43F5E",
+        wickUpColor: "#22C55E", wickDownColor: "#F43F5E",
+      });
+      lwVolumeSeries = lwChart.addHistogramSeries({
+        color: "#22C55E", priceFormat: { type: "volume" }, priceScaleId: "",
+        scaleMargins: { top: 0.8, bottom: 0 },
+      });
+      lwMaSeries["ema9"] = lwChart.addLineSeries({ color: "#F59E0B", lineWidth: 1, title: "EMA9" });
+      lwMaSeries["ema21"] = lwChart.addLineSeries({ color: "#3B82F6", lineWidth: 1, title: "EMA21" });
+      const ro = new ResizeObserver(() => { if (lwChart && container) lwChart.applyOptions({ width: container.clientWidth }); });
+      ro.observe(container);
+      loadChartData(currentChartTicker, currentInterval);
+      document.querySelectorAll(".interval-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".interval-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentInterval = btn.dataset.interval;
+          loadChartData(currentChartTicker, currentInterval);
+        });
+      });
+    }
+
+    async function loadChartData(ticker, interval) {
+      const overlay = document.getElementById("chart-loading");
+      if (overlay) overlay.style.display = "flex";
+      try {
+        const res = await fetch("/api/chart-data?ticker=" + encodeURIComponent(ticker) + "&interval=" + encodeURIComponent(interval));
+        const data = await res.json();
+        if (data.error || !data.candles?.length) {
+          showChartError(ticker);
+          return;
         }
-      };
-      document.head.appendChild(s);
+        lwCandleSeries.setData(data.candles);
+        lwVolumeSeries.setData(data.volume || []);
+        if (data.ema9?.length) lwMaSeries["ema9"].setData(data.ema9);
+        if (data.ema21?.length) lwMaSeries["ema21"].setData(data.ema21);
+        lwChart.timeScale().fitContent();
+        const errEl = document.getElementById("chart-error");
+        if (errEl) errEl.style.display = "none";
+      } catch (e) {
+        console.error("Chart load error:", e);
+        showChartError(ticker);
+      } finally {
+        if (overlay) overlay.style.display = "none";
+      }
+    }
+
+    function updateChart() {
+      const input = document.getElementById("chart-ticker");
+      if (input?.value) {
+        currentChartTicker = input.value.toUpperCase().trim();
+        loadChartData(currentChartTicker, currentInterval);
+      }
+    }
+
+    function showChartError(ticker) {
+      const overlay = document.getElementById("chart-loading");
+      const errEl = document.getElementById("chart-error");
+      const msgEl = document.getElementById("chart-error-msg");
+      if (overlay) overlay.style.display = "none";
+      if (msgEl) msgEl.textContent = "Chart data unavailable for " + (ticker || "ticker");
+      if (errEl) errEl.style.display = "flex";
     }
 
     function setNavActive(path) {
@@ -4494,6 +4674,8 @@
         "/backtest": "screenBacktest",
         "/trades": "screenPoliticianTrades",
         "/methodology": "screenMethodology",
+        "/terms": "screenTerms",
+        "/privacy": "screenPrivacy",
       };
       const screenId = pathToScreen[path] || "screenDashboard";
       showScreen(screenId);

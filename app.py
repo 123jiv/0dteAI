@@ -1,10 +1,10 @@
 import os
 import json
 import time
-import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Literal
 
+import pandas as pd
 import requests
 import yfinance as yf
 from fastapi import FastAPI, HTTPException
@@ -27,6 +27,13 @@ from core_0dte import (
 from master_context import build_master_context, get_market_regime
 from openai import OpenAI
 from data_fetchers import get_all_politician_trades
+from market_data import (
+    get_market_data_all,
+    get_fear_greed,
+    get_market_news,
+    get_economic_events,
+    get_fred_data,
+)
 
 app = FastAPI()
 _APP_START_TIME = time.time()
@@ -77,56 +84,12 @@ def health():
     }
 
 
-# ---------- Market data (free, no API key) ----------
-_MARKET_DATA_CACHE: Dict[str, Any] = {}
-_MARKET_DATA_CACHE_TS = 0.0
-_CACHE_TTL = 60  # seconds
-
-
-def _get_market_data() -> Dict[str, Any]:
-    global _MARKET_DATA_CACHE, _MARKET_DATA_CACHE_TS
-    now = time.time()
-    if now - _MARKET_DATA_CACHE_TS < _CACHE_TTL and _MARKET_DATA_CACHE:
-        return _MARKET_DATA_CACHE
-    tickers = ["SPY", "QQQ", "IWM", "DIA"]
-    result: Dict[str, Any] = {"tickers": {}, "vix": {}, "timestamp": None}
-    try:
-        for sym in tickers:
-            t = yf.Ticker(sym)
-            hist = t.history(period="5d")
-            if hist is not None and not hist.empty:
-                row = hist.iloc[-1]
-                prev = hist.iloc[-2] if len(hist) > 1 else row
-                chg = ((row["Close"] - prev["Close"]) / prev["Close"] * 100) if prev["Close"] else 0
-                result["tickers"][sym] = {
-                    "price": round(row["Close"], 2),
-                    "change_pct": round(chg, 2),
-                    "high": round(row["High"], 2),
-                    "low": round(row["Low"], 2),
-                    "volume": int(row.get("Volume", 0) or 0),
-                }
-            else:
-                result["tickers"][sym] = {"price": 0, "change_pct": 0, "high": 0, "low": 0, "volume": 0}
-        vix = yf.Ticker("^VIX")
-        vhist = vix.history(period="5d")
-        if vhist is not None and not vhist.empty:
-            row = vhist.iloc[-1]
-            prev = vhist.iloc[-2] if len(vhist) > 1 else row
-            chg = ((row["Close"] - prev["Close"]) / prev["Close"] * 100) if prev["Close"] else 0
-            result["vix"] = {"price": round(row["Close"], 2), "change_pct": round(chg, 2)}
-        else:
-            result["vix"] = {"price": 0, "change_pct": 0}
-        result["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
-        _MARKET_DATA_CACHE = result
-        _MARKET_DATA_CACHE_TS = now
-    except Exception as e:
-        result["error"] = str(e)
-    return result
+# ---------- Market data (Alpaca/Polygon primary, yfinance fallback) ----------
 
 
 @app.get("/api/market-data")
 def api_market_data():
-    return _get_market_data()
+    return get_market_data_all()
 
 
 @app.get("/api/ticker-detail")
@@ -156,67 +119,9 @@ def api_ticker_detail(symbol: str = "AAPL"):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-_FEAR_GREED_CACHE: Dict[str, Any] = {}
-_FEAR_GREED_CACHE_TS = 0.0
-
-
 @app.get("/api/fear-greed")
 def api_fear_greed():
-    global _FEAR_GREED_CACHE, _FEAR_GREED_CACHE_TS
-    now = time.time()
-    if now - _FEAR_GREED_CACHE_TS < _CACHE_TTL and _FEAR_GREED_CACHE:
-        return _FEAR_GREED_CACHE
-    try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json",
-            "Referer": "https://edition.cnn.com/",
-        }
-        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", headers=headers, timeout=10)
-        r.raise_for_status()
-        data = r.json()
-        score, rating = 50, "Unknown"
-        if "fear_and_greed" in data:
-            fg = data["fear_and_greed"]
-            raw = fg.get("score") or fg.get("y") or fg.get("fg_value")
-            if raw is not None:
-                score = int(round(float(raw)))
-            rating = (fg.get("rating") or fg.get("label") or fg.get("fg_rating") or rating).replace("_", " ").title()
-        elif "fear_and_greed_historical" in data:
-            fgh = data["fear_and_greed_historical"]
-            raw_score = fgh.get("score") or fgh.get("y") or fgh.get("fg_value")
-            if raw_score is not None:
-                score = int(round(float(raw_score)))
-                rating = (fgh.get("rating") or fgh.get("label") or fgh.get("fg_rating") or rating).replace("_", " ").title()
-            else:
-                hist = fgh.get("data") or []
-                if hist:
-                    last = max(hist, key=lambda p: float(p.get("x") or 0))
-                    raw = last.get("y") or last.get("value") or last.get("fg_value")
-                    if raw is not None:
-                        score = int(round(float(raw)))
-                    rating = (last.get("rating") or last.get("label") or last.get("fg_rating") or rating).replace("_", " ").title()
-        elif "market_misc" in data and data["market_misc"]:
-            last = data["market_misc"][-1]
-            score = last.get("y") or last.get("score") or score
-            rating = last.get("label") or last.get("rating") or rating
-        interpretation = ""
-        if score < 25:
-            interpretation = "Extreme fear — contrarian buy signals elevated"
-        elif score < 45:
-            interpretation = "Fear — cautious positioning recommended"
-        elif score < 55:
-            interpretation = "Neutral — follow technicals"
-        elif score < 75:
-            interpretation = "Greed — momentum favors bulls but watch for reversals"
-        else:
-            interpretation = "Extreme greed — elevated reversal risk"
-        result = {"score": score, "rating": rating, "interpretation": interpretation, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())}
-        _FEAR_GREED_CACHE = result
-        _FEAR_GREED_CACHE_TS = now
-        return result
-    except Exception as e:
-        return {"score": 50, "rating": "Unknown", "error": str(e)}
+    return get_fear_greed()
 
 
 @app.get("/api/market-regime")
@@ -227,53 +132,83 @@ def api_market_regime():
 
 @app.get("/api/economic-events")
 def api_economic_events():
-    from datetime import datetime
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    try:
-        r = requests.get("https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json", timeout=10)
-        r.raise_for_status()
-        raw = r.json()
-        events = raw if isinstance(raw, list) else raw.get("events", raw.get("data", []))
-        if not isinstance(events, list):
-            events = []
-        high_impact = []
-        for e in events:
-            if not isinstance(e, dict):
-                continue
-            date_str = str(e.get("date", e.get("Date", "")))[:10]
-            impact = (e.get("impact", e.get("Impact", "")) or "").lower()
-            if date_str == today and (impact == "high" or impact == "3"):
-                high_impact.append({
-                    "title": e.get("title", e.get("Title", e.get("event", "Event"))),
-                    "time": e.get("time", e.get("Time", e.get("date", ""))),
-                    "date": date_str,
-                })
-        return {"events": high_impact[:20], "date": today}
-    except Exception as e:
-        return {"events": [], "date": today, "error": str(e)}
+    data = get_economic_events()
+    events = data.get("events", [])
+    today = data.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
+    high_impact = []
+    for e in events:
+        if not isinstance(e, dict):
+            continue
+        date_str = str(e.get("date", ""))[:10]
+        if date_str == today or not date_str:
+            high_impact.append({
+                "title": e.get("title", e.get("event", "Event")),
+                "time": e.get("time", ""),
+                "date": date_str or today,
+            })
+    return {"events": high_impact[:20], "date": today}
 
 
 @app.get("/api/news")
 def api_news():
+    return get_market_news()
+
+
+@app.get("/api/fred-macro")
+def api_fred_macro():
+    """FRED macro indicators (US Government public domain)."""
+    return get_fred_data()
+
+
+@app.get("/api/chart-data")
+def api_chart_data(ticker: str = "SPY", interval: str = "5m"):
+    """Candlestick data for Lightweight Charts. Uses yfinance (temporary)."""
+    ticker = ticker.strip().upper() or "SPY"
+    interval_map = {
+        "1m": ("1d", "1m"),
+        "5m": ("5d", "5m"),
+        "15m": ("5d", "15m"),
+        "1h": ("1mo", "1h"),
+        "1d": ("1y", "1d"),
+    }
+    period, yf_interval = interval_map.get(interval, ("5d", "5m"))
     try:
-        r = requests.get("https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ,NVDA&region=US&lang=en-US", timeout=10)
-        r.raise_for_status()
-        root = ET.fromstring(r.content)
-        ns = {"atom": "http://www.w3.org/2005/Atom", "dc": "http://purl.org/dc/elements/1.1/", "content": "http://purl.org/rss/1.0/modules/content/"}
-        items = root.findall(".//item")[:10]
-        headlines = []
-        for item in items:
-            title = item.find("title")
-            link = item.find("link")
-            pub = item.find("pubDate")
-            headlines.append({
-                "title": title.text if title is not None else "",
-                "link": link.text if link is not None else "",
-                "pubDate": pub.text if pub is not None else "",
+        t = yf.Ticker(ticker)
+        hist = t.history(period=period, interval=yf_interval)
+        if hist is None or hist.empty:
+            return {"error": "No data", "candles": []}
+        candles = []
+        volume = []
+        for idx, row in hist.iterrows():
+            ts = int(idx.timestamp())
+            candles.append({
+                "time": ts,
+                "open": round(float(row["Open"]), 4),
+                "high": round(float(row["High"]), 4),
+                "low": round(float(row["Low"]), 4),
+                "close": round(float(row["Close"]), 4),
             })
-        return {"headlines": headlines}
+            vol_val = float(row.get("Volume", 0) or 0)
+            volume.append({
+                "time": ts,
+                "value": vol_val,
+                "color": "#22C55E" if row["Close"] >= row["Open"] else "#F43F5E",
+            })
+        closes = pd.Series([c["close"] for c in candles])
+        ema9 = closes.ewm(span=9).mean()
+        ema21 = closes.ewm(span=21).mean()
+        ema9_data = [{"time": candles[i]["time"], "value": round(float(v), 4)} for i, v in enumerate(ema9)]
+        ema21_data = [{"time": candles[i]["time"], "value": round(float(v), 4)} for i, v in enumerate(ema21)]
+        return {
+            "ticker": ticker,
+            "interval": interval,
+            "candles": candles,
+            "volume": volume,
+            "ema9": ema9_data,
+            "ema21": ema21_data,
+        }
     except Exception as e:
-        return {"headlines": [], "error": str(e)}
+        return {"error": str(e), "candles": []}
 
 
 # ---------- Politician trades (House + Senate, free data) ----------
@@ -1139,3 +1074,4 @@ def chat(req: ChatRequest):
 
     answer = resp.choices[0].message.content or ""
     return {"reply": answer}
+

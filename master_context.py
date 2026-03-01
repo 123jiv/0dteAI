@@ -1,14 +1,15 @@
 """
 Project Midori — Master Context Engine.
 Builds a single rich context block injected before every AI call.
-Uses only free sources: yfinance, CNN Fear & Greed, Forex Factory, Yahoo RSS.
+Uses commercially licensed sources: Alpaca/Polygon, Alternative.me, Finnhub, yfinance (fallback).
 """
 import time
 import datetime as dt
 from typing import Dict, Any, List, Optional
 
-import requests
 import yfinance as yf
+
+from market_data import get_market_data_all, get_fear_greed, get_market_news, get_economic_events
 
 def _et_tz():
     try:
@@ -93,44 +94,27 @@ def _market_session() -> Dict[str, Any]:
 def _live_prices() -> Dict[str, Any]:
     out: Dict[str, Any] = {"tickers": {}, "vix": {}, "error": None}
     try:
-        for sym in ["SPY", "QQQ", "IWM", "DIA"]:
-            t = yf.Ticker(sym)
-            hist = t.history(period="5d")
-            if hist is not None and not hist.empty:
-                row = hist.iloc[-1]
-                prev = hist.iloc[-2] if len(hist) > 1 else row
-                chg = ((row["Close"] - prev["Close"]) / prev["Close"] * 100) if prev["Close"] else 0
-                out["tickers"][sym] = {
-                    "price": round(row["Close"], 2),
-                    "change_pct": round(chg, 2),
-                    "high": round(row["High"], 2),
-                    "low": round(row["Low"], 2),
-                    "volume": int(row.get("Volume", 0) or 0),
-                }
-            else:
-                out["tickers"][sym] = {"price": 0, "change_pct": 0, "high": 0, "low": 0, "volume": 0}
-        vix = yf.Ticker("^VIX")
-        vhist = vix.history(period="5d")
-        if vhist is not None and not vhist.empty:
-            row = vhist.iloc[-1]
-            prev = vhist.iloc[-2] if len(vhist) > 1 else row
-            chg = ((row["Close"] - prev["Close"]) / prev["Close"] * 100) if prev["Close"] else 0
-            v = round(row["Close"], 2)
-            if v < 12:
-                interp = "Extremely low volatility — options cheap"
-            elif v < 15:
-                interp = "Low volatility — favor selling premium"
-            elif v < 20:
-                interp = "Normal volatility — balanced approach"
-            elif v < 25:
-                interp = "Elevated volatility — directional plays"
-            elif v < 30:
-                interp = "High volatility — wide stops needed"
-            else:
-                interp = "Fear in market — extreme caution or fade"
-            out["vix"] = {"price": v, "change_pct": round(chg, 2), "interpretation": interp}
+        data = get_market_data_all()
+        out["tickers"] = data.get("tickers", {})
+        vix_data = data.get("vix", {})
+        v = float(vix_data.get("price") or 0)
+        if v < 12:
+            interp = "Extremely low volatility — options cheap"
+        elif v < 15:
+            interp = "Low volatility — favor selling premium"
+        elif v < 20:
+            interp = "Normal volatility — balanced approach"
+        elif v < 25:
+            interp = "Elevated volatility — directional plays"
+        elif v < 30:
+            interp = "High volatility — wide stops needed"
         else:
-            out["vix"] = {"price": 0, "change_pct": 0, "interpretation": ""}
+            interp = "Fear in market — extreme caution or fade"
+        out["vix"] = {
+            "price": v,
+            "change_pct": vix_data.get("change_pct") or 0,
+            "interpretation": interp,
+        }
     except Exception as e:
         out["error"] = str(e)
     return out
@@ -187,23 +171,18 @@ def _spy_internals() -> Dict[str, Any]:
 
 def _economic_events() -> List[Dict[str, Any]]:
     try:
-        r = requests.get("https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json", timeout=8)
-        r.raise_for_status()
-        raw = r.json()
-        events = raw if isinstance(raw, list) else raw.get("events", raw.get("data", []))
-        if not isinstance(events, list):
-            return []
+        data = get_economic_events()
+        events = data.get("events", [])
         today = _et_now().strftime("%Y-%m-%d")
         high = []
         for e in events:
             if not isinstance(e, dict):
                 continue
-            date_str = str(e.get("date", e.get("Date", "")))[:10]
-            impact = (e.get("impact", e.get("Impact", "")) or "").lower()
-            if date_str == today and (impact == "high" or impact == "3"):
+            date_str = str(e.get("date", ""))[:10]
+            if date_str == today or not date_str:
                 high.append({
-                    "time": e.get("time", e.get("Time", "")),
-                    "title": e.get("title", e.get("Title", e.get("event", "Event"))),
+                    "time": e.get("time", ""),
+                    "title": e.get("title", e.get("event", "Event")),
                     "impact": "HIGH IMPACT",
                 })
         return high[:15]
@@ -301,46 +280,17 @@ def get_market_regime() -> Dict[str, Any]:
 
 
 def _fear_greed() -> Dict[str, Any]:
-    out: Dict[str, Any] = {"score": 50, "rating": "Unknown", "interpretation": ""}
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json",
-            "Referer": "https://edition.cnn.com/",
-        }
-        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", headers=headers, timeout=10)
-        r.raise_for_status()
-        data = r.json()
-        if "fear_and_greed" in data:
-            fg = data["fear_and_greed"]
-            raw = fg.get("score") or fg.get("y") or fg.get("fg_value")
-            if raw is not None:
-                out["score"] = int(round(float(raw)))
-            out["rating"] = (fg.get("rating") or fg.get("label") or fg.get("fg_rating") or "Unknown").replace("_", " ").upper()
-        s = out["score"]
-        if s < 25:
-            out["interpretation"] = "Extreme fear — contrarian buy signals elevated"
-        elif s < 45:
-            out["interpretation"] = "Fear — cautious positioning recommended"
-        elif s < 55:
-            out["interpretation"] = "Neutral — follow technicals"
-        elif s < 75:
-            out["interpretation"] = "Greed — momentum favors bulls but watch for reversals"
-        else:
-            out["interpretation"] = "Extreme greed — elevated reversal risk"
+        return get_fear_greed()
     except Exception:
-        pass
-    return out
+        return {"score": 50, "rating": "Unknown", "interpretation": ""}
 
 
 def _news_headlines() -> List[str]:
     try:
-        import xml.etree.ElementTree as ET
-        r = requests.get("https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ&region=US&lang=en-US", timeout=8)
-        r.raise_for_status()
-        root = ET.fromstring(r.content)
-        items = root.findall(".//item")[:5]
-        return [item.find("title").text or "" for item in items if item.find("title") is not None]
+        data = get_market_news()
+        headlines = data.get("headlines", [])
+        return [h.get("title", "") for h in headlines[:5] if h.get("title")]
     except Exception:
         return []
 
