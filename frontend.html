@@ -1156,50 +1156,202 @@
     }
     .methodology-link:hover { border-color: var(--accent-primary); background: rgba(34,197,94,0.08); }
 
-    /* ---------- Politician Trades (Congressional) ---------- */
-    .pt-page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-    .pt-badge-warning { font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(234,179,8,0.15); color: var(--warn); align-self: flex-start; }
-    .pt-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-    .pt-stats-row .stat-card .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 6px; }
-    .pt-stats-row .stat-card .stat-value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
-    .pt-stats-row .stat-card .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-    @media (max-width: 640px) { .pt-stats-row { grid-template-columns: repeat(2, 1fr); } }
-    .pt-filter-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding: 16px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); }
-    .pt-search-input { flex: 1; min-width: 200px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 14px; color: var(--text-primary); font-size: 14px; }
-    .pt-search-input:focus { outline: none; border-color: var(--accent-primary); }
-    .pt-select { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 14px; color: var(--text-primary); font-size: 13px; cursor: pointer; }
-    .pt-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
-    @media (max-width: 640px) { .pt-cards-grid { grid-template-columns: 1fr; } }
-    .trade-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; transition: border-color 0.2s, transform 0.15s; cursor: default; }
-    .trade-card:hover { border-color: var(--border-hover, #2D3F58); transform: translateY(-1px); }
-    .trade-card-header { margin-bottom: 12px; }
-    .trade-card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-    .trade-ticker { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 22px; font-weight: 700; color: var(--text-primary); margin-right: 8px; }
-    .trade-asset { font-size: 12px; color: var(--text-muted); display: block; margin-top: 2px; }
-    .trade-ticker-row { margin-bottom: 8px; }
-    .trade-politician { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-    .trade-state { font-size: 13px; color: var(--text-muted); }
-    .trade-politician-row { margin-bottom: 6px; }
-    .trade-amount { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
-    .trade-card-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 10px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
-    .trade-dates { display: flex; flex-direction: column; gap: 3px; }
-    .trade-dates .date-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 6px; }
-    .trade-dates .date-value { font-size: 12px; color: var(--text-secondary); font-family: 'JetBrains Mono', 'SF Mono', monospace; }
-    .pt-empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; }
-    .pt-empty-icon { font-size: 48px; margin-bottom: 16px; }
-    .pt-empty-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
-    .pt-empty-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
-    .pt-disclaimer { margin-top: 32px; padding: 16px; background: var(--bg-elevated); border-radius: var(--radius); font-size: 12px; color: var(--text-muted); line-height: 1.6; text-align: center; }
-    .pt-green { color: var(--bullish, #22C55E); }
-    .pt-red { color: var(--bearish, #F43F5E); }
-    .badge-buy { background: rgba(34,197,94,0.2); color: var(--bullish); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-    .badge-sell { background: rgba(244,63,94,0.2); color: var(--bearish); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-    .badge-gray { background: var(--bg-surface); color: var(--text-secondary); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-    .badge-yellow { background: rgba(234,179,8,0.2); color: #EAB308; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-    .badge-warning { background: rgba(249,115,22,0.2); color: #F97316; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-    .badge-danger { background: rgba(244,63,94,0.2); color: var(--bearish); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-    .skeleton-card .skeleton { background: linear-gradient(90deg, var(--border) 25%, var(--bg-elevated) 50%, var(--border) 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.2s ease-in-out infinite; border-radius: 4px; }
-    .pt-skeleton-inline { background: linear-gradient(90deg, var(--border) 25%, var(--bg-elevated) 50%, var(--border) 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.2s ease-in-out infinite; border-radius: 4px; }
+    /* =========================================
+       POLITICIAN TRADES
+       ========================================= */
+
+    .pt-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .pt-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .pt-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 16px;
+      background: #0F1724;
+      border: 1px solid #1E2D45;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .pt-search {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .pt-results-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #94A3B8;
+      flex-wrap: wrap;
+    }
+
+    .pt-cache-age {
+      margin-left: auto;
+      font-size: 11px;
+      color: #475569;
+    }
+
+    .pt-cards-container,
+    #pt-cards-container {
+      display: grid;
+      grid-template-columns: repeat(
+        auto-fill, minmax(300px, 1fr)
+      );
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      #pt-cards-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .trade-card {
+      background: #0F1724;
+      border: 1px solid #1E2D45;
+      border-radius: 12px;
+      padding: 16px 18px;
+      transition: border-color 0.2s, transform 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .trade-card:hover {
+      border-color: #2D3F58;
+      transform: translateY(-1px);
+    }
+
+    .trade-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .trade-ticker {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: #F1F5F9;
+    }
+
+    .trade-asset {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    .trade-politician {
+      font-size: 14px;
+      font-weight: 600;
+      color: #CBD5E1;
+    }
+
+    .trade-state {
+      font-size: 13px;
+      color: #475569;
+      font-weight: 400;
+    }
+
+    .trade-amount {
+      font-size: 13px;
+      color: #94A3B8;
+    }
+
+    .trade-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-top: 10px;
+      border-top: 1px solid #1E2D45;
+    }
+
+    .trade-dates {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .date-label {
+      font-size: 10px;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-right: 6px;
+    }
+
+    .date-val {
+      font-size: 12px;
+      color: #94A3B8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pt-load-more-row {
+      text-align: center;
+      margin: 8px 0 24px;
+    }
+
+    .pt-state-card {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 24px;
+      background: #0F1724;
+      border: 1px solid #1E2D45;
+      border-radius: 12px;
+    }
+
+    .pt-state-icon {
+      font-size: 44px;
+      margin-bottom: 16px;
+    }
+
+    .pt-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #F1F5F9;
+      margin-bottom: 8px;
+    }
+
+    .pt-state-sub {
+      font-size: 14px;
+      color: #94A3B8;
+      line-height: 1.6;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .pt-disclaimer {
+      margin-top: 24px;
+      padding: 14px 16px;
+      background: #0F1724;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.7;
+      text-align: center;
+      border: 1px solid #1E2D45;
+    }
+
+    .skeleton-card {
+      pointer-events: none;
+    }
 
     .regime-banner {
       padding: 12px 16px;
@@ -3092,63 +3244,122 @@
           </div>
         </div>
         <div id="screenPoliticianTrades" class="screen page-content">
-          <div class="page-head pt-page-head">
+          <div class="page-header-row">
             <div>
-              <h1 class="page-title">🏛️ Congressional Trades</h1>
-              <p class="page-desc">Stock disclosures by members of Congress under the STOCK Act</p>
+              <h1 class="page-title">
+                🏛️ Congressional Trades
+              </h1>
+              <p class="page-subtitle">
+                Stock disclosures by members of Congress
+                under the STOCK Act
+              </p>
             </div>
-            <span class="pt-badge-warning">⚠️ Data lags up to 45 days by law</span>
+            <span class="badge badge-warning badge-sm">
+              ⚠️ Up to 45-day disclosure lag by law
+            </span>
           </div>
-          <div class="pt-stats-row">
+
+          <!-- Summary Stats -->
+          <div class="pt-stats-grid" id="pt-stats">
             <div class="stat-card">
               <div class="stat-label">This Period</div>
               <div class="stat-value" id="pt-stat-total">
-                <span class="pt-skeleton-inline" style="height:24px;width:80px;display:inline-block;"></span>
+                <div class="skeleton"
+                     style="height:28px;width:60px;
+                            border-radius:4px"></div>
               </div>
-              <div class="stat-sub">in Congress</div>
+              <div class="stat-sub">total trades</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">Purchases</div>
-              <div class="stat-value pt-green" id="pt-stat-purchases">--</div>
-              <div class="stat-sub">net buying</div>
+              <div class="stat-value text-success"
+                   id="pt-stat-buys">--</div>
+              <div class="stat-sub">buying activity</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">Sales</div>
-              <div class="stat-value pt-red" id="pt-stat-sales">--</div>
-              <div class="stat-sub">net selling</div>
+              <div class="stat-value text-danger"
+                   id="pt-stat-sells">--</div>
+              <div class="stat-sub">selling activity</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">Top Ticker</div>
-              <div class="stat-value" id="pt-stat-top-ticker">--</div>
+              <div class="stat-value"
+                   id="pt-stat-top">--</div>
               <div class="stat-sub">most traded</div>
             </div>
           </div>
-          <div class="pt-filter-bar">
-            <input type="text" id="pt-search" placeholder="🔍 Search ticker or politician name..." class="pt-search-input">
-            <select id="pt-chamber" class="pt-select">
+
+          <!-- Filter Bar -->
+          <div class="pt-filters">
+            <input
+              id="pt-search"
+              type="text"
+              class="input-base pt-search"
+              placeholder="🔍 Search ticker or politician..."
+              autocomplete="off"
+            />
+            <select id="pt-chamber" class="select-base">
               <option value="all">All Chambers</option>
-              <option value="house">House</option>
-              <option value="senate">Senate</option>
+              <option value="house">🏛️ House</option>
+              <option value="senate">🏛️ Senate</option>
             </select>
-            <select id="pt-party" class="pt-select">
+            <select id="pt-party" class="select-base">
               <option value="all">All Parties</option>
-              <option value="democrat">Democrat</option>
-              <option value="republican">Republican</option>
+              <option value="democrat">🔵 Democrat</option>
+              <option value="republican">🔴 Republican</option>
             </select>
-            <select id="pt-days" class="pt-select">
+            <select id="pt-type" class="select-base">
+              <option value="all">All Types</option>
+              <option value="purchase">🟢 Purchases</option>
+              <option value="sale">🔴 Sales</option>
+            </select>
+            <select id="pt-days" class="select-base">
               <option value="7">Last 7 days</option>
               <option value="30" selected>Last 30 days</option>
               <option value="90">Last 90 days</option>
-              <option value="365">All Time</option>
+              <option value="365">Past year</option>
+              <option value="9999">All time</option>
             </select>
-            <button type="button" id="pt-refresh" class="btn secondary">🔄 Refresh</button>
+            <button id="pt-refresh-btn" class="btn-secondary">
+              🔄 Refresh
+            </button>
           </div>
-          <div id="pt-cards" class="pt-cards-grid"></div>
-          <div style="text-align:center; margin-top:24px;">
-            <button type="button" id="pt-load-more" onclick="loadMorePTTrades()" class="btn secondary" style="display:none;">Load 20 more trades</button>
+
+          <!-- Results count + sentiment -->
+          <div class="pt-results-bar" id="pt-results-bar"
+               style="display:none">
+            <span id="pt-results-count"></span>
+            <span id="pt-sentiment-badge"></span>
+            <span class="pt-cache-age"
+                  id="pt-cache-age"></span>
           </div>
+
+          <!-- Trade Cards -->
+          <div id="pt-cards-container">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Load More -->
+          <div class="pt-load-more-row">
+            <button id="pt-load-more-btn"
+                    class="btn-secondary"
+                    style="display:none"
+                    onclick="ptLoadMore()">
+              Load more trades
+            </button>
+          </div>
+
+          <!-- Disclaimer -->
           <div class="pt-disclaimer">
-            Congressional trade data is public domain information published under the STOCK Act (2012). Source: <a href="https://disclosures-clerk.house.gov/FinancialDisclosure" target="_blank" rel="noopener">disclosures-clerk.house.gov</a> and <a href="https://efts.senate.gov" target="_blank" rel="noopener">senate.gov</a>. Aggregated via House/Senate Stock Watcher. Data lags up to 45 days by law. Educational purposes only — not financial advice.
+            Congressional stock trade disclosures are
+            public record under the STOCK Act (2012).
+            Data sourced from House Stock Watcher and
+            Senate Stock Watcher open source projects,
+            which aggregate official disclosures from
+            disclosures-clerk.house.gov and senate.gov.
+            All data is US Government public domain.
+            For educational purposes only.
           </div>
         </div>
         <div id="screenTerms" class="screen page-content">
@@ -4684,7 +4895,7 @@
       if (path === "/confidence") loadRegimeBanner("confidenceRegimeBanner");
       if (path === "/risk") loadRiskCenter();
       if (path === "/dashboard") loadDashboardData();
-      if (path === "/trades") initPoliticianTrades();
+      if (path === "/trades") PT.init();
       if (path === "/analysis") {
         showGuardrailReminderIfNeeded("analysisGuardrailReminder");
         const lastTickers = localStorage.getItem("trademinds_last_tickers");
@@ -4823,7 +5034,7 @@
         const path = (location.hash || "#/dashboard").replace("#", "").replace(/\/$/, "") || "/dashboard";
         if (path === "/dashboard") loadDashboardData();
         else if (path === "/signals") fetchSignals();
-        else if (path === "/trades") loadPoliticianTrades();
+        else if (path === "/trades") PT.load();
         else if (path === "/analysis") { /* no auto-refresh */ }
         else if (path === "/screener") runScreener();
       }
@@ -5397,180 +5608,462 @@
       showToast("Signals CSV downloaded.");
     }
 
-    let ptFilters = { search: "", chamber: "all", party: "all", days: 30, offset: 0, limit: 20 };
-    let ptAllTrades = [];
-    let ptLoading = false;
-    let ptFiltersAttached = false;
+    // ============================================
+    // POLITICIAN TRADES — Complete JS Module
+    // ============================================
 
-    function initPoliticianTrades() {
-      loadPoliticianTrades();
-      if (!ptFiltersAttached) {
-        attachPoliticianTradeFilters();
-        ptFiltersAttached = true;
-      }
-    }
+    const PT = {
+      // State
+      allTrades: [],
+      displayedCount: 0,
+      pageSize: 24,
+      loading: false,
+      filters: {
+        search: "",
+        chamber: "all",
+        party: "all",
+        type: "all",
+        days: 30,
+      },
 
-    async function loadPoliticianTrades(append) {
-      if (ptLoading) return;
-      ptLoading = true;
-      if (!append) {
-        ptFilters.offset = 0;
-        showPTSkeletons();
-      }
-      try {
-        const params = new URLSearchParams({
-          days: ptFilters.days,
-          limit: "200",
-          ...(ptFilters.chamber !== "all" && { chamber: ptFilters.chamber }),
-          ...(ptFilters.party !== "all" && { party: ptFilters.party }),
-          ...(ptFilters.search && { search: ptFilters.search }),
-        });
-        const res = await fetch("/api/politician-trades?" + params.toString(), { headers: apiHeaders() });
-        const data = await res.json();
-        if (data.error && !(data.trades && data.trades.length)) {
-          showPTError();
+      // Init — called when page becomes visible
+      init() {
+        this.attachFilters();
+        this.load();
+      },
+
+      // Attach filter event listeners
+      attachFilters() {
+        const search = document.getElementById("pt-search");
+        const chamber = document.getElementById("pt-chamber");
+        const party = document.getElementById("pt-party");
+        const type = document.getElementById("pt-type");
+        const days = document.getElementById("pt-days");
+        const refresh = document.getElementById("pt-refresh-btn");
+
+        if (search) {
+          let timer;
+          search.addEventListener("input", (e) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+              this.filters.search = e.target.value.trim();
+              this.load();
+            }, 350);
+          });
+        }
+
+        const bindSelect = (el, key) => {
+          if (el) {
+            el.addEventListener("change", (e) => {
+              this.filters[key] = e.target.value;
+              this.load();
+            });
+          }
+        };
+
+        bindSelect(chamber, "chamber");
+        bindSelect(party, "party");
+        bindSelect(type, "type");
+        bindSelect(days, "days");
+
+        if (refresh) {
+          refresh.addEventListener("click", () => {
+            this.load();
+          });
+        }
+      },
+
+      // Main load function
+      async load() {
+        if (this.loading) return;
+        this.loading = true;
+        this.displayedCount = 0;
+
+        this.showSkeletons();
+
+        try {
+          const params = new URLSearchParams({
+            days: this.filters.days,
+            limit: 500,
+            ...(this.filters.chamber !== "all" && {
+              chamber: this.filters.chamber,
+            }),
+            ...(this.filters.party !== "all" && {
+              party: this.filters.party,
+            }),
+            ...(this.filters.type !== "all" && {
+              type: this.filters.type,
+            }),
+            ...(this.filters.search && {
+              ...(this.filters.search.length <= 6 &&
+              /^[A-Za-z]+$/.test(this.filters.search)
+                ? { ticker: this.filters.search }
+                : { politician: this.filters.search }),
+            }),
+          });
+
+          const res = await fetch(
+            `/api/politician-trades?${params.toString()}`
+          );
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+
+          if (data.error && !(data.trades && data.trades.length)) {
+            this.showError(data.error);
+            return;
+          }
+
+          this.allTrades = data.trades || [];
+          this.updateStats(data.summary);
+          this.updateResultsBar(
+            data.total_filtered,
+            data.summary?.net_sentiment,
+            data.cache_age_minutes
+          );
+          this.renderCards();
+        } catch (e) {
+          console.error("[PT] Load error:", e);
+          this.showError(
+            "Could not load congressional data. Please try again."
+          );
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      // Render trade cards
+      renderCards(append = false) {
+        const container = document.getElementById("pt-cards-container");
+        if (!container) return;
+
+        if (!this.allTrades.length) {
+          container.innerHTML = this.emptyStateHTML();
+          this.updateLoadMore(false);
           return;
         }
-        ptAllTrades = data.trades || [];
-        updatePTSummary(data.summary);
-        const toShow = ptAllTrades.slice(0, ptFilters.offset + ptFilters.limit);
-        renderPTCards(toShow, append);
-        const hasMore = ptAllTrades.length > ptFilters.offset + ptFilters.limit;
-        updatePTLoadMore(hasMore);
-      } catch (e) {
-        console.error("PT fetch error:", e);
-        showPTError();
-      } finally {
-        ptLoading = false;
-      }
-    }
 
-    function renderPTCards(trades, append) {
-      const container = $("pt-cards");
-      if (!container) return;
-      if (!trades.length) {
-        container.innerHTML = '<div class="pt-empty-state"><div class="pt-empty-icon">🏛️</div><div class="pt-empty-title">No trades found</div><div class="pt-empty-sub">Try adjusting your filters or expanding the time range</div><button type="button" class="btn secondary" onclick="clearPTFilters()">Clear Filters</button></div>';
-        return;
-      }
-      const html = trades.map(function(t) { return buildPTTradeCard(t); }).join("");
-      if (append) {
-        container.insertAdjacentHTML("beforeend", html);
-      } else {
-        container.innerHTML = html;
-      }
-      if (typeof gsap !== "undefined") {
-        gsap.from("#pt-cards .trade-card", { opacity: 0, y: 20, duration: 0.3, stagger: 0.04, ease: "power2.out" });
-      }
-    }
+        const slice = this.allTrades.slice(
+          this.displayedCount,
+          this.displayedCount + this.pageSize
+        );
 
-    function buildPTTradeCard(t) {
-      const isPurchase = t.type === "Purchase";
-      const isSale = t.type === "Sale";
-      const borderColor = isPurchase ? "#22C55E" : isSale ? "#F43F5E" : "#475569";
-      const typeBadge = isPurchase ? '<span class="badge-buy">🟢 PURCHASE</span>' : isSale ? '<span class="badge-sell">🔴 SALE</span>' : '<span class="badge-gray">' + escapeHtml(t.type || "Unknown") + "</span>";
-      const chamberBadge = '<span class="badge-gray">🏛️ ' + escapeHtml(t.chamber || "") + "</span>";
-      const partyColor = (t.party || "").toUpperCase().startsWith("D") ? "#3B82F6" : (t.party || "").toUpperCase().startsWith("R") ? "#F43F5E" : "#94A3B8";
-      const partyLetter = (t.party || "").toUpperCase().startsWith("D") ? "D" : (t.party || "").toUpperCase().startsWith("R") ? "R" : "I";
-      const partyCircle = (t.party || "").toUpperCase().startsWith("D") ? "🔵" : (t.party || "").toUpperCase().startsWith("R") ? "🔴" : "⚪";
-      const partyBadge = '<span class="badge-gray" style="background:' + partyColor + "22;color:" + partyColor + '">' + partyCircle + " " + partyLetter + "</span>";
-      let daysLateBadge = "";
-      if (t.days_late != null && t.days_late !== undefined) {
-        if (t.days_late >= 45) daysLateBadge = '<span class="badge-danger">🚨 ' + t.days_late + " days late</span>";
-        else if (t.days_late >= 36) daysLateBadge = '<span class="badge-warning">⚠️ ' + t.days_late + " days late</span>";
-        else if (t.days_late >= 21) daysLateBadge = '<span class="badge-yellow">⏱ ' + t.days_late + " days late</span>";
+        const html = slice.map((t) => this.buildCard(t)).join("");
+
+        if (append) {
+          container.insertAdjacentHTML("beforeend", html);
+        } else {
+          container.innerHTML = html;
+        }
+
+        this.displayedCount += slice.length;
+
+        const hasMore = this.displayedCount < this.allTrades.length;
+        this.updateLoadMore(hasMore);
+
+        // Animate new cards
+        if (typeof gsap !== "undefined") {
+          const cards = container.querySelectorAll(
+            ".trade-card:not(.animated)"
+          );
+          cards.forEach((c) => c.classList.add("animated"));
+          gsap.from(cards, {
+            opacity: 0,
+            y: 16,
+            duration: 0.3,
+            stagger: 0.03,
+            ease: "power2.out",
+          });
+        }
+      },
+
+      // Build a single trade card
+      buildCard(t) {
+        const isPurchase = t.type === "Purchase";
+        const isSale = t.type === "Sale";
+
+        const borderColor =
+          isPurchase ? "#22C55E" : isSale ? "#F43F5E" : "#475569";
+
+        const typeBadge = isPurchase
+          ? '<span class="badge badge-success">🟢 PURCHASE</span>'
+          : isSale
+          ? '<span class="badge badge-danger">🔴 SALE</span>'
+          : `<span class="badge badge-gray">${t.type}</span>`;
+
+        const partyColor =
+          t.party?.startsWith("D") ? "#3B82F6" :
+          t.party?.startsWith("R") ? "#EF4444" :
+          "#64748B";
+        const partyLetter =
+          t.party?.startsWith("D") ? "D" :
+          t.party?.startsWith("R") ? "R" : "I";
+        const partyDot =
+          t.party?.startsWith("D") ? "🔵" :
+          t.party?.startsWith("R") ? "🔴" : "⚪";
+
+        const chamberBadge = `<span class="badge badge-gray">🏛️ ${t.chamber}</span>`;
+
+        const partyBadge =
+          `<span class="badge" style="background:` +
+          `${partyColor}22;color:${partyColor}">` +
+          `${partyDot} ${partyLetter}</span>`;
+
+        let daysLateBadge = "";
+        if (t.days_late != null) {
+          if (t.days_late >= 45) {
+            daysLateBadge =
+              `<span class="badge badge-danger" ` +
+              `title="At or over legal 45-day limit">` +
+              `🚨 ${t.days_late}d late</span>`;
+          } else if (t.days_late >= 36) {
+            daysLateBadge =
+              `<span class="badge badge-warning">` +
+              `⚠️ ${t.days_late}d late</span>`;
+          } else if (t.days_late >= 21) {
+            daysLateBadge =
+              `<span class="badge badge-yellow">` +
+              `⏱ ${t.days_late}d late</span>`;
+          }
+        }
+
+        const assetLine =
+          t.asset && t.asset !== t.ticker
+            ? `<div class="trade-asset">${
+                t.asset.length > 50
+                  ? t.asset.substring(0, 50) + "..."
+                  : t.asset
+              }</div>`
+            : "";
+
+        return `
+<div class="trade-card"
+     style="border-left:3px solid ${borderColor}">
+  <div class="trade-card-top">
+    <div class="trade-badges">
+      ${typeBadge}
+      ${chamberBadge}
+      ${partyBadge}
+    </div>
+  </div>
+  <div class="trade-card-body">
+    <div class="trade-ticker-wrap">
+      <span class="trade-ticker">${t.ticker}</span>
+      ${assetLine}
+    </div>
+    <div class="trade-politician">
+      ${t.politician}
+      ${
+        t.state
+          ? `<span class="trade-state">
+             · ${t.state}
+           </span>`
+          : ""
       }
-      const formatDate = function(d) {
-        if (!d) return "--";
-        try { return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); } catch (_) { return d; }
-      };
-      const assetName = t.asset && t.asset !== t.ticker ? (t.asset.substring(0, 45) + (t.asset.length > 45 ? "..." : "")) : "";
-      const tickerHtml = escapeHtml(t.ticker || "");
-      const assetHtml = assetName ? "<span class=\"trade-asset\">" + escapeHtml(assetName) + "</span>" : "";
-      const polHtml = escapeHtml(t.politician || "");
-      const stateHtml = t.state ? "<span class=\"trade-state\"> · " + escapeHtml(t.state) + "</span>" : "";
-      const amountHtml = escapeHtml(t.amount || "Amount not disclosed");
-      const tradedDate = formatDate(t.date_traded);
-      const disclosedDate = formatDate(t.date_disclosed);
-      return "<div class=\"trade-card\" style=\"border-left:3px solid " + borderColor + "\">" +
-        "<div class=\"trade-card-header\"><div class=\"trade-card-badges\">" + typeBadge + chamberBadge + partyBadge + "</div></div>" +
-        "<div class=\"trade-card-body\">" +
-        "<div class=\"trade-ticker-row\"><span class=\"trade-ticker\">" + tickerHtml + "</span>" + assetHtml + "</div>" +
-        "<div class=\"trade-politician-row\"><span class=\"trade-politician\">" + polHtml + "</span>" + stateHtml + "</div>" +
-        "<div class=\"trade-amount\">" + amountHtml + "</div></div>" +
-        "<div class=\"trade-card-footer\"><div class=\"trade-dates\">" +
-        "<span><span class=\"date-label\">Traded</span> <span class=\"date-value\">" + tradedDate + "</span></span>" +
-        "<span><span class=\"date-label\">Disclosed</span> <span class=\"date-value\">" + disclosedDate + "</span></span></div>" +
-        daysLateBadge + "</div></div>";
-    }
+    </div>
+    <div class="trade-amount">
+      ${t.amount || "Amount not disclosed"}
+    </div>
+  </div>
+  <div class="trade-card-footer">
+    <div class="trade-dates">
+      <div>
+        <span class="date-label">Traded</span>
+        <span class="date-val">
+          ${t.date_traded_fmt || t.date_traded}
+        </span>
+      </div>
+      <div>
+        <span class="date-label">Disclosed</span>
+        <span class="date-val">
+          ${t.date_disclosed_fmt || t.date_disclosed}
+        </span>
+      </div>
+    </div>
+    ${daysLateBadge}
+  </div>
+</div>`;
+      },
 
-    function updatePTSummary(summary) {
-      if (!summary) return;
-      const setEl = function(id, val) { const el = $(id); if (el) el.textContent = val; };
-      const total = (summary.purchases || 0) + (summary.sales || 0);
-      setEl("pt-stat-total", total + " trades");
-      setEl("pt-stat-purchases", summary.purchases || 0);
-      setEl("pt-stat-sales", summary.sales || 0);
-      const topT = summary.top_tickers && summary.top_tickers[0];
-      setEl("pt-stat-top-ticker", topT ? topT.ticker + " (" + topT.count + "×)" : "--");
-    }
+      // Update summary stat cards
+      updateStats(summary) {
+        if (!summary) return;
 
-    function attachPoliticianTradeFilters() {
-      const searchEl = $("pt-search");
-      const chamberEl = $("pt-chamber");
-      const partyEl = $("pt-party");
-      const daysEl = $("pt-days");
-      const refreshBtn = $("pt-refresh");
-      if (searchEl) {
-        var searchTimer;
-        searchEl.addEventListener("input", function(e) {
-          clearTimeout(searchTimer);
-          searchTimer = setTimeout(function() {
-            ptFilters.search = e.target.value.trim();
-            loadPoliticianTrades();
-          }, 400);
+        const set = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+
+        set(
+          "pt-stat-total",
+          summary.total?.toLocaleString() || "0"
+        );
+        set("pt-stat-buys", summary.purchases || 0);
+        set("pt-stat-sells", summary.sales || 0);
+
+        const top = summary.top_tickers?.[0];
+        set(
+          "pt-stat-top",
+          top ? `${top.ticker} (${top.count}×)` : "--"
+        );
+      },
+
+      // Update results count bar
+      updateResultsBar(count, sentiment, cacheAge) {
+        const bar = document.getElementById("pt-results-bar");
+        const countEl = document.getElementById("pt-results-count");
+        const sentEl = document.getElementById("pt-sentiment-badge");
+        const ageEl = document.getElementById("pt-cache-age");
+
+        if (bar) bar.style.display = "flex";
+
+        if (countEl) {
+          countEl.textContent = `${
+            count?.toLocaleString() || 0
+          } trades`;
+        }
+
+        if (sentEl && sentiment) {
+          const color =
+            sentiment === "BULLISH"
+              ? "#22C55E"
+              : sentiment === "BEARISH"
+              ? "#EF4444"
+              : "#F59E0B";
+          sentEl.innerHTML =
+            `<span class="badge" style="background:` +
+            `${color}22;color:${color}">` +
+            `${sentiment}</span>`;
+        }
+
+        if (ageEl && cacheAge != null) {
+          ageEl.textContent =
+            cacheAge < 2
+              ? "Just updated"
+              : `Data cached ${cacheAge}m ago`;
+        }
+      },
+
+      // Show skeleton loaders
+      showSkeletons() {
+        const container = document.getElementById(
+          "pt-cards-container"
+        );
+        if (!container) return;
+
+        const skeleton = `
+<div class="trade-card skeleton-card"
+     style="border-left:3px solid #1E2D45">
+  <div class="skeleton"
+       style="height:18px;width:55%;
+              margin-bottom:14px;
+              border-radius:4px"></div>
+  <div class="skeleton"
+       style="height:26px;width:30%;
+              margin-bottom:8px;
+              border-radius:4px"></div>
+  <div class="skeleton"
+       style="height:16px;width:65%;
+              margin-bottom:6px;
+              border-radius:4px"></div>
+  <div class="skeleton"
+       style="height:14px;width:40%;
+              border-radius:4px"></div>
+</div>`;
+
+        container.innerHTML = Array(8)
+          .fill(skeleton)
+          .join("");
+      },
+
+      // Show error state
+      showError(message) {
+        const container = document.getElementById(
+          "pt-cards-container"
+        );
+        if (!container) return;
+
+        container.innerHTML = `
+<div class="pt-state-card">
+  <div class="pt-state-icon">⚠️</div>
+  <div class="pt-state-title">
+    Could not load data
+  </div>
+  <div class="pt-state-sub">${message}</div>
+  <button class="btn-primary"
+          onclick="PT.load()"
+          style="margin-top:16px">
+    Try Again
+  </button>
+</div>`;
+      },
+
+      // Empty state
+      emptyStateHTML() {
+        return `
+<div class="pt-state-card">
+  <div class="pt-state-icon">🏛️</div>
+  <div class="pt-state-title">No trades found</div>
+  <div class="pt-state-sub">
+    Try widening your filters or
+    selecting a longer time range
+  </div>
+  <button class="btn-secondary"
+          onclick="PT.clearFilters()"
+          style="margin-top:16px">
+    Clear Filters
+  </button>
+</div>`;
+      },
+
+      // Update load more button
+      updateLoadMore(show) {
+        const btn = document.getElementById("pt-load-more-btn");
+        if (btn) {
+          btn.style.display = show ? "block" : "none";
+          const remaining =
+            this.allTrades.length - this.displayedCount;
+          if (show) {
+            btn.textContent =
+              `Load ${Math.min(remaining, this.pageSize)}` +
+              ` more trades (${remaining} remaining)`;
+          }
+        }
+      },
+
+      // Clear all filters
+      clearFilters() {
+        this.filters = {
+          search: "",
+          chamber: "all",
+          party: "all",
+          type: "all",
+          days: 30,
+        };
+        const ids = [
+          "pt-search",
+          "pt-chamber",
+          "pt-party",
+          "pt-type",
+          "pt-days",
+        ];
+        ids.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (el.tagName === "INPUT") el.value = "";
+          else if (id === "pt-days") el.value = "30";
+          else el.value = "all";
         });
-      }
-      if (chamberEl) chamberEl.addEventListener("change", function(e) { ptFilters.chamber = e.target.value; loadPoliticianTrades(); });
-      if (partyEl) partyEl.addEventListener("change", function(e) { ptFilters.party = e.target.value; loadPoliticianTrades(); });
-      if (daysEl) daysEl.addEventListener("change", function(e) { ptFilters.days = parseInt(e.target.value, 10); loadPoliticianTrades(); });
-      if (refreshBtn) refreshBtn.addEventListener("click", function() { loadPoliticianTrades(); });
-    }
+        this.load();
+      },
+    };
 
-    function loadMorePTTrades() {
-      ptFilters.offset += ptFilters.limit;
-      const toShow = ptAllTrades.slice(0, ptFilters.offset + ptFilters.limit);
-      renderPTCards(toShow, false);
-      updatePTLoadMore(ptAllTrades.length > ptFilters.offset + ptFilters.limit);
-    }
-
-    function updatePTLoadMore(show) {
-      const btn = $("pt-load-more");
-      if (btn) btn.style.display = show ? "block" : "none";
-    }
-
-    function clearPTFilters() {
-      ptFilters = { search: "", chamber: "all", party: "all", days: 30, offset: 0, limit: 20 };
-      const searchEl = $("pt-search");
-      const chamberEl = $("pt-chamber");
-      const partyEl = $("pt-party");
-      const daysEl = $("pt-days");
-      if (searchEl) searchEl.value = "";
-      if (chamberEl) chamberEl.value = "all";
-      if (partyEl) partyEl.value = "all";
-      if (daysEl) daysEl.value = "30";
-      loadPoliticianTrades();
-    }
-
-    function showPTSkeletons() {
-      const container = $("pt-cards");
-      if (!container) return;
-      container.innerHTML = Array(5).fill('<div class="trade-card skeleton-card"><div class="skeleton" style="height:20px;width:40%;margin-bottom:12px"></div><div class="skeleton" style="height:28px;width:25%;margin-bottom:8px"></div><div class="skeleton" style="height:16px;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:50%"></div></div>').join("");
-    }
-
-    function showPTError() {
-      const container = $("pt-cards");
-      if (!container) return;
-      container.innerHTML = '<div class="pt-empty-state"><div class="pt-empty-icon">⚠️</div><div class="pt-empty-title">Could not load congressional data</div><div class="pt-empty-sub">The data source may be temporarily unavailable. Try again in a moment.</div><button type="button" class="btn" onclick="loadPoliticianTrades()">Retry</button></div>';
+    // Load more button handler
+    function ptLoadMore() {
+      PT.renderCards(true);
     }
 
     function downloadBlob(blob, filename) {
