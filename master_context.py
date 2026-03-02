@@ -193,90 +193,129 @@ def _economic_events() -> List[Dict[str, Any]]:
 def get_market_regime() -> Dict[str, Any]:
     """
     Compute market regime from SPY SMAs, RSI, and VIX (yfinance only).
-    Regimes: TRENDING_BULL, TRENDING_BEAR, HIGH_VOLATILITY, CHOPPY_NEUTRAL, EXTREME_FEAR, EXTREME_GREED.
+
+    Returns a UI-ready object:
+    - regime, label, color, description
+    - favored_strategies, avoid_strategies
+    - auto_pause_recommended
+    - data (debug metrics)
     """
-    out: Dict[str, Any] = {
-        "regime": "CHOPPY_NEUTRAL",
-        "description": "Mixed signals — follow technicals and risk rules.",
-        "vix": None,
-        "rsi": None,
-        "spy_above_smas": None,
-        "strategies": {
-            "beginner": "Reduce size, stick to defined-risk spreads.",
-            "intermediate": "Favor defined-risk; avoid naked options.",
-            "advanced": "Use volatility to your advantage; size appropriately.",
-        },
-    }
     try:
-        internals = _spy_internals()
-        prices = _live_prices()
-        vix_data = prices.get("vix", {})
-        vix = float(vix_data.get("price") or 0)
-        rsi = internals.get("rsi")
-        last = internals.get("last")
-        sma20 = internals.get("sma20")
-        sma50 = internals.get("sma50")
-        sma200 = internals.get("sma200")
+        spy = yf.Ticker("SPY")
+        hist = spy.history(period="1y", interval="1d")
+        vix_t = yf.Ticker("^VIX")
+        vix_data = vix_t.history(period="5d", interval="1d")
 
-        out["vix"] = round(vix, 2) if vix else None
-        out["rsi"] = rsi
-        above_20 = last > sma20 if (last and sma20) else None
-        above_50 = last > sma50 if (last and sma50) else None
-        above_200 = last > sma200 if (last and sma200) else None
-        out["spy_above_smas"] = {"20": above_20, "50": above_50, "200": above_200}
+        if hist is None or hist.empty:
+            return {"error": "No data"}
 
-        # Priority order: extreme conditions first, then volatility, then trend
-        if vix > 30 and (rsi is None or rsi < 35):
-            out["regime"] = "EXTREME_FEAR"
-            out["description"] = "VIX elevated, SPY oversold — contrarian setups possible but high risk."
-            out["strategies"] = {
-                "beginner": "Stay flat or paper trade only.",
-                "intermediate": "Small defined-risk; consider put spreads for mean reversion.",
-                "advanced": "Volatility premium selling; tight risk.",
-            }
-        elif (rsi or 0) > 75 and vix < 13:
-            out["regime"] = "EXTREME_GREED"
-            out["description"] = "RSI overbought, VIX low — reversal risk elevated."
-            out["strategies"] = {
-                "beginner": "Reduce exposure; avoid chasing.",
-                "intermediate": "Consider protective puts or put spreads.",
-                "advanced": "Fade extremes with defined risk.",
-            }
-        elif vix > 25:
-            out["regime"] = "HIGH_VOLATILITY"
-            out["description"] = "VIX elevated — wider stops, smaller size, favor defined-risk."
-            out["strategies"] = {
-                "beginner": "Reduce size; avoid 0DTE.",
-                "intermediate": "Favor spreads; avoid naked options.",
-                "advanced": "Volatility strategies; strict risk limits.",
-            }
-        elif above_20 and above_50 and above_200 and vix < 20 and (rsi is None or 50 <= (rsi or 0) <= 70):
-            out["regime"] = "TRENDING_BULL"
-            out["description"] = "SPY above all SMAs, VIX calm — trend-following setups favored."
-            out["strategies"] = {
-                "beginner": "Small call debit spreads; defined risk.",
-                "intermediate": "Bullish bias; credit put spreads.",
-                "advanced": "Trend continuation; manage winners.",
-            }
-        elif above_20 is False and above_50 is False and above_200 is False and vix > 20:
-            out["regime"] = "TRENDING_BEAR"
-            out["description"] = "SPY below all SMAs, VIX elevated — bearish bias, defensive positioning."
-            out["strategies"] = {
-                "beginner": "Stay defensive; avoid aggressive longs.",
-                "intermediate": "Put spreads; hedge longs.",
-                "advanced": "Bearish bias; defined-risk shorts.",
-            }
-        elif (rsi is None or 45 <= (rsi or 0) <= 55) and 15 <= vix <= 20:
-            out["regime"] = "CHOPPY_NEUTRAL"
-            out["description"] = "Mixed signals — follow technicals and risk rules."
-            out["strategies"] = {
-                "beginner": "Reduce size; stick to defined-risk spreads.",
-                "intermediate": "Favor defined-risk; avoid naked options.",
-                "advanced": "Use volatility to your advantage; size appropriately.",
-            }
-    except Exception:
-        pass
-    return out
+        close = hist["Close"].astype(float)
+        current = float(close.iloc[-1])
+        sma20 = float(close.rolling(20).mean().iloc[-1])
+        sma50 = float(close.rolling(50).mean().iloc[-1])
+        sma200 = float(close.rolling(200).mean().iloc[-1]) if len(close) >= 200 else float(close.rolling(100).mean().iloc[-1])
+
+        delta = close.diff()
+        gain = delta.where(delta > 0, 0.0)
+        loss = -delta.where(delta < 0, 0.0)
+        avg_gain = float(gain.rolling(14).mean().iloc[-1]) if len(gain) >= 14 else 0.0
+        avg_loss = float(loss.rolling(14).mean().iloc[-1]) if len(loss) >= 14 else 0.0
+        rs = (avg_gain / avg_loss) if avg_loss != 0 else 100.0
+        rsi = float(100.0 - (100.0 / (1.0 + rs)))
+
+        vix_current = float(vix_data["Close"].iloc[-1]) if (vix_data is not None and not vix_data.empty) else 20.0
+
+        returns = close.pct_change().dropna()
+        volatility_30d = float(returns.tail(30).std() * (252 ** 0.5) * 100) if len(returns) >= 30 else float(returns.std() * (252 ** 0.5) * 100) if len(returns) else 0.0
+
+        above_20 = current > sma20
+        above_50 = current > sma50
+        above_200 = current > sma200
+
+        if vix_current > 30:
+            regime = "EXTREME_FEAR"
+            label = "Extreme Fear"
+            color = "danger"
+            description = (
+                "VIX above 30 signals extreme fear. Markets are highly volatile and directional signals are unreliable."
+            )
+            favored = ["Premium selling (iron condors)", "Defensive positions", "Cash preservation"]
+            avoid = ["0DTE long options", "Directional momentum plays", "Large position sizes"]
+            auto_pause = True
+        elif vix_current > 25:
+            regime = "HIGH_VOL"
+            label = "High Volatility"
+            color = "warning"
+            description = (
+                "Elevated volatility environment. Expect larger-than-normal price swings in both directions."
+            )
+            favored = ["Wider stops on directional trades", "Premium selling strategies", "Reduced position sizes"]
+            avoid = ["Tight stop losses", "High-leverage 0DTE positions"]
+            auto_pause = False
+        elif above_200 and above_50 and above_20 and rsi > 50 and vix_current < 20:
+            regime = "TRENDING_BULL"
+            label = "Trending Bull"
+            color = "success"
+            description = (
+                "SPY above key moving averages with healthy momentum. Bullish strategies are higher probability."
+            )
+            favored = ["Call spreads and momentum plays", "VWAP bounce setups", "Dip buying to support levels"]
+            avoid = ["Naked short positions", "Heavy put buying", "Over-relying on overbought signals"]
+            auto_pause = False
+        elif (not above_200) and (not above_50) and rsi < 50 and vix_current > 18:
+            regime = "TRENDING_BEAR"
+            label = "Trending Bear"
+            color = "danger"
+            description = (
+                "SPY below key moving averages with bearish momentum. Defensive and short strategies are favored."
+            )
+            favored = ["Put spreads on weak stocks", "Defensive sector rotation", "Cash and short-term bonds"]
+            avoid = ["Aggressive call buying", "Catching falling knives", "Ignoring downside risk"]
+            auto_pause = False
+        elif abs(rsi - 50.0) < 10.0 and 15.0 <= vix_current <= 20.0:
+            regime = "CHOPPY"
+            label = "Choppy / Neutral"
+            color = "warning"
+            description = (
+                "Mixed signals and range-bound price action. Trending strategies underperform in this environment."
+            )
+            favored = ["Iron condors and range plays", "Mean reversion at extremes", "Smaller position sizes"]
+            avoid = ["Trend-following momentum trades", "Large directional bets", "0DTE outside key events"]
+            auto_pause = False
+        else:
+            regime = "NEUTRAL"
+            label = "Neutral"
+            color = "neutral"
+            description = (
+                "No clear dominant regime. Be selective and size down until clearer signals emerge."
+            )
+            favored = ["High-conviction setups only", "Smaller position sizes", "Waiting for clarity"]
+            avoid = ["Low-conviction trades", "Full-size positions"]
+            auto_pause = False
+
+        return {
+            "regime": regime,
+            "label": label,
+            "color": color,
+            "description": description,
+            "favored_strategies": favored,
+            "avoid_strategies": avoid,
+            "auto_pause_recommended": auto_pause,
+            "data": {
+                "spy_price": round(current, 2),
+                "sma20": round(sma20, 2),
+                "sma50": round(sma50, 2),
+                "sma200": round(sma200, 2),
+                "rsi": round(rsi, 1),
+                "vix": round(vix_current, 2),
+                "above_20sma": above_20,
+                "above_50sma": above_50,
+                "above_200sma": above_200,
+                "volatility_30d": round(volatility_30d, 1),
+            },
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
 def _fear_greed() -> Dict[str, Any]:

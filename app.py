@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import base64
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Literal
 
@@ -36,6 +37,34 @@ from market_data import (
 
 app = FastAPI()
 _APP_START_TIME = time.time()
+
+def _decode_profile_b64(profile_b64: str) -> Dict[str, Any]:
+    if not profile_b64:
+        return {}
+    try:
+        raw = base64.b64decode(profile_b64.encode("utf-8")).decode("utf-8", errors="ignore")
+        data = json.loads(raw)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _profile_context(profile_b64: str) -> str:
+    p = _decode_profile_b64(profile_b64)
+    level = str(p.get("level") or "intermediate").strip() or "intermediate"
+    risk = str(p.get("risk") or "moderate").strip() or "moderate"
+    focus = p.get("focus") or ["0dte"]
+    if not isinstance(focus, list):
+        focus = [str(focus)]
+    focus_str = ", ".join([str(x) for x in focus if x is not None]) or "0dte"
+    return (
+        "USER PROFILE:\n"
+        f"Experience level: {level}\n"
+        f"Risk tolerance: {risk}\n"
+        f"Primary focus: {focus_str}\n"
+        "Adjust all explanations, terminology, and suggestions to match this profile. "
+        "For beginners use plain English. For advanced users use professional trading terminology."
+    ).strip()
 
 app.add_middleware(
     CORSMiddleware,
@@ -209,21 +238,6 @@ def api_chart_data(ticker: str = "SPY", interval: str = "5m"):
         return {"error": str(e), "candles": []}
 
 
-# ============================================
-# POLITICIAN TRADES ROUTES
-# ============================================
-
-
-@app.get("/health")
-def health():
-    return {
-        "status": "ok",
-        "uptime_seconds": int(time.time() - _APP_START_TIME),
-        "version": "Midori 2.0",
-        "last_data_refresh": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()),
-    }
-
-
 _DAILY_BRIEF_PROMPT = """You are Midori, an expert trading AI. Based on the following real market data, write a Daily Brief in exactly this structure.
 
 Start with one greeting line: "Good morning." or "Good afternoon." or "Good evening." (match the time in the data) followed by " Here's what matters today."
@@ -253,13 +267,14 @@ Market data:
 
 
 @app.get("/api/daily-brief")
-def api_daily_brief():
+def api_daily_brief(profile: str = ""):
     """Auto-generated Daily Brief for dashboard wow moment. Uses build_master_context + one AI call."""
     if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
     try:
         ctx = build_master_context()
-        prompt = _DAILY_BRIEF_PROMPT.format(context=ctx)
+        pctx = _profile_context(profile)
+        prompt = _DAILY_BRIEF_PROMPT.format(context=(pctx + "\n\n" + ctx).strip())
         client = OpenAI()
         resp = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -282,6 +297,7 @@ def analyze(
     style: str = "balanced",  # balanced | conservative | aggressive
     timeframe: str = "intraday",
     analysis_type: str = "options",  # options | stocks | both
+    profile: str = "",
 ):
     if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
@@ -295,7 +311,15 @@ def analyze(
 
     try:
         ctx = build_master_context()
-        result = analyze_symbols(symbols, focus=focus, style=style, timeframe=timeframe, analysis_type=analysis_type, master_context=ctx)
+        pctx = _profile_context(profile)
+        result = analyze_symbols(
+            symbols,
+            focus=focus,
+            style=style,
+            timeframe=timeframe,
+            analysis_type=analysis_type,
+            master_context=(pctx + "\n\n" + ctx).strip(),
+        )
         confidence = compute_confidence_for_symbols(symbols)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -764,6 +788,7 @@ class ExplainBacktestRequest(BaseModel):
     symbols: Dict[str, Any] = {}
     years: int = 3
     holding_days: int = 5
+    profile: str = ""
 
 
 @app.post("/explain-backtest")
@@ -780,8 +805,9 @@ def explain_backtest(req: ExplainBacktestRequest):
     holding_days = req.holding_days or 5
 
     ctx = build_master_context()
+    pctx = _profile_context(req.profile or "")
     prompt = (
-        ctx + "\n\n---\n\n"
+        (pctx + "\n\n" + ctx).strip() + "\n\n---\n\n"
         "You are MIDORI, a trading educator. Explain these backtest results in plain English for a real trader. "
         "Be concise (2–4 short paragraphs). Cover: what the numbers mean, whether the strategy looks viable, "
         "key risks (drawdown, win rate), and one practical takeaway. End with: ## 📊 What This Means For You — "
@@ -828,7 +854,7 @@ def forecast(ticker: str, years: int = 3):
 
 
 @app.get("/signals")
-def signals(tickers: str = "SPY,QQQ,IWM", limit: int = 3):
+def signals(tickers: str = "SPY,QQQ,IWM", limit: int = 3, profile: str = ""):
     if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
@@ -838,7 +864,8 @@ def signals(tickers: str = "SPY,QQQ,IWM", limit: int = 3):
 
     try:
         ctx = build_master_context()
-        signal_list = get_top_signals(symbols, limit=min(int(limit), 5), master_context=ctx)
+        pctx = _profile_context(profile)
+        signal_list = get_top_signals(symbols, limit=min(int(limit), 5), master_context=(pctx + "\n\n" + ctx).strip())
         return {
             "signals": signal_list,
             "tickers": symbols,
@@ -857,6 +884,7 @@ class StressTestPosition(BaseModel):
 
 class StressTestRequest(BaseModel):
     positions: List[StressTestPosition]
+    profile: str = ""
 
 
 @app.post("/api/stress-test")
@@ -868,6 +896,7 @@ def api_stress_test(req: StressTestRequest):
     if not positions:
         raise HTTPException(status_code=400, detail="No positions provided")
     ctx = build_master_context()
+    pctx = _profile_context(req.profile or "")
     regime = get_market_regime()
     pos_text = "\n".join(
         "  - %s: qty=%d, entry=$%.2f%s"
@@ -875,7 +904,7 @@ def api_stress_test(req: StressTestRequest):
         for p in positions
     )
     prompt = (
-        ctx
+        (pctx + "\n\n" + ctx).strip()
         + "\n\n--- PORTFOLIO STRESS TEST REQUEST ---\n"
         + "Current regime: %s — %s\n\n"
         % (regime.get("regime", "UNKNOWN"), regime.get("description", ""))
@@ -914,6 +943,7 @@ class ChatRequest(BaseModel):
     style: str = "balanced"
     timeframe: str = "intraday"
     analysis_type: str = "options"
+    profile: str = ""
     files: List[Dict[str, Any]] = []
     history: List[ChatMessage] = []
     question: str
@@ -942,6 +972,7 @@ def chat(req: ChatRequest):
     at = req.analysis_type if req.analysis_type in ("options", "stocks", "both") else "options"
     base_prompt = build_prompt(snapshots, focus=req.focus, style=req.style, timeframe=req.timeframe, analysis_type=at)
     ctx = build_master_context()
+    pctx = _profile_context(req.profile or "")
     midori_system = (
         "You are MIDORI, an elite AI trading analyst, risk manager, and trading coach with deep expertise in 0DTE options, "
         "swing trading, technical analysis, options Greeks, risk management, and long-term value investing.\n\n"
@@ -982,7 +1013,7 @@ def chat(req: ChatRequest):
         "- End every response with a single line: '💡 Midori's Tip: [one practical takeaway]'.\n"
         "- All content is educational only, not financial advice."
     )
-    user_content = ctx + "\n\n---\n\n" + base_prompt
+    user_content = (pctx + "\n\n" + ctx).strip() + "\n\n---\n\n" + base_prompt
 
     client = OpenAI()
     messages: List[Dict[str, Any]] = [

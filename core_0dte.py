@@ -1457,35 +1457,52 @@ SIGNALS_SYSTEM = (
 )
 
 SIGNALS_OUTPUT_FORMAT = """
-Respond with a single JSON object of this exact shape (no markdown, no code fence):
+You MUST respond with a single JSON object in this exact schema (no markdown, no code fence):
 {
   "signals": [
     {
-      "rank": 1,
       "ticker": "SPY",
-      "type": "CALL",
-      "strike_zone": "585-587",
-      "headline": "SPY 0DTE call — hold above VWAP",
-      "reason": "One short sentence summary for the card.",
-      "how_midori_decided": "HOW_I_DECIDED\\n\\nDATA SIGNALS USED:\\n✅ ...\\n❌ ...\\n⚠️ ...\\n\\nHISTORICAL CONTEXT:\\n...\\n\\nCONFIDENCE BREAKDOWN:\\n...\\n\\nWHY MIDORI IS CAUTIOUS:\\n..."
+      "direction": "CALL",
+      "strategy": "Bull Call Spread",
+      "strike": 450,
+      "expiry": "0DTE",
+      "entry_low": 1.10,
+      "entry_high": 1.30,
+      "target": 2.20,
+      "stop": 0.55,
+      "risk_reward": "2:1",
+      "confidence": 71,
+      "confidence_label": "High",
+      "regime": "TRENDING_BULL",
+      "regime_compatible": true,
+      "reasoning": {
+        "summary": "One sentence explaining why this setup fits right now.",
+        "bullish_signals": ["..."],
+        "bearish_signals": ["..."],
+        "risk_factors": ["..."],
+        "key_levels": { "support": 448.50, "resistance": 452.00, "vwap": 449.20 },
+        "historical_context": "Short paragraph, risk-aware. Do not claim certainty.",
+        "what_changes_my_mind": "One sentence on invalidation."
+      },
+      "scenario_analysis": {
+        "base_case": "...",
+        "bull_case": "...",
+        "bear_case": "...",
+        "vol_spike": "..."
+      },
+      "setup_tag": "VWAP Bounce",
+      "risk_tag": "Moderate"
     }
   ]
 }
-- rank: 1 = highest historical probability / best setup, then 2, 3.
-- type: CALL or PUT.
-- strike_zone: approximate strike or range from the data.
-- headline: one short punchy line (like an alert), educational not hypey.
-- reason: one-sentence overview for the signal card.
-- how_midori_decided: multi-line text section starting with HOW_I_DECIDED that includes:
-  * A list of bullish signals used (with emoji ✅) and why they are bullish.
-  * A list of bearish / conflicting signals (with emoji ❌).
-  * A list of risk factors (with emoji ⚠️) such as events, volatility spikes, thin liquidity.
-  * A short \"HISTORICAL CONTEXT\" paragraph describing how similar conditions behaved historically.
-  * A \"CONFIDENCE BREAKDOWN\" with rough percentages for technicals, market conditions, and risk factors.
-  * A \"WHY MIDORI IS CAUTIOUS\" note explaining why confidence is not 100% and what could go wrong.
 
-Return exactly 1 to 3 signals, in order of probability. If data is thin, return fewer.
-Always keep tone educational and risk-aware (never promise gains).
+Rules:
+- Return 1 to 3 signals total. If data is thin, return fewer.
+- Keep every field filled (no nulls). Use reasonable, educational numbers inferred from the option rows (bid/ask) and the market context.
+- Confidence is 0–100 and MUST match the confidence_label.
+- Regime must be one of: TRENDING_BULL, TRENDING_BEAR, HIGH_VOL, CHOPPY, EXTREME_FEAR, NEUTRAL.
+- Ensure risk/reward is consistent with entry/target/stop.
+- Educational only. No hype. No guarantees.
 """
 
 
@@ -1576,14 +1593,11 @@ def get_top_signals(symbols: List[str], limit: int = 3, master_context: Optional
         print("Signals VIX regime fetch failed: %s" % e)
 
     signals_system = (
-        "You are MIDORI, an elite 0DTE signal engine and risk manager. Given the PROJECT MIDORI MARKET CONTEXT above, "
-        "live snapshot data, screener rows, confidence metrics, and VIX regime, you pick the single best and top N "
-        "0DTE setups right now. Ground every signal in actual current conditions (VIX, trend, events).\n\n"
-        "You MUST:\n"
-        "- Treat this as a risk-first, educational signal engine (not trade recommendations).\n"
-        "- For each signal, fill both a short 'reason' for the card AND a rich 'how_midori_decided' section as described in the JSON schema.\n"
-        "- Calibrate confidence language honestly — call out risk factors clearly.\n\n"
-        "You respond ONLY with valid JSON, no other text. Educational only; not trading advice."
+        "You are MIDORI, an elite 0DTE signal engine and risk manager.\n\n"
+        "Given the PROJECT MIDORI MARKET CONTEXT, live snapshot data, screener rows, confidence metrics, "
+        "and VIX regime, you propose 1–3 risk-first 0DTE option setups.\n\n"
+        "Return ONLY valid JSON matching the schema exactly. No markdown. No extra keys.\n"
+        "Educational only; not trading advice."
     )
     client = OpenAI()
     resp = client.chat.completions.create(
@@ -1606,24 +1620,74 @@ def get_top_signals(symbols: List[str], limit: int = 3, master_context: Optional
 
     try:
         data = json.loads(raw)
-        signals = data.get("signals") or []
-        if not isinstance(signals, list):
-            return []
-        out = []
-        for s in signals[: int(limit)]:
-            if isinstance(s, dict) and s.get("ticker") and s.get("headline"):
-                out.append(
-                    {
-                        "rank": int(s.get("rank") or len(out) + 1),
-                        "ticker": str(s.get("ticker", "")).upper(),
-                        "type": str(s.get("type", "CALL")).upper()[:4],
-                        "strike_zone": str(s.get("strike_zone", "—")),
-                        "headline": str(s.get("headline", "")),
-                        "reason": str(s.get("reason", "")),
-                        "how_midori_decided": str(s.get("how_midori_decided", "")),
-                    }
-                )
-        return out
     except Exception as e:
         print("Signals JSON parse failed: %s" % e)
         return []
+
+    signals = data.get("signals") or []
+    if not isinstance(signals, list):
+        return []
+
+    def _to_float(v: Any) -> Optional[float]:
+        try:
+            if v is None:
+                return None
+            return float(v)
+        except Exception:
+            return None
+
+    def _to_int(v: Any) -> Optional[int]:
+        try:
+            if v is None:
+                return None
+            return int(float(v))
+        except Exception:
+            return None
+
+    out: List[Dict[str, Any]] = []
+    for s in signals[: int(limit)]:
+        if not isinstance(s, dict):
+            continue
+        ticker = str(s.get("ticker") or "").strip().upper()
+        direction = str(s.get("direction") or "").strip().upper()
+        strategy = str(s.get("strategy") or "").strip()
+        expiry = str(s.get("expiry") or "").strip()
+        rr = str(s.get("risk_reward") or "").strip()
+        conf = _to_int(s.get("confidence"))
+        conf_label = str(s.get("confidence_label") or "").strip()
+        regime = str(s.get("regime") or "").strip().upper()
+        compat = bool(s.get("regime_compatible")) if "regime_compatible" in s else True
+        reasoning = s.get("reasoning") if isinstance(s.get("reasoning"), dict) else {}
+        scenario = s.get("scenario_analysis") if isinstance(s.get("scenario_analysis"), dict) else {}
+        setup_tag = str(s.get("setup_tag") or "").strip()
+        risk_tag = str(s.get("risk_tag") or "").strip()
+
+        if not ticker or direction not in ("CALL", "PUT") or not strategy or conf is None:
+            continue
+        if not isinstance(reasoning, dict) or not isinstance(scenario, dict):
+            continue
+
+        out.append(
+            {
+                "ticker": ticker,
+                "direction": direction,
+                "strategy": strategy,
+                "strike": _to_float(s.get("strike")),
+                "expiry": expiry or "0DTE",
+                "entry_low": _to_float(s.get("entry_low")),
+                "entry_high": _to_float(s.get("entry_high")),
+                "target": _to_float(s.get("target")),
+                "stop": _to_float(s.get("stop")),
+                "risk_reward": rr or "",
+                "confidence": int(conf),
+                "confidence_label": conf_label or "",
+                "regime": regime or "",
+                "regime_compatible": bool(compat),
+                "reasoning": reasoning,
+                "scenario_analysis": scenario,
+                "setup_tag": setup_tag or "",
+                "risk_tag": risk_tag or "",
+            }
+        )
+
+    return out

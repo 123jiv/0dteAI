@@ -1315,14 +1315,16 @@
       pointer-events: none;
     }
 
-    .regime-banner {
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      border-left: 4px solid var(--accent-primary);
-      background: var(--bg-elevated);
-      font-size: 13px;
-      color: var(--text-primary);
-    }
+    .regime-banner { margin-bottom: 20px; }
+    .regime-banner-inner { border: 1px solid; border-radius: 12px; padding: 16px 20px; }
+    .regime-banner-left { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .regime-label { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .regime-desc { font-size: 13px; color: #94A3B8; line-height: 1.5; }
+    .regime-banner-right { display: flex; gap: 32px; flex-wrap: wrap; }
+    .regime-col { flex: 1; min-width: 180px; }
+    .regime-col-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .regime-item { font-size: 12px; color: #94A3B8; margin-bottom: 4px; line-height: 1.4; }
+    .regime-pause-alert { margin-top: 12px; padding: 10px 14px; background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.2); border-radius: 8px; font-size: 13px; color: #F43F5E; line-height: 1.5; }
     .regime-pill {
       display: inline-flex;
       align-items: center;
@@ -1336,9 +1338,6 @@
       text-decoration: none;
     }
     .regime-pill:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
-    .regime-banner .regime-label { font-weight: 600; margin-right: 8px; }
-    .regime-banner .regime-desc { color: var(--text-secondary); margin-top: 4px; }
-    .regime-banner .regime-strategies { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
     .backtest-integrity-card {
       margin-top: 12px;
       padding: 12px 14px;
@@ -1697,66 +1696,81 @@
     .signal-hero-headline { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
     .signal-hero-meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
     .signal-hero-reason { font-size: 12px; color: var(--text-primary); line-height: 1.45; }
-    .signals-list { display: flex; flex-direction: column; gap: 8px; }
+    .signals-list { display: flex; flex-direction: column; gap: 10px; }
     .signal-card {
       border-radius: var(--radius);
       background: rgba(30, 41, 59, 0.5);
       border: 1px solid var(--border);
-      padding: 10px 12px;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      padding: 14px 14px 12px;
     }
-    .signal-rank {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: #FFFFFF;
-      font-size: 11px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .signal-card-body { flex: 1; min-width: 0; }
-    .signal-card-headline { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
-    .signal-card-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-    .signal-card-reason { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
-    .signal-explainer-toggle {
-      margin-top: 6px;
-      padding: 4px 8px;
-      font-size: 11px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
+    .signal-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .signal-ticker { font-size: 14px; font-weight: 800; letter-spacing: 0.02em; color: var(--text-primary); font-family: var(--font-mono); }
+    .signal-strategy { font-size: 13px; font-weight: 600; color: var(--text-primary); opacity: 0.95; }
+    .signal-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+    .badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      transition: background var(--transition), border-color var(--transition), color var(--transition);
-    }
-    .signal-explainer-toggle::after {
-      content: "▾";
-      font-size: 10px;
-      opacity: 0.7;
-    }
-    .signal-explainer-toggle.open::after {
-      content: "▴";
-    }
-    .signal-explainer-toggle:hover {
-      border-color: var(--accent-primary);
-      color: var(--text-primary);
-      background: rgba(34,197,94,0.05);
-    }
-    .signal-explainer {
-      margin-top: 6px;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
       font-size: 11px;
+      font-weight: 700;
+      border: 1px solid rgba(148,163,184,0.22);
+      background: rgba(148,163,184,0.08);
       color: var(--text-secondary);
-      line-height: 1.5;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: rgba(15,23,42,0.9);
-      border: 1px solid rgba(34,197,94,0.3);
+      white-space: nowrap;
     }
+    .badge-CALL { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.10); color: #22C55E; }
+    .badge-PUT { border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.10); color: #F43F5E; }
+    .badge-gray { border-color: rgba(148,163,184,0.22); background: rgba(148,163,184,0.08); color: #94A3B8; }
+    .badge-warning { border-color: rgba(245,158,11,0.28); background: rgba(245,158,11,0.08); color: #F59E0B; }
+    .badge-danger { border-color: rgba(244,63,94,0.28); background: rgba(244,63,94,0.08); color: #F43F5E; }
+    .badge-success { border-color: rgba(34,197,94,0.28); background: rgba(34,197,94,0.08); color: #22C55E; }
+
+    .signal-numbers {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 720px) { .signal-numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .signal-num-item { background: rgba(7,11,20,0.55); border: 1px solid rgba(30,45,69,0.8); border-radius: 10px; padding: 10px 10px; }
+    .num-label { display:block; font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .num-val { display:block; font-size: 13px; color: var(--text-primary); font-weight: 700; font-family: var(--font-mono); }
+    .num-val.text-success { color: #22C55E; }
+    .num-val.text-danger { color: #F43F5E; }
+
+    .signal-confidence-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+    .signal-conf-bar { flex: 1; height: 8px; background: rgba(148,163,184,0.12); border-radius: 999px; overflow: hidden; border: 1px solid rgba(30,45,69,0.8); }
+    .signal-conf-fill { height: 100%; background: linear-gradient(90deg, #22C55E, #16A34A); border-radius: 999px; transition: width 0.35s ease; }
+    .signal-conf-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; white-space: nowrap; }
+
+    .reasoning-panel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; border-top: 1px solid #1E2D45; margin-top: 14px; }
+    .reasoning-panel.open { max-height: 1200px; padding-top: 16px; }
+    .reasoning-summary { font-size: 14px; color: #CBD5E1; line-height: 1.7; padding: 12px 16px; background: rgba(34,197,94,0.06); border-radius: 8px; border-left: 3px solid #22C55E; margin-bottom: 16px; }
+    .reasoning-signals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 640px) { .reasoning-signals-grid { grid-template-columns: 1fr; } }
+    .reasoning-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .reasoning-item { font-size: 12px; color: #94A3B8; margin-bottom: 5px; line-height: 1.5; }
+    .reasoning-history { background: #070B14; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; border: 1px solid rgba(30,45,69,0.8); }
+    .reasoning-section-title { font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .reasoning-history-text { font-size: 13px; color: #94A3B8; line-height: 1.7; }
+    .scenarios-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    @media (max-width: 640px) { .scenarios-grid { grid-template-columns: 1fr; } }
+    .scenario-item { padding: 12px; border-radius: 8px; font-size: 12px; color: #94A3B8; line-height: 1.5; }
+    .scenario-label { font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+    .scenario-base { background: rgba(148,163,184,0.08); border: 1px solid #1E2D45; }
+    .scenario-bull { background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.2); }
+    .scenario-bull .scenario-label { color: #22C55E; }
+    .scenario-bear { background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.2); }
+    .scenario-bear .scenario-label { color: #F43F5E; }
+    .scenario-vol { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); }
+    .scenario-vol .scenario-label { color: #F59E0B; }
+    .key-levels-row { display: flex; gap: 24px; font-size: 13px; color: #94A3B8; flex-wrap: wrap; }
+    .reasoning-caveat { font-size: 13px; color: #94A3B8; line-height: 1.6; padding: 12px 16px; background: rgba(245,158,11,0.05); border-radius: 8px; border-left: 3px solid #F59E0B; margin-top: 14px; margin-bottom: 14px; }
+    .signal-expand-btn { width: 100%; text-align: center; padding: 10px; background: transparent; border: 1px solid #1E2D45; border-radius: 8px; color: #22C55E; font-size: 13px; cursor: pointer; transition: background 0.2s; margin-top: 12px; font-weight: 700; }
+    .signal-expand-btn:hover { background: rgba(34,197,94,0.06); }
     .signals-engine .hint.error { color: var(--danger); }
 
     .footer-note {
@@ -2281,9 +2295,82 @@
     }
     .shortcut-modal-content tr td:first-child { padding-right: 12px; white-space: nowrap; }
       .shortcut-modal-content tr td:last-child { color: var(--text-secondary); }
-    .onboarding-modal { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .onboarding-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
-    .onboarding-content { position: relative; max-width: 420px; width: 100%; padding: 24px; }
+    .onboarding-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 11, 20, 0.97);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .onboarding-modal {
+      background: #0F1724;
+      border: 1px solid #1E2D45;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 560px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .onboarding-progress {
+      height: 4px;
+      background: #1E2D45;
+      border-radius: 2px;
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+    .onboarding-progress-fill {
+      height: 100%;
+      background: linear-gradient( 90deg, #22C55E, #16A34A );
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .onboarding-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #F1F5F9;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .onboarding-subtitle {
+      font-size: 15px;
+      color: #94A3B8;
+      margin-bottom: 28px;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .onboarding-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .onboarding-cards.grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .onboarding-card {
+      background: #161F30;
+      border: 2px solid #1E2D45;
+      border-radius: 12px;
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      text-align: left;
+      user-select: none;
+    }
+    .onboarding-card:hover { border-color: #22C55E44; background: #1A2640; }
+    .onboarding-card.selected { border-color: #22C55E; background: rgba(34, 197, 94, 0.08); }
+    .onboarding-card-title { font-size: 15px; font-weight: 600; color: #F1F5F9; margin-bottom: 4px; }
+    .onboarding-card-sub { font-size: 13px; color: #94A3B8; }
+    .onboarding-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 12px; }
+    .playbook-card { background: #161F30; border: 1px solid #22C55E44; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+    .playbook-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #CBD5E1; border-bottom: 1px solid #1E2D45; }
+    .playbook-row:last-child { border-bottom: none; }
 
     .offline-banner {
       position: fixed;
@@ -2323,6 +2410,46 @@
     }
     @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @media print { .toast-container { display: none !important; } }
+
+    .xp-toast {
+      position: fixed;
+      bottom: 80px;
+      right: 24px;
+      background: linear-gradient(135deg, #22C55E, #16A34A);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 20px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 9998;
+      pointer-events: none;
+    }
+    .xp-toast-show { opacity: 1; transform: translateY(0); }
+
+    .badge-unlock-toast {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      background: linear-gradient(135deg, #0F1724, #161F30);
+      border: 1px solid #22C55E;
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      opacity: 0;
+      transform: translateX(80px);
+      transition: opacity 0.4s, transform 0.4s;
+      z-index: 9997;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,197,94,0.2);
+    }
+    .badge-unlock-show { opacity: 1; transform: translateX(0); }
+    .badge-unlock-icon { font-size: 32px; }
+    .badge-unlock-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #22C55E; font-weight: 700; margin-bottom: 4px; }
+    .badge-unlock-name { font-size: 15px; font-weight: 700; color: #F1F5F9; }
 
     @media (max-width: 768px) {
       .menu-toggle { display: flex; }
@@ -2605,6 +2732,7 @@
             <a href="#/risk" id="dashboardRegimePill" class="regime-pill" style="display:none;" title="View regime details in Risk Center"></a>
             <button type="button" id="marketPulseRefreshBtn" class="btn secondary" style="padding:4px 10px; font-size:12px;" onclick="loadMarketPulse()" aria-label="Refresh market data">Refresh</button>
           </div>
+          <div id="dashboardRegimeBanner" class="regime-banner" style="margin-top:12px;"></div>
 
           <div class="dashboard-mid-row">
             <div class="midori-chart-wrap">
@@ -2619,6 +2747,10 @@
                   <button type="button" class="interval-btn" data-interval="15m">15m</button>
                   <button type="button" class="interval-btn" data-interval="1h">1h</button>
                   <button type="button" class="interval-btn" data-interval="1d">1D</button>
+                  <label style="display:flex; align-items:center; gap:6px; color:#94A3B8; font-size:11px; margin-left:6px;">
+                    Vol
+                    <input id="chart-vol-slider" type="range" min="8" max="30" step="1" value="20" style="width:90px;" aria-label="Volume height">
+                  </label>
                   <button type="button" id="chart-fullscreen-toggle" class="btn secondary btn-sm" style="padding:4px 8px; font-size:11px;" onclick="toggleChartFullscreen()" aria-label="Toggle fullscreen">⛶</button>
                 </div>
               </div>
@@ -2705,6 +2837,7 @@
             <a href="#/risk" class="guardrail-reminder-link">Set guardrails</a>
             <button type="button" class="guardrail-reminder-dismiss" onclick="dismissGuardrailReminder('analysisGuardrailReminder')" aria-label="Dismiss">×</button>
           </div>
+          <div id="analysisRegimeBanner" class="regime-banner" style="margin-bottom:16px;"></div>
           <div class="pre-trade-checklist" style="margin-bottom:14px; padding:8px 12px; background:var(--bg-elevated); border-radius:var(--radius); font-size:12px; color:var(--text-secondary);">
             <span style="margin-right:8px;">Before you trade:</span>
             <a href="#/risk" style="color:var(--accent-primary); text-decoration:none;">Set guardrails</a>
@@ -2957,7 +3090,7 @@
             <a href="#/risk" class="guardrail-reminder-link">Set guardrails</a>
             <button type="button" class="guardrail-reminder-dismiss" onclick="dismissGuardrailReminder('signalsGuardrailReminder')" aria-label="Dismiss">×</button>
           </div>
-          <div id="signalsRegimeBanner" class="regime-banner" style="display:none; margin-bottom:16px;"></div>
+          <div id="signalsRegimeBanner" class="regime-banner" style="margin-bottom:16px;"></div>
           <div class="signals-engine" id="signalsEngine">
             <div class="signals-engine-header">
               <div>
@@ -2999,7 +3132,7 @@
             <h1 class="page-title">Risk Center</h1>
             <p class="page-desc">Daily guardrails, position sizing, stress testing, and regime awareness. Smarter, safer trading.</p>
           </div>
-          <div id="regimeBannerRisk" class="regime-banner" style="display:none; margin-bottom:16px;"></div>
+          <div id="regimeBannerRisk" class="regime-banner" style="margin-bottom:16px;"></div>
           <div class="card" style="margin-bottom:16px;">
             <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">1. Daily Risk Guardrails</h2>
             <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Set limits to protect your capital. Stored locally in your browser.</p>
@@ -3097,10 +3230,46 @@
         </div>
         <div id="screenConfidence" class="screen page-content">
           <div class="page-head">
-            <h1 class="page-title">Confidence &amp; backtest</h1>
-            <p class="page-desc">Simple confidence metrics and follow-through stats. Enter tickers and refresh, or run an analysis to populate.</p>
+            <h1 class="page-title">My Progress</h1>
+            <p class="page-desc">Points, streaks, and badges earned through real usage. Stored locally in your browser.</p>
           </div>
-          <div id="confidenceRegimeBanner" class="regime-banner" style="display:none; margin-bottom:16px;"></div>
+          <div id="confidenceRegimeBanner" class="regime-banner" style="margin-bottom:16px;"></div>
+          <div class="card" style="max-width:900px; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
+              <div>
+                <div style="font-size:14px; font-weight:700;">🔥 Streak &amp; milestones</div>
+                <div class="hint" style="font-size:12px;">Daily usage builds habit. No leaderboards—just your own growth.</div>
+              </div>
+              <div id="progressStreak" class="badge badge-gray" style="font-size:12px;">Streak: 0 days</div>
+            </div>
+            <div id="progressNextMilestone" class="hint" style="padding:10px 12px; border-radius:12px; background:rgba(7,11,20,0.55); border:1px solid rgba(30,45,69,0.8);">Next milestone: —</div>
+            <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+              <div class="badge badge-gray" id="progressWeeklyXp">XP this week: 0</div>
+              <button type="button" class="btn secondary" style="min-width:0;" onclick="renderMyProgress()">Refresh</button>
+            </div>
+          </div>
+
+          <div class="card" style="max-width:900px; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:10px;">🌿 Learning Paths</div>
+            <div id="progressPaths" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;"></div>
+          </div>
+
+          <div class="card" style="max-width:900px; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:10px;">🏅 Badges</div>
+            <div id="progressBadges" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;"></div>
+          </div>
+
+          <div class="card" style="max-width:900px; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:10px;">📜 Recent XP Activity</div>
+            <div id="progressLog" class="hint">No activity yet—run an analysis or open a signal reasoning panel.</div>
+          </div>
+
+          <div class="card" style="max-width:900px; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+              <div style="font-size:14px; font-weight:700;">Confidence metrics</div>
+              <button type="button" class="btn secondary" style="min-width:0;" onclick="document.getElementById('confidenceTools').classList.toggle('hidden')">Toggle</button>
+            </div>
+            <div id="confidenceTools">
           <div class="card" style="max-width:720px; margin-bottom:16px;">
             <div class="input-row">
               <div class="field">
@@ -3119,6 +3288,8 @@
           </div>
           <div id="confidenceBodyPanel" class="confidence-grid"></div>
           <div id="confidenceEmptyHint" class="hint" style="max-width:560px; padding:16px;">Enter tickers above and click Refresh confidence, or run an <a href="#/analysis" style="color:var(--accent-primary);">Analysis</a> to see metrics.</div>
+            </div>
+          </div>
         </div>
         <div id="screenBacktest" class="screen page-content">
           <div class="page-head">
@@ -3368,16 +3539,12 @@
       <a href="#/privacy" style="color:var(--text-muted); margin-left:6px;">Privacy</a>
     </div>
 
-    <div id="onboardingModal" class="onboarding-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
-      <div class="onboarding-backdrop" onclick="dismissOnboarding()"></div>
-      <div class="onboarding-content card">
-        <h3 id="onboardingTitle" style="margin:0 0 12px;">Welcome to Project Midori</h3>
-        <div id="onboardingStepBody" style="min-height:60px; margin-bottom:16px;"></div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <button type="button" id="onboardingPrev" class="btn secondary" style="visibility:hidden;" onclick="onboardingPrev()">Back</button>
-          <span id="onboardingDots" style="font-size:12px; color:var(--text-muted);"></span>
-          <button type="button" id="onboardingNext" class="btn" onclick="onboardingNext()">Next</button>
+    <div id="onboardingV2" class="onboarding-overlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Onboarding wizard">
+      <div class="onboarding-modal">
+        <div class="onboarding-progress">
+          <div id="onboardingV2Progress" class="onboarding-progress-fill" style="width:20%"></div>
         </div>
+        <div id="onboardingV2Content"></div>
       </div>
     </div>
 
@@ -3626,7 +3793,7 @@
       screenChat: "Chat with Midori",
       screenSignals: "Midori's Signals",
       screenRisk: "Risk Center",
-      screenConfidence: "Confidence",
+      screenConfidence: "My Progress",
       screenBacktest: "Backtest",
       screenMethodology: "How Midori Thinks"
     };
@@ -3812,32 +3979,67 @@
       if (el) el.style.display = "none";
     }
 
-    async function loadRegimeBanner(bannerId) {
-      const el = $(bannerId);
-      if (!el) return;
+    async function loadRegime() {
       try {
-        const res = await fetch("/api/market-regime");
-        const data = await res.json();
-        const regime = data.regime || "UNKNOWN";
-        const desc = data.description || "";
-        const strat = data.strategies || {};
-        const vix = data.vix != null ? data.vix : null;
-        el.innerHTML =
-          '<div class="regime-label">📊 ' + escapeHtml(regime.replace(/_/g, " ")) + "</div>" +
-          (desc ? '<div class="regime-desc">' + escapeHtml(desc) + "</div>" : "") +
-          (strat.intermediate ? '<div class="regime-strategies">Favored: ' + escapeHtml(strat.intermediate) + "</div>" : "") +
-          (vix != null ? '<div class="regime-strategies">VIX: ' + vix + "</div>" : "");
-        el.style.display = "block";
-      } catch (_) {
-        el.style.display = "none";
+        const cached = sessionStorage.getItem("midori_regime");
+        const cachedAt = sessionStorage.getItem("midori_regime_at");
+        const age = cachedAt ? (Date.now() - parseInt(cachedAt, 10)) / 1000 : 999;
+        let data;
+        if (cached && age < 300) {
+          data = JSON.parse(cached);
+        } else {
+          const res = await fetch("/api/market-regime");
+          data = await res.json();
+          sessionStorage.setItem("midori_regime", JSON.stringify(data));
+          sessionStorage.setItem("midori_regime_at", Date.now().toString());
+        }
+        renderRegimeBanner(data);
+        try {
+          const lastXp = parseInt(sessionStorage.getItem("midori_regime_xp_at") || "0", 10) || 0;
+          if (Date.now() - lastXp > 300000) {
+            sessionStorage.setItem("midori_regime_xp_at", Date.now().toString());
+            awardPoints("check_regime");
+          }
+        } catch (_) {}
+        return data;
+      } catch (e) {
+        return null;
       }
+    }
+
+    function renderRegimeBanner(data) {
+      const banners = document.querySelectorAll(".regime-banner");
+      if (!banners.length || !data || data.error) return;
+      const color = data.color === "success" ? "#22C55E" : data.color === "danger" ? "#F43F5E" : data.color === "warning" ? "#F59E0B" : "#94A3B8";
+      const pauseAlert = data.auto_pause_recommended
+        ? '<div class="regime-pause-alert">⏸️ <strong>Auto-pause recommended:</strong> Current conditions are unfavorable for most active strategies. Consider reducing size or stepping aside.</div>'
+        : "";
+      const html =
+        '<div class="regime-banner-inner" style="border-color:' + color + '33; background:' + color + '08">' +
+          '<div class="regime-banner-left">' +
+            '<span class="regime-label" style="background:' + color + '22; color:' + color + '">📊 ' + escapeHtml(data.label || data.regime || "Regime") + '</span>' +
+            '<span class="regime-desc">' + escapeHtml(data.description || "") + "</span>" +
+          "</div>" +
+          '<div class="regime-banner-right">' +
+            '<div class="regime-col">' +
+              '<div class="regime-col-label" style="color:#22C55E;">✅ Favored</div>' +
+              (data.favored_strategies || []).slice(0, 2).map(s => '<div class="regime-item">' + escapeHtml(String(s)) + "</div>").join("") +
+            "</div>" +
+            '<div class="regime-col">' +
+              '<div class="regime-col-label" style="color:#F43F5E;">❌ Avoid</div>' +
+              (data.avoid_strategies || []).slice(0, 2).map(s => '<div class="regime-item">' + escapeHtml(String(s)) + "</div>").join("") +
+            "</div>" +
+          "</div>" +
+          pauseAlert +
+        "</div>";
+      banners.forEach(function(b) { b.innerHTML = html; });
     }
 
     function loadRiskCenter() {
       loadRiskGuardrails();
       updateGuardrailsCommentary();
       loadRiskRegimeWidget();
-      loadRegimeBanner("regimeBannerRisk");
+      loadRegime();
       updatePositionSizeCalc();
       updateDrawdownFromStorage();
       ["riskAccountSize", "riskCalcRiskPct", "riskEntry", "riskStop"].forEach((id) => {
@@ -3875,6 +4077,7 @@
         };
         localStorage.setItem(RISK_GUARDRAILS_KEY, JSON.stringify(o));
         updateGuardrailsCommentary();
+        awardPoints("set_risk_limits");
       } catch (_) {}
     }
 
@@ -3919,6 +4122,13 @@
       const shares = Math.floor(riskDollars / riskPerShare);
       const maxLoss = shares * riskPerShare;
       resultEl.textContent = "Position size: " + shares + " shares | Max risk: $" + maxLoss.toFixed(0) + " (" + riskPct + "% of account)";
+      try {
+        const last = parseInt(sessionStorage.getItem("midori_pos_calc_xp_at") || "0", 10) || 0;
+        if (Date.now() - last > 60000) {
+          sessionStorage.setItem("midori_pos_calc_xp_at", Date.now().toString());
+          awardPoints("use_position_calculator");
+        }
+      } catch (_) {}
       if (vixEl) {
         fetch("/api/market-data").then((r) => r.json()).then((md) => {
           const vix = md.vix && md.vix.price ? md.vix.price : null;
@@ -3973,7 +4183,7 @@
         const res = await fetch("/api/stress-test", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ positions }),
+          body: JSON.stringify({ positions, profile: getProfileParam() }),
         });
         const data = await res.json();
         if (data.analysis) {
@@ -4111,7 +4321,7 @@
           showPage("pageApp");
           if (window.location.hash !== "#/dashboard") window.location.hash = "#/dashboard";
           initMarketHeader();
-          showOnboarding();
+          showOnboardingV2();
           showScreen("screenDashboard");
           loadDashboardData();
         } else if (page === "login") {
@@ -4254,10 +4464,10 @@
       const el = $("dashboardRegimePill");
       if (!el) return;
       try {
-        const res = await fetch("/api/market-regime");
-        const data = await res.json();
-        const regime = (data.regime || "UNKNOWN").replace(/_/g, " ");
-        el.textContent = "📊 " + regime;
+        const data = await loadRegime();
+        if (!data) { el.style.display = "none"; return; }
+        const label = (data.label || data.regime || "UNKNOWN").toString();
+        el.textContent = "📊 " + label;
         el.style.display = "inline-flex";
       } catch (_) {
         el.style.display = "none";
@@ -4271,7 +4481,7 @@
       if (skeleton) skeleton.style.display = "";
       if (content) { content.style.display = "none"; content.innerHTML = ""; }
       if (empty) empty.style.display = "none";
-      fetch("/signals?tickers=SPY,QQQ,IWM&limit=4", { headers: apiHeaders() })
+      fetch("/signals?tickers=SPY,QQQ,IWM&limit=4&profile=" + encodeURIComponent(getProfileParam()), { headers: apiHeaders() })
         .then(function(r) { return r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)); })
         .then(function(data) {
           const signals = (data && data.signals) ? data.signals : [];
@@ -4283,15 +4493,15 @@
           if (content) {
             content.style.display = "grid";
             content.innerHTML = signals.map(function(s) {
-              const isCall = (s.type || "").toUpperCase() === "CALL";
+              const isCall = (s.direction || "").toUpperCase() === "CALL";
               const cardClass = "hero-signal-card " + (isCall ? "call" : "put");
               const ticker = (s.ticker || "").trim();
-              const strike = (s.strike_zone || "").trim();
-              const headline = (s.headline || "").substring(0, 60);
+              const strike = (s.strike != null && !Number.isNaN(Number(s.strike))) ? ("K " + Number(s.strike).toFixed(0)) : ((s.expiry || "0DTE") + "");
+              const headline = (s.setup_tag || s.strategy || (s.reasoning && s.reasoning.summary) || "").toString().substring(0, 60);
               return '<a href="#/signals" class="' + cardClass + '">' +
-                '<div class="signal-badges"><span>' + escapeHtml(ticker) + '</span><span>' + escapeHtml(strike) + '</span><span>0DTE</span></div>' +
+                '<div class="signal-badges"><span>' + escapeHtml(ticker) + '</span><span>' + escapeHtml(strike) + '</span><span>' + escapeHtml((s.expiry || "0DTE") + "") + '</span></div>' +
                 '<div class="meta">' + escapeHtml(headline) + '</div>' +
-                '<div class="prob-wrap"><div class="prob">Midori ranked</div><div class="prob-bar"><div class="prob-fill" style="width:' + Math.min(100, 60 + (s.rank || 0) * 5) + '%"></div></div></div>' +
+                '<div class="prob-wrap"><div class="prob">Confidence</div><div class="prob-bar"><div class="prob-fill" style="width:' + Math.min(100, Math.max(10, parseInt(s.confidence || 50, 10) || 50)) + '%"></div></div></div>' +
                 '</a>';
             }).join("");
             if (window.gsap) {
@@ -4319,7 +4529,8 @@
       if (contentEl) { contentEl.style.display = "none"; contentEl.innerHTML = ""; }
       if (errorEl) { errorEl.style.display = "none"; errorEl.textContent = ""; }
       try {
-        const res = await fetch("/api/daily-brief", { headers: apiHeaders() });
+        const params = new URLSearchParams({ profile: getProfileParam() });
+        const res = await fetch("/api/daily-brief?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
           const t = await res.text();
           throw new Error(t || "Failed to load brief");
@@ -4504,6 +4715,25 @@
     let currentChartTicker = "SPY", currentInterval = "5m";
     let chartIsFullscreen = false;
 
+    function getChartVolumePct() {
+      try {
+        const v = parseInt(localStorage.getItem("midori_chart_volume_pct") || "", 10);
+        if (!Number.isNaN(v) && v >= 8 && v <= 30) return v;
+      } catch (_) {}
+      return 20;
+    }
+
+    function applyChartVolumePct(pct) {
+      const p = Math.max(8, Math.min(30, parseInt(pct || 20, 10) || 20));
+      const top = 1 - (p / 100);
+      if (lwVolumeSeries) {
+        lwVolumeSeries.applyOptions({ scaleMargins: { top, bottom: 0 } });
+      }
+      const slider = document.getElementById("chart-vol-slider");
+      if (slider) slider.value = String(p);
+      try { localStorage.setItem("midori_chart_volume_pct", String(p)); } catch (_) {}
+    }
+
     function initLightweightChart() {
       const container = document.getElementById("midori-chart");
       if (!container || typeof LightweightCharts === "undefined") return;
@@ -4533,8 +4763,16 @@
         color: "#22C55E", priceFormat: { type: "volume" }, priceScaleId: "",
         scaleMargins: { top: 0.8, bottom: 0 },
       });
+      applyChartVolumePct(getChartVolumePct());
       lwMaSeries["ema9"] = lwChart.addLineSeries({ color: "#F59E0B", lineWidth: 1, title: "EMA9" });
       lwMaSeries["ema21"] = lwChart.addLineSeries({ color: "#3B82F6", lineWidth: 1, title: "EMA21" });
+      const volSlider = document.getElementById("chart-vol-slider");
+      if (volSlider && !volSlider._midoriBound) {
+        volSlider._midoriBound = true;
+        volSlider.addEventListener("input", function() {
+          applyChartVolumePct(this.value);
+        });
+      }
       const ro = new ResizeObserver(() => {
         if (lwChart && container) {
           lwChart.applyOptions({ width: container.clientWidth });
@@ -4735,7 +4973,7 @@
 
       showPage("pageApp");
       initMarketHeader();
-      showOnboarding();
+      showOnboardingV2();
       const pathToScreen = {
         "/dashboard": "screenDashboard",
         "/analysis": "screenAnalysis",
@@ -4752,13 +4990,14 @@
       const screenId = pathToScreen[path] || "screenDashboard";
       showScreen(screenId);
 
-      if (path === "/signals") { fetchSignals(); loadRegimeBanner("signalsRegimeBanner"); showGuardrailReminderIfNeeded("signalsGuardrailReminder"); }
-      if (path === "/confidence") loadRegimeBanner("confidenceRegimeBanner");
+      if (path === "/signals") { fetchSignals(); loadRegime(); showGuardrailReminderIfNeeded("signalsGuardrailReminder"); }
+      if (path === "/confidence") { loadRegime(); renderMyProgress(); }
       if (path === "/risk") loadRiskCenter();
       if (path === "/dashboard") loadDashboardData();
       // trades page removed
       if (path === "/analysis") {
         showGuardrailReminderIfNeeded("analysisGuardrailReminder");
+        loadRegime();
         const lastTickers = localStorage.getItem("trademinds_last_tickers");
         const tickersEl = $("tickers");
         if (tickersEl && lastTickers && !tickersEl.value.trim()) tickersEl.value = lastTickers;
@@ -4812,43 +5051,508 @@
       });
     }
 
-    const ONBOARDING_STEPS = [
-      "Welcome to Project Midori — your AI risk manager and trading coach. The goal is to make you a smarter, safer trader, not to promise perfect signals.",
-      "Set your limits first: visit Risk Center to define max daily loss, max positions, and risk per trade. These guardrails help protect your capital.",
-      "Midori analyzes real market conditions for every response: prices, VIX, Fear & Greed, economic events, and news, then explains how it decided on each setup.",
-      "Start with the Dashboard and Risk tools, or ask Midori anything in Chat. Everything here is educational only — never financial advice.",
+    function getUserProfile() {
+      return {
+        level: localStorage.getItem("midori_level") || "intermediate",
+        risk: localStorage.getItem("midori_risk_tolerance") || "moderate",
+        focus: (() => {
+          try { return JSON.parse(localStorage.getItem("midori_focus") || '["0dte"]'); }
+          catch (_) { return ["0dte"]; }
+        })(),
+        onboarded: localStorage.getItem("midori_onboarding_v2") === "complete",
+      };
+    }
+
+    function profileContextString() {
+      const profile = getUserProfile();
+      return (
+        "USER PROFILE:\n" +
+        "Experience level: " + profile.level + "\n" +
+        "Risk tolerance: " + profile.risk + "\n" +
+        "Primary focus: " + (Array.isArray(profile.focus) ? profile.focus.join(", ") : String(profile.focus)) + "\n" +
+        "Adjust all explanations, terminology, and suggestions to match this profile. " +
+        "For beginners use plain English. For advanced users use professional trading terminology."
+      );
+    }
+
+    function base64EncodeUnicode(str) {
+      try { return btoa(unescape(encodeURIComponent(str))); } catch (_) { return ""; }
+    }
+    function getProfileParam() {
+      try { return base64EncodeUnicode(JSON.stringify(getUserProfile())); } catch (_) { return ""; }
+    }
+
+    const POINT_ACTIONS = {
+      run_analysis: 10,
+      view_signal_reasoning: 5,
+      complete_paper_trade: 15,
+      set_risk_limits: 20,
+      use_position_calculator: 10,
+      run_backtest: 15,
+      check_regime: 5,
+      chat_session: 10,
+      daily_login: 5,
+      complete_lesson: 25,
+      seven_day_streak: 50,
+    };
+
+    const BADGES = [
+      { id: "first_analysis", name: "First Analysis", icon: "🌱", desc: "Ran your first analysis", check: () => (parseInt(localStorage.getItem("midori_points_options") || "0", 10) >= 10) },
+      { id: "risk_guardian", name: "Risk Guardian", icon: "🛡️", desc: "Set up daily risk limits", check: () => { try { const o = JSON.parse(localStorage.getItem("midori_risk_guardrails_v1") || "{}"); return !!(o && o.maxDailyLoss); } catch (_) { return false; } } },
+      { id: "signal_watcher", name: "Signal Watcher", icon: "📡", desc: "Viewed reasoning on 10 signals", check: () => (parseInt(localStorage.getItem("midori_signals_viewed") || "0", 10) >= 10) },
+      { id: "week_warrior", name: "Week Warrior", icon: "🔥", desc: "7-day login streak", check: () => (parseInt(localStorage.getItem("midori_streak") || "0", 10) >= 7) },
+      { id: "options_student", name: "Options Student", icon: "📚", desc: "Reached 150 Options XP", check: () => (parseInt(localStorage.getItem("midori_points_options") || "0", 10) >= 150) },
+      { id: "risk_expert", name: "Risk Expert", icon: "🎯", desc: "Reached 300 Risk XP", check: () => (parseInt(localStorage.getItem("midori_points_risk") || "0", 10) >= 300) },
+      { id: "dte_apprentice", name: "0DTE Apprentice", icon: "⚡", desc: "Reached 75 0DTE XP", check: () => (parseInt(localStorage.getItem("midori_points_0dte") || "0", 10) >= 75) },
     ];
-    let onboardingStep = 0;
-    function showOnboarding() {
-      if (localStorage.getItem("midori_onboarding_done")) return;
-      const m = $("onboardingModal");
-      if (!m) return;
-      onboardingStep = 0;
-      m.style.display = "flex";
-      renderOnboardingStep();
+
+    function showXPToast(text) {
+      const existing = document.getElementById("xp-toast");
+      if (existing) existing.remove();
+      const toast = document.createElement("div");
+      toast.id = "xp-toast";
+      toast.className = "xp-toast";
+      toast.textContent = text;
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add("xp-toast-show"));
+      setTimeout(() => {
+        toast.classList.remove("xp-toast-show");
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
     }
-    function renderOnboardingStep() {
-      const body = $("onboardingStepBody");
-      const nextBtn = $("onboardingNext");
-      const prevBtn = $("onboardingPrev");
-      const dots = $("onboardingDots");
-      if (body) body.textContent = ONBOARDING_STEPS[onboardingStep] || "";
-      if (nextBtn) nextBtn.textContent = onboardingStep >= ONBOARDING_STEPS.length - 1 ? "Get started" : "Next";
-      if (prevBtn) prevBtn.style.visibility = onboardingStep > 0 ? "visible" : "hidden";
-      if (dots) dots.textContent = (onboardingStep + 1) + " / " + ONBOARDING_STEPS.length;
+
+    function showBadgeUnlock(badge) {
+      const el = document.createElement("div");
+      el.className = "badge-unlock-toast";
+      el.innerHTML =
+        '<div class="badge-unlock-icon">' + escapeHtml(badge.icon || "🏅") + "</div>" +
+        '<div class="badge-unlock-text">' +
+          '<div class="badge-unlock-title">Badge Unlocked!</div>' +
+          '<div class="badge-unlock-name">' + escapeHtml(badge.name || "Badge") + "</div>" +
+        "</div>";
+      document.body.appendChild(el);
+      requestAnimationFrame(() => el.classList.add("badge-unlock-show"));
+      setTimeout(() => {
+        el.classList.remove("badge-unlock-show");
+        setTimeout(() => el.remove(), 400);
+      }, 3500);
     }
-    function onboardingNext() {
-      if (onboardingStep >= ONBOARDING_STEPS.length - 1) { dismissOnboarding(); return; }
-      onboardingStep++;
-      renderOnboardingStep();
+
+    function checkBadgeUnlocks() {
+      let earned = [];
+      try { earned = JSON.parse(localStorage.getItem("midori_badges") || "[]"); } catch (_) { earned = []; }
+      if (!Array.isArray(earned)) earned = [];
+      BADGES.forEach(badge => {
+        try {
+          if (!earned.includes(badge.id) && badge.check()) {
+            earned.push(badge.id);
+            localStorage.setItem("midori_badges", JSON.stringify(earned));
+            showBadgeUnlock(badge);
+          }
+        } catch (_) {}
+      });
     }
-    function onboardingPrev() {
-      if (onboardingStep > 0) { onboardingStep--; renderOnboardingStep(); }
+
+    function awardPoints(action, pathOverride) {
+      const points = POINT_ACTIONS[action] || 0;
+      if (!points) return;
+
+      const pathMap = {
+        run_analysis: "options",
+        view_signal_reasoning: "options",
+        complete_paper_trade: "0dte",
+        set_risk_limits: "risk",
+        use_position_calculator: "risk",
+        run_backtest: "options",
+        check_regime: "risk",
+        chat_session: "options",
+        daily_login: "all",
+        complete_lesson: "options",
+        seven_day_streak: "all",
+      };
+      const path = pathOverride || pathMap[action];
+
+      const addToPath = (p) => {
+        const key = "midori_points_" + p;
+        const current = parseInt(localStorage.getItem(key) || "0", 10) || 0;
+        localStorage.setItem(key, String(current + points));
+      };
+      if (path === "all") {
+        addToPath("options");
+        addToPath("0dte");
+        addToPath("risk");
+      } else if (path) {
+        addToPath(path);
+      }
+
+      let log = [];
+      try { log = JSON.parse(localStorage.getItem("midori_xp_log") || "[]"); } catch (_) { log = []; }
+      if (!Array.isArray(log)) log = [];
+      log.unshift({ action, points, path, timestamp: new Date().toISOString() });
+      localStorage.setItem("midori_xp_log", JSON.stringify(log.slice(0, 100)));
+
+      checkBadgeUnlocks();
+      showXPToast("+" + points + " XP");
+      renderMyProgress();
     }
-    function dismissOnboarding() {
-      const m = $("onboardingModal");
-      if (m) m.style.display = "none";
-      try { localStorage.setItem("midori_onboarding_done", "true"); } catch (_) {}
+
+    function handleDailyLoginXP() {
+      const today = new Date().toDateString();
+      const last = localStorage.getItem("midori_last_login") || "";
+      if (last !== today) {
+        awardPoints("daily_login");
+        localStorage.setItem("midori_last_login", today);
+        updateStreak();
+      } else {
+        updateStreak(true);
+      }
+    }
+
+    function updateStreak(noAward) {
+      const today = new Date();
+      const todayStr = today.toDateString();
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const lastStreakDate = localStorage.getItem("midori_last_login_date") || "";
+      const currentStreak = parseInt(localStorage.getItem("midori_streak") || "0", 10) || 0;
+
+      let newStreak = currentStreak;
+      if (lastStreakDate === todayStr) {
+        newStreak = currentStreak;
+      } else if (lastStreakDate === yesterday.toDateString()) {
+        newStreak = Math.max(1, currentStreak + 1);
+      } else {
+        newStreak = 1;
+      }
+      localStorage.setItem("midori_streak", String(newStreak));
+      localStorage.setItem("midori_last_login_date", todayStr);
+
+      if (!noAward && newStreak === 7) awardPoints("seven_day_streak");
+    }
+
+    function _levelFor(points, levels) {
+      let current = levels[0];
+      for (let i = 0; i < levels.length; i++) {
+        if (points >= levels[i].points) current = levels[i];
+      }
+      const idx = levels.indexOf(current);
+      const next = (idx < levels.length - 1) ? levels[idx + 1] : null;
+      return { current, next };
+    }
+
+    function renderMyProgress() {
+      const pathsEl = $("progressPaths");
+      const badgesEl = $("progressBadges");
+      const logEl = $("progressLog");
+      const streakEl = $("progressStreak");
+      const weeklyEl = $("progressWeeklyXp");
+      const nextEl = $("progressNextMilestone");
+      if (!pathsEl || !badgesEl || !logEl || !streakEl || !weeklyEl || !nextEl) return;
+
+      const ptsOptions = parseInt(localStorage.getItem("midori_points_options") || "0", 10) || 0;
+      const pts0dte = parseInt(localStorage.getItem("midori_points_0dte") || "0", 10) || 0;
+      const ptsRisk = parseInt(localStorage.getItem("midori_points_risk") || "0", 10) || 0;
+      const streak = parseInt(localStorage.getItem("midori_streak") || "0", 10) || 0;
+
+      const LEVELS = {
+        options: [
+          { name: "Options Novice", points: 0 },
+          { name: "Options Student", points: 50 },
+          { name: "Options Practitioner", points: 150 },
+          { name: "Options Trader", points: 300 },
+          { name: "Options Expert", points: 600 },
+        ],
+        dte: [
+          { name: "0DTE Curious", points: 0 },
+          { name: "0DTE Apprentice", points: 75 },
+          { name: "0DTE Trader", points: 200 },
+          { name: "0DTE Specialist", points: 400 },
+          { name: "0DTE Master", points: 800 },
+        ],
+        risk: [
+          { name: "Risk Aware", points: 0 },
+          { name: "Risk Conscious", points: 50 },
+          { name: "Risk Manager", points: 150 },
+          { name: "Risk Expert", points: 300 },
+          { name: "Risk Master", points: 600 },
+        ],
+      };
+
+      const o = _levelFor(ptsOptions, LEVELS.options);
+      const d = _levelFor(pts0dte, LEVELS.dte);
+      const r = _levelFor(ptsRisk, LEVELS.risk);
+
+      const bar = (points, info) => {
+        const next = info.next;
+        const span = next ? (next.points - info.current.points) : 0;
+        const into = next ? (points - info.current.points) : span;
+        const pct = next ? Math.max(0, Math.min(100, (into / Math.max(1, span)) * 100)) : 100;
+        const nextTxt = next ? ("Next: " + next.name + " (" + next.points + " XP)") : "Max level reached";
+        return (
+          '<div style="padding:12px 14px; border-radius:14px; background:rgba(7,11,20,0.55); border:1px solid rgba(30,45,69,0.8);">' +
+            '<div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">' +
+              '<div style="font-weight:800; color:#F1F5F9;">' + escapeHtml(info.current.name) + "</div>" +
+              '<div class="badge badge-gray">' + points + " XP</div>" +
+            "</div>" +
+            '<div class="signal-conf-bar" style="height:10px; margin-bottom:8px;"><div class="signal-conf-fill" style="width:' + pct + '%"></div></div>' +
+            '<div class="hint" style="font-size:12px;">' + escapeHtml(nextTxt) + "</div>" +
+          "</div>"
+        );
+      };
+
+      pathsEl.innerHTML =
+        '<div>' + bar(ptsOptions, o) + '<div class="hint" style="margin-top:6px;">Path: Options Fundamentals</div></div>' +
+        '<div>' + bar(pts0dte, d) + '<div class="hint" style="margin-top:6px;">Path: 0DTE Specialist</div></div>' +
+        '<div>' + bar(ptsRisk, r) + '<div class="hint" style="margin-top:6px;">Path: Risk Manager</div></div>';
+
+      let earned = [];
+      try { earned = JSON.parse(localStorage.getItem("midori_badges") || "[]"); } catch (_) { earned = []; }
+      if (!Array.isArray(earned)) earned = [];
+      badgesEl.innerHTML = BADGES.map(b => {
+        const isEarned = earned.includes(b.id);
+        const style = isEarned
+          ? "border:1px solid rgba(34,197,94,0.35); background:rgba(34,197,94,0.06);"
+          : "border:1px solid rgba(148,163,184,0.18); background:rgba(148,163,184,0.06); opacity:0.7;";
+        return (
+          '<div style="padding:12px 14px; border-radius:14px; ' + style + '">' +
+            '<div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">' +
+              '<div style="font-size:22px;">' + escapeHtml(b.icon) + "</div>" +
+              '<div style="font-weight:800; color:#F1F5F9;">' + escapeHtml(b.name) + "</div>" +
+            "</div>" +
+            '<div class="hint" style="font-size:12px;">' + escapeHtml(b.desc) + (isEarned ? " · Earned" : " · Locked") + "</div>" +
+          "</div>"
+        );
+      }).join("");
+
+      let log = [];
+      try { log = JSON.parse(localStorage.getItem("midori_xp_log") || "[]"); } catch (_) { log = []; }
+      if (!Array.isArray(log)) log = [];
+      const recent = log.slice(0, 10);
+      if (!recent.length) {
+        logEl.textContent = "No activity yet—run an analysis or open a signal reasoning panel.";
+      } else {
+        logEl.innerHTML = recent.map(e => {
+          const when = e.timestamp ? new Date(e.timestamp).toLocaleString() : "";
+          return '<div style="display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid rgba(30,45,69,0.6);">' +
+            '<div><strong style="color:#F1F5F9;">' + escapeHtml(String(e.action || "")) + '</strong> <span class="hint">(' + escapeHtml(String(e.path || "")) + ')</span></div>' +
+            '<div class="badge badge-gray">+' + escapeHtml(String(e.points || 0)) + ' XP</div>' +
+            '</div><div class="hint" style="margin-top:-6px; padding-bottom:8px;">' + escapeHtml(when) + '</div>';
+        }).join("");
+      }
+
+      // Weekly XP
+      const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+      const weekly = log.filter(e => e.timestamp && (new Date(e.timestamp)).getTime() >= weekAgo).reduce((s, e) => s + (parseInt(e.points || 0, 10) || 0), 0);
+      weeklyEl.textContent = "XP this week: " + weekly;
+
+      streakEl.textContent = "Streak: " + streak + " day" + (streak === 1 ? "" : "s");
+
+      // Next milestone: nearest next level across paths
+      const nexts = [
+        o.next ? { label: "Options → " + o.next.name, remaining: Math.max(0, o.next.points - ptsOptions) } : null,
+        d.next ? { label: "0DTE → " + d.next.name, remaining: Math.max(0, d.next.points - pts0dte) } : null,
+        r.next ? { label: "Risk → " + r.next.name, remaining: Math.max(0, r.next.points - ptsRisk) } : null,
+      ].filter(Boolean);
+      nexts.sort((a, b) => a.remaining - b.remaining);
+      const next = nexts[0];
+      nextEl.textContent = next ? ("Next milestone: " + next.label + " (+" + next.remaining + " XP)") : "Next milestone: Max level reached";
+    }
+
+    let onboardingV2Step = 1;
+    let onboardingV2Focus = [];
+    function showOnboardingV2() {
+      try {
+        if (localStorage.getItem("midori_onboarding_v2") === "complete") return;
+      } catch (_) {}
+      const overlay = $("onboardingV2");
+      if (!overlay) return;
+      onboardingV2Step = 1;
+      onboardingV2Focus = (() => {
+        try { return JSON.parse(localStorage.getItem("midori_focus") || "[]") || []; } catch (_) { return []; }
+      })();
+      overlay.style.display = "flex";
+      renderOnboardingV2();
+    }
+    function closeOnboardingV2() {
+      const overlay = $("onboardingV2");
+      if (overlay) overlay.style.display = "none";
+    }
+    function setOnboardingV2Progress() {
+      const fill = $("onboardingV2Progress");
+      if (!fill) return;
+      const pct = Math.max(1, Math.min(5, onboardingV2Step)) * 20;
+      fill.style.width = pct + "%";
+    }
+    function applyOnboardingSettings() {
+      // Default analysis mode from focus
+      const focus = getUserProfile().focus || ["0dte"];
+      const pickMode = (arr) => {
+        const a = Array.isArray(arr) ? arr : [String(arr)];
+        if (a.includes("0dte")) return "0dte";
+        if (a.includes("swing")) return "swing";
+        if (a.includes("longterm")) return "longterm";
+        if (a.includes("stocks")) return "stockonly";
+        return "0dte";
+      };
+      const mode = pickMode(focus);
+      currentTradingMode = mode;
+      try { localStorage.setItem("trademinds_preferred_trading_mode", mode); } catch (_) {}
+      document.querySelectorAll(".chip[data-trading-mode]").forEach(c => {
+        c.classList.toggle("active", c.getAttribute("data-trading-mode") === mode);
+      });
+      try { applyTradingMode(); } catch (_) {}
+
+      // Risk style from risk tolerance
+      const risk = getUserProfile().risk || "moderate";
+      const styleMap = { conservative: "conservative", moderate: "balanced", aggressive: "aggressive" };
+      const style = styleMap[risk] || "balanced";
+      currentStyle = style;
+      document.querySelectorAll(".chip[data-style]").forEach(c => {
+        c.classList.toggle("active", c.getAttribute("data-style") === style);
+      });
+
+      // Suggested daily loss limit in Risk Center guardrails
+      const suggested = risk === "conservative" ? 100 : risk === "aggressive" ? 500 : 250;
+      try {
+        const key = "midori_risk_guardrails_v1";
+        let o = {};
+        try { o = JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch (_) { o = {}; }
+        if (!o.maxDailyLoss || parseFloat(o.maxDailyLoss) <= 0) o.maxDailyLoss = suggested;
+        localStorage.setItem(key, JSON.stringify(o));
+      } catch (_) {}
+    }
+    function onboardingPlaybookHtml() {
+      const p = getUserProfile();
+      const levelLabel = { beginner: "Beginner", some: "Some Experience", intermediate: "Intermediate", advanced: "Advanced" }[p.level] || "Intermediate";
+      const riskLabel = { conservative: "Conservative", moderate: "Moderate", aggressive: "Aggressive" }[p.risk] || "Moderate";
+      const focusLabel = (Array.isArray(p.focus) ? p.focus : ["0dte"]).map(f => ({ "0dte": "0DTE Options", swing: "Swing Trading", longterm: "Long-Term", stocks: "Stocks Only" }[f] || f)).join(" + ");
+      const analysisMode = (Array.isArray(p.focus) && p.focus.includes("swing")) ? "Swing" : (Array.isArray(p.focus) && p.focus.includes("longterm")) ? "Long-Term" : (Array.isArray(p.focus) && p.focus.includes("stocks")) ? "Stocks" : "0DTE";
+      const riskStyle = p.risk === "conservative" ? "Conservative" : p.risk === "aggressive" ? "Aggressive" : "Balanced";
+      const dll = p.risk === "conservative" ? 100 : p.risk === "aggressive" ? 500 : 250;
+      const path = p.level === "beginner" ? "Options Fundamentals" : (Array.isArray(p.focus) && p.focus.includes("0dte")) ? "0DTE Specialist" : "Risk Manager";
+      return (
+        '<div class="playbook-card">' +
+          '<div style="font-weight:800; color:#F1F5F9; margin-bottom:10px;">🌿 Your Midori Playbook</div>' +
+          '<div class="playbook-row"><span style="color:#94A3B8; min-width:88px;">Profile:</span><span>' + escapeHtml(riskLabel + " · " + levelLabel) + '</span></div>' +
+          '<div class="playbook-row"><span style="color:#94A3B8; min-width:88px;">Focus:</span><span>' + escapeHtml(focusLabel || "0DTE Options") + '</span></div>' +
+          '<div class="playbook-row">✅ Analysis mode set to: <strong>' + escapeHtml(analysisMode) + '</strong></div>' +
+          '<div class="playbook-row">✅ Risk style set to: <strong>' + escapeHtml(riskStyle) + '</strong></div>' +
+          '<div class="playbook-row">✅ Daily loss limit suggested: <strong>$' + escapeHtml(String(dll)) + '</strong></div>' +
+          '<div class="playbook-row">✅ Learning path: <strong>' + escapeHtml(path) + '</strong></div>' +
+        '</div>' +
+        '<div class="hint" style="margin-top:-6px; margin-bottom:18px;">Midori has pre-configured your experience based on your profile. You can change any setting anytime.</div>'
+      );
+    }
+    function renderOnboardingV2() {
+      setOnboardingV2Progress();
+      const mount = $("onboardingV2Content");
+      if (!mount) return;
+
+      const backBtn = '<button type="button" class="btn secondary" onclick="onboardingV2Back()">Back</button>';
+      const primaryBtn = (label, fn, disabled) =>
+        '<button type="button" class="btn" ' + (disabled ? "disabled" : "") + ' onclick="' + fn + '">' + label + "</button>";
+
+      if (onboardingV2Step === 1) {
+        mount.innerHTML =
+          '<div style="text-align:center; margin-bottom:6px; font-size:42px; line-height:1;">🌿</div>' +
+          '<div class="onboarding-title">Welcome to Project Midori</div>' +
+          '<div class="onboarding-subtitle">Let\'s build your personal trading profile in 60 seconds</div>' +
+          '<div class="onboarding-nav" style="justify-content:center;">' +
+            primaryBtn("Get Started →", "onboardingV2Next()", false) +
+          "</div>";
+        return;
+      }
+
+      if (onboardingV2Step === 2) {
+        const selected = localStorage.getItem("midori_level") || "";
+        mount.innerHTML =
+          '<div class="onboarding-title">What\'s your trading experience?</div>' +
+          '<div class="onboarding-subtitle">This tunes the language, pace, and risk reminders.</div>' +
+          '<div class="onboarding-cards">' +
+            '<div class="onboarding-card ' + (selected === "beginner" ? "selected" : "") + '" onclick="onboardingV2PickLevel(\'beginner\')"><div class="onboarding-card-title">🌱 Complete Beginner</div><div class="onboarding-card-sub">New to trading or options</div></div>' +
+            '<div class="onboarding-card ' + (selected === "some" ? "selected" : "") + '" onclick="onboardingV2PickLevel(\'some\')"><div class="onboarding-card-title">📈 Some Experience</div><div class="onboarding-card-sub">Traded stocks or basic options</div></div>' +
+            '<div class="onboarding-card ' + (selected === "intermediate" ? "selected" : "") + '" onclick="onboardingV2PickLevel(\'intermediate\')"><div class="onboarding-card-title">🎯 Intermediate</div><div class="onboarding-card-sub">Comfortable with options Greeks</div></div>' +
+            '<div class="onboarding-card ' + (selected === "advanced" ? "selected" : "") + '" onclick="onboardingV2PickLevel(\'advanced\')"><div class="onboarding-card-title">🔥 Advanced</div><div class="onboarding-card-sub">Active options trader</div></div>' +
+          "</div>" +
+          '<div class="onboarding-nav">' + backBtn + "<div></div></div>";
+        return;
+      }
+
+      if (onboardingV2Step === 3) {
+        const selected = localStorage.getItem("midori_risk_tolerance") || "";
+        mount.innerHTML =
+          '<div class="onboarding-title">How would you describe your risk tolerance?</div>' +
+          '<div class="onboarding-subtitle">This sets default sizing and guardrail suggestions.</div>' +
+          '<div class="onboarding-cards">' +
+            '<div class="onboarding-card ' + (selected === "conservative" ? "selected" : "") + '" onclick="onboardingV2PickRisk(\'conservative\')"><div class="onboarding-card-title">🛡️ Conservative</div><div class="onboarding-card-sub">Capital preservation first. Smaller positions, wider stops</div></div>' +
+            '<div class="onboarding-card ' + (selected === "moderate" ? "selected" : "") + '" onclick="onboardingV2PickRisk(\'moderate\')"><div class="onboarding-card-title">⚖️ Moderate</div><div class="onboarding-card-sub">Balanced risk and reward. Standard position sizing</div></div>' +
+            '<div class="onboarding-card ' + (selected === "aggressive" ? "selected" : "") + '" onclick="onboardingV2PickRisk(\'aggressive\')"><div class="onboarding-card-title">🚀 Aggressive</div><div class="onboarding-card-sub">Higher risk for higher reward. Larger positions, tighter stops</div></div>' +
+          "</div>" +
+          '<div class="onboarding-nav">' + backBtn + "<div></div></div>";
+        return;
+      }
+
+      if (onboardingV2Step === 4) {
+        const focus = onboardingV2Focus || [];
+        const isSel = (v) => focus.includes(v);
+        const canContinue = focus.length > 0;
+        mount.innerHTML =
+          '<div class="onboarding-title">What do you primarily want to trade or learn about?</div>' +
+          '<div class="onboarding-subtitle">Select one or more. This sets your default mode and learning path.</div>' +
+          '<div class="onboarding-cards grid-2">' +
+            '<div class="onboarding-card ' + (isSel("0dte") ? "selected" : "") + '" onclick="onboardingV2ToggleFocus(\'0dte\')"><div class="onboarding-card-title">⚡ 0DTE Options</div><div class="onboarding-card-sub">Same-day trades</div></div>' +
+            '<div class="onboarding-card ' + (isSel("swing") ? "selected" : "") + '" onclick="onboardingV2ToggleFocus(\'swing\')"><div class="onboarding-card-title">📅 Swing Trade</div><div class="onboarding-card-sub">1–5 day holds</div></div>' +
+            '<div class="onboarding-card ' + (isSel("longterm") ? "selected" : "") + '" onclick="onboardingV2ToggleFocus(\'longterm\')"><div class="onboarding-card-title">🌱 Long-Term</div><div class="onboarding-card-sub">Invest & hold</div></div>' +
+            '<div class="onboarding-card ' + (isSel("stocks") ? "selected" : "") + '" onclick="onboardingV2ToggleFocus(\'stocks\')"><div class="onboarding-card-title">📊 Stocks Only</div><div class="onboarding-card-sub">No options yet</div></div>' +
+          "</div>" +
+          '<div class="onboarding-nav">' +
+            backBtn +
+            primaryBtn("Continue →", "onboardingV2Next()", !canContinue) +
+          "</div>";
+        return;
+      }
+
+      // Step 5
+      mount.innerHTML =
+        '<div class="onboarding-title">Your Playbook is Ready</div>' +
+        '<div class="onboarding-subtitle">Based on your answers, here\'s how Midori will think and speak with you.</div>' +
+        onboardingPlaybookHtml() +
+        '<div class="onboarding-nav" style="justify-content:space-between;">' +
+          backBtn +
+          '<button type="button" class="btn" onclick="onboardingV2Complete()">Enter Project Midori →</button>' +
+        "</div>";
+    }
+    function onboardingV2Next() {
+      onboardingV2Step = Math.min(5, onboardingV2Step + 1);
+      renderOnboardingV2();
+    }
+    function onboardingV2Back() {
+      onboardingV2Step = Math.max(1, onboardingV2Step - 1);
+      renderOnboardingV2();
+    }
+    function onboardingV2PickLevel(v) {
+      try { localStorage.setItem("midori_level", v); } catch (_) {}
+      renderOnboardingV2();
+      setTimeout(() => { onboardingV2Step = 3; renderOnboardingV2(); }, 300);
+    }
+    function onboardingV2PickRisk(v) {
+      try { localStorage.setItem("midori_risk_tolerance", v); } catch (_) {}
+      renderOnboardingV2();
+      setTimeout(() => { onboardingV2Step = 4; renderOnboardingV2(); }, 300);
+    }
+    function onboardingV2ToggleFocus(v) {
+      const set = new Set(onboardingV2Focus || []);
+      if (set.has(v)) set.delete(v); else set.add(v);
+      onboardingV2Focus = Array.from(set);
+      try { localStorage.setItem("midori_focus", JSON.stringify(onboardingV2Focus)); } catch (_) {}
+      renderOnboardingV2();
+    }
+    function onboardingV2Complete() {
+      try { localStorage.setItem("midori_onboarding_v2", "complete"); } catch (_) {}
+      applyOnboardingSettings();
+      closeOnboardingV2();
+      // Ensure dashboard reflects the latest mode/settings
+      try { route(); } catch (_) {}
     }
 
     window.addEventListener("load", function() {
@@ -4857,6 +5561,9 @@
       initOfflineBanner();
       initNumberInputClamp();
       renderActivityLog();
+      try { handleDailyLoginXP(); } catch (_) {}
+      try { checkBadgeUnlocks(); } catch (_) {}
+      try { renderMyProgress(); } catch (_) {}
     });
 
     let _pendingG = false;
@@ -4870,8 +5577,6 @@
       }
       if (e.key === "Escape") {
         closeShortcutModal();
-        const onb = $("onboardingModal");
-        if (onb && onb.style.display === "flex") dismissOnboarding();
         return;
       }
       if (inInput) return;
@@ -5323,15 +6028,31 @@
     let lastSignalsData = null;
     let lastBacktestData = null;
     let lastForecastData = null;
+    function toggleReasoning(id) {
+      const panel = document.getElementById("reasoning-" + id);
+      if (!panel) return;
+      const isOpen = panel.classList.contains("open");
+      panel.classList.toggle("open");
+      document.querySelectorAll('[data-toggle-reasoning="' + id + '"]').forEach(function(btn) {
+        btn.textContent = isOpen ? "▼ See Midori's Reasoning" : "▲ Collapse";
+      });
+      if (!isOpen) {
+        try {
+          const viewed = parseInt(localStorage.getItem("midori_signals_viewed") || "0", 10) || 0;
+          localStorage.setItem("midori_signals_viewed", String(viewed + 1));
+        } catch (_) {}
+        awardPoints("view_signal_reasoning");
+      }
+    }
     function renderSignals(data) {
       lastSignalsData = data;
       const hero = $("signalHero");
       const list = $("signalsList");
       const placeholder = $("signalsPlaceholder");
       let signals = (data && data.signals) ? data.signals : [];
-      if (currentSignalFilter === "bullish") signals = signals.filter(s => (s.type || "").toUpperCase() === "CALL");
-      else if (currentSignalFilter === "bearish") signals = signals.filter(s => (s.type || "").toUpperCase() === "PUT");
-      else if (currentSignalFilter === "high") signals = signals.filter(s => (s.rank || 99) <= 1);
+      if (currentSignalFilter === "bullish") signals = signals.filter(s => (s.direction || "").toUpperCase() === "CALL");
+      else if (currentSignalFilter === "bearish") signals = signals.filter(s => (s.direction || "").toUpperCase() === "PUT");
+      else if (currentSignalFilter === "high") signals = signals.filter(s => (parseInt(s.confidence || 0, 10) || 0) >= 70);
       if (!signals.length) {
         placeholder.style.display = "block";
         placeholder.classList.remove("error");
@@ -5342,53 +6063,126 @@
       }
       placeholder.style.display = "none";
       placeholder.classList.remove("error");
+      const fmtMoney = (v) => (v == null || Number.isNaN(Number(v))) ? "—" : "$" + Number(v).toFixed(2);
+      const fmtNum = (v, d) => (v == null || Number.isNaN(Number(v))) ? "—" : Number(v).toFixed(d);
+      const riskColorClass = (riskTag) => {
+        const t = String(riskTag || "").toLowerCase();
+        if (t.includes("agg")) return "badge-danger";
+        if (t.includes("cons")) return "badge-success";
+        if (t.includes("mod")) return "badge-warning";
+        return "badge-gray";
+      };
+      const buildCardHtml = (s, id) => {
+        const dir = String(s.direction || "").toUpperCase();
+        const conf = Math.max(0, Math.min(100, parseInt(s.confidence || 0, 10) || 0));
+        const confLabel = escapeHtml(s.confidence_label || "");
+        const setupTag = escapeHtml(s.setup_tag || "");
+        const riskTag = escapeHtml(s.risk_tag || "");
+        const regime = escapeHtml((s.regime || "").replace(/_/g, " "));
+        const compat = (typeof s.regime_compatible === "boolean") ? s.regime_compatible : true;
+
+        const reasoning = s.reasoning || {};
+        const bull = Array.isArray(reasoning.bullish_signals) ? reasoning.bullish_signals : [];
+        const bear = Array.isArray(reasoning.bearish_signals) ? reasoning.bearish_signals : [];
+        const risks = Array.isArray(reasoning.risk_factors) ? reasoning.risk_factors : [];
+        const kl = reasoning.key_levels || {};
+
+        const sc = s.scenario_analysis || {};
+
+        const regimeBadge = compat ? "" : (' <span class="badge badge-gray">Regime mismatch: ' + regime + "</span>");
+
+        return (
+          '<div class="signal-header">' +
+            '<div class="signal-title-row">' +
+              '<span class="signal-ticker">' + escapeHtml(s.ticker || "") + "</span>" +
+              '<span class="badge badge-' + dir + '">' + escapeHtml(dir) + "</span>" +
+              '<span class="signal-strategy">' + escapeHtml(s.strategy || "") + "</span>" +
+            "</div>" +
+            '<div class="signal-tags">' +
+              (setupTag ? '<span class="badge badge-gray">' + setupTag + "</span>" : "") +
+              (riskTag ? '<span class="badge ' + riskColorClass(riskTag) + '">' + riskTag + "</span>" : "") +
+              regimeBadge +
+            "</div>" +
+          "</div>" +
+
+          '<div class="signal-numbers">' +
+            '<div class="signal-num-item"><span class="num-label">Entry</span><span class="num-val">' + fmtMoney(s.entry_low) + "–" + fmtMoney(s.entry_high) + "</span></div>" +
+            '<div class="signal-num-item"><span class="num-label">Target</span><span class="num-val text-success">' + fmtMoney(s.target) + "</span></div>" +
+            '<div class="signal-num-item"><span class="num-label">Stop</span><span class="num-val text-danger">' + fmtMoney(s.stop) + "</span></div>" +
+            '<div class="signal-num-item"><span class="num-label">R/R</span><span class="num-val">' + escapeHtml(s.risk_reward || "—") + "</span></div>" +
+          "</div>" +
+
+          '<div class="signal-confidence-row">' +
+            '<div class="signal-conf-bar"><div class="signal-conf-fill" style="width:' + conf + '%"></div></div>' +
+            '<span class="signal-conf-label">' + conf + "% · " + confLabel + "</span>" +
+          "</div>" +
+
+          '<button class="signal-expand-btn" data-toggle-reasoning="' + id + '" onclick="toggleReasoning(\'' + id + '\')">▼ See Midori\'s Reasoning</button>' +
+
+          '<div class="reasoning-panel" id="reasoning-' + id + '">' +
+            '<div class="reasoning-summary">' + escapeHtml((reasoning.summary || "").trim()) + "</div>" +
+
+            '<div class="reasoning-signals-grid">' +
+              '<div class="reasoning-col">' +
+                '<div class="reasoning-col-title" style="color:#22C55E;">✅ Bullish Signals</div>' +
+                bull.map(x => '<div class="reasoning-item">✅ ' + escapeHtml(String(x)) + "</div>").join("") +
+              "</div>" +
+              '<div class="reasoning-col">' +
+                '<div class="reasoning-col-title" style="color:#F43F5E;">❌ Against</div>' +
+                bear.map(x => '<div class="reasoning-item">❌ ' + escapeHtml(String(x)) + "</div>").join("") +
+              "</div>" +
+              '<div class="reasoning-col">' +
+                '<div class="reasoning-col-title" style="color:#F59E0B;">⚠️ Risk Factors</div>' +
+                risks.map(x => '<div class="reasoning-item">⚠️ ' + escapeHtml(String(x)) + "</div>").join("") +
+              "</div>" +
+            "</div>" +
+
+            '<div class="reasoning-history">' +
+              '<div class="reasoning-section-title">📊 Historical Context</div>' +
+              '<div class="reasoning-history-text">' + escapeHtml(String(reasoning.historical_context || "")) + "</div>" +
+            "</div>" +
+
+            '<div class="reasoning-scenarios">' +
+              '<div class="reasoning-section-title">🎯 Scenario Analysis</div>' +
+              '<div class="scenarios-grid">' +
+                '<div class="scenario-item scenario-base"><div class="scenario-label">Base Case</div><div>' + escapeHtml(String(sc.base_case || "")) + "</div></div>" +
+                '<div class="scenario-item scenario-bull"><div class="scenario-label">Bull Case</div><div>' + escapeHtml(String(sc.bull_case || "")) + "</div></div>" +
+                '<div class="scenario-item scenario-bear"><div class="scenario-label">Bear Case</div><div>' + escapeHtml(String(sc.bear_case || "")) + "</div></div>" +
+                '<div class="scenario-item scenario-vol"><div class="scenario-label">Vol Spike</div><div>' + escapeHtml(String(sc.vol_spike || "")) + "</div></div>" +
+              "</div>" +
+            "</div>" +
+
+            '<div class="reasoning-key-levels">' +
+              '<div class="reasoning-section-title">📍 Key Levels</div>' +
+              '<div class="key-levels-row">' +
+                "<span>Support: <strong>" + escapeHtml(fmtNum(kl.support, 2)) + "</strong></span>" +
+                "<span>VWAP: <strong>" + escapeHtml(fmtNum(kl.vwap, 2)) + "</strong></span>" +
+                "<span>Resistance: <strong>" + escapeHtml(fmtNum(kl.resistance, 2)) + "</strong></span>" +
+              "</div>" +
+            "</div>" +
+
+            '<div class="reasoning-caveat">💭 <strong>What would change my mind:</strong> ' + escapeHtml(String(reasoning.what_changes_my_mind || "")) + "</div>" +
+
+            '<button class="signal-expand-btn" data-toggle-reasoning="' + id + '" onclick="toggleReasoning(\'' + id + '\')">▲ Collapse</button>' +
+          "</div>"
+        );
+      };
+
       const top = signals[0];
+      const heroId = "hero";
       hero.style.display = "block";
-      const topWhy = (top.how_midori_decided || "");
-      const topWhyHtml = topWhy ? escapeHtml(topWhy).replace(/\n/g, "<br>") : "";
       hero.innerHTML =
-        "<div class=\"signal-hero-label\">Top educational setup right now</div>" +
-        "<div class=\"signal-hero-headline\">" + (top.headline || "") + "</div>" +
-        "<div class=\"signal-hero-meta\">" + (top.ticker || "") + " " + (top.type || "") + " · Strike zone " + (top.strike_zone || "—") + "</div>" +
-        "<div class=\"signal-hero-reason\">" + (top.reason || "") + "</div>" +
-        (topWhyHtml ? '<button type="button" class="signal-explainer-toggle" data-scope="hero">How Midori Decided This</button><div class="signal-explainer" style="display:none;">' + topWhyHtml + "</div>" : "");
+        '<div class="signal-hero-label">Top setup right now</div>' +
+        '<div class="signal-card" style="margin-top:8px;">' + buildCardHtml(top, heroId) + "</div>";
+
       list.innerHTML = "";
-      signals.forEach(function(s, i) {
-        if (i === 0) return;
+      signals.slice(1).forEach(function(s, i) {
+        const id = (String(s.ticker || "SIG") + "-" + i + "-" + Date.now().toString(36)).replace(/[^a-zA-Z0-9_-]/g, "");
         const card = document.createElement("div");
         card.className = "signal-card";
-        const why = s.how_midori_decided || "";
-        const whyHtml = why ? escapeHtml(why).replace(/\n/g, "<br>") : "";
-        card.innerHTML =
-          "<span class=\"signal-rank\">" + (s.rank || i + 1) + "</span>" +
-          "<div class=\"signal-card-body\">" +
-          "<div class=\"signal-card-headline\">" + (s.headline || "") + "</div>" +
-          "<div class=\"signal-card-meta\">" + (s.ticker || "") + " " + (s.type || "") + " · " + (s.strike_zone || "—") + "</div>" +
-          "<div class=\"signal-card-reason\">" + (s.reason || "") + "</div>" +
-          (whyHtml ? '<button type="button" class="signal-explainer-toggle">How Midori Decided This</button><div class="signal-explainer" style="display:none;">' + whyHtml + "</div>" : "") +
-          "</div>";
+        card.innerHTML = buildCardHtml(s, id);
         list.appendChild(card);
       });
-      // Wire up explainability accordions
-      list.querySelectorAll(".signal-explainer-toggle").forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          const panel = btn.nextElementSibling;
-          if (!panel) return;
-          const isOpen = panel.style.display === "block";
-          panel.style.display = isOpen ? "none" : "block";
-          btn.classList.toggle("open", !isOpen);
-        });
-      });
-      const heroToggle = hero.querySelector(".signal-explainer-toggle");
-      if (heroToggle) {
-        heroToggle.addEventListener("click", function() {
-          const panel = heroToggle.nextElementSibling;
-          if (!panel) return;
-          const isOpen = panel.style.display === "block";
-          panel.style.display = isOpen ? "none" : "block";
-          heroToggle.classList.toggle("open", !isOpen);
-        });
-      }
       if (window.gsap) {
         const signalCards = list.querySelectorAll(".signal-card:not(.animated)");
         if (signalCards.length) {
@@ -5408,7 +6202,7 @@
       if (placeholder) { placeholder.style.display = "block"; placeholder.innerHTML = '<span class="signals-loading-text">Midori is scanning the market...</span>'; placeholder.classList.remove("error"); }
       if (list) list.innerHTML = "";
       try {
-        const params = new URLSearchParams({ tickers: tickersValue, limit: "3", mode: currentSignalMode || "0dte" });
+        const params = new URLSearchParams({ tickers: tickersValue, limit: "3", mode: currentSignalMode || "0dte", profile: getProfileParam() });
         const res = await fetch("/signals?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
           const text = await res.text();
@@ -5457,8 +6251,26 @@
         if ($("signalsPlaceholder")) $("signalsPlaceholder").textContent = "No signals to export. Click Refresh first.";
         return;
       }
-      const headers = ["Rank", "Ticker", "Type", "Strike zone", "Headline", "Reason"];
-      const rows = signals.map((s, i) => [i + 1, s.ticker || "", s.type || "", s.strike_zone || "", s.headline || "", (s.reason || "").replace(/"/g, '""')]);
+      const headers = ["Rank", "Ticker", "Direction", "Strategy", "Strike", "Expiry", "Entry low", "Entry high", "Target", "Stop", "R/R", "Confidence", "Label", "Setup tag", "Risk tag", "Regime", "Regime compatible"];
+      const rows = signals.map((s, i) => [
+        i + 1,
+        s.ticker || "",
+        s.direction || "",
+        s.strategy || "",
+        s.strike != null ? s.strike : "",
+        s.expiry || "",
+        s.entry_low != null ? s.entry_low : "",
+        s.entry_high != null ? s.entry_high : "",
+        s.target != null ? s.target : "",
+        s.stop != null ? s.stop : "",
+        s.risk_reward || "",
+        s.confidence != null ? s.confidence : "",
+        s.confidence_label || "",
+        s.setup_tag || "",
+        s.risk_tag || "",
+        s.regime || "",
+        (typeof s.regime_compatible === "boolean") ? (s.regime_compatible ? "true" : "false") : "",
+      ]);
       const csv = [headers.join(","), ...rows.map(r => r.map(c => '"' + c + '"').join(","))].join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       const a = document.createElement("a");
@@ -6008,6 +6820,7 @@
           style: currentStyle,
           timeframe: currentTimeframe,
           analysis_type: currentAnalysisType,
+          profile: getProfileParam(),
         });
         const res = await fetch("/analyze?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
@@ -6024,6 +6837,7 @@
         }
         setStatus("Analysis complete.");
         showToast("Analysis complete.");
+        awardPoints("run_analysis");
         setNotificationDot("panelAnalysis", true);
 
         fetch("/api/market-regime").then(r => r.json()).then(reg => {
@@ -6431,6 +7245,7 @@
           style: currentStyle,
           timeframe: currentTimeframe,
           analysis_type: currentAnalysisType,
+          profile: getProfileParam(),
           files: chatFiles,
           history: chatHistory,
           question: hasText ? question : "Please analyze the attached chart images for trading context and risk.",
@@ -6458,6 +7273,7 @@
         setNotificationDot("panelChat", true);
         setChatStatus("Done.");
         showToast("Reply received.");
+        awardPoints("chat_session");
       } catch (err) {
         setChatStatus(friendlyErrorMessage(err), true);
         appendMessage("error", String(err), "chatConversation", "error");
@@ -6579,6 +7395,7 @@
               symbols: symMetrics,
               years: parseInt(years, 10),
               holding_days: parseInt(holdingDays, 10),
+              profile: getProfileParam(),
             }),
           });
           if (explainRes.ok) {
@@ -6659,6 +7476,7 @@
         }).catch(() => {});
         statusEl.textContent = "Backtest complete.";
         showToast("Backtest complete.");
+        awardPoints("run_backtest");
       } catch (err) {
         const msg = friendlyErrorMessage(err);
         statusEl.innerHTML = (msg || "Backtest failed.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="runBacktest()">Retry</button>';
