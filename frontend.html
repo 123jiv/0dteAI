@@ -3014,8 +3014,17 @@
                   <button type="button" class="interval-btn" data-interval="1h">1h</button>
                   <button type="button" class="interval-btn" data-interval="1d">1D</button>
                   <label style="display:flex; align-items:center; gap:6px; color:#94A3B8; font-size:11px; margin-left:6px;">
-                    Vol
-                    <input id="chart-vol-slider" type="range" min="8" max="30" step="1" value="20" style="width:90px;" aria-label="Volume height">
+                    <span>Volume panel</span>
+                    <input
+                      id="chart-vol-slider"
+                      type="range"
+                      min="8"
+                      max="30"
+                      step="1"
+                      value="20"
+                      style="width:90px;"
+                      aria-label="Volume panel height (percent)">
+                    <span id="chart-vol-label" style="font-size:11px; color:#64748B; min-width:28px; text-align:right;">20%</span>
                   </label>
                   <button type="button" id="chart-fullscreen-toggle" class="btn secondary btn-sm" style="padding:4px 8px; font-size:11px;" onclick="toggleChartFullscreen()" aria-label="Toggle fullscreen">⛶</button>
                 </div>
@@ -5527,6 +5536,8 @@
       }
       const slider = document.getElementById("chart-vol-slider");
       if (slider) slider.value = String(p);
+      const volLabel = document.getElementById("chart-vol-label");
+      if (volLabel) volLabel.textContent = p + "%";
       try { localStorage.setItem("midori_chart_volume_pct", String(p)); } catch (_) {}
     }
 
