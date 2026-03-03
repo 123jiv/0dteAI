@@ -5475,9 +5475,8 @@
         chatHistory = [];
       }
 
+      // Routing should never be blocked by init errors.
       showPage("pageApp");
-      initMarketHeader();
-      showOnboardingV2();
       const pathToScreen = {
         "/dashboard": "screenDashboard",
         "/analysis": "screenAnalysis",
@@ -5494,52 +5493,72 @@
         "/privacy": "screenPrivacy",
       };
       const screenId = pathToScreen[path] || "screenDashboard";
-      showScreen(screenId);
+      try {
+        showScreen(screenId);
+      } catch (e) {
+        console.error("showScreen error:", e);
+        try { showScreen("screenDashboard"); } catch (_) {}
+      }
 
-      if (path === "/signals") { fetchSignals(); loadRegime(); showGuardrailReminderIfNeeded("signalsGuardrailReminder"); }
-      if (path === "/confidence") { loadRegime(); renderMyProgress(); }
-      if (path === "/risk") loadRiskCenter();
-      if (path === "/dashboard") loadDashboardData();
-      if (path === "/academy") { if (typeof renderAcademy === "function") renderAcademy(); }
+      try { initMarketHeader(); } catch (e) { console.error("initMarketHeader error:", e); }
+      try { showOnboardingV2(); } catch (e) { console.error("showOnboardingV2 error:", e); }
+
+      if (path === "/signals") { try { fetchSignals(); loadRegime(); showGuardrailReminderIfNeeded("signalsGuardrailReminder"); } catch (e) { console.error("signals init error:", e); } }
+      if (path === "/confidence") { try { loadRegime(); renderMyProgress(); } catch (e) { console.error("progress init error:", e); } }
+      if (path === "/risk") { try { loadRiskCenter(); } catch (e) { console.error("risk init error:", e); } }
+      if (path === "/dashboard") { try { loadDashboardData(); } catch (e) { console.error("dashboard init error:", e); } }
+      if (path === "/academy") { try { if (typeof renderAcademy === "function") renderAcademy(); } catch (e) { console.error("academy init error:", e); } }
       if (path === "/community") { /* community page is static */ }
-      updateReviewFabVisibility();
+      try { updateReviewFabVisibility(); } catch (_) {}
       // trades page removed
       if (path === "/analysis") {
-        showGuardrailReminderIfNeeded("analysisGuardrailReminder");
-        loadRegime();
-        const lastTickers = localStorage.getItem("trademinds_last_tickers");
-        const tickersEl = $("tickers");
-        if (tickersEl && lastTickers && !tickersEl.value.trim()) tickersEl.value = lastTickers;
-        renderRecentAnalyses();
+        try {
+          showGuardrailReminderIfNeeded("analysisGuardrailReminder");
+          loadRegime();
+          const lastTickers = localStorage.getItem("trademinds_last_tickers");
+          const tickersEl = $("tickers");
+          if (tickersEl && lastTickers && !tickersEl.value.trim()) tickersEl.value = lastTickers;
+          renderRecentAnalyses();
+        } catch (e) {
+          console.error("analysis init error:", e);
+        }
       }
       if (path === "/backtest") {
-        const lastTickers = localStorage.getItem("trademinds_last_tickers");
-        const btEl = $("backtestTickers");
-        if (btEl && lastTickers && !btEl.value.trim()) btEl.value = lastTickers;
-      }
-      if (path === "/methodology") renderActivityLog();
-      if (path === "/chat") {
-        initChatQuickPrompts();
-        const convo = $("chatConversation");
-        const welcome = $("chatWelcome");
-        if (chatHistory.length && convo) {
-          convo.innerHTML = "";
-          chatHistory.forEach((m, i) => {
-            if (m.role === "user") appendMessage("", m.content, "chatConversation", "user");
-            else appendMessage("", m.content, "chatConversation", "assistant");
-          });
-          convo.style.display = "flex";
-          if (welcome) welcome.classList.add("hidden");
-        } else if (convo) {
-          convo.style.display = "none";
-          if (welcome) welcome.classList.remove("hidden");
+        try {
+          const lastTickers = localStorage.getItem("trademinds_last_tickers");
+          const btEl = $("backtestTickers");
+          if (btEl && lastTickers && !btEl.value.trim()) btEl.value = lastTickers;
+        } catch (e) {
+          console.error("backtest init error:", e);
         }
-        const pending = sessionStorage.getItem("odteai_pending_first_question");
-        if (pending && $("chatInput")) {
-          $("chatInput").value = pending;
-          sessionStorage.removeItem("odteai_pending_first_question");
-          setTimeout(runChat, 50);
-        } else if ($("chatInput")) $("chatInput").focus();
+      }
+      if (path === "/methodology") { try { renderActivityLog(); } catch (e) { console.error("methodology init error:", e); } }
+      if (path === "/chat") {
+        try {
+          initChatQuickPrompts();
+          const convo = $("chatConversation");
+          const welcome = $("chatWelcome");
+          if (chatHistory.length && convo) {
+            convo.innerHTML = "";
+            chatHistory.forEach((m, i) => {
+              if (m.role === "user") appendMessage("", m.content, "chatConversation", "user");
+              else appendMessage("", m.content, "chatConversation", "assistant");
+            });
+            convo.style.display = "flex";
+            if (welcome) welcome.classList.add("hidden");
+          } else if (convo) {
+            convo.style.display = "none";
+            if (welcome) welcome.classList.remove("hidden");
+          }
+          const pending = sessionStorage.getItem("odteai_pending_first_question");
+          if (pending && $("chatInput")) {
+            $("chatInput").value = pending;
+            sessionStorage.removeItem("odteai_pending_first_question");
+            setTimeout(runChat, 50);
+          } else if ($("chatInput")) $("chatInput").focus();
+        } catch (e) {
+          console.error("chat init error:", e);
+        }
       }
     }
 
