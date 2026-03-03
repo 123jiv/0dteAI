@@ -2585,6 +2585,97 @@
       .main-scroll { padding-bottom: 64px; }
     }
     .bottom-tab-bar { display: none; }
+
+    /* Phase 1: Review My Day FAB & modal */
+    .review-day-fab {
+      position: fixed;
+      bottom: 88px;
+      right: 20px;
+      background: linear-gradient(135deg, #0F1724, #161F30);
+      border: 1px solid #22C55E;
+      border-radius: 24px;
+      color: #22C55E;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 18px;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(34,197,94,0.15);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .review-day-fab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,197,94,0.3);
+    }
+    @media (max-width: 640px) {
+      .review-day-fab { bottom: 72px; right: 12px; }
+    }
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-overlay .modal-box { background: var(--bg-elevated); border-radius: 16px; max-width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid var(--border); }
+    .modal-overlay .modal-lg { width: 560px; }
+    .modal-overlay .modal-xl { width: 640px; max-height: 85vh; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .modal-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+    .modal-close { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1; }
+    .modal-close:hover { color: var(--text-primary); }
+    .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+    .review-loading { text-align: center; padding: 40px 20px; }
+    .review-loading-icon { font-size: 48px; margin-bottom: 16px; animation: pulse-gentle 2s infinite; }
+    @keyframes pulse-gentle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.95); } }
+    .review-loading-title { font-size: 18px; font-weight: 600; color: #F1F5F9; margin-bottom: 8px; }
+    .review-loading-sub { font-size: 14px; color: #94A3B8; line-height: 1.6; margin-bottom: 24px; max-width: 320px; margin-left: auto; margin-right: auto; }
+    .review-loading-bar { height: 4px; background: #1E2D45; border-radius: 2px; max-width: 280px; margin: 0 auto; overflow: hidden; }
+    .review-loading-fill { height: 100%; background: linear-gradient(90deg, #22C55E, #16A34A); border-radius: 2px; width: 0%; transition: width 2s ease; }
+    .review-stats-row { display: flex; gap: 20px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #1E2D45; }
+    .review-stat { flex: 1; text-align: center; }
+    .review-stat-val { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: #22C55E; }
+    .review-stat-label { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+    .review-body { font-size: 14px; color: #CBD5E1; line-height: 1.7; }
+    .review-section-title { font-size: 15px; font-weight: 700; color: #F1F5F9; margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #1E2D45; }
+    .review-section-title:first-child { margin-top: 0; }
+    .review-bullet { padding: 5px 0 5px 12px; color: #94A3B8; font-size: 13px; line-height: 1.6; }
+    .review-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid #1E2D45; }
+    .review-error { text-align: center; padding: 24px; color: var(--text-secondary); }
+    .recap-header-card { text-align: center; padding: 24px; background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(22,163,74,0.05)); border: 1px solid rgba(34,197,94,0.2); border-radius: 12px; margin-bottom: 24px; }
+    .recap-logo { font-size: 40px; margin-bottom: 8px; }
+    .recap-week-label { font-size: 13px; color: #22C55E; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+    .recap-body { font-size: 14px; color: #CBD5E1; line-height: 1.8; }
+    .lesson-modal-box .lesson-modal-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .lesson-meta-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+    .badge-gray { background: rgba(148,163,184,0.15); color: #94A3B8; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+    .badge-success { background: rgba(34,197,94,0.2); color: #22C55E; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+    .lesson-content { padding: 20px; overflow-y: auto; font-size: 14px; line-height: 1.7; color: #CBD5E1; }
+    .lesson-h1 { font-size: 22px; margin: 0 0 16px; color: #F1F5F9; }
+    .lesson-h2 { font-size: 16px; margin: 16px 0 8px; color: #E2E8F0; }
+    .lesson-p { margin: 0 0 12px; }
+    .lesson-takeaways { padding: 16px 20px; border-top: 1px solid var(--border); background: rgba(15,23,36,0.5); }
+    .lesson-takeaways h3 { font-size: 14px; margin: 0 0 12px; color: #F1F5F9; }
+    .takeaway-item { padding: 6px 0; font-size: 13px; color: #94A3B8; }
+    .lesson-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .community-coming-soon { max-width: 800px; margin: 0 auto; }
+    .community-hero { text-align: center; padding: 48px 20px 40px; }
+    .community-hero-icon { font-size: 56px; margin-bottom: 16px; }
+    .community-hero-title { font-size: 32px; font-weight: 700; color: #F1F5F9; margin-bottom: 12px; }
+    .community-hero-sub { font-size: 16px; color: #94A3B8; line-height: 1.6; max-width: 480px; margin: 0 auto; }
+    .community-features-preview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; }
+    @media (max-width: 640px) { .community-features-preview { grid-template-columns: 1fr; } }
+    .preview-card { background: #0F1724; border: 1px solid #1E2D45; border-radius: 14px; padding: 24px; position: relative; }
+    .preview-icon { font-size: 28px; margin-bottom: 12px; }
+    .preview-title { font-size: 16px; font-weight: 700; color: #F1F5F9; margin-bottom: 8px; }
+    .preview-desc { font-size: 13px; color: #94A3B8; line-height: 1.6; margin-bottom: 16px; }
+    .preview-badge { display: inline-block; background: rgba(34,197,94,0.1); color: #22C55E; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .community-notify-card { background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(22,163,74,0.04)); border: 1px solid rgba(34,197,94,0.2); border-radius: 16px; padding: 32px; text-align: center; }
+    .community-notify-card h2 { font-size: 22px; font-weight: 700; color: #F1F5F9; margin-bottom: 10px; }
+    .community-notify-card p { font-size: 14px; color: #94A3B8; line-height: 1.6; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto; }
+    .notify-form { display: flex; gap: 10px; max-width: 400px; margin: 0 auto 16px; }
+    .notify-note { font-size: 12px; color: #475569; margin-bottom: 0; }
   </style>
 </head>
 <body>
@@ -2663,6 +2754,8 @@
           <a href="#/confidence" id="navConfidence" aria-label="Confidence"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="nav-label">Confidence</span></a>
           <div class="nav-spacer"></div>
           <a href="#/methodology" id="navMethodology" aria-label="Methodology"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317a1 1 0 011.35-.936l8.65 3.11a1 1 0 01.675.94V12a8 8 0 11-4.293-7.11l-6.382-2.3z" /></svg><span class="nav-label">Methodology</span></a>
+          <a href="#/academy" id="navAcademy" aria-label="Academy"><span class="nav-icon">🎓</span><span class="nav-label">Academy</span></a>
+          <a href="#/community" id="navCommunity" aria-label="Community"><span class="nav-icon">🌐</span><span class="nav-label">Community</span></a>
           <div class="theme-toggle-wrap">
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Theme">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -2733,6 +2826,12 @@
             <button type="button" id="marketPulseRefreshBtn" class="btn secondary" style="padding:4px 10px; font-size:12px;" onclick="loadMarketPulse()" aria-label="Refresh market data">Refresh</button>
           </div>
           <div id="dashboardRegimeBanner" class="regime-banner" style="margin-top:12px;"></div>
+
+          <div id="dashboardRecommendedLesson" class="card" style="max-width:900px; margin-bottom:16px; display:none;">
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">🎓 RECOMMENDED LESSON</div>
+            <div id="dashboardRecommendedLessonTitle" style="font-size:15px; font-weight:700; margin-bottom:4px;"></div>
+            <a href="#/academy" id="dashboardRecommendedLessonLink" class="btn secondary" style="margin-top:8px; display:inline-block;">Continue Learning →</a>
+          </div>
 
           <div class="dashboard-mid-row">
             <div class="midori-chart-wrap">
@@ -3265,6 +3364,16 @@
           </div>
 
           <div class="card" style="max-width:900px; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:10px;">🌿 Review My Day</div>
+            <p class="hint" style="margin-bottom:12px;">Get a personalized session review from Midori based on today's activity. Available after 3+ actions today.</p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button type="button" class="btn" onclick="openDayReview()">🌿 Review My Day</button>
+              <button type="button" class="btn secondary" onclick="generateWeeklyRecap()">📬 Generate Weekly Recap</button>
+              <a href="#/academy" class="btn secondary" style="text-decoration:none;">Continue Learning →</a>
+            </div>
+          </div>
+
+          <div class="card" style="max-width:900px; margin-bottom:16px;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
               <div style="font-size:14px; font-weight:700;">Confidence metrics</div>
               <button type="button" class="btn secondary" style="min-width:0;" onclick="document.getElementById('confidenceTools').classList.toggle('hidden')">Toggle</button>
@@ -3529,6 +3638,61 @@
             </div>
           </div>
         </div>
+        <div id="screenAcademy" class="screen page-content">
+          <div class="page-head">
+            <h1 class="page-title">🎓 Midori Academy</h1>
+            <p class="page-desc">Learn to trade smarter, not harder</p>
+          </div>
+          <div id="academyFeaturedCard" class="card" style="max-width:900px; margin-bottom:24px;"></div>
+          <div class="card" style="max-width:900px; margin-bottom:12px;">
+            <div id="academyTabs" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
+            <div id="academyGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px;"></div>
+          </div>
+        </div>
+        <div id="screenCommunity" class="screen page-content">
+          <div class="community-coming-soon">
+            <div class="community-hero">
+              <div class="community-hero-icon">🌐</div>
+              <h1 class="community-hero-title">Project Midori Community</h1>
+              <p class="community-hero-sub">Where serious traders learn, share, and grow together. Coming soon.</p>
+            </div>
+            <div class="community-features-preview">
+              <div class="preview-card">
+                <div class="preview-icon">🏆</div>
+                <div class="preview-title">Paper Trade Leaderboard</div>
+                <div class="preview-desc">Risk-adjusted performance rankings. Sharpe ratio and max drawdown matter more than raw P&L here.</div>
+                <div class="preview-badge">Coming Soon</div>
+              </div>
+              <div class="preview-card">
+                <div class="preview-icon">📚</div>
+                <div class="preview-title">Strategy Hubs</div>
+                <div class="preview-desc">Vetted playbooks for SPX 0DTE, swing momentum, and income strategies. Clone and customize for your sandbox.</div>
+                <div class="preview-badge">Coming Soon</div>
+              </div>
+              <div class="preview-card">
+                <div class="preview-icon">💬</div>
+                <div class="preview-title">Setup Discussion Threads</div>
+                <div class="preview-desc">Discuss today's setups with other Midori traders. Upvote the best analysis. Learn from real decisions.</div>
+                <div class="preview-badge">Coming Soon</div>
+              </div>
+              <div class="preview-card">
+                <div class="preview-icon">🎓</div>
+                <div class="preview-title">Live Office Hours</div>
+                <div class="preview-desc">Monthly sessions on regime filtering, reading confidence scores, and 0DTE risk management.</div>
+                <div class="preview-badge">Coming Soon</div>
+              </div>
+            </div>
+            <div class="community-notify-card">
+              <h2>Get Early Access</h2>
+              <p>Be the first to know when community features launch. Pro members get priority access.</p>
+              <div class="notify-form">
+                <input type="email" id="notify-email" placeholder="your@email.com" class="pill-input" style="flex:1">
+                <button type="button" class="btn" onclick="submitNotifyEmail()">Notify Me</button>
+              </div>
+              <p class="notify-note">Already a Pro member? You automatically get priority access when community features launch.</p>
+            </div>
+          </div>
+        </div>
         </div>
       </main>
     </div>
@@ -3573,6 +3737,7 @@
       You're offline. Some features may be unavailable until you're back online.
     </div>
     <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+    <button id="review-day-btn" class="review-day-fab" onclick="openDayReview()" style="display:none" aria-label="Review my day">🌿 Review My Day</button>
   </div>
 
   <script>
@@ -3770,8 +3935,8 @@
       window.addEventListener("offline", update);
     }
 
-    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenRisk", "screenConfidence", "screenBacktest", "screenMethodology", "screenTerms", "screenPrivacy"];
-    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navRisk", "navConfidence", "navBacktest", "navMethodology"];
+    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenRisk", "screenConfidence", "screenBacktest", "screenMethodology", "screenAcademy", "screenCommunity", "screenTerms", "screenPrivacy"];
+    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navRisk", "navConfidence", "navBacktest", "navMethodology", "navAcademy", "navCommunity"];
 
     function showPage(pageId) {
       ["pageLogin", "pageApp"].forEach(id => {
@@ -3795,7 +3960,9 @@
       screenRisk: "Risk Center",
       screenConfidence: "My Progress",
       screenBacktest: "Backtest",
-      screenMethodology: "How Midori Thinks"
+      screenMethodology: "How Midori Thinks",
+      screenAcademy: "Academy",
+      screenCommunity: "Community"
     };
 
     let _lastScreenId = null;
@@ -3947,6 +4114,336 @@
       } catch (_) {}
       renderActivityLog();
       showToast("Activity log cleared.");
+    }
+
+    function closeModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    }
+
+    function parseMarkdownSimple(text) {
+      if (!text) return "";
+      return String(text)
+        .replace(/## (.+)/g, "<h3 class=\"review-section-title\">$1</h3>")
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/^• (.+)/gm, "<div class=\"review-bullet\">• $1</div>")
+        .replace(/^- (.+)/gm, "<div class=\"review-bullet\">• $1</div>")
+        .replace(/\n\n/g, "<br><br>")
+        .replace(/\n/g, "<br>");
+    }
+
+    async function openDayReview() {
+      const modal = document.createElement("div");
+      modal.id = "day-review-modal";
+      modal.className = "modal-overlay";
+      modal.innerHTML =
+        '<div class="modal-box modal-lg">' +
+        '<div class="modal-header">' +
+        '<div class="modal-title">🌿 Midori\'s Daily Review</div>' +
+        '<button class="modal-close" onclick="closeModal(\'day-review-modal\')">×</button>' +
+        "</div>" +
+        '<div id="review-content" class="modal-body">' +
+        '<div class="review-loading">' +
+        '<div class="review-loading-icon">🌿</div>' +
+        '<div class="review-loading-title">Reviewing your session...</div>' +
+        '<div class="review-loading-sub">Midori is analyzing your activity, risk behavior, and market conditions from today.</div>' +
+        '<div class="review-loading-bar"><div class="review-loading-fill"></div></div>' +
+        "</div></div></div>";
+      document.body.appendChild(modal);
+
+      const fill = modal.querySelector(".review-loading-fill");
+      if (fill) {
+        setTimeout(function() { fill.style.width = "60%"; }, 100);
+        setTimeout(function() { fill.style.width = "85%"; }, 3000);
+      }
+
+      const activityLog = readActivityLog();
+      const today = new Date().toISOString().slice(0, 10);
+      const todayActivity = activityLog.filter(function(e) { return (e.timestamp || "").indexOf(today) === 0; });
+
+      let xpLog = [];
+      try { xpLog = JSON.parse(localStorage.getItem("midori_xp_log") || "[]"); } catch (_) {}
+      const profile = getUserProfile();
+      let regimeData = {};
+      try { regimeData = JSON.parse(sessionStorage.getItem("midori_regime") || "{}"); } catch (_) {}
+
+      try {
+        const res = await fetch("/api/session-review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activity_log: todayActivity.map(function(e) { return { action: e.feature || e.action, feature: e.feature, tickers: e.tickers || [], timestamp: e.timestamp }; }),
+            profile: profile,
+            regime: regimeData.label || "Unknown",
+            xp_log: xpLog,
+          }),
+        });
+        const data = await res.json();
+
+        if (data.error) {
+          document.getElementById("review-content").innerHTML =
+            '<div class="review-error">' +
+            '<div style="font-size:32px;margin-bottom:12px">⚠️</div>' +
+            '<div style="color:#F1F5F9;margin-bottom:8px">Could not generate review</div>' +
+            '<div style="color:#94A3B8;font-size:13px">' + escapeHtml(data.error) + "</div></div>";
+          return;
+        }
+
+        if (fill) fill.style.width = "100%";
+        await new Promise(function(r) { setTimeout(r, 400); });
+
+        window._lastDayReview = data.review || "";
+        const reviewHTML = parseMarkdownSimple(data.review);
+        const stats = data.session_stats || {};
+        document.getElementById("review-content").innerHTML =
+          '<div class="review-stats-row">' +
+          '<div class="review-stat"><div class="review-stat-val">' + (stats.total_actions || 0) + '</div><div class="review-stat-label">Actions Today</div></div>' +
+          '<div class="review-stat"><div class="review-stat-val">' + (stats.features_used || []).length + '</div><div class="review-stat-label">Features Used</div></div>' +
+          '<div class="review-stat"><div class="review-stat-val">' + (stats.tickers || []).length + '</div><div class="review-stat-label">Tickers Analyzed</div></div>' +
+          "</div>" +
+          '<div class="review-body">' + reviewHTML + "</div>" +
+          '<div class="review-footer">' +
+          '<button class="btn secondary" onclick="saveReviewToProgress()">💾 Save to Progress</button>' +
+          '<button class="btn primary" onclick="closeModal(\'day-review-modal\')">Close</button>' +
+          "</div>";
+
+        awardPoints("daily_login");
+      } catch (e) {
+        console.error("Day review error:", e);
+        const contentEl = document.getElementById("review-content");
+        if (contentEl) contentEl.innerHTML = '<div class="review-error">Could not generate review. Try again.</div>';
+      }
+    }
+
+    function saveReviewToProgress() {
+      const reviewText = window._lastDayReview || "";
+      let reviews = [];
+      try { reviews = JSON.parse(localStorage.getItem("midori_saved_reviews") || "[]"); } catch (_) {}
+      if (!Array.isArray(reviews)) reviews = [];
+      reviews.unshift({ date: new Date().toISOString(), review: reviewText });
+      localStorage.setItem("midori_saved_reviews", JSON.stringify(reviews.slice(0, 30)));
+      showToast("Review saved to your Progress page");
+      closeModal("day-review-modal");
+    }
+
+    function updateReviewFabVisibility() {
+      const btn = $("review-day-btn");
+      if (!btn) return;
+      const activityLog = readActivityLog();
+      const today = new Date().toISOString().slice(0, 10);
+      const todayCount = activityLog.filter(function(e) { return (e.timestamp || "").indexOf(today) === 0; }).length;
+      btn.style.display = todayCount >= 3 ? "block" : "none";
+    }
+
+    async function generateWeeklyRecap() {
+      const modal = document.createElement("div");
+      modal.id = "recap-modal";
+      modal.className = "modal-overlay";
+      modal.innerHTML =
+        '<div class="modal-box modal-lg">' +
+        '<div class="modal-header">' +
+        '<div class="modal-title">📬 Your Weekly Recap</div>' +
+        '<button class="modal-close" onclick="closeModal(\'recap-modal\')">×</button>' +
+        "</div>" +
+        '<div id="recap-content" class="modal-body">' +
+        '<div class="review-loading">' +
+        '<div class="review-loading-icon">📬</div>' +
+        '<div class="review-loading-title">Generating your recap...</div>' +
+        '<div class="review-loading-bar"><div class="review-loading-fill" style="transition:width 4s ease;width:80%"></div></div></div></div></div>';
+      document.body.appendChild(modal);
+
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const activityLog = readActivityLog();
+      const weekActivity = activityLog.filter(function(e) { const d = new Date(e.timestamp || 0); return d >= oneWeekAgo; });
+      let xpLog = [];
+      try { xpLog = JSON.parse(localStorage.getItem("midori_xp_log") || "[]"); } catch (_) {}
+      const weekXP = xpLog.filter(function(e) { return new Date(e.timestamp || 0) >= oneWeekAgo; }).reduce(function(s, e) { return s + (e.points || 0); }, 0);
+      let completed = [];
+      try { completed = JSON.parse(localStorage.getItem("midori_completed_lessons") || "[]"); } catch (_) {}
+      let badges = [];
+      try { badges = JSON.parse(localStorage.getItem("midori_badges") || "[]"); } catch (_) {}
+      const profile = getUserProfile();
+      let regimeData = {};
+      try { regimeData = JSON.parse(sessionStorage.getItem("midori_regime") || "{}"); } catch (_) {}
+      const analyses = weekActivity.filter(function(e) { return e.feature === "run_analysis" || e.action === "run_analysis"; }).length;
+      const signals = weekActivity.filter(function(e) { return e.feature === "view_signal_reasoning" || e.action === "view_signal_reasoning"; }).length;
+      const sessionDates = new Set(weekActivity.map(function(e) { return (e.timestamp || "").slice(0, 10); }));
+
+      try {
+        const res = await fetch("/api/weekly-recap", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activity: weekActivity,
+            xp_earned: weekXP,
+            lessons_completed: completed,
+            profile: profile,
+            badges: badges,
+            sessions: sessionDates.size,
+            analyses: analyses,
+            signals: signals,
+            current_regime: regimeData.label || "Unknown",
+          }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        const recapHTML = parseMarkdownSimple(data.recap);
+        document.getElementById("recap-content").innerHTML =
+          '<div class="recap-header-card"><div class="recap-logo">🌿</div><div class="recap-week-label">' + escapeHtml(data.week || "") + "</div></div>" +
+          '<div class="recap-body">' + recapHTML + "</div>" +
+          '<div class="review-footer">' +
+          '<button class="btn secondary" onclick="copyRecap()">📋 Copy Recap</button>' +
+          '<button class="btn primary" onclick="closeModal(\'recap-modal\')">Close</button></div>";
+      } catch (e) {
+        const contentEl = document.getElementById("recap-content");
+        if (contentEl) contentEl.innerHTML = '<div class="review-error">Could not generate recap. Try again.</div>';
+      }
+    }
+
+    function copyRecap() {
+      const body = document.querySelector("#recap-modal .recap-body");
+      if (body && body.innerText) {
+        navigator.clipboard.writeText(body.innerText).then(function() { showToast("Recap copied to clipboard"); });
+      }
+    }
+
+    function submitNotifyEmail() {
+      const input = $("notify-email");
+      const email = (input && input.value || "").trim();
+      if (!email || email.indexOf("@") === -1) {
+        showToast("Please enter a valid email");
+        return;
+      }
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem("midori_notify_list") || "[]"); } catch (_) {}
+      if (!Array.isArray(list)) list = [];
+      if (list.indexOf(email) === -1) { list.push(email); localStorage.setItem("midori_notify_list", JSON.stringify(list)); }
+      showToast("You're on the list! We'll notify you first.");
+      if (input) input.value = "";
+      awardPoints("daily_login");
+    }
+
+    const ACADEMY_CATEGORIES = ["All", "0DTE Options", "Swing Trading", "Risk Management", "Market Concepts", "AI Tools"];
+    const ACADEMY_LESSONS = [
+      { id: "what-is-0dte", title: "What Is 0DTE Options Trading?", category: "0DTE Options", difficulty: "Beginner", duration: "6 min", xp_reward: 25, required_level: 0, icon: "⚡", summary: "Learn what same-day options are and why traders love them.", content: "# What Is 0DTE Options Trading?\n\n## The Basics\n0DTE stands for Zero Days to Expiration. These are options that expire on the same day they are traded. Every weekday, SPY, QQQ, and SPX have options that expire at market close.\n\n## Why Traders Use 0DTE\n**Cheap premium** — time value is nearly zero. **High leverage** — small moves can double or zero out a position. **No overnight risk** — positions close by end of day.\n\n## The Real Risks\n**Gamma risk is extreme.** Small moves cause massive swings in option value. **Time decay is relentless.** Most 0DTE long options expire worthless. Define max loss before entering; take profits at 50-75%; never size up after a loss.", key_takeaways: ["0DTE = options expiring today", "Cheap premium but extreme gamma risk", "Define max loss BEFORE entering", "Most 0DTE long options expire worthless"] },
+      { id: "iv-crush-explained", title: "IV Crush: Why Options Lose Value After Earnings", category: "Market Concepts", difficulty: "Beginner", duration: "5 min", xp_reward: 25, required_level: 0, icon: "📉", summary: "Understand why new options traders lose money on earnings.", content: "# IV Crush\n\nImplied volatility (IV) is the market's forecast of how much a stock will move. Before earnings, IV rises and options get expensive. After the event, IV collapses — IV Crush. You can be right on direction and still lose 50% if IV drops. Do not buy options into earnings; consider selling premium when IV Rank is high.", key_takeaways: ["IV rises before events, collapses after", "You can be right on direction and still lose", "IV Rank above 70% = expensive options", "Consider selling premium into high-IV events"] },
+      { id: "position-sizing-basics", title: "Position Sizing: The Most Important Skill Nobody Teaches", category: "Risk Management", difficulty: "Beginner", duration: "7 min", xp_reward: 25, required_level: 0, icon: "📐", summary: "Why position sizing matters more than which stocks you pick.", content: "# Position Sizing\n\nNever risk more than 2% of your account on a single trade. Position size from your stop distance: Max Risk / Stop Distance = contracts. Use the Risk Center Position Calculator in Midori every time.", key_takeaways: ["Never risk more than 2% per trade", "Position size from your stop, not confidence", "Use the Midori Position Calculator every time"] },
+      { id: "vwap-explained", title: "VWAP: The Institutional Price Level That Actually Matters", category: "Market Concepts", difficulty: "Beginner", duration: "5 min", xp_reward: 25, required_level: 0, icon: "📊", summary: "Why VWAP is the most important intraday level for 0DTE traders.", content: "# VWAP\n\nVolume Weighted Average Price resets every day at 9:30 AM ET. Above VWAP = bullish bias; below = bearish. VWAP reclaim with volume = strong signal. Midori references VWAP in signal tags.", key_takeaways: ["VWAP = average price weighted by volume", "Above VWAP = bullish bias", "VWAP reclaim with volume = strong signal"] },
+      { id: "vix-for-traders", title: "VIX: What Fear Looks Like In Numbers", category: "Market Concepts", difficulty: "Beginner", duration: "6 min", xp_reward: 25, required_level: 0, icon: "😱", summary: "How to use VIX to adjust strategy and position sizing.", content: "# VIX\n\nThe market's fear gauge. Below 12: calm; 15-20: normal; above 25: reduce size significantly. Use VIX to scale position size — above 25 reduce by 75% or step aside.", key_takeaways: ["VIX measures expected 30-day volatility", "Higher VIX = more expensive options", "Above 25: reduce size significantly"] },
+      { id: "regime-detection-guide", title: "Market Regimes: Trade With The Environment", category: "Market Concepts", difficulty: "Intermediate", duration: "8 min", xp_reward: 25, required_level: 50, icon: "🌡️", summary: "Why the same strategy wins in some markets and loses in others.", content: "# Market Regimes\n\nTrending Bull, Trending Bear, High Volatility, Choppy/Neutral. Midori detects regime and adjusts signal confidence. In EXTREME_FEAR (VIX above 30), consider pausing.", key_takeaways: ["Same strategy fails in different regimes", "Check regime before every session", "Auto-pause in extreme fear"] },
+      { id: "options-greeks-101", title: "Options Greeks: Delta, Theta, and Vega", category: "0DTE Options", difficulty: "Intermediate", duration: "10 min", xp_reward: 25, required_level: 50, icon: "🔢", summary: "Demystify the Greeks with plain English.", content: "# Greeks\n\n**Delta**: price change per $1 move in underlying; approximates probability of ITM. **Theta**: time decay; maximum speed for 0DTE. **Vega**: sensitivity to IV; small for 0DTE. **Gamma**: delta's rate of change; highest in 0DTE.", key_takeaways: ["Delta = directional exposure", "Theta = time decay cost", "Gamma = acceleration (highest in 0DTE)"] },
+      { id: "max-drawdown-understanding", title: "Max Drawdown: The Metric That Tells You If A Strategy Is Safe", category: "Risk Management", difficulty: "Intermediate", duration: "7 min", xp_reward: 25, required_level: 50, icon: "📉", summary: "Why win rate is misleading and max drawdown is the truth.", content: "# Max Drawdown\n\nLargest peak-to-trough decline. 50% drawdown needs 100% gain to recover. Know max drawdown before using any strategy; size positions so you can survive it.", key_takeaways: ["Win rate alone is misleading", "50% drawdown needs 100% gain to recover", "Know max drawdown before using a strategy"] },
+      { id: "credit-spreads-intro", title: "Credit Spreads: Getting Paid To Be Right About Direction", category: "0DTE Options", difficulty: "Intermediate", duration: "9 min", xp_reward: 25, required_level: 50, icon: "💰", summary: "How bull put spreads and bear call spreads work.", content: "# Credit Spreads\n\nSell one option, buy another; collect credit. Max gain and max loss defined. Theta works for you. Need high win rate due to negative risk/reward. Midori identifies spread opportunities when IV Rank and regime align.", key_takeaways: ["Credit spreads collect premium upfront", "Time decay works in your favor", "Requires high win rate"] },
+      { id: "reading-ai-confidence", title: "Understanding Midori Confidence Scores", category: "AI Tools", difficulty: "Beginner", duration: "4 min", xp_reward: 25, required_level: 0, icon: "🎯", summary: "What confidence percentages mean and how to use them.", content: "# Confidence\n\nPattern match score, not win probability. 70%+ = standard size; 55-69% = half size; under 55% = paper or skip. Use confidence to size, not to decide. Context changes throughout the day.", key_takeaways: ["Confidence is pattern match, not guarantee", "70%+ = standard size, 55-69% = half size", "Never full-size on confidence alone"] },
+      { id: "iron-condors-income", title: "Iron Condors for Income", category: "0DTE Options", difficulty: "Intermediate", duration: "8 min", xp_reward: 25, required_level: 50, icon: "🦋", summary: "Sell premium in range-bound markets with defined risk.", content: "# Iron Condors\n\nSell an OTM put spread and OTM call spread; collect premium. Profit if price stays between the short strikes. Define max loss; use in choppy or high-IV regimes. Manage at 50% of max profit or when tested.", key_takeaways: ["Sell put spread + call spread", "Profit in range-bound markets", "Define max loss and manage early"] },
+      { id: "swing-moving-averages", title: "Swing Trading with Moving Averages", category: "Swing Trading", difficulty: "Beginner", duration: "7 min", xp_reward: 25, required_level: 0, icon: "📈", summary: "Use MAs for trend and entry timing.", content: "# Swing Trading with MAs\n\nUse 20/50/200 EMAs for trend. Price above MAs = bullish; pullbacks to support = entries. Combine with volume and regime. Midori uses MAs in regime detection.", key_takeaways: ["20/50/200 for trend", "Pullbacks to MAs = entries", "Combine with regime"] },
+      { id: "congressional-trade-data", title: "Reading the Congressional Trade Data", category: "Market Concepts", difficulty: "Intermediate", duration: "6 min", xp_reward: 25, required_level: 50, icon: "🏛️", summary: "How to use STOCK Act disclosures.", content: "# Congressional Trades\n\nSTOCK Act requires disclosure; data can lag 45+ days. Use for context, not timing. Midori may reference this data in macro context. Do not trade solely on disclosure dates.", key_takeaways: ["Data lags 45+ days", "Context not timing", "Do not trade solely on disclosures"] },
+      { id: "regime-filter-how-to", title: "How to Use the Regime Filter", category: "AI Tools", difficulty: "Beginner", duration: "5 min", xp_reward: 25, required_level: 0, icon: "🌡️", summary: "Apply regime to your signal selection.", content: "# Regime Filter\n\nCheck Risk Center or dashboard for current regime. In Trending Bull favor calls and VWAP bounces; in Choppy reduce size. When Midori shows EXTREME_FEAR, consider pausing. Align setups with regime.", key_takeaways: ["Check regime before trading", "Align setups with regime", "Pause in extreme fear"] },
+      { id: "building-watchlist", title: "Building Your First Watchlist", category: "Swing Trading", difficulty: "Beginner", duration: "6 min", xp_reward: 25, required_level: 0, icon: "📋", summary: "Curate a focused list for analysis and signals.", content: "# Watchlist\n\nStart with 3-5 names: e.g. SPY, QQQ, IWM for 0DTE. Add names that match your focus (momentum, value). Use Midori Analysis and Signals on your list; avoid analyzing one ticker only.", key_takeaways: ["Start with 3-5 names", "Match your focus", "Diversify analysis"] },
+      { id: "dca-explained", title: "Dollar Cost Averaging Explained", category: "Market Concepts", difficulty: "Beginner", duration: "5 min", xp_reward: 25, required_level: 0, icon: "📅", summary: "Systematic investing over time.", content: "# DCA\n\nInvest fixed amounts at regular intervals. Smooths entry price; reduces timing risk. Good for long-term holdings. Not a substitute for risk management in active trading.", key_takeaways: ["Fixed amounts at intervals", "Reduces timing risk", "For long-term, not active trading"] },
+      { id: "earnings-season-strategy", title: "Earnings Season Strategy", category: "Market Concepts", difficulty: "Intermediate", duration: "7 min", xp_reward: 25, required_level: 50, icon: "📊", summary: "How to approach options around earnings.", content: "# Earnings and Options\n\nIV rises into earnings; avoid buying premium right before. Consider selling premium or staying flat. Use IV Rank; if above 70%, options are expensive. After earnings, IV crush can help short premium.", key_takeaways: ["Avoid buying premium into earnings", "IV crush helps sellers", "Check IV Rank"] },
+      { id: "reading-options-chain", title: "How to Read an Options Chain", category: "0DTE Options", difficulty: "Beginner", duration: "8 min", xp_reward: 25, required_level: 0, icon: "📜", summary: "Bid, ask, delta, IV, and volume.", content: "# Options Chain\n\nBid/ask = spread cost. Delta = directional exposure and rough ITM probability. IV = implied volatility. Volume and open interest show liquidity. For 0DTE focus on near-the-money strikes and same-day expiry.", key_takeaways: ["Delta ≈ ITM probability", "IV and volume matter", "Focus on liquid, near ATM for 0DTE"] },
+      { id: "psychology-drawdowns", title: "The Psychology of Drawdowns", category: "Risk Management", difficulty: "Intermediate", duration: "6 min", xp_reward: 25, required_level: 50, icon: "🧠", summary: "How to stay disciplined during losing streaks.", content: "# Psychology\n\nDrawdowns are normal. Avoid revenge trading and doubling down. Stick to position sizing; take breaks after big losses. Most traders quit at the worst time; know your strategy's expected drawdown.", key_takeaways: ["Drawdowns are normal", "No revenge trading", "Stick to sizing and take breaks"] },
+      { id: "daily-risk-limits", title: "Setting Up Your Daily Risk Limits", category: "Risk Management", difficulty: "Beginner", duration: "5 min", xp_reward: 25, required_level: 0, icon: "🛡️", summary: "Use the Risk Center to set max loss and position limits.", content: "# Daily Risk Limits\n\nSet max daily loss, max positions, and risk per trade in Midori's Risk Center. Once set, the app can remind you. Never exceed your limits; pause when you hit the daily cap.", key_takeaways: ["Set max daily loss and position limits", "Use Risk Center", "Pause when at cap"] },
+    ];
+
+    function getRecommendedLesson(profile) {
+      let completed = [];
+      try { completed = JSON.parse(localStorage.getItem("midori_completed_lessons") || "[]"); } catch (_) {}
+      const optionsXP = parseInt(localStorage.getItem("midori_points_options") || "0", 10) || 0;
+      const available = ACADEMY_LESSONS.filter(function(l) { return completed.indexOf(l.id) === -1 && l.required_level <= optionsXP; });
+      if (!available.length) return ACADEMY_LESSONS[0];
+      const level = (profile && profile.level) || "intermediate";
+      if (level === "beginner") {
+        const beg = available.filter(function(l) { return l.difficulty === "Beginner"; });
+        return (beg.length ? beg[0] : available[0]);
+      }
+      return available[0];
+    }
+
+    function renderLessonContent(content) {
+      if (!content) return "";
+      return String(content)
+        .replace(/^# (.+)$/gm, "<h1 class=\"lesson-h1\">$1</h1>")
+        .replace(/^## (.+)$/gm, "<h2 class=\"lesson-h2\">$1</h2>")
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/^- (.+)$/gm, "<div class=\"takeaway-item\">• $1</div>")
+        .replace(/\n\n/g, "<br><br>")
+        .replace(/\n/g, "<br>");
+    }
+
+    function openLesson(lessonId) {
+      const lesson = ACADEMY_LESSONS.find(function(l) { return l.id === lessonId; });
+      if (!lesson) return;
+      let completed = [];
+      try { completed = JSON.parse(localStorage.getItem("midori_completed_lessons") || "[]"); } catch (_) {}
+      const isCompleted = completed.indexOf(lessonId) !== -1;
+      const modal = document.createElement("div");
+      modal.className = "modal-overlay";
+      modal.id = "lesson-modal";
+      const contentHtml = renderLessonContent(lesson.content);
+      modal.innerHTML =
+        '<div class="modal-box modal-xl lesson-modal-box">' +
+        '<div class="lesson-modal-header">' +
+        '<button type="button" class="btn secondary" onclick="closeModal(\'lesson-modal\')">← Back to Academy</button>' +
+        '<div class="lesson-meta-badges">' +
+        '<span class="badge badge-gray">' + escapeHtml(lesson.category) + '</span>' +
+        '<span class="badge badge-gray">' + escapeHtml(lesson.difficulty) + '</span>' +
+        '<span class="badge badge-gray">⏱ ' + escapeHtml(lesson.duration) + '</span>' +
+        '<span class="badge badge-success">+' + lesson.xp_reward + ' XP</span></div></div>' +
+        '<div class="lesson-content">' + contentHtml + '</div>' +
+        '<div class="lesson-takeaways"><h3>⚡ Key Takeaways</h3>' +
+        (lesson.key_takeaways || []).map(function(t) { return '<div class="takeaway-item">✅ ' + escapeHtml(t) + '</div>'; }).join("") +
+        '</div>' +
+        '<div class="lesson-footer">' +
+        (isCompleted ? '<span class="badge badge-success">✅ Completed</span>' : '<button type="button" class="btn primary" onclick="completeLesson(\'' + escapeHtml(lessonId) + '\')">Mark as Complete (+' + lesson.xp_reward + ' XP)</button>') +
+        '</div></div>';
+      document.body.appendChild(modal);
+    }
+
+    function completeLesson(lessonId) {
+      let completed = [];
+      try { completed = JSON.parse(localStorage.getItem("midori_completed_lessons") || "[]"); } catch (_) {}
+      if (!Array.isArray(completed)) completed = [];
+      if (completed.indexOf(lessonId) === -1) {
+        completed.push(lessonId);
+        localStorage.setItem("midori_completed_lessons", JSON.stringify(completed));
+        awardPoints("complete_lesson");
+        showToast("Lesson complete! +25 XP earned");
+      }
+      closeModal("lesson-modal");
+    }
+
+    function renderAcademy() {
+      const featuredEl = $("academyFeaturedCard");
+      const tabsEl = $("academyTabs");
+      const gridEl = $("academyGrid");
+      if (!featuredEl || !tabsEl || !gridEl) return;
+      const profile = getUserProfile();
+      const recommended = getRecommendedLesson(profile);
+      featuredEl.innerHTML = '<div style="padding:20px;"><div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">RECOMMENDED FOR YOU</div><div style="font-size:18px; font-weight:700; margin-bottom:8px;">' + escapeHtml(recommended.title) + '</div><p class="hint" style="margin-bottom:12px;">' + escapeHtml(recommended.summary) + '</p><button type="button" class="btn" onclick="openLesson(\'' + escapeHtml(recommended.id) + '\')">Start lesson</button></div>';
+      const catFilter = window._academyCategory || "All";
+      tabsEl.innerHTML = ACADEMY_CATEGORIES.map(function(c) {
+        return '<button type="button" class="chip' + (c === catFilter ? ' active' : '') + '" data-academy-cat="' + escapeHtml(c) + '" onclick="window._academyCategory=\'' + c.replace(/'/g, "\\'") + '\'; renderAcademy();">' + escapeHtml(c) + '</button>';
+      }).join("");
+      const filtered = catFilter === "All" ? ACADEMY_LESSONS : ACADEMY_LESSONS.filter(function(l) { return l.category === catFilter; });
+      const optionsXP = parseInt(localStorage.getItem("midori_points_options") || "0", 10) || 0;
+      let completed = [];
+      try { completed = JSON.parse(localStorage.getItem("midori_completed_lessons") || "[]"); } catch (_) {}
+      gridEl.innerHTML = filtered.map(function(l) {
+        const locked = l.required_level > optionsXP;
+        const done = completed.indexOf(l.id) !== -1;
+        return '<div class="card" style="padding:16px; cursor:pointer;" onclick="' + (locked ? '' : 'openLesson(\'' + escapeHtml(l.id) + '\')') + '">' +
+          '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">' +
+          '<span class="badge badge-gray">' + escapeHtml(l.category) + '</span>' +
+          (done ? '<span class="badge badge-success">✅</span>' : (locked ? '<span class="badge badge-gray">🔒</span>' : '<span class="badge badge-success">+' + l.xp_reward + ' XP</span>')) +
+          '</div>' +
+          '<div style="font-size:16px; font-weight:700; margin-bottom:4px;">' + escapeHtml(l.icon) + ' ' + escapeHtml(l.title) + '</div>' +
+          '<div class="hint" style="font-size:12px; margin-bottom:8px;">' + escapeHtml(l.duration) + ' · ' + escapeHtml(l.difficulty) + '</div>' +
+          (locked ? '<div class="hint" style="font-size:11px;">Unlock at ' + l.required_level + ' Options XP</div>' : '') +
+          '</div>';
+      }).join("");
     }
 
     const RISK_GUARDRAILS_KEY = "midori_risk_guardrails_v1";
@@ -4271,7 +4768,7 @@
     function showScreen(screenId) {
       const newScreen = $(screenId);
       const currentScreen = document.querySelector(".screen.active");
-      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenRisk: "/risk", screenConfidence: "/confidence", screenBacktest: "/backtest", screenMethodology: "/methodology" };
+      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenRisk: "/risk", screenConfidence: "/confidence", screenBacktest: "/backtest", screenMethodology: "/methodology", screenAcademy: "/academy", screenCommunity: "/community" };
       const path = pathMap[screenId] || "/dashboard";
 
       function doSwitchAndAnimateIn() {
@@ -4458,6 +4955,13 @@
       initLightweightChart();
       loadHeroSignals();
       loadDashboardRegime();
+      var recCard = $("dashboardRecommendedLesson");
+      var recTitle = $("dashboardRecommendedLessonTitle");
+      if (recCard && recTitle && typeof getRecommendedLesson === "function") {
+        var lesson = getRecommendedLesson(getUserProfile());
+        recTitle.textContent = lesson.title;
+        recCard.style.display = "block";
+      }
     }
 
     async function loadDashboardRegime() {
@@ -4984,6 +5488,8 @@
         "/confidence": "screenConfidence",
         "/backtest": "screenBacktest",
         "/methodology": "screenMethodology",
+        "/academy": "screenAcademy",
+        "/community": "screenCommunity",
         "/terms": "screenTerms",
         "/privacy": "screenPrivacy",
       };
@@ -4994,6 +5500,9 @@
       if (path === "/confidence") { loadRegime(); renderMyProgress(); }
       if (path === "/risk") loadRiskCenter();
       if (path === "/dashboard") loadDashboardData();
+      if (path === "/academy") { if (typeof renderAcademy === "function") renderAcademy(); }
+      if (path === "/community") { /* community page is static */ }
+      updateReviewFabVisibility();
       // trades page removed
       if (path === "/analysis") {
         showGuardrailReminderIfNeeded("analysisGuardrailReminder");

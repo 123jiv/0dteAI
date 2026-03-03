@@ -1083,3 +1083,210 @@ def chat(req: ChatRequest):
     answer = resp.choices[0].message.content or ""
     return {"reply": answer}
 
+
+# ---------- Phase 1 community (no DB): session review & weekly recap ----------
+
+
+class SessionReviewRequest(BaseModel):
+    activity_log: List[Dict[str, Any]] = []
+    profile: Dict[str, Any] = {}
+    regime: str = "Unknown"
+    xp_log: List[Dict[str, Any]] = []
+
+
+@app.post("/api/session-review")
+def session_review(req: SessionReviewRequest):
+    """Generate AI end-of-session review from today's activity (localStorage data)."""
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
+
+    activity_log = req.activity_log or []
+    if not activity_log:
+        raise HTTPException(status_code=400, detail="No activity to review")
+
+    from collections import Counter
+    actions = [e.get("action") or e.get("feature") or "" for e in activity_log]
+    tickers = list(set(
+        str(t).strip()
+        for e in activity_log
+        for t in (e.get("tickers") if isinstance(e.get("tickers"), list) else [e.get("tickers")] if e.get("tickers") else [])
+        if t
+    ))
+    features_used = list(set(a for a in actions if a))
+    action_counts = Counter(actions)
+
+    user_profile = req.profile or {}
+    regime = req.regime or "Unknown"
+    xp_log = req.xp_log or []
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    xp_today = sum(
+        e.get("points", 0) for e in xp_log
+        if (e.get("timestamp") or "")[:10] == today_str
+    )
+
+    context = build_master_context()
+    prompt = f"""
+{context}
+
+USER PROFILE:
+Experience: {user_profile.get('level', 'unknown')}
+Risk tolerance: {user_profile.get('risk', 'unknown')}
+Focus: {user_profile.get('focus', 'unknown')}
+Current regime: {regime}
+
+TODAY'S SESSION ACTIVITY:
+{json.dumps(dict(action_counts), indent=2)}
+
+Tickers analyzed: {', '.join(tickers) or 'None'}
+Features used: {', '.join(features_used)}
+Total actions: {len(activity_log)}
+
+XP earned today: {xp_today}
+
+You are Midori, an expert trading coach.
+Write a personalized end-of-session review.
+Be specific — reference the actual tickers,
+actions, and patterns you see in their data.
+Be encouraging but honest about gaps.
+
+Format your response in exactly these sections
+using markdown:
+
+## Your Session Summary
+[2-3 sentences summarizing what they did today.
+Be specific about numbers and tickers.]
+
+## What You Did Well
+[2-3 bullet points. Reference specific actions.
+If they checked regime before trading, mention it.
+If they used risk tools, mention it.]
+
+## Where To Improve
+[1-3 bullet points. Specific and actionable.
+Never harsh — always constructive.
+If they only analyzed one ticker, suggest diversifying.
+If they never used risk center, suggest it.]
+
+## Midori's Coaching Note
+[1 paragraph. Connect their behavior to the
+current market regime. Give one specific insight
+about their trading pattern today.]
+
+## Tomorrow's Focus
+[One specific, actionable thing to do tomorrow.
+Make it concrete — not "trade better" but
+"Run analysis on 3 different tickers before
+deciding which one to focus on."]
+
+Keep the entire review under 300 words.
+Use plain English appropriate for their
+experience level: {user_profile.get('level')}.
+"""
+
+    try:
+        client = OpenAI()
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.7,
+        )
+        review_text = response.choices[0].message.content or ""
+        return {
+            "review": review_text,
+            "session_stats": {
+                "total_actions": len(activity_log),
+                "features_used": features_used,
+                "tickers": tickers,
+                "action_breakdown": dict(action_counts),
+            },
+            "generated_at": datetime.now().isoformat(),
+        }
+    except Exception as e:
+        print("Session review error:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class WeeklyRecapRequest(BaseModel):
+    activity: List[Dict[str, Any]] = []
+    xp_earned: int = 0
+    lessons_completed: List[str] = []
+    profile: Dict[str, Any] = {}
+    badges: List[Any] = []
+    sessions: int = 0
+    analyses: int = 0
+    signals: int = 0
+    current_regime: str = "Unknown"
+
+
+@app.post("/api/weekly-recap")
+def weekly_recap(req: WeeklyRecapRequest):
+    """Generate AI weekly recap newsletter (in-app preview, no email)."""
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
+
+    profile = req.profile or {}
+    context = build_master_context()
+    prompt = f"""
+{context}
+
+USER WEEKLY SUMMARY:
+Experience level: {profile.get('level', 'unknown')}
+Risk tolerance: {profile.get('risk', 'unknown')}
+XP earned this week: {req.xp_earned}
+Sessions this week: {req.sessions}
+Analyses run: {req.analyses}
+Signals reviewed: {req.signals}
+Lessons completed: {len(req.lessons_completed)}
+Badges earned: {len(req.badges)}
+Current regime: {req.current_regime}
+
+You are Midori. Write a warm, personalized
+weekly recap newsletter. Make it feel like
+it came from a knowledgeable friend who
+watched their trading week.
+
+Format in these exact sections:
+
+## 🌿 This Week With Midori
+
+## 📊 Your Week In Numbers
+[Reference the actual stats above]
+
+## 🎯 What The Market Did
+[Brief market context for the week]
+
+## 💪 Your Wins This Week
+[Reference specific actions they took]
+
+## 🌱 One Thing To Focus On Next Week
+[Specific, actionable, based on their level]
+
+## 📚 Recommended For You
+[Suggest one Academy lesson based on their profile]
+
+## 💬 Midori's Weekly Insight
+[One powerful trading insight relevant to
+current market conditions and their level]
+
+Keep it warm, encouraging, and specific.
+Under 350 words total.
+"""
+
+    try:
+        client = OpenAI()
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=600,
+            temperature=0.75,
+        )
+        recap_text = response.choices[0].message.content or ""
+        return {
+            "recap": recap_text,
+            "generated_at": datetime.now().isoformat(),
+            "week": datetime.now().strftime("Week of %B %d, %Y"),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
