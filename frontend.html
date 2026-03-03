@@ -3531,8 +3531,34 @@
               <div class="hint" style="font-size:11px;">Max drawdown from peak</div>
             </div>
           </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">5. Session Cooldown System</h2>
+            <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Automatically reduce position size as you draw down during a session. Educational only. Not financial advice.</p>
+            <div class="input-row" style="flex-wrap:wrap; gap:12px; align-items:flex-end;">
+              <div class="field">
+                <span class="field-label">Session start equity ($)</span>
+                <input id="cooldownStartEquity" class="pill-input" type="number" min="0" step="100" placeholder="e.g. 25000">
+              </div>
+              <div class="field">
+                <span class="field-label">Current equity ($)</span>
+                <input id="cooldownCurrentEquity" class="pill-input" type="number" min="0" step="100" placeholder="e.g. 23750">
+              </div>
+              <button type="button" class="btn" onclick="updateSessionCooldown()">Update</button>
+            </div>
+            <div id="cooldownStatusRow" style="margin-top:12px; display:none;">
+              <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                <span id="cooldownTierBadge" class="badge badge-gray">🟢 Normal</span>
+                <span id="cooldownDrawdownText" class="hint" style="font-size:12px;"></span>
+              </div>
+              <div id="cooldownRuleText" class="hint" style="margin-top:6px; font-size:12px;"></div>
+            </div>
+            <div id="cooldownHaltBanner" style="display:none; margin-top:12px; padding:12px 14px; border-radius:12px; border:1px solid var(--danger); background:rgba(244,63,94,0.12); font-size:13px;">
+              <div style="font-weight:600; margin-bottom:6px;">🛑 Daily loss limit reached. Trading halted for this session.</div>
+              <button id="cooldownOverrideBtn" type="button" class="btn secondary" onclick="overrideCooldownHalt()">I understand. Override halt.</button>
+            </div>
+          </div>
           <div class="card">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">5. Regime Detection</h2>
+            <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">6. Regime Detection</h2>
             <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Current market regime from SPY SMAs, RSI, and VIX.</p>
             <div id="riskRegimeWidget" class="hint">Loading regime…</div>
           </div>
@@ -4822,6 +4848,7 @@
       loadRegime();
       updatePositionSizeCalc();
       updateDrawdownFromStorage();
+      loadSessionCooldown();
       ["riskAccountSize", "riskCalcRiskPct", "riskEntry", "riskStop"].forEach((id) => {
         const inp = $(id);
         if (inp) inp.addEventListener("input", updatePositionSizeCalc);
@@ -5008,6 +5035,144 @@
         set("riskCurrentEquity", o.current);
       } catch (_) {}
       updateDrawdownGauge();
+    }
+
+    const COOLDOWN_TIER_KEY = "midori_cooldown_tier";
+    const COOLDOWN_START_KEY = "midori_session_start_equity";
+    const COOLDOWN_LOG_KEY = "midori_cooldown_log";
+    let currentCooldownTier = null;
+
+    function getCooldownTier(drawdownPct) {
+      if (drawdownPct < 5) return { id: "normal", label: "🟢 Normal", multiplier: 1.0, desc: "No cooldown active. Trade your normal size.", severity: "none" };
+      if (drawdownPct < 10) return { id: "caution", label: "🟡 Reduce Size 25%", multiplier: 0.75, desc: "Reduce position size by 25% until you recover.", severity: "warning" };
+      if (drawdownPct < 15) return { id: "reduced", label: "🟠 Reduce Size 50%", multiplier: 0.5, desc: "Reduce position size by 50% until you recover.", severity: "warning" };
+      return { id: "halted", label: "🔴 Trading Halted", multiplier: 0.0, desc: "Daily loss limit reached. Stop trading for this session.", severity: "critical" };
+    }
+
+    function saveCooldownState(startEquity, currentEquity, tierObj) {
+      try {
+        if (startEquity != null && isFinite(startEquity)) {
+          localStorage.setItem(COOLDOWN_START_KEY, String(startEquity));
+        }
+        if (tierObj && tierObj.id) {
+          localStorage.setItem(COOLDOWN_TIER_KEY, tierObj.id);
+        } else {
+          localStorage.removeItem(COOLDOWN_TIER_KEY);
+        }
+        const raw = localStorage.getItem(COOLDOWN_LOG_KEY);
+        let log = [];
+        if (raw) {
+          try { log = JSON.parse(raw) || []; } catch (_) {}
+        }
+        log.push({
+          timestamp: new Date().toISOString(),
+          start_equity: startEquity,
+          current_equity: currentEquity,
+          drawdown_pct: startEquity > 0 ? ((startEquity - currentEquity) / startEquity) * 100 : 0,
+          tier: tierObj ? tierObj.id : "none",
+        });
+        localStorage.setItem(COOLDOWN_LOG_KEY, JSON.stringify(log.slice(-200)));
+      } catch (_) {}
+    }
+
+    function updateSessionCooldown(fromLoad) {
+      const startEl = $("cooldownStartEquity");
+      const currentEl = $("cooldownCurrentEquity");
+      const statusRow = $("cooldownStatusRow");
+      const badgeEl = $("cooldownTierBadge");
+      const ddEl = $("cooldownDrawdownText");
+      const ruleEl = $("cooldownRuleText");
+      const haltBanner = $("cooldownHaltBanner");
+      if (!startEl || !currentEl || !statusRow || !badgeEl || !ddEl || !ruleEl || !haltBanner) return;
+
+      const start = parseFloat(startEl.value || "") || 0;
+      const current = parseFloat(currentEl.value || "") || 0;
+      if (!start || !current) {
+        statusRow.style.display = "none";
+        haltBanner.style.display = "none";
+        ruleEl.textContent = "Enter session start and current equity before trading.";
+        return;
+      }
+      if (current > start) {
+        // Up on the session: no cooldown
+        statusRow.style.display = "block";
+        haltBanner.style.display = "none";
+        badgeEl.textContent = "🟢 Up on session";
+        ddEl.textContent = "You're up " + (((current - start) / start) * 100).toFixed(1) + "% from session start.";
+        ruleEl.textContent = "No cooldown active while you're up on the session.";
+        currentCooldownTier = "none";
+        saveCooldownState(start, current, null);
+        if (!fromLoad) {
+          appendActivityLogEntry({ feature: "Cooldown", event: "session_up", value: ((current - start) / start) * 100 });
+        }
+        return;
+      }
+      const drawdown = ((start - current) / start) * 100;
+      const tier = getCooldownTier(drawdown);
+      statusRow.style.display = "block";
+      badgeEl.textContent = tier.label;
+      ddEl.textContent = "Current session drawdown: " + drawdown.toFixed(1) + "% from session start.";
+      ruleEl.textContent = tier.desc + (tier.id !== "normal" ? " Your ATR position size will be reduced automatically." : "");
+      haltBanner.style.display = tier.id === "halted" ? "block" : "none";
+      const prevTier = currentCooldownTier;
+      currentCooldownTier = tier.id;
+      saveCooldownState(start, current, tier);
+      if (!fromLoad) {
+        appendActivityLogEntry({
+          feature: "Cooldown",
+          event: "cooldown_updated",
+          value: drawdown,
+        });
+        if (prevTier !== tier.id) {
+          appendActivityLogEntry({
+            feature: "Cooldown",
+            event: "tier_changed",
+            value: tier.id,
+          });
+        }
+      }
+    }
+
+    function loadSessionCooldown() {
+      const startEl = $("cooldownStartEquity");
+      const currentEl = $("cooldownCurrentEquity");
+      if (!startEl || !currentEl) return;
+      try {
+        const storedStart = parseFloat(localStorage.getItem(COOLDOWN_START_KEY) || "") || 0;
+        const peakRaw = localStorage.getItem(RISK_DRAWDOWN_KEY);
+        if (storedStart) {
+          startEl.value = String(storedStart);
+        } else if (peakRaw) {
+          try {
+            const o = JSON.parse(peakRaw);
+            if (o && o.peak != null) startEl.value = String(o.peak);
+          } catch (_) {}
+        }
+        const tierId = localStorage.getItem(COOLDOWN_TIER_KEY) || "none";
+        currentCooldownTier = tierId;
+      } catch (_) {}
+      updateSessionCooldown(true);
+    }
+
+    function overrideCooldownHalt() {
+      const haltBanner = $("cooldownHaltBanner");
+      const btn = $("cooldownOverrideBtn");
+      if (!haltBanner || !btn) return;
+      if (!btn.dataset || btn.dataset.state !== "confirm") {
+        btn.dataset.state = "confirm";
+        btn.textContent = "Click again to confirm override";
+        return;
+      }
+      btn.dataset.state = "";
+      btn.textContent = "Halt overridden for this session";
+      haltBanner.style.display = "none";
+      currentCooldownTier = "none";
+      try { localStorage.setItem(COOLDOWN_TIER_KEY, "none"); } catch (_) {}
+      appendActivityLogEntry({
+        feature: "Cooldown",
+        event: "halt_overridden",
+        value: null,
+      });
     }
 
     async function loadRiskRegimeWidget() {
