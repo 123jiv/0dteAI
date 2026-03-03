@@ -452,16 +452,16 @@
     .card-vc:hover { border-color: #22C55E; box-shadow: 0 0 0 1px #22C55E, 0 4px 20px rgba(34,197,94,0.1); }
 
     /* ---------- VC card standard (apply to every card) ---------- */
-    .card-vc, .dashboard-card, .pulse-card, .market-events-card, .quick-tool-card, .hero-signal-card,
-    .stat-card, .daily-brief-card {
+    .card-vc, .dashboard-card, .market-events-card, .quick-tool-card, .hero-signal-card,
+    .stat-card, .daily-brief-card, .card {
       background: #0F1724;
       border: 1px solid #1E2D45;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 20px 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.3);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .card-vc:hover, .dashboard-card:hover, .quick-tool-card:hover, .hero-signal-card:hover, .stat-card:hover {
+    .card-vc:hover, .dashboard-card:hover, .quick-tool-card:hover, .hero-signal-card:hover, .stat-card:hover, .card:hover {
       border-color: #22C55E;
       box-shadow: 0 0 0 1px #22C55E, 0 4px 20px rgba(34,197,94,0.1);
     }
@@ -495,53 +495,79 @@
     .daily-brief-content .brief-suggestion { color: var(--primary); margin-top: 6px; font-weight: 500; }
     .daily-brief-error { font-size: 13px; color: var(--bearish); }
     .daily-brief-skeleton { display: flex; flex-direction: column; gap: 10px; }
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        #1E2D45 25%,
+        #2D3F58 50%,
+        #1E2D45 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
     .skeleton-line {
       height: 14px;
-      background: linear-gradient(90deg, var(--border) 25%, var(--bg-elevated) 50%, var(--border) 75%);
-      background-size: 200% 100%;
-      animation: skeleton-shimmer 1.2s ease-in-out infinite;
       border-radius: 4px;
     }
     .skeleton-line.skeleton-title { width: 60%; height: 18px; }
     .skeleton-line.skeleton-short { width: 75%; }
-    @keyframes skeleton-shimmer {
+    @keyframes shimmer {
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
     .skeleton-line, .event-skeleton, .hero-signal-skeleton {
-      background: linear-gradient(90deg, #1E2D45 25%, #243447 50%, #1E2D45 75%) !important;
-      background-size: 200% 100% !important;
-      animation: shimmer 1.5s infinite !important;
+      background: linear-gradient(90deg, #1E2D45 25%, #2D3F58 50%, #1E2D45 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
     }
 
     /* ---------- Market Pulse Strip (Dashboard) ---------- */
     .market-pulse-strip {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: var(--space-4);
-      margin-bottom: var(--space-6);
+      gap: 12px;
+      margin-bottom: 24px;
     }
     @media (max-width: 900px) { .market-pulse-strip { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) { .market-pulse-strip { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 480px) { .market-pulse-strip { grid-template-columns: 1fr; } }
     .pulse-card {
-      border-radius: var(--radius-lg);
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      padding: var(--space-4);
-      box-shadow: var(--shadow-card);
-      transition: box-shadow var(--transition), transform var(--transition);
+      background: #0F1724;
+      border: 1px solid #1E2D45;
+      border-radius: 12px;
+      padding: 16px 18px;
+      transition: border-color 0.2s;
     }
-    .pulse-card:hover { box-shadow: var(--shadow-elevated); transform: translateY(-2px); }
-    .pulse-card .pulse-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 4px; }
-    .pulse-card .pulse-price { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary); }
-    .pulse-card .pulse-change { font-size: 12px; font-weight: 600; }
-    .pulse-card .pulse-change.positive { color: var(--bullish); }
-    .pulse-card .pulse-change.negative { color: var(--bearish); }
-    .pulse-card .pulse-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .pulse-card:hover { border-color: #2D3F58; }
+    .pulse-card .pulse-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+    .pulse-card .pulse-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: #F1F5F9;
+      margin-bottom: 4px;
+    }
+    .pulse-card .pulse-change {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .pulse-card .pulse-change.positive { color: #22C55E; }
+    .pulse-card .pulse-change.negative { color: #F43F5E; }
+    .pulse-card .pulse-change.neutral { color: #94A3B8; }
+    .pulse-card .pulse-meta {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 4px;
+    }
     .dashboard-mid-row {
       display: grid;
       grid-template-columns: 65% 1fr;
@@ -1802,18 +1828,19 @@
       100% { background-position: 0% 50%; }
     }
     #pageLogin .login-wrap {
-      max-width: 380px;
+      max-width: 400px;
       width: 100%;
       margin: 0 auto;
-      padding: 0 var(--space-6);
+      padding: 0;
     }
     #pageLogin .login-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-8);
+      background: #0F1724;
+      border: 1px solid #1E2D45;
+      border-radius: 20px;
+      padding: 48px 40px;
       box-shadow: var(--shadow-elevated);
       transition: box-shadow var(--transition);
+      text-align: center;
     }
     #pageLogin .login-card.shake {
       animation: loginShake 0.5s ease;
@@ -1830,19 +1857,19 @@
       box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2);
     }
     #pageLogin .login-logo {
-      font-size: 28px;
+      font-size: 48px;
       font-weight: 800;
       letter-spacing: -0.03em;
       color: var(--text-primary);
       text-align: center;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
     }
     #pageLogin .login-logo .logo-mark { color: var(--primary); margin-right: 4px; }
     #pageLogin .login-tagline {
-      font-size: 12px;
-      color: var(--text-secondary);
+      font-size: 14px;
+      color: #475569;
       text-align: center;
-      margin-bottom: var(--space-6);
+      margin-bottom: 32px;
     }
     #pageLogin .password-wrap {
       position: relative;
@@ -2388,28 +2415,143 @@
     }
     @media print { .offline-banner { display: none !important; } }
 
-    .toast-container {
+    .toast-container { display: none; }
+
+    .toast-notification {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 400;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 9999;
+      white-space: nowrap;
+      max-width: 90vw;
+      text-align: center;
     }
-    .toast {
-      padding: 10px 16px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
+    .toast-show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast-info {
+      background: #1E2D45;
+      color: #F1F5F9;
+      border: 1px solid #2D3F58;
+    }
+    .toast-success {
+      background: rgba(34,197,94,0.15);
+      color: #22C55E;
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    .toast-warning {
+      background: rgba(245,158,11,0.15);
+      color: #F59E0B;
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+    .toast-error {
+      background: rgba(244,63,94,0.15);
+      color: #F43F5E;
+      border: 1px solid rgba(244,63,94,0.3);
+    }
+    @media print { .toast-notification { display: none !important; } }
+
+    /* Buttons: primary / secondary / ghost */
+    .btn-primary {
+      background: #22C55E;
+      color: #000000;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover {
+      background: #16A34A;
+      transform: translateY(-1px);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    .btn-primary:disabled {
+      background: #166534;
+      color: #4ADE80;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #94A3B8;
+      border: 1px solid #1E2D45;
+      border-radius: 8px;
+      padding: 9px 18px;
       font-size: 13px;
-      color: var(--text-primary);
-      animation: toastIn 0.2s ease;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
     }
-    @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    @media print { .toast-container { display: none !important; } }
+    .btn-secondary:hover {
+      border-color: #22C55E;
+      color: #22C55E;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #64748B;
+      border: none;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .btn-ghost:hover {
+      color: #F1F5F9;
+      background: #1E2D45;
+    }
+
+    /* Inputs / selects */
+    .input-base {
+      background: #0A0F1A;
+      border: 1px solid #1E2D45;
+      border-radius: 8px;
+      color: #F1F5F9;
+      padding: 10px 14px;
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .input-base:focus {
+      border-color: #22C55E;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+    }
+    .input-base::placeholder {
+      color: #334155;
+    }
+
+    .select-base {
+      background: #0A0F1A;
+      border: 1px solid #1E2D45;
+      border-radius: 8px;
+      color: #F1F5F9;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .select-base:focus {
+      border-color: #22C55E;
+    }
 
     .xp-toast {
       position: fixed;
@@ -2428,6 +2570,31 @@
       pointer-events: none;
     }
     .xp-toast-show { opacity: 1; transform: translateY(0); }
+
+    /* Empty states */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #475569;
+    }
+    .empty-icon {
+      font-size: 40px;
+      margin-bottom: 14px;
+      opacity: 0.6;
+    }
+    .empty-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #64748B;
+      margin-bottom: 8px;
+    }
+    .empty-desc {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.6;
+      max-width: 300px;
+      margin: 0 auto 20px;
+    }
 
     .badge-unlock-toast {
       position: fixed;
@@ -2735,8 +2902,8 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
       </button>
       <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
-      <aside class="app-sidebar">
-        <a href="#/dashboard" class="brand" id="brandLink">
+      <aside class="app-sidebar" id="sidebar">
+        <a href="#/dashboard" class="brand" id="brandLink" onclick="navigate(event, 'dashboard')">
           <div class="brand-icon"><span class="logo-mark">M</span></div>
           <div class="brand-title">
             <span class="brand-text">Project Midori</span>
@@ -2744,18 +2911,18 @@
           </div>
         </a>
         <nav class="nav" aria-label="Main navigation">
-          <a href="#/dashboard" id="navDashboard" aria-label="Dashboard"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg><span class="nav-label">Dashboard</span></a>
-          <a href="#/analysis" id="navAnalysis" aria-label="Analysis"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg><span class="nav-label">Analysis</span></a>
-          <a href="#/screener" id="navScreener" aria-label="Screener"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><span class="nav-label">Screener</span></a>
-          <a href="#/chat" id="navChat" aria-label="Chat"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg><span class="nav-label">Chat</span></a>
-          <a href="#/signals" id="navSignals" aria-label="Signals"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg><span class="nav-label">Signals</span></a>
-          <a href="#/risk" id="navRisk" aria-label="Risk Center"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg><span class="nav-label">Risk Center</span></a>
-          <a href="#/backtest" id="navBacktest" aria-label="Backtest"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg><span class="nav-label">Backtest</span></a>
-          <a href="#/confidence" id="navConfidence" aria-label="Confidence"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="nav-label">Confidence</span></a>
+          <a href="#/dashboard" id="navDashboard" class="nav-item" data-page="dashboard" aria-label="Dashboard" onclick="navigate(event, 'dashboard')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg><span class="nav-label">Dashboard</span></a>
+          <a href="#/analysis" id="navAnalysis" class="nav-item" data-page="analysis" aria-label="Analysis" onclick="navigate(event, 'analysis')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg><span class="nav-label">Analysis</span></a>
+          <a href="#/screener" id="navScreener" class="nav-item" data-page="screener" aria-label="Screener" onclick="navigate(event, 'screener')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><span class="nav-label">Screener</span></a>
+          <a href="#/chat" id="navChat" class="nav-item" data-page="chat" aria-label="Chat" onclick="navigate(event, 'chat')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg><span class="nav-label">Chat</span></a>
+          <a href="#/signals" id="navSignals" class="nav-item" data-page="signals" aria-label="Signals" onclick="navigate(event, 'signals')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg><span class="nav-label">Signals</span></a>
+          <a href="#/risk" id="navRisk" class="nav-item" data-page="risk" aria-label="Risk Center" onclick="navigate(event, 'risk')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg><span class="nav-label">Risk Center</span></a>
+          <a href="#/backtest" id="navBacktest" class="nav-item" data-page="backtest" aria-label="Backtest" onclick="navigate(event, 'backtest')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg><span class="nav-label">Backtest</span></a>
+          <a href="#/confidence" id="navConfidence" class="nav-item" data-page="confidence" aria-label="Confidence" onclick="navigate(event, 'confidence')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="nav-label">Confidence</span></a>
           <div class="nav-spacer"></div>
-          <a href="#/methodology" id="navMethodology" aria-label="Methodology"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317a1 1 0 011.35-.936l8.65 3.11a1 1 0 01.675.94V12a8 8 0 11-4.293-7.11l-6.382-2.3z" /></svg><span class="nav-label">Methodology</span></a>
-          <a href="#/academy" id="navAcademy" aria-label="Academy"><span class="nav-icon">🎓</span><span class="nav-label">Academy</span></a>
-          <a href="#/community" id="navCommunity" aria-label="Community"><span class="nav-icon">🌐</span><span class="nav-label">Community</span></a>
+          <a href="#/methodology" id="navMethodology" class="nav-item" data-page="methodology" aria-label="Methodology" onclick="navigate(event, 'methodology')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317a1 1 0 011.35-.936l8.65 3.11a1 1 0 01.675.94V12a8 8 0 11-4.293-7.11l-6.382-2.3z" /></svg><span class="nav-label">Methodology</span></a>
+          <a href="#/academy" id="navAcademy" class="nav-item" data-page="academy" aria-label="Academy" onclick="navigate(event, 'academy')"><span class="nav-icon">🎓</span><span class="nav-label">Academy</span></a>
+          <a href="#/community" id="navCommunity" class="nav-item" data-page="community" aria-label="Community" onclick="navigate(event, 'community')"><span class="nav-icon">🌐</span><span class="nav-label">Community</span></a>
           <div class="theme-toggle-wrap">
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Theme">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -2766,11 +2933,11 @@
         </nav>
       </aside>
       <nav class="bottom-tab-bar" id="bottomTabBar" aria-label="Mobile navigation">
-        <a href="#/dashboard" id="btDashboard" data-path="/dashboard"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>Dashboard</a>
-        <a href="#/analysis" id="btAnalysis" data-path="/analysis"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>Analysis</a>
-        <a href="#/signals" id="btSignals" data-path="/signals"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>Signals</a>
-        <a href="#/chat" id="btChat" data-path="/chat"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>Chat</a>
-        <a href="#/risk" id="btRisk" data-path="/risk"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>Risk</a>
+        <a href="#/dashboard" id="btDashboard" class="nav-item" data-page="dashboard" onclick="navigate(event, 'dashboard')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>Dashboard</a>
+        <a href="#/analysis" id="btAnalysis" class="nav-item" data-page="analysis" onclick="navigate(event, 'analysis')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>Analysis</a>
+        <a href="#/signals" id="btSignals" class="nav-item" data-page="signals" onclick="navigate(event, 'signals')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>Signals</a>
+        <a href="#/chat" id="btChat" class="nav-item" data-page="chat" onclick="navigate(event, 'chat')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>Chat</a>
+        <a href="#/risk" id="btRisk" class="nav-item" data-page="risk" onclick="navigate(event, 'risk')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>Risk</a>
       </nav>
       <main class="app-main" role="main" id="mainContent">
         <div class="top-header-bar">
@@ -2854,11 +3021,12 @@
                 </div>
               </div>
               <div id="midori-chart" style="width:100%;height:340px;background:#070B14;border-radius:0 0 12px 12px;"></div>
-              <div id="chart-loading" style="display:none; position:absolute; inset:0; background:rgba(7,11,20,0.8); align-items:center; justify-content:center; color:#94A3B8;">Loading...</div>
+            <div id="chart-loading" style="display:none; position:absolute; inset:0; background:rgba(7,11,20,0.8); align-items:center; justify-content:center; color:#94A3B8;">
+              <div class="skeleton" style="height:20px;width:60%;"></div>
+            </div>
               <div id="chart-error" style="display:none; position:absolute; inset:0; background:rgba(7,11,20,0.9); align-items:center; justify-content:center; flex-direction:column; gap:12px; color:#94A3B8;">
                 <div style="font-size:32px">📊</div>
                 <div id="chart-error-msg">Chart data unavailable</div>
-                <button type="button" class="btn secondary btn-sm" onclick="document.getElementById('chart-error').style.display='none'; currentChartTicker='SPY'; currentInterval='5m'; loadChartData('SPY','5m');">Load SPY</button>
               </div>
             </div>
             <div class="market-events-card">
@@ -2915,13 +3083,18 @@
           <div class="fred-macro-card" style="margin-bottom:16px; padding:12px 16px; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-lg);">
             <h3 style="font-size:13px; margin:0 0 8px;">Macro Data (FRED — US Gov Public Domain)</h3>
             <div id="fredMacroList" class="fred-macro-list" style="font-size:12px; color:var(--text-secondary); display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px;">
-              <span class="hint">Loading...</span>
+              <div class="skeleton" style="height:14px;width:60%;"></div>
+              <div class="skeleton" style="height:14px;width:50%;"></div>
+              <div class="skeleton" style="height:14px;width:70%;"></div>
+              <div class="skeleton" style="height:14px;width:55%;"></div>
+              <div class="skeleton" style="height:14px;width:65%;"></div>
+              <div class="skeleton" style="height:14px;width:45%;"></div>
             </div>
           </div>
 
           <div class="news-ticker-wrap" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <div class="news-ticker" id="newsTicker" style="flex:1; min-width:0;">
-              <span style="color:var(--text-muted); font-size:11px;">Loading headlines...</span>
+              <div class="skeleton" style="height:16px;width:80%;border-radius:6px;"></div>
             </div>
             <button type="button" class="btn secondary" style="padding:4px 8px; font-size:11px; flex-shrink:0;" onclick="loadNewsTicker()" aria-label="Refresh news">Refresh</button>
           </div>
@@ -3056,7 +3229,13 @@
               </select>
             </div>
             <p class="page-desc screener-options-only page-desc-dte" style="margin-top:8px; margin-bottom:0;">Options: Min/Max DTE set by trading style; override above if needed.</p>
-            <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers above and timeframe on Analysis, then run screener.</div>
+            <div id="screenerSummary" class="screener-summary" style="margin-top:10px;">
+              <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-title">No results yet</div>
+                <div class="empty-desc">Enter tickers above and click Run screener to find setups.</div>
+              </div>
+            </div>
             <div id="stockScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
             <div id="multiScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
           </div>
@@ -3084,7 +3263,13 @@
               </div>
               <button type="button" class="btn" onclick="runValueScreener()" style="margin-left:12px;">Run value screener</button>
             </div>
-            <div id="valueScreenerSummary" class="screener-summary" style="margin-top:10px;">No results yet. Set tickers and run value screener.</div>
+            <div id="valueScreenerSummary" class="screener-summary" style="margin-top:10px;">
+              <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <div class="empty-title">Run your first backtest</div>
+                <div class="empty-desc">Enter tickers and a lookback period to see historical performance.</div>
+              </div>
+            </div>
           </div>
           <div id="optionsScreenerWrap" class="screener-table-wrap" style="max-height:480px;">
             <table class="table-zebra">
@@ -3360,7 +3545,13 @@
 
           <div class="card" style="max-width:900px; margin-bottom:16px;">
             <div style="font-size:14px; font-weight:700; margin-bottom:10px;">📜 Recent XP Activity</div>
-            <div id="progressLog" class="hint">No activity yet—run an analysis or open a signal reasoning panel.</div>
+            <div id="progressLog" class="hint">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">No activity yet</div>
+                <div class="empty-desc">Run an analysis or open a signal to start your activity log.</div>
+              </div>
+            </div>
           </div>
 
           <div class="card" style="max-width:900px; margin-bottom:16px;">
@@ -3439,7 +3630,13 @@
               <div class="hint" style="margin-top:4px; font-size:11px;">Approximate growth path based on backtest stats. Not actual trade-by-trade history.</div>
             </div>
             <div id="backtestStatsGrid" style="display:none;"></div>
-            <div id="backtestResults" class="hint">No backtests run yet. Enter tickers and click Run backtest.</div>
+            <div id="backtestResults" class="hint">
+              <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <div class="empty-title">Run your first backtest</div>
+                <div class="empty-desc">Enter tickers and a lookback period to see historical performance.</div>
+              </div>
+            </div>
             <div id="backtestExplain" style="display:none; margin-top:16px; padding:12px; background:var(--bg-elevated); border-radius:var(--radius); border-left:4px solid var(--accent-primary);"></div>
             <div id="backtestRegimeNote" class="hint" style="display:none; margin-top:12px; padding:10px 12px; background:var(--bg-elevated); border-radius:var(--radius); font-size:12px;"></div>
             <div class="backtest-integrity-card">
@@ -3619,7 +3816,13 @@
               <button type="button" class="btn secondary" style="min-width:0; padding:6px 10px; font-size:12px;" onclick="exportActivityLog()">Export CSV</button>
               <button type="button" class="btn secondary" style="min-width:0; padding:6px 10px; font-size:12px;" onclick="clearActivityLog()">Clear log</button>
             </div>
-            <div id="activityLogEmpty" class="hint">No activity logged yet. Run an <a href="#/analysis" style="color:var(--accent-primary);">Analysis</a> or refresh <a href="#/signals" style="color:var(--accent-primary);">Signals</a> to populate entries.</div>
+            <div id="activityLogEmpty" class="hint">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">No activity yet</div>
+                <div class="empty-desc">Run an analysis or open a signal to start your activity log.</div>
+              </div>
+            </div>
             <div id="activityLogTableWrap" style="display:none; max-height:260px; overflow:auto; margin-top:8px;">
               <table class="table-zebra" style="font-size:11px;">
                 <thead>
@@ -3758,6 +3961,59 @@
 
     function $(id) { return document.getElementById(id); }
 
+    // Robust fetch wrapper with timeout + logging
+    let coldStartTimer = null;
+    let firstDataArrived = false;
+
+    function ensureColdStartTimer() {
+      if (coldStartTimer !== null || typeof showToast !== "function") return;
+      coldStartTimer = setTimeout(function() {
+        showToast(
+          "⏳ Server warming up — first load may take up to 30 seconds on free tier",
+          "info",
+          8000
+        );
+      }, 5000);
+    }
+
+    function clearColdStartTimer() {
+      if (coldStartTimer !== null) {
+        clearTimeout(coldStartTimer);
+        coldStartTimer = null;
+      }
+    }
+
+    async function safeFetch(url, options) {
+      try {
+        ensureColdStartTimer();
+        const controller = new AbortController();
+        const timeout = setTimeout(function() {
+          controller.abort();
+        }, 15000);
+
+        const res = await fetch(url, Object.assign({}, options || {}, { signal: controller.signal }));
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+
+        const json = await res.json();
+        if (!firstDataArrived) {
+          firstDataArrived = true;
+          clearColdStartTimer();
+        }
+        return json;
+      } catch (e) {
+        if (e.name === "AbortError") {
+          console.warn("[Fetch] Timeout:", url);
+          return null;
+        }
+        console.error("[Fetch] Error " + url + ":", e);
+        return null;
+      }
+    }
+
     function parseTickers(txt) {
       if (!txt || !String(txt).trim()) return [];
       return String(txt).split(/[,;\s]+/).map(s => s.trim().toUpperCase()).filter(s => s.length >= 1 && s.length <= 6);
@@ -3784,23 +4040,25 @@
 
     function setNotificationDot(panelId, visible) { /* no-op: panels removed in favor of full-page screens */ }
 
-    function showToast(msg) {
-      const c = $("toastContainer");
-      if (!c) return;
-      const el = document.createElement("div");
-      el.className = "toast";
-      el.textContent = msg;
-      c.appendChild(el);
-      if (window.gsap) {
-        gsap.from(el, { x: 100, opacity: 0, duration: 0.3, ease: "power2.out" });
-        gsap.to(el, { x: 100, opacity: 0, duration: 0.25, delay: 3, ease: "power2.in", onComplete: () => el.remove() });
-      } else {
+    function showToast(message, type = "info", duration = 3000) {
+      const existing = document.querySelectorAll(".toast-notification");
+      existing.forEach(function(t) { t.remove(); });
+
+      const toast = document.createElement("div");
+      toast.className = "toast-notification toast-" + type;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      requestAnimationFrame(function() {
+        toast.classList.add("toast-show");
+      });
+
+      setTimeout(function() {
+        toast.classList.remove("toast-show");
         setTimeout(function() {
-          el.style.opacity = "0";
-          el.style.transition = "opacity 0.2s";
-          setTimeout(function() { el.remove(); }, 200);
-        }, 2500);
-      }
+          toast.remove();
+        }, 300);
+      }, duration);
     }
 
     function apiHeaders(extra = {}) {
@@ -5034,12 +5292,10 @@
       if (errorEl) { errorEl.style.display = "none"; errorEl.textContent = ""; }
       try {
         const params = new URLSearchParams({ profile: getProfileParam() });
-        const res = await fetch("/api/daily-brief?" + params.toString(), { headers: apiHeaders() });
-        if (!res.ok) {
-          const t = await res.text();
-          throw new Error(t || "Failed to load brief");
+        const data = await safeFetch("/api/daily-brief?" + params.toString(), { headers: apiHeaders() });
+        if (!data) {
+          throw new Error("Daily brief temporarily unavailable");
         }
-        const data = await res.json();
         const brief = (data.brief || "").trim();
         if (skeletonEl) skeletonEl.style.display = "none";
         if (contentEl) {
@@ -5050,7 +5306,10 @@
         if (skeletonEl) skeletonEl.style.display = "none";
         if (errorEl) {
           errorEl.style.display = "block";
-          errorEl.textContent = "Brief unavailable. " + (e.message || String(e));
+          errorEl.innerHTML =
+            "Markets are open. Check SPY relative to VWAP and today's VIX level before trading. " +
+            '<button type="button" class="btn-secondary" onclick="loadDailyBrief()">Retry \u2192</button>';
+          console.error("Daily brief load failed:", e);
         }
       }
     }
@@ -5090,37 +5349,65 @@
       return div.innerHTML;
     }
 
+    let marketPulseTimeout = null;
+
+    function scheduleMarketPulseRefresh() {
+      if (marketPulseTimeout) {
+        clearTimeout(marketPulseTimeout);
+        marketPulseTimeout = null;
+      }
+      try {
+        const status = getMarketStatus();
+        const isOpen = status && status.cls === "market-open";
+        const delay = isOpen ? 60000 : 300000; // 60s during market hours, 5m otherwise
+        marketPulseTimeout = setTimeout(function() {
+          loadMarketPulse();
+        }, delay);
+      } catch (e) {
+        console.error("Market pulse schedule error:", e);
+      }
+    }
+
     async function loadMarketPulse() {
       const btn = $("marketPulseRefreshBtn");
       if (btn) { btn.disabled = true; btn.textContent = "Refreshing…"; }
       try {
         const [md, fg] = await Promise.all([
-          fetch("/api/market-data").then(r => r.json()),
-          fetch("/api/fear-greed").then(r => r.json())
+          safeFetch("/api/market-data"),
+          safeFetch("/api/fear-greed")
         ]);
         const fmt = (v) => (v == null || v === "" ? "--" : Number(v).toFixed(2));
         const chg = (v) => {
-          if (v == null || v === "" || v === "--") return { text: "--", cls: "" };
+          if (v == null || v === "" || v === "--") return { text: "--", cls: "neutral" };
           const n = Number(v);
-          const cls = n >= 0 ? "positive" : "negative";
+          if (!Number.isFinite(n) || Number.isNaN(n)) return { text: "--", cls: "neutral" };
+          const cls = n > 0 ? "positive" : n < 0 ? "negative" : "neutral";
           return { text: (n >= 0 ? "+" : "") + n + "%", cls };
         };
-        if (md.tickers) {
+        if (md && md.tickers) {
           ["SPY", "QQQ"].forEach(sym => {
             const t = md.tickers[sym];
             if (t) {
               const el = $("pulse" + sym);
               const chEl = $("pulse" + sym + "Chg");
               if (el) el.textContent = "$" + fmt(t.price);
-              if (chEl) { const c = chg(t.change_pct); chEl.textContent = c.text; chEl.className = "pulse-change " + c.cls; }
+              if (chEl) {
+                const c = chg(t.change_pct);
+                chEl.textContent = c.text;
+                chEl.className = "pulse-change " + c.cls;
+              }
             }
           });
         }
-        if (md.vix && md.vix.price) {
+        if (md && md.vix && md.vix.price != null) {
           const el = $("pulseVIX");
           const chEl = $("pulseVIXChg");
           if (el) el.textContent = fmt(md.vix.price);
-          if (chEl) { const c = chg(md.vix.change_pct); chEl.textContent = c.text; chEl.className = "pulse-change " + c.cls; }
+          if (chEl) {
+            const c = chg(md.vix.change_pct);
+            chEl.textContent = c.text;
+            chEl.className = "pulse-change " + c.cls;
+          }
         }
         if (fg && fg.score != null) {
           const el = $("pulseFG");
@@ -5141,13 +5428,14 @@
         const strip = $("marketPulseStrip");
         if (strip) strip.removeAttribute("aria-busy");
       } catch (e) {
-        console.warn("Market pulse load failed:", e);
+        console.error("Market pulse load failed:", e);
         const updatedEl = $("marketPulseUpdated");
         if (updatedEl) updatedEl.textContent = "";
         const strip = $("marketPulseStrip");
         if (strip) strip.removeAttribute("aria-busy");
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = "Refresh"; }
+        scheduleMarketPulseRefresh();
       }
     }
 
@@ -5155,11 +5443,14 @@
       const el = document.getElementById("fredMacroList");
       if (!el) return;
       try {
-        const r = await fetch("/api/fred-macro");
-        const data = await r.json();
+        const data = await safeFetch("/api/fred-macro");
+        if (!data) {
+          el.innerHTML = '<span class="hint">Macro data temporarily unavailable. Retry →</span>';
+          return;
+        }
         const keys = Object.keys(data);
         if (!keys.length) {
-          el.innerHTML = '<span class="hint">FRED data unavailable (add FRED_KEY)</span>';
+          el.innerHTML = '<span class="hint">Macro data temporarily unavailable. Retry →</span>';
           return;
         }
         el.innerHTML = keys.map(k => {
@@ -5170,7 +5461,8 @@
           return '<div><span style="color:var(--text-muted);">' + escapeHtml(label) + ':</span> <span class="font-mono">' + escapeHtml(String(val)) + '</span>' + escapeHtml(date) + '</div>';
         }).join("");
       } catch (e) {
-        el.innerHTML = '<span class="hint">Macro data unavailable</span>';
+        console.error("FRED macro load failed:", e);
+        el.innerHTML = '<span class="hint">Macro data temporarily unavailable. Retry →</span>';
       }
     }
 
@@ -5178,9 +5470,8 @@
       const el = $("marketEventsList");
       if (!el) return;
       try {
-        const r = await fetch("/api/economic-events");
-        const data = await r.json();
-        const events = data.events || [];
+        const data = await safeFetch("/api/economic-events");
+        const events = (data && data.events) || [];
         el.classList.remove("skeleton-loading");
         if (!events.length) {
           el.innerHTML = '<div class="no-events">No high-impact events today ✓</div>';
@@ -5192,6 +5483,7 @@
           return '<div class="event">⚠️ ' + time + ' — ' + (title.length > 40 ? title.slice(0, 40) + "…" : title) + '</div>';
         }).join("");
       } catch (e) {
+        console.error("Market events load failed:", e);
         el.classList.remove("skeleton-loading");
         el.innerHTML = '<div class="no-events">Data temporarily unavailable</div>';
       }
@@ -5201,9 +5493,8 @@
       const el = $("newsTicker");
       if (!el) return;
       try {
-        const r = await fetch("/api/news");
-        const data = await r.json();
-        const headlines = data.headlines || [];
+        const data = await safeFetch("/api/news");
+        const headlines = (data && data.headlines) || [];
         if (!headlines.length) {
           el.innerHTML = '<span style="color:var(--text-muted);">No headlines available</span>';
           return;
@@ -5211,7 +5502,8 @@
         const items = headlines.map(h => '<a href="' + (h.link || "#") + '" target="_blank" rel="noopener">' + (h.title || "").replace(/</g, "&lt;") + '</a>');
         el.innerHTML = items.concat(items).join("");
       } catch (e) {
-        el.innerHTML = '<span style="color:var(--text-muted);">Headlines unavailable</span>';
+        console.error("News ticker load failed:", e);
+        el.innerHTML = '<span style="color:var(--text-muted);">Headlines temporarily unavailable</span>';
       }
     }
 
@@ -5298,10 +5590,9 @@
       const overlay = document.getElementById("chart-loading");
       if (overlay) overlay.style.display = "flex";
       try {
-        const res = await fetch("/api/chart-data?ticker=" + encodeURIComponent(ticker) + "&interval=" + encodeURIComponent(interval));
-        const data = await res.json();
-        if (data.error || !data.candles?.length) {
-          showChartError(ticker);
+        const data = await safeFetch("/api/chart-data?ticker=" + encodeURIComponent(ticker) + "&interval=" + encodeURIComponent(interval));
+        if (!data || data.error || !data.candles || !data.candles.length) {
+          showChartError(ticker, data && data.error);
           return;
         }
         lwCandleSeries.setData(data.candles);
@@ -5327,12 +5618,19 @@
       }
     }
 
-    function showChartError(ticker) {
+    function showChartError(ticker, error) {
       const overlay = document.getElementById("chart-loading");
       const errEl = document.getElementById("chart-error");
       const msgEl = document.getElementById("chart-error-msg");
       if (overlay) overlay.style.display = "none";
-      if (msgEl) msgEl.textContent = "Chart data unavailable for " + (ticker || "ticker");
+      if (msgEl) {
+        const baseTicker = ticker || "ticker";
+        if (error === "No data") {
+          msgEl.textContent = "Market closed — showing last session data is unavailable for " + baseTicker;
+        } else {
+          msgEl.textContent = "Chart data unavailable for " + baseTicker;
+        }
+      }
       if (errEl) errEl.style.display = "flex";
     }
 
@@ -5459,7 +5757,7 @@
       });
     }
 
-    function handleNav(event, pageId) {
+    function navigate(event, pageId) {
       try {
         if (event) {
           event.preventDefault();
@@ -5469,22 +5767,8 @@
       const clean = String(pageId || "").replace(/^#\/?/, "").replace(/^\//, "").trim();
       const nextHash = "#/" + (clean || "dashboard");
       if (window.location.hash !== nextHash) window.location.hash = nextHash;
-      try { route(); } catch (_) {}
+      try { route(); } catch (e) { console.error("route error in navigate:", e); }
       try { closeSidebar(); } catch (_) {}
-    }
-
-    function bindNavLinks() {
-      const navLinks = Array.from(document.querySelectorAll(".app-sidebar .nav a, .bottom-tab-bar a, #brandLink"));
-      navLinks.forEach(function(a) {
-        try {
-          const href = a.getAttribute("href") || "";
-          if (!href.startsWith("#/")) return;
-          a.removeAttribute("target");
-          a.removeAttribute("rel");
-          const pageId = href.replace(/^#\//, "").replace(/\/$/, "");
-          a.addEventListener("click", function(e) { handleNav(e, pageId); });
-        } catch (_) {}
-      });
     }
 
     function route() {
@@ -6115,7 +6399,6 @@
       try { Router.go("dashboard"); } catch (e) { console.error("Router.go error:", e); }
       try { route(); } catch (e) { console.error("route error:", e); }
       try { if (!document.querySelector(".screen.active")) showScreen("screenDashboard"); } catch (_) {}
-      try { bindNavLinks(); } catch (_) {}
       initOfflineBanner();
       initNumberInputClamp();
       renderActivityLog();
