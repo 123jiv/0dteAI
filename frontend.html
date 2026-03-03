@@ -3192,13 +3192,14 @@
             <h1 class="page-title">Screener</h1>
             <p class="page-desc">Filter options and stocks by volume, spread, and DTE. Timeframe presets live on Analysis; you can override DTE here.</p>
           </div>
-          <div class="chip-row screener-tabs" style="margin-bottom:14px;">
-            <button type="button" class="chip active" data-screener-tab="options">Options</button>
-            <button type="button" class="chip" data-screener-tab="stocks">Stocks</button>
-            <button type="button" class="chip" data-screener-tab="multi">Multi-asset</button>
-            <button type="button" class="chip" data-screener-tab="value">Long-Term Value</button>
-          </div>
-          <div class="card" id="screenerOptionsCard" style="margin-bottom:16px;">
+          <div class="screener-shell">
+            <div class="chip-row screener-tabs" style="margin-bottom:14px;">
+              <button type="button" class="chip active" data-screener-tab="options">Options</button>
+              <button type="button" class="chip" data-screener-tab="stocks">Stocks</button>
+              <button type="button" class="chip" data-screener-tab="multi">Multi-asset</button>
+              <button type="button" class="chip" data-screener-tab="value">Long-Term Value</button>
+            </div>
+            <div class="card" id="screenerOptionsCard" style="margin-bottom:16px;">
             <div id="screenerStyleRow" class="screener-style-row" style="margin-bottom:12px;">
               <span class="screener-style-label">Trading style</span>
               <div class="chip-row chip-row-inline">
@@ -3242,11 +3243,23 @@
               <div class="empty-state">
                 <div class="empty-icon">🔍</div>
                 <div class="empty-title">No results yet</div>
-                <div class="empty-desc">Enter tickers above and click Run screener to find setups.</div>
+                <div class="empty-desc">Enter tickers above and click Run screener to find option setups.</div>
               </div>
             </div>
-            <div id="stockScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
-            <div id="multiScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;"></div>
+            <div id="stockScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;">
+              <div class="empty-state">
+                <div class="empty-icon">📈</div>
+                <div class="empty-title">No stock results yet</div>
+                <div class="empty-desc">Enter tickers above and click Run screener to scan stocks.</div>
+              </div>
+            </div>
+            <div id="multiScreenerSummary" class="screener-summary" style="margin-top:4px; display:none;">
+              <div class="empty-state">
+                <div class="empty-icon">🌐</div>
+                <div class="empty-title">No multi-asset results yet</div>
+                <div class="empty-desc">Enter tickers above and click Run screener to scan ETFs, sectors, and indices.</div>
+              </div>
+            </div>
           </div>
           <div class="card" id="screenerValueCard" style="margin-bottom:16px; display:none;">
             <div class="screener-controls">
@@ -3329,6 +3342,7 @@
               </tbody>
             </table>
             </div>
+          </div>
           </div>
         </div>
         <div id="screenChat" class="screen page-content">
