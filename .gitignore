@@ -1,0 +1,18 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+.env
+.venv
+
+# Node / Next.js (midori-ui)
+midori-ui/node_modules/
+midori-ui/.next/
+midori-ui/out/
+midori-ui/.env*.local
+midori-ui/npm-debug.log*
+
+# IDE
+.idea/
+*.swp
+.DS_Store

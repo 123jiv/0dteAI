@@ -15,49 +15,78 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect fill='%23070B14' width='32' height='32' rx='6'/><path fill='%233B82F6' d='M8 22V10l4 6 4-6 4 6 4-6v12h-2V14l-2 4-2-4v8h-2V14l-2 4-2-4v8H8z'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
 
   <style>
-    /* ========== Project Midori Design System ========== */
+    /* ========== Project Midori Design System (Magic UI-inspired) ========== */
     :root {
-      /* Surfaces */
-      --bg-primary: #070B14;
-      --bg-page: #070B14;
-      --bg-surface: #0F1724;
-      --bg-elevated: #161F30;
-      --bg-card: #0F1724;
-      --container-bg: #0F1724;
-      --border: #1E2D45;
-      /* Accents — green (Midori = green) */
-      --accent-primary: #22C55E;
-      --accent-secondary: #16A34A;
-      --accent-glow: rgba(34, 197, 94, 0.15);
-      --primary: #22C55E;
-      --primary-hover: #16A34A;
-      --primary-muted: rgba(34, 197, 94, 0.15);
-      --secondary: #16A34A;
-      --accent: #22C55E;
-      --accent-hover: #16A34A;
-      --accent-muted: rgba(34, 197, 94, 0.08);
+      /* Core palette (dark theme) */
+      --bg: #080c0a;
+      --bg2: #0d1410;
+      --bg3: #111a14;
+      --bg4: #151f18;
+      --green: #00e676;
+      --green-dim: rgba(0, 230, 118, 0.12);
+      --green-border: rgba(0, 230, 118, 0.22);
+      --green-glow: rgba(0, 230, 118, 0.06);
+      --text: #f0f5f1;
+      --text2: #a8bfad;
+      --muted: #6b7f72;
+      --muted2: #3d4f42;
+      --card: rgba(255, 255, 255, 0.032);
+      --card-hover: rgba(255, 255, 255, 0.055);
+      --card-border: rgba(255, 255, 255, 0.07);
+      --card-border-hover: rgba(255, 255, 255, 0.13);
+      --red: #ff4d4d;
+      --red-dim: rgba(255, 77, 77, 0.12);
+      --yellow: #ffc107;
+      --yellow-dim: rgba(255, 193, 7, 0.12);
+
+      /* Legacy surface aliases (for existing layout code) */
+      --bg-primary: var(--bg);
+      --bg-page: var(--bg);
+      --bg-surface: var(--bg2);
+      --bg-elevated: var(--bg3);
+      --bg-card: var(--card);
+      --container-bg: var(--bg2);
+      --border: var(--card-border);
+
+      /* Accents mapped to new green */
+      --accent-primary: var(--green);
+      --accent-secondary: var(--green);
+      --accent-glow: var(--green-glow);
+      --primary: var(--green);
+      --primary-hover: #1aff8a;
+      --primary-muted: var(--green-dim);
+      --secondary: var(--green);
+      --accent: var(--green);
+      --accent-hover: #1aff8a;
+      --accent-muted: var(--green-dim);
+
       /* Semantic */
-      --bullish: #10B981;
-      --bearish: #F43F5E;
-      --warning: #F59E0B;
-      --warn: #F59E0B;
-      --danger: #F43F5E;
-      --good: #10B981;
-      --font-ui: 'Inter', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-      /* Text */
-      --text-primary: #F1F5F9;
-      --text-secondary: #94A3B8;
-      --text-muted: #475569;
-      --border-strong: #1E2D45;
-      /* Bubbles */
-      --user-bubble: #1E3A5F;
-      --ai-bubble: #161F30;
+      --bullish: var(--green);
+      --bearish: var(--red);
+      --warning: var(--yellow);
+      --warn: var(--yellow);
+      --danger: var(--red);
+      --good: var(--green);
+
+      /* Typography */
+      --font-ui: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-heading: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+      /* Text aliases for existing code */
+      --text-primary: var(--text);
+      --text-secondary: var(--text2);
+      --text-muted: var(--muted);
+      --border-strong: var(--card-border);
+
+      /* Chat bubbles (mapped into new palette) */
+      --user-bubble: rgba(12, 179, 90, 0.24);
+      --ai-bubble: var(--bg3);
       /* Spacing: 4px base grid */
       --space-1: 4px;
       --space-2: 8px;
@@ -70,29 +99,41 @@
       --radius: 12px;
       --radius-lg: 16px;
       --radius-xl: 20px;
-      --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px #1E2D45;
-      --shadow-elevated: 0 4px 24px rgba(0,0,0,0.5);
-      --shadow-glow: 0 0 20px rgba(59,130,246,0.15);
-      --shadow-soft: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px #1E2D45;
-      --shadow-velvet: 0 4px 24px rgba(0,0,0,0.5);
-      --shadow-glow: 0 0 20px rgba(34, 197, 94, 0.15);
+      --shadow-card: 0 18px 45px rgba(0, 0, 0, 0.75);
+      --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.9);
+      --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.6);
+      --shadow-velvet: 0 30px 80px rgba(0, 0, 0, 0.9);
+      --shadow-glow: 0 0 40px var(--green-glow);
       --transition: 0.2s ease;
     }
     [data-theme="light"] {
-      --bg-page: #F8FAFC;
-      --bg-surface: #FFFFFF;
-      --bg-elevated: #F1F5F9;
-      --bg-card: #FFFFFF;
-      --container-bg: #FFFFFF;
-      --border: rgba(30, 45, 69, 0.12);
-      --text-primary: #0F172A;
-      --text-secondary: #475569;
-      --text-muted: #64748B;
-      --user-bubble: #E0F2FE;
-      --ai-bubble: #F1F5F9;
-      --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06);
-      --shadow-elevated: 0 4px 24px rgba(0,0,0,0.1);
-      --shadow-glow: 0 0 20px rgba(59,130,246,0.12);
+      --bg: #f8faf8;
+      --bg2: #f1f5f1;
+      --bg3: #e4eee4;
+      --bg4: #d7e5d7;
+      --card: #ffffff;
+      --card-hover: #f3faf5;
+      --card-border: #e0ece2;
+      --card-border-hover: #cfe2d4;
+      --text: #0d1410;
+      --text2: #425245;
+      --muted: #6b7f72;
+      --muted2: #9fb3a4;
+
+      --bg-page: var(--bg);
+      --bg-surface: var(--bg2);
+      --bg-elevated: var(--bg3);
+      --bg-card: var(--card);
+      --container-bg: var(--bg2);
+      --border: var(--card-border);
+      --text-primary: var(--text);
+      --text-secondary: var(--text2);
+      --text-muted: var(--muted);
+      --user-bubble: #e0f2fe;
+      --ai-bubble: #f1f5f9;
+      --shadow-card: 0 14px 40px rgba(0,0,0,0.06);
+      --shadow-elevated: 0 24px 70px rgba(0,0,0,0.12);
+      --shadow-glow: 0 0 30px rgba(0, 230, 118, 0.16);
       --shadow-soft: var(--shadow-card);
       --shadow-velvet: var(--shadow-elevated);
     }
@@ -105,7 +146,7 @@
       margin: 0;
       padding: 0;
       overflow-x: hidden;
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg-page);
       color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
@@ -117,20 +158,59 @@
       font-feature-settings: "tnum";
     }
 
+    h1, h2, h3,
+    .page-title,
+    .page-title-header {
+      font-family: "Syne", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.03em;
+    }
+
+
     body {
       display: flex;
       flex-direction: column;
       min-height: 100vh;
       min-width: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-ui);
     }
 
     .app {
+      position: relative;
+      z-index: 1;
       flex: 1;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
       min-width: 0;
       width: 100%;
+    }
+
+    /* ---------- Global background layers ---------- */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,230,118,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,230,118,0.03) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse 100% 80% at 50% 0%, black 30%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-orb {
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,230,118,0.09), transparent 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* ---------- Sidebar — ProjectMidori ---------- */
@@ -454,16 +534,17 @@
     /* ---------- VC card standard (apply to every card) ---------- */
     .card-vc, .dashboard-card, .market-events-card, .quick-tool-card, .hero-signal-card,
     .stat-card, .daily-brief-card, .card {
-      background: #0F1724;
-      border: 1px solid #1E2D45;
+      background: var(--card);
+      border: 1px solid var(--card-border);
       border-radius: 14px;
       padding: 20px 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     }
     .card-vc:hover, .dashboard-card:hover, .quick-tool-card:hover, .hero-signal-card:hover, .stat-card:hover, .card:hover {
-      border-color: #22C55E;
-      box-shadow: 0 0 0 1px #22C55E, 0 4px 20px rgba(34,197,94,0.1);
+      border-color: var(--card-border-hover);
+      background: var(--card-hover);
+      box-shadow: var(--shadow-elevated);
     }
     .pulse-card:hover, .market-events-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 
@@ -996,47 +1077,48 @@
     .btn-row { display: flex; gap: 10px; align-items: flex-end; }
 
     .btn {
-      border-radius: 8px;
+      border-radius: 9px;
       border: none;
-      padding: 10px 20px;
-      background: #22C55E;
-      color: #000;
-      font-size: 13px;
-      font-weight: 600;
+      padding: 10px 22px;
+      background: var(--green);
+      color: #080c0a;
+      font-size: 0.875rem;
+      font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       min-width: 120px;
-      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      transition: all 0.2s ease;
       white-space: nowrap;
+      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     .btn:hover:not([disabled]) {
-      background: #16A34A;
+      background: #1aff8a;
+      box-shadow: 0 0 28px rgba(0,230,118,0.45);
       transform: translateY(-1px);
-      box-shadow: 0 4px 20px rgba(34,197,94,0.3);
     }
 
     .btn.secondary {
-      background: transparent;
-      border: 1px solid #1E2D45;
-      color: var(--text-secondary);
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      color: var(--text);
       min-width: 110px;
     }
 
     .btn.secondary:hover:not([disabled]) {
-      border-color: #22C55E;
-      color: var(--text-primary);
-      box-shadow: 0 0 0 1px #22C55E;
+      border-color: var(--green-border);
+      color: var(--green);
+      background: var(--card-hover);
     }
 
     .btn.danger {
-      background: transparent;
-      border: 1px solid #F43F5E;
-      color: #F43F5E;
+      background: var(--red-dim);
+      border: 1px solid rgba(255,77,77,0.25);
+      color: var(--red);
     }
-    .btn.danger:hover:not([disabled]) { background: rgba(244,63,94,0.1); border-color: #F43F5E; }
+    .btn.danger:hover:not([disabled]) { background: var(--red-dim); border-color: rgba(255,77,77,0.4); }
     .btn:active:not([disabled]) { transform: translateY(0); }
     .btn[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
 
@@ -2846,6 +2928,8 @@
   </style>
 </head>
 <body>
+  <div class="bg-grid"></div>
+  <div class="bg-orb"></div>
   <div class="app">
     <!-- LOGIN (active by default so content shows before JS runs) -->
     <div id="pageLogin" class="page">

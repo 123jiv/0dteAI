@@ -1,4 +1,4 @@
-# Render Blueprint — ProjectMidori
+# Render Blueprint — Project Midori
 # Deploy: connect repo at dashboard.render.com, or use "New > Blueprint"
 services:
   - type: web
@@ -13,3 +13,14 @@ services:
         sync: false
       - key: APP_SECRET
         sync: false
+
+  # Optional: React/Next UI (enable if you want the new midori-ui deployed)
+  - type: web
+    name: midori-ui
+    runtime: node
+    rootDir: midori-ui
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "18"
