@@ -613,6 +613,7 @@
     @media (max-width: 900px) { .market-pulse-strip { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 768px) { .market-pulse-strip { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 480px) { .market-pulse-strip { grid-template-columns: 1fr; } }
+    @media (max-width: 375px) { .page-content { padding-left: 12px; padding-right: 12px; } .pulse-card { padding: 12px 14px; } }
     .pulse-card {
       background: #0F1724;
       border: 1px solid #1E2D45;
@@ -720,7 +721,12 @@
     .market-events-list.skeleton-loading .event-skeleton:nth-child(2) { width: 70%; }
     .market-events-list.skeleton-loading .event-skeleton:nth-child(3) { width: 85%; }
     .market-events-list .event:last-child { border-bottom: none; }
-    .market-events-list .no-events { color: var(--bullish); }
+    .market-events-list .no-events { color: var(--text-muted); font-size: 13px; }
+    .market-events-list .event-time { margin-right: 6px; color: var(--text-muted); }
+    .market-events-list .event-impact { font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
+    .market-events-list .event-impact { background: rgba(244,63,94,0.15); color: #F43F5E; }
+    .pulse-sparkline svg { vertical-align: middle; }
+    .skeleton-inline { background: var(--surface); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
     .news-ticker-wrap {
       margin-top: var(--space-6);
       padding: var(--space-3) 0;
@@ -884,8 +890,8 @@
     .hero-signal-card .prob { font-size: 12px; font-weight: 600; color: var(--good); }
     .fear-greed-gauge-bar { height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
     .fear-greed-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
-    .signals-loading-text { display: inline-block; animation: pulse 1.5s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .signals-loading-text { display: inline-block; }
+    .num, .font-mono { font-variant-numeric: tabular-nums; font-family: var(--font-mono), 'JetBrains Mono', monospace; }
 
     /* ---------- Recent trades table ---------- */
     .recent-trades-wrap {
@@ -1067,6 +1073,8 @@
       box-shadow: 0 0 0 1px var(--primary);
     }
 
+    .chip-wrapper { cursor: pointer; display: inline-block; }
+    .chip-wrapper input.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     .chip.active {
       border-color: var(--primary);
       background: var(--accent-muted);
@@ -1249,6 +1257,8 @@
       text-decoration: none;
     }
     .guardrail-reminder-link:hover { text-decoration: underline; }
+    .clear-filters-link { color: var(--accent-primary); text-decoration: none; font-weight: 600; }
+    .clear-filters-link:hover { text-decoration: underline; }
     .guardrail-reminder-dismiss {
       margin-left: auto;
       background: none;
@@ -1739,6 +1749,7 @@
       overflow: auto;
       border-radius: var(--radius);
     }
+    .screener-table-wrap td { font-variant-numeric: tabular-nums; font-family: var(--font-mono), monospace; }
     .screener-table-wrap thead th {
       position: sticky;
       top: 0;
@@ -1880,6 +1891,8 @@
     .signal-expand-btn { width: 100%; text-align: center; padding: 10px; background: transparent; border: 1px solid #1E2D45; border-radius: 8px; color: #22C55E; font-size: 13px; cursor: pointer; transition: background 0.2s; margin-top: 12px; font-weight: 700; }
     .signal-expand-btn:hover { background: rgba(34,197,94,0.06); }
     .signals-engine .hint.error { color: var(--danger); }
+    .clear-filters-link { color: var(--accent-primary); text-decoration: none; }
+    .clear-filters-link:hover { text-decoration: underline; }
 
     .footer-note {
       font-size: 11px;
@@ -2867,6 +2880,14 @@
       padding: 20px;
       overflow-y: auto;
     }
+    .modal-overlay .modal-backdrop {
+      position: absolute; inset: 0;
+      cursor: pointer;
+    }
+    .modal-overlay .modal-content {
+      position: relative;
+      z-index: 1;
+    }
     .modal-overlay .modal-box { background: var(--bg-elevated); border-radius: 16px; max-width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid var(--border); }
     .modal-overlay .modal-lg { width: 560px; }
     .modal-overlay .modal-xl { width: 640px; max-height: 85vh; }
@@ -3002,11 +3023,7 @@
           <a href="#/signals" id="navSignals" class="nav-item" data-page="signals" aria-label="Signals" onclick="navigate(event, 'signals')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg><span class="nav-label">Signals</span></a>
           <a href="#/risk" id="navRisk" class="nav-item" data-page="risk" aria-label="Risk Center" onclick="navigate(event, 'risk')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg><span class="nav-label">Risk Center</span></a>
           <a href="#/backtest" id="navBacktest" class="nav-item" data-page="backtest" aria-label="Backtest" onclick="navigate(event, 'backtest')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg><span class="nav-label">Backtest</span></a>
-          <a href="#/confidence" id="navConfidence" class="nav-item" data-page="confidence" aria-label="Confidence" onclick="navigate(event, 'confidence')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="nav-label">Confidence</span></a>
           <div class="nav-spacer"></div>
-          <a href="#/methodology" id="navMethodology" class="nav-item" data-page="methodology" aria-label="Methodology" onclick="navigate(event, 'methodology')"><svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317a1 1 0 011.35-.936l8.65 3.11a1 1 0 01.675.94V12a8 8 0 11-4.293-7.11l-6.382-2.3z" /></svg><span class="nav-label">Methodology</span></a>
-          <a href="#/academy" id="navAcademy" class="nav-item" data-page="academy" aria-label="Academy" onclick="navigate(event, 'academy')"><span class="nav-icon">🎓</span><span class="nav-label">Academy</span></a>
-          <a href="#/community" id="navCommunity" class="nav-item" data-page="community" aria-label="Community" onclick="navigate(event, 'community')"><span class="nav-icon">🌐</span><span class="nav-label">Community</span></a>
           <div class="theme-toggle-wrap">
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Theme">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -3066,10 +3083,32 @@
           </div>
 
           <section class="market-pulse-strip" id="marketPulseStrip" aria-busy="true">
-            <div class="pulse-card"><div class="pulse-label">SPY</div><div class="pulse-price font-mono" id="pulseSPY">--</div><div class="pulse-change" id="pulseSPYChg">--</div><div class="pulse-meta">S&P 500</div></div>
-            <div class="pulse-card"><div class="pulse-label">QQQ</div><div class="pulse-price font-mono" id="pulseQQQ">--</div><div class="pulse-change" id="pulseQQQChg">--</div><div class="pulse-meta">Nasdaq 100</div></div>
-            <div class="pulse-card"><div class="pulse-label">VIX</div><div class="pulse-price font-mono" id="pulseVIX">--</div><div class="pulse-change" id="pulseVIXChg">--</div><div class="pulse-meta">Volatility</div></div>
-            <div class="pulse-card"><div class="pulse-label">F&G Index</div><div class="pulse-price font-mono" id="pulseFG">--</div><div class="pulse-meta" id="pulseFGRating">--</div></div>
+            <div class="pulse-card">
+              <div class="pulse-label">SPY</div>
+              <div class="pulse-price font-mono" id="pulseSPY"><span class="skeleton-inline" style="display:inline-block;width:4em;height:1em;border-radius:4px;"></span></div>
+              <div class="pulse-change" id="pulseSPYChg"><span class="skeleton-inline" style="display:inline-block;width:3em;height:0.9em;border-radius:4px;"></span></div>
+              <div class="pulse-sparkline" id="pulseSPYSpark" style="height:24px;width:60px;margin-top:4px;"></div>
+              <div class="pulse-meta">S&P 500</div>
+            </div>
+            <div class="pulse-card">
+              <div class="pulse-label">QQQ</div>
+              <div class="pulse-price font-mono" id="pulseQQQ"><span class="skeleton-inline" style="display:inline-block;width:4em;height:1em;border-radius:4px;"></span></div>
+              <div class="pulse-change" id="pulseQQQChg"><span class="skeleton-inline" style="display:inline-block;width:3em;height:0.9em;border-radius:4px;"></span></div>
+              <div class="pulse-sparkline" id="pulseQQQSpark" style="height:24px;width:60px;margin-top:4px;"></div>
+              <div class="pulse-meta">Nasdaq 100</div>
+            </div>
+            <div class="pulse-card">
+              <div class="pulse-label">VIX</div>
+              <div class="pulse-price font-mono" id="pulseVIX"><span class="skeleton-inline" style="display:inline-block;width:3em;height:1em;border-radius:4px;"></span></div>
+              <div class="pulse-change" id="pulseVIXChg"><span class="skeleton-inline" style="display:inline-block;width:3em;height:0.9em;border-radius:4px;"></span></div>
+              <div class="pulse-sparkline" id="pulseVIXSpark" style="height:24px;width:60px;margin-top:4px;"></div>
+              <div class="pulse-meta">Volatility</div>
+            </div>
+            <div class="pulse-card">
+              <div class="pulse-label">F&G Index</div>
+              <div class="pulse-price font-mono" id="pulseFG"><span class="skeleton-inline" style="display:inline-block;width:3em;height:1em;border-radius:4px;"></span></div>
+              <div class="pulse-meta" id="pulseFGRating"><span class="skeleton-inline" style="display:inline-block;width:5em;height:0.9em;border-radius:4px;"></span></div>
+            </div>
           </section>
           <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
             <div id="marketPulseUpdated" class="hint" style="font-size:11px;"></div>
@@ -3078,10 +3117,9 @@
           </div>
           <div id="dashboardRegimeBanner" class="regime-banner" style="margin-top:12px;"></div>
 
-          <div id="dashboardRecommendedLesson" class="card" style="max-width:900px; margin-bottom:16px; display:none;">
-            <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">🎓 RECOMMENDED LESSON</div>
-            <div id="dashboardRecommendedLessonTitle" style="font-size:15px; font-weight:700; margin-bottom:4px;"></div>
-            <a href="#/academy" id="dashboardRecommendedLessonLink" class="btn secondary" style="margin-top:8px; display:inline-block;">Continue Learning →</a>
+          <div id="dashboardMarketSnapshot" class="card" style="max-width:900px; margin-bottom:16px; padding:20px 24px;">
+            <h3 class="section-title" style="font-size:13px; font-weight:600; margin:0 0 12px;">Market Snapshot</h3>
+            <div id="marketSnapshotContent" class="hint" style="font-size:13px; color:var(--text-secondary);">Loading...</div>
           </div>
 
           <div class="dashboard-mid-row">
@@ -3137,7 +3175,7 @@
                 <div class="fear-greed-gauge" id="fearGreedGauge">
                   <div class="fear-greed-gauge-bar"><div class="fear-greed-fill" id="fearGreedFill" style="width:50%;"></div></div>
                 </div>
-                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="fearGreedRating">--</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="fearGreedRating">Loading…</div>
                 <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">
                   Source: Alternative.me (CNN index replica)
                 </div>
@@ -3170,7 +3208,6 @@
             <a href="#/chat" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><div class="label">Chat</div><div class="desc">Ask trading questions</div></div></a>
             <a href="#/signals" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div><div class="label">Signals</div><div class="desc">Educational setups with reasoning</div></div></a>
             <a href="#/backtest" class="quick-tool-card"><div class="icon"><svg class="quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/><path d="M8 21l4-4 4 4"/></svg></div><div><div class="label">Backtest</div><div class="desc">Historical performance</div></div></a>
-            <a href="#/confidence" class="quick-tool-card"><div class="icon">🎯</div><div><div class="label">Confidence</div><div class="desc">Metrics & stats</div></div></a>
           </div>
 
           <div class="fred-macro-card" style="margin-bottom:16px; padding:12px 16px; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-lg);">
@@ -3277,11 +3314,14 @@
             <p class="page-desc">Filter options and stocks by volume, spread, and DTE. Timeframe presets live on Analysis; you can override DTE here.</p>
           </div>
           <div class="screener-shell">
-            <div class="chip-row screener-tabs" style="margin-bottom:14px;">
-              <button type="button" class="chip active" data-screener-tab="options">Options</button>
-              <button type="button" class="chip" data-screener-tab="stocks">Stocks</button>
-              <button type="button" class="chip" data-screener-tab="multi">Multi-asset</button>
-              <button type="button" class="chip" data-screener-tab="value">Long-Term Value</button>
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:14px;">
+              <div class="chip-row screener-tabs" style="margin:0;">
+                <button type="button" class="chip active" data-screener-tab="options">Options</button>
+                <button type="button" class="chip" data-screener-tab="stocks">Stocks</button>
+                <button type="button" class="chip" data-screener-tab="multi">Multi-asset</button>
+                <button type="button" class="chip" data-screener-tab="value">Long-Term Value</button>
+              </div>
+              <button type="button" class="btn secondary" style="margin-left:auto;" onclick="exportScreenerCsv()">Export CSV</button>
             </div>
             <div class="card" id="screenerOptionsCard" style="margin-bottom:16px;">
             <div id="screenerStyleRow" class="screener-style-row" style="margin-bottom:12px;">
@@ -3517,7 +3557,7 @@
             </div>
             <div id="signalHero" class="signal-hero" style="display:none;"></div>
             <div id="signalsList" class="signals-list"></div>
-            <div id="signalsPlaceholder" class="hint" style="padding:12px 0;">Click Refresh to load educational setups. Midori scans SPY, QQQ, and IWM for explained trade ideas.</div>
+            <div id="signalsPlaceholder" class="hint signals-empty-state" style="padding:24px 0; text-align:center;">Loading signals…</div>
           </div>
         </div>
         <div id="screenRisk" class="screen page-content">
@@ -3547,7 +3587,10 @@
                 <input id="riskPerTrade" class="pill-input" type="number" min="0" max="10" step="0.5" placeholder="e.g. 1">
               </div>
             </div>
-            <div id="riskGuardrailsCommentary" class="hint" style="margin-top:10px; font-size:12px;"></div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+              <div id="riskGuardrailsCommentary" class="hint" style="margin:0; font-size:12px;"></div>
+              <span id="riskGuardrailsSaved" class="hint" style="display:none; font-size:12px; color:var(--success); font-weight:600;">Saved ✓</span>
+            </div>
           </div>
           <div class="card" style="margin-bottom:16px;">
             <h2 style="font-size:14px; font-weight:600; margin:0 0 10px;">2. Position Size Calculator</h2>
@@ -3647,89 +3690,10 @@
             <div id="riskRegimeWidget" class="hint">Loading regime…</div>
           </div>
         </div>
-        <div id="screenConfidence" class="screen page-content">
-          <div class="page-head">
-            <h1 class="page-title">My Progress</h1>
-            <p class="page-desc">Points, streaks, and badges earned through real usage. Stored locally in your browser.</p>
-          </div>
-          <div id="confidenceRegimeBanner" class="regime-banner" style="margin-bottom:16px;"></div>
-          <div class="card" style="max-width:900px; margin-bottom:16px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
-              <div>
-                <div style="font-size:14px; font-weight:700;">🔥 Streak &amp; milestones</div>
-                <div class="hint" style="font-size:12px;">Daily usage builds habit. No leaderboards—just your own growth.</div>
-              </div>
-              <div id="progressStreak" class="badge badge-gray" style="font-size:12px;">Streak: 0 days</div>
-            </div>
-            <div id="progressNextMilestone" class="hint" style="padding:10px 12px; border-radius:12px; background:rgba(7,11,20,0.55); border:1px solid rgba(30,45,69,0.8);">Next milestone: —</div>
-            <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
-              <div class="badge badge-gray" id="progressWeeklyXp">XP this week: 0</div>
-              <button type="button" class="btn secondary" style="min-width:0;" onclick="renderMyProgress()">Refresh</button>
-            </div>
-          </div>
-
-          <div class="card" style="max-width:900px; margin-bottom:16px;">
-            <div style="font-size:14px; font-weight:700; margin-bottom:10px;">🌿 Learning Paths</div>
-            <div id="progressPaths" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;"></div>
-          </div>
-
-          <div class="card" style="max-width:900px; margin-bottom:16px;">
-            <div style="font-size:14px; font-weight:700; margin-bottom:10px;">🏅 Badges</div>
-            <div id="progressBadges" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;"></div>
-          </div>
-
-          <div class="card" style="max-width:900px; margin-bottom:16px;">
-            <div style="font-size:14px; font-weight:700; margin-bottom:10px;">📜 Recent XP Activity</div>
-            <div id="progressLog" class="hint">
-              <div class="empty-state">
-                <div class="empty-icon">📋</div>
-                <div class="empty-title">No activity yet</div>
-                <div class="empty-desc">Run an analysis or open a signal to start your activity log.</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card" style="max-width:900px; margin-bottom:16px;">
-            <div style="font-size:14px; font-weight:700; margin-bottom:10px;">🌿 Review My Day</div>
-            <p class="hint" style="margin-bottom:12px;">Get a personalized session review from Midori based on today's activity. Available after 3+ actions today.</p>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button type="button" class="btn" onclick="openDayReview()">🌿 Review My Day</button>
-              <button type="button" class="btn secondary" onclick="generateWeeklyRecap()">📬 Generate Weekly Recap</button>
-              <a href="#/academy" class="btn secondary" style="text-decoration:none;">Continue Learning →</a>
-            </div>
-          </div>
-
-          <div class="card" style="max-width:900px; margin-bottom:16px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-              <div style="font-size:14px; font-weight:700;">Confidence metrics</div>
-              <button type="button" class="btn secondary" style="min-width:0;" onclick="document.getElementById('confidenceTools').classList.toggle('hidden')">Toggle</button>
-            </div>
-            <div id="confidenceTools">
-          <div class="card" style="max-width:720px; margin-bottom:16px;">
-            <div class="input-row">
-              <div class="field">
-                <span class="field-label">Tickers</span>
-                <input id="confidenceTickers" class="pill-input" placeholder="e.g. SPY, QQQ, IWM">
-              </div>
-              <div class="btn-row">
-                <button id="confidenceRefreshBtn" class="btn" type="button" onclick="runConfidence()"><span id="confidenceRefreshLabel">Refresh confidence</span></button>
-              </div>
-            </div>
-            <div id="confidenceStatus" class="status-line"></div>
-          </div>
-          <div id="confidenceExplainer" class="confidence-explainer" style="display:none;">
-            <span><strong>What does confidence mean?</strong> In similar historical conditions, the predicted outcome occurred at approximately this rate. It is a probability estimate, <strong>not</strong> a guarantee.</span>
-            <button type="button" onclick="dismissConfidenceExplainer()">Got it</button>
-          </div>
-          <div id="confidenceBodyPanel" class="confidence-grid"></div>
-          <div id="confidenceEmptyHint" class="hint" style="max-width:560px; padding:16px;">Enter tickers above and click Refresh confidence, or run an <a href="#/analysis" style="color:var(--accent-primary);">Analysis</a> to see metrics.</div>
-            </div>
-          </div>
-        </div>
         <div id="screenBacktest" class="screen page-content">
           <div class="page-head">
             <h1 class="page-title">Portfolio &amp; backtest</h1>
-            <p class="page-desc">Quick symbol-level backtests (1–5y) with Sharpe, drawdown, and simple equal-weight portfolio summary, plus ML-style forecasts.</p>
+            <p class="page-desc">Symbol-level backtests (1–5y) with Sharpe, drawdown, and equal-weight portfolio summary.</p>
           </div>
           <div class="card" style="max-width:720px; margin-bottom:16px;">
             <div class="input-row">
@@ -3737,13 +3701,23 @@
                 <span class="field-label">Tickers to backtest</span>
                 <input id="backtestTickers" class="pill-input" placeholder="e.g. SPY, QQQ, IWM, AMZN">
               </div>
-              <div class="field">
-                <span class="field-label">Lookback (years)</span>
-                <input id="backtestYears" class="screener-number" type="number" value="3" min="1" max="5" step="1">
+              <div id="backtestLookbackField" class="field">
+                <span class="field-label">Lookback</span>
+                <div class="chip-row">
+                  <label class="chip-wrapper"><input type="radio" name="backtestLookback" value="1" class="sr-only"> <span class="chip">1y</span></label>
+                  <label class="chip-wrapper"><input type="radio" name="backtestLookback" value="2" class="sr-only"> <span class="chip">2y</span></label>
+                  <label class="chip-wrapper"><input type="radio" name="backtestLookback" value="3" class="sr-only" checked> <span class="chip active">3y</span></label>
+                  <label class="chip-wrapper"><input type="radio" name="backtestLookback" value="5" class="sr-only"> <span class="chip">5y</span></label>
+                </div>
               </div>
-              <div class="field">
-                <span class="field-label">Holding days</span>
-                <input id="backtestHoldingDays" class="screener-number" type="number" value="5" min="1" max="60" step="1">
+              <div id="backtestHoldingField" class="field">
+                <span class="field-label">Holding</span>
+                <div class="chip-row">
+                  <label class="chip-wrapper"><input type="radio" name="backtestHolding" value="1" class="sr-only"> <span class="chip">1d</span></label>
+                  <label class="chip-wrapper"><input type="radio" name="backtestHolding" value="5" class="sr-only" checked> <span class="chip active">5d</span></label>
+                  <label class="chip-wrapper"><input type="radio" name="backtestHolding" value="10" class="sr-only"> <span class="chip">10d</span></label>
+                  <label class="chip-wrapper"><input type="radio" name="backtestHolding" value="20" class="sr-only"> <span class="chip">20d</span></label>
+                </div>
               </div>
               <div class="field">
                 <span class="field-label">Direction</span>
@@ -3775,48 +3749,20 @@
             <div id="backtestExplain" style="display:none; margin-top:16px; padding:12px; background:var(--bg-elevated); border-radius:var(--radius); border-left:4px solid var(--accent-primary);"></div>
             <div id="backtestRegimeNote" class="hint" style="display:none; margin-top:12px; padding:10px 12px; background:var(--bg-elevated); border-radius:var(--radius); font-size:12px;"></div>
             <div class="backtest-integrity-card">
-              <div style="font-size:13px; font-weight:600; margin-bottom:4px;">⚠️ Backtest integrity notes</div>
+              <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Backtest integrity notes</div>
               <ul style="padding-left:18px; margin:0 0 6px; font-size:12px; color:var(--text-secondary);">
-                <li>Look-ahead bias: Midori avoids using future data when computing stats ✅</li>
-                <li>Survivorship bias: Free historical data may exclude delisted symbols ⚠️</li>
-                <li>Overfitting risk: The more parameters you optimize, the higher the chance you are curve-fitting past noise.</li>
-                <li>If the same idea performs very differently on different years, it may be overfitted. Always test on out-of-sample periods.</li>
+                <li>Look-ahead bias: Midori avoids using future data when computing stats.</li>
+                <li>Survivorship bias: Free historical data may exclude delisted symbols.</li>
+                <li>Overfitting risk: The more parameters you optimize, the higher the chance of curve-fitting past noise. Test on out-of-sample periods.</li>
               </ul>
               <p style="font-size:12px; color:var(--text-secondary); margin:0;">
-                💡 A backtest is a hypothesis, not a guarantee. Use paper trading to validate any strategy before risking real capital.
+                A backtest is a hypothesis, not a guarantee. Use paper trading to validate before risking real capital.
               </p>
             </div>
             <div id="backtestExportRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
               <span style="font-size:12px; color:var(--text-muted); margin-right:8px;">Export:</span>
               <button type="button" class="btn secondary" onclick="exportBacktestCsv()">CSV</button>
               <button type="button" class="btn secondary" onclick="exportBacktestChartPng()">Chart PNG</button>
-            </div>
-          </div>
-          <div class="card" style="max-width:720px;">
-            <div class="input-row">
-              <div class="field">
-                <span class="field-label">Forecast ticker</span>
-                <input id="forecastTicker" class="pill-input" placeholder="e.g. AMZN" />
-              </div>
-              <div class="field">
-                <span class="field-label">Forecast horizon (years)</span>
-                <input id="forecastYears" class="screener-number" type="number" value="3" min="1" max="5" step="1">
-              </div>
-              <div class="btn-row">
-                <button id="forecastBtn" class="btn" type="button" onclick="runForecast()"><span id="forecastBtnLabel">Run forecast</span></button>
-              </div>
-            </div>
-            <div id="forecastStatus" class="status-line"></div>
-            <div id="forecastChartWrap" style="display:none; margin-top:12px; margin-bottom:12px;">
-              <div style="font-weight:600; margin-bottom:8px;">Price trend &amp; AI forecast</div>
-              <div style="height:220px;"><canvas id="forecastChart"></canvas></div>
-              <div class="hint" style="margin-top:4px; font-size:11px;">Solid: historical close. Dashed: projected path from backtest CAGR (educational only).</div>
-            </div>
-            <div id="forecastResults" class="hint" style="margin-top:8px;">No forecast yet. Enter a ticker and click Run forecast.</div>
-            <div id="forecastExportRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-              <span style="font-size:12px; color:var(--text-muted); margin-right:8px;">Export:</span>
-              <button type="button" class="btn secondary" onclick="exportForecastCsv()">CSV</button>
-              <button type="button" class="btn secondary" onclick="exportForecastChartPng()">Chart PNG</button>
             </div>
           </div>
         </div>
@@ -3849,196 +3795,23 @@
             <p style="font-size:13px; color:var(--text-secondary); margin:0;"><a href="#/dashboard">Back to dashboard</a></p>
           </div>
         </div>
-        <div id="screenMethodology" class="screen page-content">
-          <div class="page-head">
-            <h1 class="page-title">How Midori Thinks</h1>
-            <p class="page-desc">Transparency and education first. This page explains how Project Midori works, what data it uses, and what its limitations are.</p>
-          </div>
-          <div class="card methodology-quick-links" style="margin-bottom:16px; padding:14px 16px;">
-            <h2 style="font-size:13px; font-weight:600; margin:0 0 10px;">Quick links</h2>
-            <div style="display:flex; flex-wrap:wrap; gap:8px;">
-              <a href="#/risk" class="methodology-link">Risk Center</a>
-              <a href="#/analysis" class="methodology-link">Analysis</a>
-              <a href="#/signals" class="methodology-link">Signals</a>
-              <a href="#/chat" class="methodology-link">Chat</a>
-              <a href="#/confidence" class="methodology-link">Confidence</a>
-              <a href="#/backtest" class="methodology-link">Backtest</a>
-              <a href="#/terms" class="methodology-link">Terms</a>
-              <a href="#/privacy" class="methodology-link">Privacy</a>
-            </div>
-          </div>
-          <div class="card" style="margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">1. What Project Midori Is</h2>
-            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 4px;">
-              Midori is an AI-powered trading intelligence and coaching tool. It helps you understand market conditions, risk, and trade scenarios.
-            </p>
-            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
-              Midori is <strong>not</strong> a broker, adviser, or signal service. All outputs are educational scenarios to help you make your own decisions.
-            </p>
-          </div>
-          <div class="card" style="margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">2. How Signals &amp; Analysis Are Generated</h2>
-            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 4px;">
-              Midori combines delayed market data (prices, volatility, moving averages, VIX, macro events) with an LLM to build structured scenarios.
-            </p>
-            <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:4px 0 0;">
-              <li>Data in: Alpaca/Polygon prices, Alternative.me Fear &amp; Greed, Finnhub economic calendar &amp; news, FRED macro, basic fundamentals.</li>
-              <li>Reasoning: the AI looks for patterns, regimes, risk factors, and common technical structures.</li>
-              <li>Output: scenarios with entry/exit ideas, risk levels, and a <strong>HOW MIDORI DECIDED THIS</strong> explainability section.</li>
-            </ul>
-          </div>
-          <div class="card" style="margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">3. What Confidence Scores Mean</h2>
-            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 4px;">
-              Confidence is a <strong>historical pattern match</strong> score, not a promise. When Midori shows a % confidence, it should be read as:
-            </p>
-            <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:4px 0 0;">
-              <li><strong>Very High</strong> (90–100%): rare setup with strong confluence of signals.</li>
-              <li><strong>High</strong> (70–89%): multiple signals aligned in the same direction.</li>
-              <li><strong>Moderate</strong> (55–69%): favorable but not ideal conditions.</li>
-              <li><strong>Low</strong> (40–54%): mixed signals; trade with caution and small size.</li>
-              <li><strong>Speculative</strong> (&lt; 40%): high uncertainty; only appropriate for very small, educational sizing.</li>
-            </ul>
-            <p style="font-size:13px; color:var(--text-secondary); margin:6px 0 0;">
-              These ranges are based on how similar setups behaved historically in backtests and factor studies. They are <strong>not guarantees</strong>.
-            </p>
-          </div>
-          <div class="card" style="margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">4. Data Sources (All Commercially Licensed)</h2>
-            <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:0;">
-              <li><strong>Alpaca Markets</strong> — real-time delayed stock quotes. Free commercial use. alpaca.markets</li>
-              <li><strong>Polygon.io</strong> — market data and VIX. Free tier, commercial use allowed. polygon.io</li>
-              <li><strong>Finnhub.io</strong> — financial news and economic calendar. Free tier, commercial use allowed. finnhub.io</li>
-              <li><strong>FRED (Federal Reserve)</strong> — macro economic indicators. US Government public domain. fred.stlouisfed.org</li>
-              <li><strong>Alternative.me</strong> — Fear &amp; Greed Index. Free, commercial use allowed. alternative.me/fng</li>
-              <li><strong>STOCK Act (Congress.gov)</strong> — congressional trade disclosures. US Government public domain. disclosures-clerk.house.gov, senate.gov</li>
-              <li><strong>SEC EDGAR</strong> — institutional 13F filings. US Government public domain.</li>
-              <li><strong>TradingView Lightweight Charts</strong> — MIT licensed open source charting. tradingview.github.io/lightweight-charts</li>
-              <li><strong>OpenAI GPT</strong> — AI analysis and coaching. Commercial use permitted.</li>
-            </ul>
-            <p style="font-size:13px; color:var(--text-secondary); margin:6px 0 0;">
-              All sources are free for commercial use. Some data is delayed; Midori reflects these limitations in its commentary.
-            </p>
-          </div>
-          <div class="card" style="margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">5. Known Limitations</h2>
-            <ul style="padding-left:18px; font-size:13px; color:var(--text-secondary); margin:0;">
-              <li>No real-time options tape or order book — Greeks and IV are approximate.</li>
-              <li>Congressional trading data can lag real trades by up to 45 days.</li>
-              <li>13F filings are quarterly snapshots and may be stale.</li>
-              <li>The AI can be wrong, biased by past regimes, or overfit to noisy patterns.</li>
-              <li>Past patterns never guarantee future results, especially in regime shifts.</li>
-            </ul>
-          </div>
-          <div class="card" style="margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">6. Educational Purpose Statement</h2>
-            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 6px;">
-              Midori is a <strong>learning tool</strong>. It helps you understand how markets, options, and risk management work in different conditions.
-            </p>
-            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 6px;">
-              Nothing in this app is financial advice. Midori is not a licensed adviser, broker, or money manager.
-            </p>
-            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
-              Trade only with money you can afford to lose, and always do your own research. When in doubt, size down or step aside.
-            </p>
-          </div>
-          <div class="card">
-            <h2 style="font-size:14px; font-weight:600; margin:0 0 8px;">Your Activity Log</h2>
-            <p style="font-size:13px; color:var(--text-secondary); margin:0 0 8px;">
-              Midori can keep a local-only log of analyses and signals to help you review decisions. Entries are stored in your browser only and never sent to a server.
-            </p>
-            <div id="activityLogControls" style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
-              <button type="button" class="btn secondary" style="min-width:0; padding:6px 10px; font-size:12px;" onclick="exportActivityLog()">Export CSV</button>
-              <button type="button" class="btn secondary" style="min-width:0; padding:6px 10px; font-size:12px;" onclick="clearActivityLog()">Clear log</button>
-            </div>
-            <div id="activityLogEmpty" class="hint">
-              <div class="empty-state">
-                <div class="empty-icon">📋</div>
-                <div class="empty-title">No activity yet</div>
-                <div class="empty-desc">Run an analysis or open a signal to start your activity log.</div>
-              </div>
-            </div>
-            <div id="activityLogTableWrap" style="display:none; max-height:260px; overflow:auto; margin-top:8px;">
-              <table class="table-zebra" style="font-size:11px;">
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Feature</th>
-                    <th>Tickers</th>
-                    <th>Mode</th>
-                    <th>Summary</th>
-                    <th>Confidence</th>
-                    <th>Regime</th>
-                  </tr>
-                </thead>
-                <tbody id="activityLogBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div id="screenAcademy" class="screen page-content">
-          <div class="page-head">
-            <h1 class="page-title">🎓 Midori Academy</h1>
-            <p class="page-desc">Learn to trade smarter, not harder</p>
-          </div>
-          <div id="academyFeaturedCard" class="card" style="max-width:900px; margin-bottom:24px;"></div>
-          <div class="card" style="max-width:900px; margin-bottom:12px;">
-            <div id="academyTabs" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
-            <div id="academyGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px;"></div>
-          </div>
-        </div>
-        <div id="screenCommunity" class="screen page-content">
-          <div class="community-coming-soon">
-            <div class="community-hero">
-              <div class="community-hero-icon">🌐</div>
-              <h1 class="community-hero-title">Project Midori Community</h1>
-              <p class="community-hero-sub">Where serious traders learn, share, and grow together. Coming soon.</p>
-            </div>
-            <div class="community-features-preview">
-              <div class="preview-card">
-                <div class="preview-icon">🏆</div>
-                <div class="preview-title">Paper Trade Leaderboard</div>
-                <div class="preview-desc">Risk-adjusted performance rankings. Sharpe ratio and max drawdown matter more than raw P&L here.</div>
-                <div class="preview-badge">Coming Soon</div>
-              </div>
-              <div class="preview-card">
-                <div class="preview-icon">📚</div>
-                <div class="preview-title">Strategy Hubs</div>
-                <div class="preview-desc">Vetted playbooks for SPX 0DTE, swing momentum, and income strategies. Clone and customize for your sandbox.</div>
-                <div class="preview-badge">Coming Soon</div>
-              </div>
-              <div class="preview-card">
-                <div class="preview-icon">💬</div>
-                <div class="preview-title">Setup Discussion Threads</div>
-                <div class="preview-desc">Discuss today's setups with other Midori traders. Upvote the best analysis. Learn from real decisions.</div>
-                <div class="preview-badge">Coming Soon</div>
-              </div>
-              <div class="preview-card">
-                <div class="preview-icon">🎓</div>
-                <div class="preview-title">Live Office Hours</div>
-                <div class="preview-desc">Monthly sessions on regime filtering, reading confidence scores, and 0DTE risk management.</div>
-                <div class="preview-badge">Coming Soon</div>
-              </div>
-            </div>
-            <div class="community-notify-card">
-              <h2>Get Early Access</h2>
-              <p>Be the first to know when community features launch. Pro members get priority access.</p>
-              <div class="notify-form">
-                <input type="email" id="notify-email" placeholder="your@email.com" class="pill-input" style="flex:1">
-                <button type="button" class="btn" onclick="submitNotifyEmail()">Notify Me</button>
-              </div>
-              <p class="notify-note">Already a Pro member? You automatically get priority access when community features launch.</p>
-            </div>
-          </div>
-        </div>
         </div>
       </main>
     </div>
 
     <div class="footer-note">
       Project Midori — Educational only, not trading advice. Screener/Greeks approximate. Options can go to zero.
+      <button type="button" class="footer-link-btn" onclick="openDataSourcesModal()" style="background:none;border:none;color:var(--text-muted);margin-left:6px;cursor:pointer;font-size:inherit;">Data sources</button>
       <a href="#/terms" style="color:var(--text-muted); margin-left:6px;">Terms</a>
       <a href="#/privacy" style="color:var(--text-muted); margin-left:6px;">Privacy</a>
+    </div>
+    <div id="dataSourcesModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="dataSourcesModalTitle">
+      <div class="modal-backdrop" onclick="closeDataSourcesModal()"></div>
+      <div class="modal-content card" style="max-width:480px; padding:24px;">
+        <h3 id="dataSourcesModalTitle" style="margin:0 0 12px; font-size:16px;">Data sources</h3>
+        <p style="margin:0; font-size:13px; color:var(--text-secondary); line-height:1.6;">Market and options data: Polygon.io and Alpaca. Macro indicators: FRED (US government, public domain). Fear &amp; Greed: Alternative.me. Economic calendar: Finnhub. All data is used for educational context only.</p>
+        <button type="button" class="btn secondary" style="margin-top:16px;" onclick="closeDataSourcesModal()">Close</button>
+      </div>
     </div>
 
     <div id="onboardingV2" class="onboarding-overlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Onboarding wizard">
@@ -4328,8 +4101,8 @@
       window.addEventListener("offline", update);
     }
 
-    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenRisk", "screenConfidence", "screenBacktest", "screenMethodology", "screenAcademy", "screenCommunity", "screenTerms", "screenPrivacy"];
-    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navRisk", "navConfidence", "navBacktest", "navMethodology", "navAcademy", "navCommunity"];
+    const SCREEN_IDS = ["screenDashboard", "screenAnalysis", "screenScreener", "screenChat", "screenSignals", "screenRisk", "screenBacktest", "screenTerms", "screenPrivacy"];
+    const NAV_IDS = ["navDashboard", "navAnalysis", "navScreener", "navChat", "navSignals", "navRisk", "navBacktest"];
 
     function showPage(pageId) {
       ["pageLogin", "pageApp"].forEach(id => {
@@ -4351,11 +4124,9 @@
       screenChat: "Chat with Midori",
       screenSignals: "Midori's Signals",
       screenRisk: "Risk Center",
-      screenConfidence: "My Progress",
       screenBacktest: "Backtest",
-      screenMethodology: "How Midori Thinks",
-      screenAcademy: "Academy",
-      screenCommunity: "Community"
+      screenTerms: "Terms",
+      screenPrivacy: "Privacy"
     };
 
     let _lastScreenId = null;
@@ -4969,6 +4740,8 @@
         localStorage.setItem(RISK_GUARDRAILS_KEY, JSON.stringify(o));
         updateGuardrailsCommentary();
         awardPoints("set_risk_limits");
+        const savedEl = $("riskGuardrailsSaved");
+        if (savedEl) { savedEl.style.display = "inline"; savedEl.textContent = "Saved ✓"; clearTimeout(window._riskGuardrailsSavedT); window._riskGuardrailsSavedT = setTimeout(function() { savedEl.style.display = "none"; }, 2500); }
       } catch (_) {}
     }
 
@@ -5103,6 +4876,9 @@
       const dd = peak > current ? ((peak - current) / peak) * 100 : 0;
       fill.style.width = Math.min(100, dd) + "%";
       pctEl.textContent = dd.toFixed(1) + "%";
+      if (dd <= 5) fill.style.background = "var(--success)";
+      else if (dd <= 10) fill.style.background = "var(--warning)";
+      else fill.style.background = "var(--danger)";
       wrap.style.display = "block";
       try {
         localStorage.setItem(RISK_DRAWDOWN_KEY, JSON.stringify({ peak, current, updated: new Date().toISOString() }));
@@ -5262,9 +5038,15 @@
     async function loadRiskRegimeWidget() {
       const el = $("riskRegimeWidget");
       if (!el) return;
+      el.textContent = "Loading regime…";
+      const timeout = 10000;
+      const timeoutId = setTimeout(function() {
+        if (el.textContent === "Loading regime…") el.textContent = "Regime unavailable.";
+      }, timeout);
       try {
         const res = await fetch("/api/market-regime");
         const data = await res.json();
+        clearTimeout(timeoutId);
         const regime = data.regime || "UNKNOWN";
         const desc = data.description || "";
         const strat = data.strategies || {};
@@ -5277,6 +5059,7 @@
           (strat.intermediate ? '<div style="font-size:11px; color:var(--text-muted);"><strong>Intermediate:</strong> ' + escapeHtml(strat.intermediate) + "</div>" : "") +
           (strat.advanced ? '<div style="font-size:11px; color:var(--text-muted);"><strong>Advanced:</strong> ' + escapeHtml(strat.advanced) + "</div>" : "");
       } catch (_) {
+        clearTimeout(timeoutId);
         el.textContent = "Regime unavailable.";
       }
     }
@@ -5300,7 +5083,7 @@
     function showScreen(screenId) {
       const newScreen = $(screenId);
       const currentScreen = document.querySelector(".screen.active");
-      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenRisk: "/risk", screenConfidence: "/confidence", screenBacktest: "/backtest", screenMethodology: "/methodology", screenAcademy: "/academy", screenCommunity: "/community" };
+      const pathMap = { screenDashboard: "/dashboard", screenAnalysis: "/analysis", screenScreener: "/screener", screenChat: "/chat", screenSignals: "/signals", screenRisk: "/risk", screenBacktest: "/backtest", screenTerms: "/terms", screenPrivacy: "/privacy" };
       const path = pathMap[screenId] || "/dashboard";
 
       function doSwitchAndAnimateIn() {
@@ -5478,6 +5261,32 @@
       }
     }
 
+    function updateMarketSnapshotContent(md, fg) {
+      const el = $("marketSnapshotContent");
+      if (!el) return;
+      if (!md && !fg) {
+        el.textContent = "Loading...";
+        el.classList.add("hint");
+        return;
+      }
+      const parts = [];
+      const fmt = (v) => (v == null || v === "" ? null : Number(v).toFixed(2));
+      const pct = (v) => (v == null || v === "" || !Number.isFinite(Number(v)) ? null : (Number(v) >= 0 ? "+" : "") + Number(v).toFixed(2) + "%");
+      if (md && md.tickers) {
+        ["SPY", "QQQ"].forEach(sym => {
+          const t = md.tickers[sym];
+          if (t && t.price != null) {
+            const ch = pct(t.change_pct);
+            parts.push(sym + " $" + fmt(t.price) + (ch ? " (" + ch + ")" : ""));
+          }
+        });
+      }
+      if (md && md.vix && md.vix.price != null) parts.push("VIX " + fmt(md.vix.price));
+      if (fg && fg.score != null) parts.push("Fear & Greed " + (fg.score | 0) + "/100" + (fg.rating ? " (" + fg.rating + ")" : ""));
+      el.textContent = parts.length ? parts.join(" · ") : "Market data unavailable.";
+      el.classList.remove("hint");
+    }
+
     async function loadDashboardData() {
       loadDailyBrief();
       loadMarketPulse();
@@ -5487,13 +5296,6 @@
       initLightweightChart();
       loadHeroSignals();
       loadDashboardRegime();
-      var recCard = $("dashboardRecommendedLesson");
-      var recTitle = $("dashboardRecommendedLessonTitle");
-      if (recCard && recTitle && typeof getRecommendedLesson === "function") {
-        var lesson = getRecommendedLesson(getUserProfile());
-        recTitle.textContent = lesson.title;
-        recCard.style.display = "block";
-      }
     }
 
     async function loadDashboardRegime() {
@@ -5645,35 +5447,39 @@
     async function loadMarketPulse() {
       const btn = $("marketPulseRefreshBtn");
       if (btn) { btn.disabled = true; btn.textContent = "Refreshing…"; }
+      updateMarketSnapshotContent(null, null);
       try {
         const [md, fg] = await Promise.all([
           safeFetch("/api/market-data"),
           safeFetch("/api/fear-greed")
         ]);
-        const fmt = (v) => (v == null || v === "" ? "--" : Number(v).toFixed(2));
+        const fmt = (v) => (v == null || v === "" || (typeof v === "number" && !Number.isFinite(v)) ? "\u2014" : Number(v).toFixed(2));
         const chg = (v) => {
-          if (v == null || v === "" || v === "--") return { text: "--", cls: "neutral" };
+          if (v == null || v === "" || v === "\u2014") return { text: "\u2014", cls: "neutral" };
           const n = Number(v);
-          if (!Number.isFinite(n) || Number.isNaN(n)) return { text: "--", cls: "neutral" };
+          if (!Number.isFinite(n) || Number.isNaN(n)) return { text: "\u2014", cls: "neutral" };
           const cls = n > 0 ? "positive" : n < 0 ? "negative" : "neutral";
           return { text: (n >= 0 ? "+" : "") + n + "%", cls };
         };
         if (md && md.tickers) {
           ["SPY", "QQQ"].forEach(sym => {
             const t = md.tickers[sym];
-            if (t) {
-              const el = $("pulse" + sym);
-              const chEl = $("pulse" + sym + "Chg");
+            const el = $("pulse" + sym);
+            const chEl = $("pulse" + sym + "Chg");
+            if (t && (t.price != null && t.price !== "")) {
               if (el) el.textContent = "$" + fmt(t.price);
               if (chEl) {
                 const c = chg(t.change_pct);
                 chEl.textContent = c.text;
                 chEl.className = "pulse-change " + c.cls;
               }
+            } else {
+              if (el) el.textContent = "\u2014";
+              if (chEl) { chEl.textContent = "\u2014"; chEl.className = "pulse-change neutral"; }
             }
           });
         }
-        if (md && md.vix && md.vix.price != null) {
+        if (md && md.vix && md.vix.price != null && md.vix.price !== "") {
           const el = $("pulseVIX");
           const chEl = $("pulseVIXChg");
           if (el) el.textContent = fmt(md.vix.price);
@@ -5682,12 +5488,17 @@
             chEl.textContent = c.text;
             chEl.className = "pulse-change " + c.cls;
           }
+        } else {
+          const el = $("pulseVIX");
+          const chEl = $("pulseVIXChg");
+          if (el) el.textContent = "\u2014";
+          if (chEl) { chEl.textContent = "\u2014"; chEl.className = "pulse-change neutral"; }
         }
         if (fg && fg.score != null) {
           const el = $("pulseFG");
           const ratingEl = $("pulseFGRating");
           if (el) el.textContent = (fg.score | 0) + "/100";
-          if (ratingEl) ratingEl.textContent = fg.rating || "Unknown";
+          if (ratingEl) ratingEl.textContent = (fg.rating || "\u2014");
           const fill = $("fearGreedFill");
           const gaugeRating = $("fearGreedRating");
           if (fill) {
@@ -5701,12 +5512,15 @@
         if (updatedEl) updatedEl.textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
         const strip = $("marketPulseStrip");
         if (strip) strip.removeAttribute("aria-busy");
+        updateMarketSnapshotContent(md, fg);
+        loadPulseSparklines();
       } catch (e) {
         console.error("Market pulse load failed:", e);
         const updatedEl = $("marketPulseUpdated");
         if (updatedEl) updatedEl.textContent = "";
         const strip = $("marketPulseStrip");
         if (strip) strip.removeAttribute("aria-busy");
+        updateMarketSnapshotContent(null, null);
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = "Refresh"; }
         scheduleMarketPulseRefresh();
@@ -5740,21 +5554,53 @@
       }
     }
 
+    function renderSparkline(containerEl, points) {
+      if (!containerEl || !Array.isArray(points) || points.length < 2) return;
+      const w = 60, h = 24;
+      const min = Math.min.apply(null, points);
+      const max = Math.max.apply(null, points);
+      const range = max - min || 1;
+      const pad = 2;
+      const xs = points.map((_, i) => pad + (i / (points.length - 1)) * (w - 2 * pad));
+      const ys = points.map(p => h - pad - ((p - min) / range) * (h - 2 * pad));
+      const path = xs.map((x, i) => (i === 0 ? "M" : "L") + x.toFixed(1) + "," + ys[i].toFixed(1)).join(" ");
+      containerEl.innerHTML = '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" style="display:block;"><path fill="none" stroke="var(--accent-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="' + path + '"/></svg>';
+    }
+
+    async function loadPulseSparklines() {
+      const pairs = [
+        ["pulseSPYSpark", "SPY"],
+        ["pulseQQQSpark", "QQQ"],
+      ];
+      for (const [id, ticker] of pairs) {
+        const container = $(id);
+        if (!container) continue;
+        try {
+          const data = await safeFetch("/api/chart-data?ticker=" + encodeURIComponent(ticker) + "&interval=5m");
+          const candles = (data && data.candles) || [];
+          const closes = candles.slice(-20).map(c => c.close);
+          if (closes.length >= 2) renderSparkline(container, closes);
+        } catch (_) {}
+      }
+    }
+
     async function loadMarketEvents() {
       const el = $("marketEventsList");
       if (!el) return;
       try {
         const data = await safeFetch("/api/economic-events");
         const events = (data && data.events) || [];
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayEvents = events.filter(e => (e.date || "").toString().slice(0, 10) === todayStr);
         el.classList.remove("skeleton-loading");
-        if (!events.length) {
-          el.innerHTML = '<div class="no-events">No high-impact events today ✓</div>';
+        if (!todayEvents.length) {
+          el.innerHTML = '<div class="no-events">No major events today</div>';
           return;
         }
-        el.innerHTML = events.slice(0, 8).map(e => {
+        el.innerHTML = todayEvents.slice(0, 8).map(e => {
           const time = (e.time || e.date || "").toString().slice(11, 16) || "TBD";
-          const title = e.title || e.country || "Event";
-          return '<div class="event">⚠️ ' + time + ' — ' + (title.length > 40 ? title.slice(0, 40) + "…" : title) + '</div>';
+          const title = e.title || "Event";
+          return '<div class="event"><span class="event-time font-mono">' + escapeHtml(time) + '</span> <span class="event-impact">High</span> ' + escapeHtml(title.length > 35 ? title.slice(0, 35) + "…" : title) + '</div>';
         }).join("");
       } catch (e) {
         console.error("Market events load failed:", e);
@@ -6077,11 +5923,7 @@
         "/chat": "screenChat",
         "/signals": "screenSignals",
         "/risk": "screenRisk",
-        "/confidence": "screenConfidence",
         "/backtest": "screenBacktest",
-        "/methodology": "screenMethodology",
-        "/academy": "screenAcademy",
-        "/community": "screenCommunity",
         "/terms": "screenTerms",
         "/privacy": "screenPrivacy",
       };
@@ -6097,11 +5939,8 @@
       try { showOnboardingV2(); } catch (e) { console.error("showOnboardingV2 error:", e); }
 
       if (path === "/signals") { try { fetchSignals(); loadRegime(); showGuardrailReminderIfNeeded("signalsGuardrailReminder"); } catch (e) { console.error("signals init error:", e); } }
-      if (path === "/confidence") { try { loadRegime(); renderMyProgress(); } catch (e) { console.error("progress init error:", e); } }
       if (path === "/risk") { try { loadRiskCenter(); } catch (e) { console.error("risk init error:", e); } }
       if (path === "/dashboard") { try { loadDashboardData(); } catch (e) { console.error("dashboard init error:", e); } }
-      if (path === "/academy") { try { if (typeof renderAcademy === "function") renderAcademy(); } catch (e) { console.error("academy init error:", e); } }
-      if (path === "/community") { /* community page is static */ }
       try { updateReviewFabVisibility(); } catch (_) {}
       // trades page removed
       if (path === "/analysis") {
@@ -6158,8 +5997,6 @@
     window.addEventListener("hashchange", route);
     function initNumberInputClamp() {
       const specs = [
-        { id: "backtestYears", min: 1, max: 5, def: 3 },
-        { id: "backtestHoldingDays", min: 1, max: 60, def: 5 },
         { id: "forecastYears", min: 1, max: 5, def: 3 },
       ];
       specs.forEach(function(s) {
@@ -6751,6 +6588,15 @@
       _shortcutModalPrevFocus = null;
     }
 
+    function openDataSourcesModal() {
+      const m = $("dataSourcesModal");
+      if (m) m.style.display = "flex";
+    }
+    function closeDataSourcesModal() {
+      const m = $("dataSourcesModal");
+      if (m) m.style.display = "none";
+    }
+
     function setupChips() {
       document.querySelectorAll('.chip[data-focus]').forEach(chip => {
         chip.addEventListener('click', () => {
@@ -6950,6 +6796,22 @@
         currentBacktestDirection = chip.getAttribute("data-backtest-direction") || "long";
       });
     });
+    function syncBacktestRadioChips(name, containerSelector) {
+      const container = document.querySelector(containerSelector);
+      if (!container) return;
+      container.querySelectorAll('input[name="' + name + '"]').forEach(radio => {
+        radio.addEventListener("change", () => {
+          container.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+          const label = radio.closest("label");
+          if (label) {
+            const chip = label.querySelector(".chip");
+            if (chip) chip.classList.add("active");
+          }
+        });
+      });
+    }
+    syncBacktestRadioChips("backtestLookback", "#backtestLookbackField");
+    syncBacktestRadioChips("backtestHolding", "#backtestHoldingField");
 
     function parseAnalysisSections(text) {
       const sections = [];
@@ -7002,9 +6864,10 @@
       });
     }
 
-    function renderAnalysisCards(text, metaText, targetId) {
+    function renderAnalysisCards(text, metaText, targetId, reasonText) {
       const convo = $(targetId);
       if (!convo) return;
+      convo.innerHTML = "";
       const sections = parseAnalysisSections(text);
       const wrap = document.createElement("div");
       wrap.className = "message analysis";
@@ -7038,6 +6901,24 @@
         cardsWrap.appendChild(card);
       });
       wrap.appendChild(cardsWrap);
+      const detailsContent = reasonText || (sections[0] && (sections[0].content || "").slice(0, 500)) || "See analysis above.";
+      const details = document.createElement("details");
+      details.className = "analysis-how-decided";
+      details.style.marginTop = "12px";
+      const summary = document.createElement("summary");
+      summary.textContent = "How Midori decided this";
+      summary.style.cursor = "pointer";
+      summary.style.fontSize = "13px";
+      summary.style.fontWeight = "600";
+      details.appendChild(summary);
+      const detailsBody = document.createElement("div");
+      detailsBody.className = "hint";
+      detailsBody.style.marginTop = "6px";
+      detailsBody.style.fontSize = "12px";
+      detailsBody.style.whiteSpace = "pre-wrap";
+      detailsBody.textContent = detailsContent.length > 500 ? detailsContent.slice(0, 500) + "…" : detailsContent;
+      details.appendChild(detailsBody);
+      wrap.appendChild(details);
       const shareBtn = document.createElement("button");
       shareBtn.className = "btn secondary";
       shareBtn.textContent = "Copy all";
@@ -7057,7 +6938,7 @@
       convo.scrollTop = convo.scrollHeight;
     }
 
-    function appendMessage(metaText, text, targetId, role) {
+    function appendMessage(metaText, text, targetId, role, reasonText) {
       const convo = $(targetId);
       const isChat = targetId === "chatConversation";
       if (isChat) {
@@ -7097,6 +6978,24 @@
         card.textContent = text;
       }
       rowWrap.appendChild(card);
+      if (targetId === "conversation" && role === "analysis" && (reasonText || text)) {
+        const details = document.createElement("details");
+        details.className = "analysis-how-decided";
+        details.style.marginTop = "8px";
+        const summary = document.createElement("summary");
+        summary.textContent = "How Midori decided this";
+        summary.style.cursor = "pointer";
+        summary.style.fontSize = "12px";
+        summary.style.fontWeight = "600";
+        details.appendChild(summary);
+        const body = document.createElement("div");
+        body.className = "hint";
+        body.style.fontSize = "12px";
+        body.style.whiteSpace = "pre-wrap";
+        body.textContent = (reasonText || (text || "").slice(0, 400)) + ((text && text.length > 400) ? "…" : "");
+        details.appendChild(body);
+        rowWrap.appendChild(details);
+      }
       inner.appendChild(rowWrap);
       msg.appendChild(inner);
 
@@ -7172,13 +7071,21 @@
       const list = $("signalsList");
       const placeholder = $("signalsPlaceholder");
       let signals = (data && data.signals) ? data.signals : [];
+      function isComplete(s) {
+        const has = (v) => v != null && v !== "" && String(v).trim() !== "" && String(v) !== "—" && String(v) !== "--";
+        return has(s.ticker) && has(s.direction) && (has(s.entry_low) || has(s.entry_high) || has(s.target)) && has(s.target) && has(s.stop) && (has(s.confidence) || (parseInt(s.confidence, 10) >= 0));
+      }
+      signals = signals.filter(isComplete);
       if (currentSignalFilter === "bullish") signals = signals.filter(s => (s.direction || "").toUpperCase() === "CALL");
       else if (currentSignalFilter === "bearish") signals = signals.filter(s => (s.direction || "").toUpperCase() === "PUT");
       else if (currentSignalFilter === "high") signals = signals.filter(s => (parseInt(s.confidence || 0, 10) || 0) >= 70);
       if (!signals.length) {
         placeholder.style.display = "block";
         placeholder.classList.remove("error");
-        placeholder.textContent = "Click Refresh to load educational trade setups based on historical probabilities.";
+        const hadData = (data && data.signals && data.signals.length);
+        placeholder.innerHTML = hadData
+          ? 'No signals match your filters. <a href="#" class="clear-filters-link" onclick="clearSignalsFilters(event)">Clear filters</a>'
+          : 'Click Refresh to load educational setups. Midori scans SPY, QQQ, and IWM for explained trade ideas.';
         hero.style.display = "none";
         list.innerHTML = "";
         return;
@@ -7324,7 +7231,7 @@
       if (placeholder) { placeholder.style.display = "block"; placeholder.innerHTML = '<span class="signals-loading-text">Midori is scanning the market...</span>'; placeholder.classList.remove("error"); }
       if (list) list.innerHTML = "";
       try {
-        const params = new URLSearchParams({ tickers: tickersValue, limit: "3", mode: currentSignalMode || "0dte", profile: getProfileParam() });
+        const params = new URLSearchParams({ tickers: tickersValue, limit: "15", mode: currentSignalMode || "0dte", profile: getProfileParam() });
         const res = await fetch("/signals?" + params.toString(), { headers: apiHeaders() });
         if (!res.ok) {
           const text = await res.text();
@@ -7352,25 +7259,43 @@
           });
         });
       } catch (err) {
-        renderSignals({});
         const lu = $("signalsLastUpdated");
         if (lu) lu.textContent = "";
         const ph = $("signalsPlaceholder");
         if (ph) {
           const msg = friendlyErrorMessage(err);
+          ph.style.display = "block";
           ph.innerHTML = (msg || "Signals unavailable.").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + ' <button type="button" class="btn secondary" style="margin-left:8px; padding:4px 10px; font-size:12px;" onclick="fetchSignals()">Retry</button>';
           ph.classList.add("error");
         }
+        if (list) list.innerHTML = "";
       } finally {
         if (btn) { btn.disabled = false; }
         if (label) { label.textContent = "Refresh"; }
       }
     }
 
+    function clearSignalsFilters(e) {
+      if (e) e.preventDefault();
+      currentSignalFilter = "all";
+      currentSignalMode = "0dte";
+      document.querySelectorAll(".chip[data-signal-filter]").forEach(function(c) { c.classList.toggle("active", c.getAttribute("data-signal-filter") === "all"); });
+      document.querySelectorAll(".chip[data-signal-mode]").forEach(function(c) { c.classList.toggle("active", c.getAttribute("data-signal-mode") === "0dte"); });
+      if (lastSignalsData) renderSignals(lastSignalsData);
+    }
+
     function exportSignalsCsv() {
-      const signals = (lastSignalsData && lastSignalsData.signals) ? lastSignalsData.signals : [];
+      let signals = (lastSignalsData && lastSignalsData.signals) ? lastSignalsData.signals : [];
+      function isComplete(s) {
+        const has = (v) => v != null && v !== "" && String(v).trim() !== "" && String(v) !== "—" && String(v) !== "--";
+        return has(s.ticker) && has(s.direction) && (has(s.entry_low) || has(s.entry_high) || has(s.target)) && has(s.target) && has(s.stop);
+      }
+      signals = signals.filter(isComplete);
+      if (currentSignalFilter === "bullish") signals = signals.filter(s => (s.direction || "").toUpperCase() === "CALL");
+      else if (currentSignalFilter === "bearish") signals = signals.filter(s => (s.direction || "").toUpperCase() === "PUT");
+      else if (currentSignalFilter === "high") signals = signals.filter(s => (parseInt(s.confidence || 0, 10) || 0) >= 70);
       if (!signals.length) {
-        if ($("signalsPlaceholder")) $("signalsPlaceholder").textContent = "No signals to export. Click Refresh first.";
+        showToast("No signals to export. Try clearing filters or refreshing.");
         return;
       }
       const headers = ["Rank", "Ticker", "Direction", "Strategy", "Strike", "Expiry", "Entry low", "Entry high", "Target", "Stop", "R/R", "Confidence", "Label", "Setup tag", "Risk tag", "Regime", "Regime compatible"];
@@ -7547,7 +7472,7 @@
     }
 
     function fmtNumber(value, digits) {
-      if (value === null || value === undefined || Number.isNaN(Number(value))) return "-";
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "—";
       return Number(value).toFixed(digits);
     }
 
@@ -7698,6 +7623,9 @@
     }
 
     let lastScreenerRows = [];
+    let lastStockScreenerRows = [];
+    let lastMultiScans = [];
+    let lastValueScreenerRows = [];
     const SCREENER_COL_KEYS = ["symbol", "type", "expiration", "strike", "last", "bid", "ask", "spread_pct", "volume", "open_interest", "moneyness_pct", "delta", "gamma", "theta", "vega", "iv_pct"];
     function sortScreenerBy(colIndex) {
       if (!lastScreenerRows.length) return;
@@ -7716,6 +7644,86 @@
       });
       renderScreenerTable(lastScreenerRows);
     }
+
+    function exportScreenerCsv() {
+      const tab = (typeof currentScreenerTab !== "undefined" && currentScreenerTab) ? currentScreenerTab : "options";
+      let headers = [];
+      let rows = [];
+      if (tab === "options" && lastScreenerRows.length) {
+        headers = ["Ticker", "Type", "Exp", "Strike", "Last", "Bid", "Ask", "Spread %", "Vol", "OI", "Moneyness %", "Delta", "Gamma", "Theta", "Vega", "IV %"];
+        rows = lastScreenerRows.map(r => [
+          r.symbol || r.ticker || r.underlying || "",
+          (r.type || r.option_type || r.side || "").toUpperCase(),
+          r.expiration || r.exp || r.Expiry || r.expiry || "",
+          r.strike !== undefined ? r.strike : "",
+          r.last !== undefined ? r.last : (r.lastPrice ?? r.Last ?? ""),
+          r.bid !== undefined ? r.bid : (r.Bid ?? r.bestBid ?? ""),
+          r.ask !== undefined ? r.ask : (r.Ask ?? r.bestAsk ?? ""),
+          r.spread_pct !== undefined ? r.spread_pct : (r.spreadPct ?? r.spread_percent ?? ""),
+          r.volume !== undefined ? r.volume : (r.vol ?? r.Volume ?? ""),
+          r.open_interest !== undefined ? r.open_interest : (r.oi ?? r.openInterest ?? r.OI ?? ""),
+          r.moneyness_pct !== undefined ? r.moneyness_pct : (r.moneyness ?? r.moneynessPercent ?? ""),
+          r.delta ?? "", r.gamma ?? "", r.theta ?? "", r.vega ?? "",
+          r.iv_pct ?? r.iv ?? r.impliedVol ?? r.impliedVolatility ?? "",
+        ]);
+      } else if (tab === "stocks" && lastStockScreenerRows.length) {
+        headers = ["Ticker", "Last", "1M %", "3M %", "6M %", "Above 20D", "Above 50D", "Above 200D", "PE", "Div %", "EPS growth", "Passes style"];
+        rows = lastStockScreenerRows.map(r => [
+          r.symbol || r.ticker || "",
+          r.last_price ?? "",
+          r.momentum_1m_pct ?? "",
+          r.momentum_3m_pct ?? "",
+          r.momentum_6m_pct ?? "",
+          r.above_ma20 ? "Yes" : "No",
+          r.above_ma50 ? "Yes" : "No",
+          r.above_ma200 ? "Yes" : "No",
+          r.pe != null ? r.pe : "",
+          r.div_yield_pct != null ? r.div_yield_pct : "",
+          r.eps_growth != null ? r.eps_growth : "",
+          r.passes_style_filter ? "Yes" : "No",
+        ]);
+      } else if (tab === "multi" && lastMultiScans.length) {
+        headers = ["Ticker", "Last", "3M %", "6M %", "Above 50D", "Above 200D", "Total opt vol", "Avg IV %", "Max IV %", "Sample contracts"];
+        rows = lastMultiScans.map(s => [
+          s.symbol || "",
+          s.last_price ?? "",
+          s.momentum_3m_pct ?? "",
+          s.momentum_6m_pct ?? "",
+          s.above_ma50 ? "Yes" : "No",
+          s.above_ma200 ? "Yes" : "No",
+          s.total_option_volume ?? "",
+          s.avg_iv_pct ?? "",
+          s.max_iv_pct ?? "",
+          (s.sample_contracts || []).slice(0, 2).map(c => (c.symbol || s.symbol) + " " + (c.type || c.option_type || "") + " " + (c.strike ?? "")).join(" · ") || "",
+        ]);
+      } else if (tab === "value" && lastValueScreenerRows.length) {
+        headers = ["Ticker", "Last", "Market Cap", "P/E", "Div %", "EPS growth", "3M %", "6M %", "Above 200D"];
+        rows = lastValueScreenerRows.map(r => [
+          r.symbol || "",
+          r.last_price ?? "",
+          r.market_cap_b != null ? r.market_cap_b + "B" : "",
+          r.pe != null ? r.pe : "",
+          r.div_yield_pct != null ? r.div_yield_pct : "",
+          r.eps_growth_pct != null ? r.eps_growth_pct : "",
+          r.momentum_3m_pct ?? "",
+          r.momentum_6m_pct ?? "",
+          r.above_ma200 ? "Y" : "N",
+        ]);
+      }
+      if (!rows.length) {
+        showToast("No data to export. Run the screener for the current tab first.");
+        return;
+      }
+      const csv = [headers.map(h => '"' + h + '"').join(","), ...rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "screener-" + tab + "-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast("Screener CSV downloaded.");
+    }
+
     function saveScreenerPreset() {
       const name = prompt("Preset name (e.g. 0DTE SPY)");
       if (!name || !name.trim()) return;
@@ -7808,15 +7816,15 @@
 
         const cells = [
           symbol,
-          type || "-",
-          expiration || "-",
-          strike !== undefined ? fmtNumber(strike, 1) : "-",
+          type || "—",
+          expiration || "—",
+          strike !== undefined ? fmtNumber(strike, 1) : "—",
           fmtNumber(last),
           fmtNumber(bid),
           fmtNumber(ask),
           fmtNumber(spreadPct, 1),
-          vol !== undefined ? Number(vol).toLocaleString() : "-",
-          oi !== undefined ? Number(oi).toLocaleString() : "-",
+          vol !== undefined ? Number(vol).toLocaleString() : "—",
+          oi !== undefined ? Number(oi).toLocaleString() : "—",
           fmtNumber(moneyness, 2),
           fmtNumber(delta, 3),
           fmtNumber(gamma, 4),
@@ -7841,6 +7849,7 @@
     }
 
     function renderStockScreenerTable(rows) {
+      lastStockScreenerRows = Array.isArray(rows) ? rows.slice() : [];
       const tbody = $("stockScreenerBody");
       tbody.innerHTML = "";
       if (!rows || !rows.length) {
@@ -7866,9 +7875,9 @@
           row.above_ma20 ? "Yes" : "No",
           row.above_ma50 ? "Yes" : "No",
           row.above_ma200 ? "Yes" : "No",
-          row.pe != null ? String(row.pe) : "-",
-          row.div_yield_pct != null ? fmtNumber(row.div_yield_pct, 2) : "-",
-          row.eps_growth != null ? fmtNumber(row.eps_growth * 100.0, 1) : "-", // often given as ratio
+          row.pe != null ? String(row.pe) : "—",
+          row.div_yield_pct != null ? fmtNumber(row.div_yield_pct, 2) : "—",
+          row.eps_growth != null ? fmtNumber(row.eps_growth * 100.0, 1) : "—",
           row.passes_style_filter ? "Yes" : "No",
         ];
         cells.forEach(val => {
@@ -7881,6 +7890,7 @@
     }
 
     function renderMultiAssetScanTable(scans) {
+      lastMultiScans = Array.isArray(scans) ? scans.slice() : [];
       const tbody = $("multiScreenerBody");
       tbody.innerHTML = "";
       if (!scans || !scans.length) {
@@ -7910,10 +7920,10 @@
           fmtNumber(scan.momentum_6m_pct, 1),
           scan.above_ma50 ? "Yes" : "No",
           scan.above_ma200 ? "Yes" : "No",
-          scan.total_option_volume != null ? Number(scan.total_option_volume).toLocaleString() : "-",
+          scan.total_option_volume != null ? Number(scan.total_option_volume).toLocaleString() : "—",
           fmtNumber(scan.avg_iv_pct, 1),
           fmtNumber(scan.max_iv_pct, 1),
-          sample || "-",
+          sample || "—",
         ];
         cells.forEach(val => {
           const td = document.createElement("td");
@@ -7925,12 +7935,18 @@
     }
 
     async function runAnalysis() {
-      const tickersParsed = parseTickers($("tickers") && $("tickers").value ? $("tickers").value : "SPY,QQQ,IWM");
+      const tickersParsed = parseTickers($("tickers") && $("tickers").value ? $("tickers").value : "SPY,QQQ,IWM").slice(0, 3);
       const tickersValue = tickersParsed.length ? tickersParsed.join(",") : "SPY,QQQ,IWM";
       const btn = $("runBtn");
       const btnLabel = $("btnLabel");
+      const convo = $("conversation");
+      const retryBtn = $("analysisRetryBtn");
 
       setStatus("Running analysis...");
+      if (retryBtn) retryBtn.style.display = "none";
+      if (convo) {
+        convo.innerHTML = '<div class="analysis-loading-skeleton"><div class="skeleton" style="height:16px;width:70%;margin-bottom:8px;border-radius:4px;"></div><div class="skeleton" style="height:14px;width:90%;border-radius:4px;"></div><div class="skeleton" style="height:14px;width:60%;margin-top:8px;border-radius:4px;"></div><p style="margin-top:12px;font-size:13px;color:var(--text-secondary);">Midori is analyzing…</p></div>';
+      }
       btn.disabled = true;
       btn.classList.add("loading");
       btnLabel.textContent = "Running…";
@@ -7951,11 +7967,13 @@
         }
         const data = await res.json();
         const outText = data.analysis_markdown || JSON.stringify(data, null, 2);
+        const reasoning = (data.reasoning || data.how_decided || "").trim();
         const meta = tickersValue + " • " + currentFocus + ", " + currentStyle + ", " + currentTimeframe + ", " + currentAnalysisType;
         if (/^##\s+/m.test(outText)) {
-          renderAnalysisCards(outText, meta, "conversation");
+          renderAnalysisCards(outText, meta, "conversation", reasoning);
         } else {
-          appendMessage(meta, outText, "conversation", "analysis");
+          if (convo) convo.innerHTML = "";
+          appendMessage(meta, outText, "conversation", "analysis", reasoning);
         }
         setStatus("Analysis complete.");
         showToast("Analysis complete.");
@@ -8006,6 +8024,8 @@
       } catch (err) {
         const msg = friendlyErrorMessage(err);
         setStatus(msg, true);
+        if (retryBtn) retryBtn.style.display = "inline-block";
+        if (convo) convo.innerHTML = "";
         appendMessage(tickersValue + " • error", (err && err.message) || String(err), "conversation", "error");
       } finally {
         btn.disabled = false;
@@ -8242,6 +8262,7 @@
     }
 
     function renderValueScreenerTable(rows, relaxed, hint) {
+      lastValueScreenerRows = Array.isArray(rows) ? rows.slice() : [];
       const tbody = $("valueScreenerBody");
       const summary = $("valueScreenerSummary");
       if (!tbody) return;
@@ -8255,14 +8276,14 @@
         summary.classList.toggle("error", !!relaxed);
       }
       tbody.innerHTML = rows.map(r => {
-        const mc = r.market_cap_b != null ? r.market_cap_b + "B" : "-";
-        const pe = r.pe != null ? Number(r.pe).toFixed(1) : "-";
-        const div = r.div_yield_pct != null ? Number(r.div_yield_pct).toFixed(2) + "%" : "-";
-        const eps = r.eps_growth_pct != null ? Number(r.eps_growth_pct).toFixed(1) + "%" : "-";
-        const m3 = r.momentum_3m_pct != null ? Number(r.momentum_3m_pct).toFixed(1) + "%" : "-";
-        const m6 = r.momentum_6m_pct != null ? Number(r.momentum_6m_pct).toFixed(1) + "%" : "-";
+        const mc = r.market_cap_b != null ? r.market_cap_b + "B" : "—";
+        const pe = r.pe != null ? Number(r.pe).toFixed(1) : "—";
+        const div = r.div_yield_pct != null ? Number(r.div_yield_pct).toFixed(2) + "%" : "—";
+        const eps = r.eps_growth_pct != null ? Number(r.eps_growth_pct).toFixed(1) + "%" : "—";
+        const m3 = r.momentum_3m_pct != null ? Number(r.momentum_3m_pct).toFixed(1) + "%" : "—";
+        const m6 = r.momentum_6m_pct != null ? Number(r.momentum_6m_pct).toFixed(1) + "%" : "—";
         const above = r.above_ma200 ? "Y" : "N";
-        const last = r.last_price != null ? Number(r.last_price).toFixed(2) : "-";
+        const last = r.last_price != null ? Number(r.last_price).toFixed(2) : "—";
         return "<tr><td>" + (r.symbol || "") + "</td><td>" + last + "</td><td>" + mc + "</td><td>" + pe + "</td><td>" + div + "</td><td>" + eps + "</td><td>" + m3 + "</td><td>" + m6 + "</td><td>" + above + "</td></tr>";
       }).join("");
     }
@@ -8415,8 +8436,6 @@
 
     async function runBacktest() {
       const tickersEl = $("backtestTickers");
-      const yearsEl = $("backtestYears");
-      const holdingEl = $("backtestHoldingDays");
       const statusEl = $("backtestStatus");
       const resultsEl = $("backtestResults");
       const btn = $("backtestBtn");
@@ -8429,8 +8448,10 @@
         return;
       }
       const tickersValue = tickersParsed.join(",");
-      const years = clampNum(yearsEl ? yearsEl.value : "3", 1, 5, 3);
-      const holdingDays = clampNum(holdingEl ? holdingEl.value : "5", 1, 60, 5);
+      const lookbackRadio = document.querySelector('input[name="backtestLookback"]:checked');
+      const holdingRadio = document.querySelector('input[name="backtestHolding"]:checked');
+      const years = clampNum(lookbackRadio ? lookbackRadio.value : "3", 1, 5, 3);
+      const holdingDays = clampNum(holdingRadio ? holdingRadio.value : "5", 1, 60, 5);
 
       statusEl.textContent = "Running backtest...";
       statusEl.classList.remove("error");
@@ -8497,12 +8518,12 @@
         const avgPnl = portfolio.avg_trade_return_pct ?? (Object.values(symMetrics).length ? Object.values(symMetrics).reduce((s, m) => s + (m.avg_trade_return_pct || 0), 0) / Object.values(symMetrics).length : 0);
         statsGrid.style.display = "block";
         statsGrid.innerHTML = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:8px; margin-bottom:12px;">' +
-          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Win Rate</div><div style="font-weight:600;">' + avgWinRate + '%</div></div>' +
-          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Total Trades</div><div style="font-weight:600;">' + totalTrades + '</div></div>' +
-          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Avg P&L/Trade</div><div style="font-weight:600;">' + avgPnl + '%</div></div>' +
-          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Sharpe</div><div style="font-weight:600;">' + (portfolio.avg_sharpe ?? "n/a") + '</div></div>' +
-          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Max Drawdown</div><div style="font-weight:600;">' + (portfolio.approx_max_drawdown_pct ?? "n/a") + '%</div></div>' +
-          '<div class="card" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">CAGR</div><div style="font-weight:600;">' + (portfolio.approx_cagr_pct ?? "n/a") + '%</div></div>' +
+          '<div class="card num" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Win Rate</div><div style="font-weight:600;">' + avgWinRate + '%</div></div>' +
+          '<div class="card num" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Total Trades</div><div style="font-weight:600;">' + totalTrades + '</div></div>' +
+          '<div class="card num" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Avg P&L/Trade</div><div style="font-weight:600;">' + avgPnl + '%</div></div>' +
+          '<div class="card num" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Sharpe</div><div style="font-weight:600;">' + (portfolio.avg_sharpe ?? "n/a") + '</div></div>' +
+          '<div class="card num" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">Max Drawdown</div><div style="font-weight:600;">' + (portfolio.approx_max_drawdown_pct ?? "n/a") + '%</div></div>' +
+          '<div class="card num" style="padding:8px 12px;"><div style="font-size:11px; color:var(--text-muted);">CAGR</div><div style="font-weight:600;">' + (portfolio.approx_cagr_pct ?? "n/a") + '%</div></div>' +
           '</div>';
 
         // Strategy explanation (AI)
@@ -8619,6 +8640,7 @@
     }
 
     async function runForecast() {
+      if (!$("forecastTicker")) return;
       const tickerEl = $("forecastTicker");
       const yearsEl = $("forecastYears");
       const statusEl = $("forecastStatus");
