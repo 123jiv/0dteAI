@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChatPanel } from "@/components/reader/chat-panel";
+import { UpgradeModal } from "@/components/upgrade-modal";
 import { Button, Skeleton } from "@/components/ui";
 import { useLibrary, usePrefs } from "@/lib/store";
 import { useGeneration } from "@/lib/use-generation";
@@ -386,6 +387,8 @@ function StoryReader() {
           )}
         </AnimatePresence>
       </div>
+
+      <UpgradeModal />
     </div>
   );
 }

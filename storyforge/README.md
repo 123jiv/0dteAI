@@ -47,6 +47,21 @@ Without Supabase, StoryForge runs in local-first mode (everything persists in th
 1. Create a Supabase project and set `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 2. Run the SQL documented at the top of `src/lib/supabase.ts` (one `stories` table + RLS policy)
 
+## Paywall (optional)
+
+StoryForge ships with a Stripe-powered subscription paywall that stays **dormant until configured** — without the keys, the app is fully open as before.
+
+**Model:** free users get `FREE_CHAPTERS_PER_MONTH` (default 5) generated chapters per month; **Pro** subscribers get unlimited. Enforcement happens server-side in `/api/ai`.
+
+Setup:
+
+1. **Supabase** — set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`, and run the full SQL documented at the top of `src/lib/supabase.ts` (stories + profiles + usage tables).
+2. **Stripe** — create a Product ("StoryForge Pro") with a recurring monthly Price. Set `STRIPE_SECRET_KEY` and `STRIPE_PRICE_ID` (starts with `price_`).
+3. **Webhook** — in Stripe: Developers → Webhooks → Add endpoint pointing at `https://YOUR-DOMAIN/api/billing/webhook`, subscribed to `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Set the signing secret as `STRIPE_WEBHOOK_SECRET`.
+4. Optionally set `PRO_PRICE_LABEL` (shown in the upgrade modal) and `FREE_CHAPTERS_PER_MONTH`.
+
+Flow: unauthenticated users are asked to create a free account when they generate; free users who hit the monthly limit see the upgrade modal → Stripe Checkout → the webhook flips their plan to `pro` → unlimited. Users manage/cancel via the Stripe billing portal from the Account page.
+
 ## Keyboard shortcuts (reader)
 
 | Key | Action |

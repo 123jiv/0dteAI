@@ -1,10 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { KeyRound, LogOut, Mail } from "lucide-react";
+import { Crown, KeyRound, LogOut, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Nav } from "@/components/nav";
 import { Button, Card, Field, Input } from "@/components/ui";
+import {
+  fetchBillingStatus,
+  openBillingPortal,
+  startCheckout,
+  type BillingStatus,
+} from "@/lib/billing-client";
 import { getSupabase, supabaseEnabled } from "@/lib/supabase";
 
 export default function LoginPage() {
@@ -14,12 +20,17 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [billing, setBilling] = useState<BillingStatus | null>(null);
 
   useEffect(() => {
     const sb = getSupabase();
     if (!sb) return;
     void sb.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null));
   }, []);
+
+  useEffect(() => {
+    void fetchBillingStatus().then(setBilling);
+  }, [userEmail]);
 
   const submit = async () => {
     const sb = getSupabase();
@@ -116,6 +127,33 @@ export default function LoginPage() {
             )}
             {message && <p className="mt-4 text-xs text-accent-strong">{message}</p>}
           </Card>
+
+          {billing?.enabled && userEmail && (
+            <Card className="mt-4 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="flex items-center gap-2 text-sm font-medium">
+                    <Crown size={15} className="text-accent-strong" />
+                    {billing.plan === "pro" ? "StoryForge Pro" : "Free plan"}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {billing.plan === "pro"
+                      ? "Unlimited chapters. Thank you for supporting StoryForge!"
+                      : `${billing.chaptersUsed ?? 0} of ${billing.freeLimit ?? 0} free chapters used this month.`}
+                  </p>
+                </div>
+                {billing.plan === "pro" ? (
+                  <Button variant="outline" onClick={() => void openBillingPortal()}>
+                    Manage
+                  </Button>
+                ) : (
+                  <Button onClick={() => void startCheckout()}>
+                    Upgrade · {billing.priceLabel}
+                  </Button>
+                )}
+              </div>
+            </Card>
+          )}
         </motion.div>
       </main>
     </div>
