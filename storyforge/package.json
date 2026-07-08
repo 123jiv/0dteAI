@@ -1,0 +1,33 @@
+{
+  "name": "storyforge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered interactive story studio — generate fully customizable stories from a single prompt.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.60.0",
+    "@supabase/supabase-js": "^2.47.10",
+    "framer-motion": "^12.0.0",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.469.0",
+    "next": "^15.3.0",
+    "openai": "^4.77.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0"
+  }
+}
