@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { authHeaders, usePaywall } from "./billing-client";
 import { useLibrary } from "./store";
 import type { AIRequest, Chapter, Story, StoryMemory } from "./types";
 import { splitChapterTitle, uid } from "./utils";
@@ -8,16 +9,25 @@ import { splitChapterTitle, uid } from "./utils";
 async function* streamAI(req: AIRequest, signal?: AbortSignal): AsyncGenerator<string> {
   const res = await fetch("/api/ai", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify(req),
     signal,
   });
   if (!res.ok || !res.body) {
     let message = "Generation failed";
+    let code: string | undefined;
     try {
-      message = ((await res.json()) as { error?: string }).error ?? message;
+      const data = (await res.json()) as { error?: string; code?: string };
+      message = data.error ?? message;
+      code = data.code;
     } catch {
       /* non-JSON error body */
+    }
+    if (code === "auth" || code === "paywall") {
+      usePaywall.getState().show(code, message);
+      const err = new Error(message);
+      err.name = "PaywallError";
+      throw err;
     }
     throw new Error(message);
   }
@@ -46,7 +56,7 @@ async function updateMemory(storyId: string, chapterText: string, story: Story):
   try {
     const res = await fetch("/api/ai", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ ...requestFromStory(story, "summarize"), targetChapter: chapterText }),
     });
     if (!res.ok) return;
@@ -121,7 +131,17 @@ export function useGeneration() {
         const finished = useLibrary.getState().stories[storyId];
         if (finished) void updateMemory(storyId, full, finished);
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
+        const name = (err as Error).name;
+        if (name === "PaywallError") {
+          // Roll back the empty chapter shell; the upgrade modal takes it from here.
+          const s = useLibrary.getState().stories[storyId];
+          const shell = s?.chapters.find((c) => c.id === chapter.id);
+          if (s && shell && !shell.content.trim()) {
+            useLibrary.getState().updateStory(storyId, {
+              chapters: s.chapters.filter((c) => c.id !== chapter.id),
+            });
+          }
+        } else if (name !== "AbortError") {
           setError((err as Error).message);
         }
       } finally {

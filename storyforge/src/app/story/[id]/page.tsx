@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChatPanel } from "@/components/reader/chat-panel";
+import { UpgradeModal } from "@/components/upgrade-modal";
 import { Button, Skeleton } from "@/components/ui";
 import { useLibrary, usePrefs } from "@/lib/store";
 import { useGeneration } from "@/lib/use-generation";
@@ -38,6 +39,7 @@ function StoryReader() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showChapters, setShowChapters] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showTypeMenu, setShowTypeMenu] = useState(false);
   const [progress, setProgress] = useState(0);
   const mainRef = useRef<HTMLDivElement>(null);
   const startedRef = useRef(false);
@@ -160,22 +162,64 @@ function StoryReader() {
           <span className="mr-2 hidden text-xs text-faint md:block">
             {words.toLocaleString()} words · {readingTime(words)}
           </span>
-          <button onClick={() => setFontSize(fontSize - 1)} className="rounded-full p-2 text-muted hover:bg-glass hover:text-fg cursor-pointer" aria-label="Smaller text (-)">
-            <Minus size={15} />
-          </button>
-          <button onClick={toggleSerif} className={cn("rounded-full p-2 hover:bg-glass cursor-pointer", serif ? "text-accent-strong" : "text-muted hover:text-fg")} aria-label="Toggle serif" title="Toggle serif font">
-            <ALargeSmall size={17} />
-          </button>
-          <button onClick={() => setFontSize(fontSize + 1)} className="rounded-full p-2 text-muted hover:bg-glass hover:text-fg cursor-pointer" aria-label="Larger text (+)">
-            <Plus size={15} />
-          </button>
+
+          {/* inline typography controls on ≥sm */}
+          <div className="hidden items-center gap-0.5 sm:flex">
+            <button onClick={() => setFontSize(fontSize - 1)} className="rounded-full p-2 text-muted hover:bg-glass hover:text-fg cursor-pointer" aria-label="Smaller text (-)">
+              <Minus size={15} />
+            </button>
+            <button onClick={toggleSerif} className={cn("rounded-full p-2 hover:bg-glass cursor-pointer", serif ? "text-accent-strong" : "text-muted hover:text-fg")} aria-label="Toggle serif" title="Toggle serif font">
+              <ALargeSmall size={17} />
+            </button>
+            <button onClick={() => setFontSize(fontSize + 1)} className="rounded-full p-2 text-muted hover:bg-glass hover:text-fg cursor-pointer" aria-label="Larger text (+)">
+              <Plus size={15} />
+            </button>
+          </div>
+
+          {/* single "Aa" menu on phones */}
+          <div className="relative sm:hidden">
+            <button
+              onClick={() => setShowTypeMenu((v) => !v)}
+              className={cn("rounded-full p-2 hover:bg-glass cursor-pointer", showTypeMenu ? "text-fg" : "text-muted")}
+              aria-label="Text settings"
+            >
+              <ALargeSmall size={18} />
+            </button>
+            <AnimatePresence>
+              {showTypeMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                  className="absolute right-0 top-11 z-40 w-48 rounded-2xl border border-edge bg-raised p-3 shadow-2xl"
+                >
+                  <div className="flex items-center justify-between">
+                    <button onClick={() => setFontSize(fontSize - 1)} className="rounded-full bg-glass p-2.5 text-muted active:text-fg" aria-label="Smaller text">
+                      <Minus size={16} />
+                    </button>
+                    <span className="text-sm text-muted">{fontSize}px</span>
+                    <button onClick={() => setFontSize(fontSize + 1)} className="rounded-full bg-glass p-2.5 text-muted active:text-fg" aria-label="Larger text">
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  <button
+                    onClick={toggleSerif}
+                    className="mt-3 w-full rounded-xl border border-edge px-3 py-2 text-sm text-muted active:text-fg"
+                  >
+                    Font: {serif ? "Serif" : "Sans"}
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <button onClick={addBookmark} className={cn("rounded-full p-2 hover:bg-glass cursor-pointer", bookmarked ? "text-accent-strong" : "text-muted hover:text-fg")} aria-label="Bookmark (b)" title="Bookmark (b)">
             {bookmarked ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
           </button>
           <button
             onClick={() => setShowChat((v) => !v)}
             className={cn(
-              "ml-1 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm cursor-pointer",
+              "ml-1 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm cursor-pointer sm:px-3",
               showChat ? "bg-fg text-bg" : "bg-glass text-muted hover:text-fg"
             )}
             title="Story assistant (c)"
@@ -187,6 +231,22 @@ function StoryReader() {
       </header>
 
       <div className="flex min-h-0 flex-1">
+        {/* mobile backdrop — tap outside to close drawers */}
+        <AnimatePresence>
+          {(showChapters || showChat) && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-x-0 bottom-0 top-14 z-20 bg-black/50 backdrop-blur-[2px] md:hidden"
+              onClick={() => {
+                setShowChapters(false);
+                setShowChat(false);
+              }}
+            />
+          )}
+        </AnimatePresence>
+
         {/* chapters sidebar */}
         <AnimatePresence>
           {showChapters && (
@@ -209,6 +269,7 @@ function StoryReader() {
                   onClick={() => {
                     setActiveId(c.id);
                     mainRef.current?.scrollTo({ top: 0 });
+                    if (window.innerWidth < 768) setShowChapters(false);
                   }}
                   className={cn(
                     "mb-1 block w-full rounded-xl px-3 py-2.5 text-left text-sm transition-colors cursor-pointer",
@@ -234,6 +295,7 @@ function StoryReader() {
                       key={b.id}
                       onClick={() => {
                         setActiveId(b.chapterId);
+                        if (window.innerWidth < 768) setShowChapters(false);
                         requestAnimationFrame(() => {
                           const el = mainRef.current;
                           if (el) el.scrollTop = (el.scrollHeight - el.clientHeight) * b.progress;
@@ -381,11 +443,14 @@ function StoryReader() {
                 busy={generating}
                 onContinue={continueStory}
                 onRewrite={(chapterId, instruction) => void rewriteChapter(story.id, chapterId, instruction)}
+                onClose={() => setShowChat(false)}
               />
             </motion.aside>
           )}
         </AnimatePresence>
       </div>
+
+      <UpgradeModal />
     </div>
   );
 }

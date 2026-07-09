@@ -11,6 +11,7 @@ export const viewport: Viewport = {
   themeColor: "#050505",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 const themeInit = `try{var t=JSON.parse(localStorage.getItem("storyforge-prefs")||"{}");document.documentElement.dataset.theme=(t.state&&t.state.theme)||"dark"}catch(e){document.documentElement.dataset.theme="dark"}`;

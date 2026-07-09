@@ -70,7 +70,7 @@ export default function LibraryPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search titles, characters, prose…"
-              className="w-full rounded-full border border-edge bg-glass py-2.5 pl-9 pr-4 text-sm outline-none placeholder:text-faint focus:border-edge-strong"
+              className="w-full rounded-full border border-edge bg-glass py-2.5 pl-9 pr-4 text-base sm:text-sm outline-none placeholder:text-faint focus:border-edge-strong"
             />
           </div>
         </div>

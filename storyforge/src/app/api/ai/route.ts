@@ -8,9 +8,18 @@ import {
   SUMMARIZE_SYSTEM,
 } from "@/lib/prompts";
 import type { AIRequest } from "@/lib/types";
+import {
+  getEntitlement,
+  getUserFromRequest,
+  paywallEnabled,
+  recordChapter,
+} from "@/lib/server/billing";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
+
+/** Tasks that produce a chapter and count against the free tier. */
+const CHAPTER_TASKS = new Set(["generate", "continue", "rewrite"]);
 
 export async function POST(req: NextRequest) {
   let body: AIRequest;
@@ -21,6 +30,30 @@ export async function POST(req: NextRequest) {
   }
   if (!body?.task) {
     return Response.json({ error: "Missing task" }, { status: 400 });
+  }
+
+  // Paywall (active only when Stripe + Supabase are configured).
+  if (paywallEnabled()) {
+    const user = await getUserFromRequest(req);
+    if (!user) {
+      return Response.json(
+        { error: "Create a free account to keep writing.", code: "auth" },
+        { status: 401 }
+      );
+    }
+    if (CHAPTER_TASKS.has(body.task)) {
+      const ent = await getEntitlement(user.id);
+      if (ent.plan !== "pro" && ent.chaptersUsed >= ent.freeLimit) {
+        return Response.json(
+          {
+            error: `You've used all ${ent.freeLimit} free chapters this month.`,
+            code: "paywall",
+          },
+          { status: 402 }
+        );
+      }
+      if (ent.plan !== "pro") await recordChapter(user.id);
+    }
   }
 
   const provider = getProvider();

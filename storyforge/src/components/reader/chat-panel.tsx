@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUp, Sparkles, Square, Wand2 } from "lucide-react";
+import { ArrowUp, Sparkles, Square, Wand2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { TypingDots } from "@/components/ui";
 import { requestFromStory, streamAI } from "@/lib/use-generation";
@@ -25,12 +25,14 @@ export function ChatPanel({
   busy,
   onContinue,
   onRewrite,
+  onClose,
 }: {
   story: Story;
   activeChapterId: string | null;
   busy: boolean;
   onContinue: (instruction?: string) => void;
   onRewrite: (chapterId: string, instruction: string) => void;
+  onClose?: () => void;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -95,6 +97,15 @@ export function ChatPanel({
       <div className="flex items-center gap-2 border-b border-edge px-4 py-3">
         <Wand2 size={15} className="text-accent-strong" />
         <span className="text-sm font-medium">Story Assistant</span>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="ml-auto rounded-full p-1.5 text-muted hover:bg-glass hover:text-fg md:hidden cursor-pointer"
+            aria-label="Close assistant"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
@@ -143,7 +154,10 @@ export function ChatPanel({
         )}
       </div>
 
-      <div className="border-t border-edge p-3">
+      <div
+        className="border-t border-edge p-3"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
         <div className="flex items-end gap-2 rounded-2xl border border-edge bg-glass px-3 py-2">
           <textarea
             value={input}
@@ -156,7 +170,7 @@ export function ChatPanel({
             }}
             rows={1}
             placeholder="Ask anything — 'rewrite chapter 2 darker'…"
-            className="max-h-32 flex-1 resize-none bg-transparent text-sm text-fg placeholder:text-faint outline-none"
+            className="max-h-32 flex-1 resize-none bg-transparent text-base sm:text-sm text-fg placeholder:text-faint outline-none"
           />
           {chatting ? (
             <button
