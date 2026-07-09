@@ -36,8 +36,9 @@ export function Button({
 
 /* ─────────────────────────────── Fields ────────────────────────────── */
 
+// text-base on mobile: iOS Safari auto-zooms any focused input below 16px
 const fieldBase =
-  "w-full rounded-xl bg-glass border border-edge px-3.5 py-2.5 text-sm text-fg placeholder:text-faint outline-none focus:border-edge-strong transition-colors";
+  "w-full rounded-xl bg-glass border border-edge px-3.5 py-2.5 text-base sm:text-sm text-fg placeholder:text-faint outline-none focus:border-edge-strong transition-colors";
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cn(fieldBase, props.className)} />;
