@@ -1,0 +1,197 @@
+{
+ "items": [
+  {
+   "topic": "Apple age rating: how profanity maps to a rating (current questionnaire, iOS 26 and later)",
+   "rule": "Descriptor definition: \"Profanity or Crude Humor: Offensive or vulgar language that may be considered rude, obscene, or inappropriate. May include: swearing, derogatory slurs, insult-based humor, or jokes about bodily functions.\" The 9+ tier lists \"Infrequent profanity and crude humor\" and the 13+ tier lists \"Frequent profanity and crude humor\". Devices on an OS older than 26 use the old scale: 9+ is \"Infrequent or mild profanity or crude humor\" and 12+ is \"Frequent or intense profanity or crude humor\". \"Apple generates appropriate ratings based on your answer to the age rating questionnaire.\"",
+   "implication_for_unsetld": "Daily lines that regularly use fuck, shit or bitch count as Frequent. On their own they rate the app 13+ (12+ on older iOS). Profanity alone never pushes it to 16+ or 18+. Comparable apps confirm this. I checked the US App Store on 2026-10-07: 'toxic! - Daily (De)motivation' and 'Brutox - Sarcastic Motivation' both declare 'Frequent Profanity or Crude Humor' and show 13+. 'Brutal Motivation: Daily Quote' shows 16+, most likely because the developer chose a higher rating than Apple calculated.",
+   "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/ ; https://apps.apple.com/us/app/toxic-daily-de-motivation/id6449409293 ; https://apps.apple.com/us/app/brutox-sarcastic-motivation/id6759983138 ; https://apps.apple.com/us/app/brutal-motivation-daily-quote/id6745871149"
+  },
+  {
+   "topic": "Apple age rating: other questionnaire items this app may trigger",
+   "rule": "\"Contests: Events that allow users to compete with one another for rankings, rewards, or the achievement of personal goals\": infrequent rates 4+, frequent rates 13+. \"Health or Wellness Topics ... May include: calorie tracking, dieting advice, or exercise recommendations\": 9+. \"User-Generated Content: Includes the broad distribution of content created by users\": 4+. \"Social Media: Redistribution, amplification, or interaction with user-generated content through a social feed\": 13+. \"Unrestricted Web Access: Users can navigate to any webpage within the app or freely browse the web. May include: embedded browser functionality\": 16+ (17+ on older OS). \"Advertising: Paid promotion of products or services within the app\": 4+.",
+   "implication_for_unsetld": "XP ranks, streaks and rewards fit Apple's 'Contests' wording. Answer at least Infrequent; Frequent also lands at 13+, so the rating doesn't change. The gym category triggers Health or Wellness (9+), which also doesn't change the result. Custom affirmations kept on the device are not 'broad distribution', so answer No for UGC and No for Social Media. If you ever add a shared or community feed, Social Media sets a minimum of 13+ and guideline 1.2 moderation applies. The biggest risk is opening unsetld.com inside an in-app browser where people can click anywhere: that is Unrestricted Web Access and moves the app to 16+. Open the store in Safari instead, or in a web view locked to the unsetld.com and Shopify checkout domains. Promoting your own merch is not 'paid' advertising, and the Advertising answer stays at 4+ either way.",
+   "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/"
+  },
+  {
+   "topic": "Apple age rating: items that could push the app to 16+ or 18+ (quitting-habits and reward mechanics)",
+   "rule": "Alcohol, Tobacco, or Drug Use or References (\"References to or depictions of the consumption of alcohol, tobacco products, or other licit or illicit substances\"): infrequent is 13+, frequent is 18+. Mature or Suggestive Themes: infrequent is 9+, frequent is 16+. Medical or Treatment Information: infrequent is 13+, frequent is 16+. Simulated Gambling: infrequent is 13+, frequent is 18+. Loot Boxes: 9+. Guideline 2.3.6: \"Answer the age rating questions in App Store Connect honestly.\"",
+   "implication_for_unsetld": "Keep the 'quitting bad habits' lines general ('your vices', 'the scroll', 'junk'), with only occasional explicit mentions of weed, vapes or drinking. If those mentions become Frequent, the app rates 18+. Lines heavy on porn or sexual innuendo push it to 16+. Step-by-step quitting or treatment advice counts as medical information. Don't use spin-the-wheel or mystery-box rewards: they are simulated gambling, and frequent use rates 18+.",
+   "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/ ; https://developer.apple.com/app-store/review/guidelines/ (2.3.6)"
+  },
+  {
+   "topic": "Apple age rating: choosing a higher rating, and the new required questions",
+   "rule": "Set an app age rating: \"if you believe your app should be rated higher, you can adjust the rating ... by choosing ... Override to Higher Age Rating\". \"If your app has a EULA with minimum age requirements that exceed the rating that Apple calculated, you must override to a rating that adheres to the requirements.\" Apple news, 9 Jul 2026: social media questions were added, and \"beginning in September 2026, responses will be required when submitting new apps or updates.\" Apple news, 24 Feb 2026: \"Apple will block users in Australia, Brazil, and Singapore from downloading apps rated 18+ unless they have been confirmed to be adults.\"",
+   "implication_for_unsetld": "Apple will calculate 13+. You may choose 16+ or 18+ to match the 18-30 audience and the brand voice. 18+ blocks unverified users in Australia, Brazil and Singapore and shuts out all 16-17 year olds. If your terms say users must be 16 or older, you must override to 16+. You must answer the social media questions before you can submit.",
+   "source": "https://developer.apple.com/help/app-store-connect/manage-app-information/set-an-app-age-rating/ ; https://developer.apple.com/news/?id=tlur8uvi ; https://developer.apple.com/news/?id=f5zj08ey"
+  },
+  {
+   "topic": "US state app-store age laws (Texas, Utah, Louisiana)",
+   "rule": "Apple news, 3 Jun 2026: \"new Apple Accounts in Texas are now subject to the law ... age assurance and parent or guardian consent on behalf of minors under the age of 18 for downloads, Apple In-App Purchases, and significant changes associated with an app ... starting June 4, 2026 ... it's the developer's responsibility to determine when there's a significant change to their app.\" Utah applies to new accounts from May 6, 2026 and Louisiana from July 1, 2026, using the Declared Age Range API and the Significant Change API (PermissionKit).",
+   "implication_for_unsetld": "A 13+ app can be downloaded by teens in these states with a parent's consent. Add the Declared Age Range API. If you add the points or discount program after launch, treat that as a possible 'significant change' for minors in these states. Consider limiting rewards with real value, and any prizes, to users 18 and older.",
+   "source": "https://developer.apple.com/news/?id=sg176nne ; https://developer.apple.com/news/?id=f5zj08ey ; https://developer.apple.com/news/?id=2ezb6jhj"
+  },
+  {
+   "topic": "App Review Guideline 2.3.8 and 2.3.7: store listing must suit all ages",
+   "rule": "2.3.8: \"Metadata should be appropriate for all audiences, so make sure your app and in-app purchase icons, screenshots, and previews adhere to a 4+ age rating even if your app is rated higher.\" 2.3.7: \"App subtitles ... should not include inappropriate content.\" (Guidelines last updated June 8, 2026.)",
+   "implication_for_unsetld": "The app can swear, but the App Store page can't. Screenshots, the preview video (including its audio), the icon, the subtitle, promotional images for subscriptions, in-app event cards and custom product pages need clean lines. Show censored or non-profane examples ('No excuses. Get up.'). Keep swear words out of the name, subtitle and keywords. Mention the raw tone in the description in mild words.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (2.3.7, 2.3.8)"
+  },
+  {
+   "topic": "App Review Guideline 1.1: objectionable content",
+   "rule": "Safety intro: \"if you're looking to shock and offend people, the App Store isn't the right place for your app.\" 1.1: \"Apps should not include content that is offensive, insensitive, upsetting, intended to disgust, in exceptionally poor taste, or just plain creepy.\" 1.1.1: \"Defamatory, discriminatory, or mean-spirited content, including references or commentary about religion, race, sexual orientation, gender, national/ethnic origin, or other targeted groups.\"",
+   "implication_for_unsetld": "Casual swearing aimed at the reader's own excuses is fine; approved apps already do it, as the age-rating examples show. Never use slurs, and never use insults built on gender, sexuality or race ('pussy', 'don't be a girl', the f-slur and similar). 'Don't be a bitch' is a gray area. Aim the profanity at the behavior ('stop being soft', 'quit bitching and lift') rather than at a group.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (1, 1.1, 1.1.1)"
+  },
+  {
+   "topic": "App Review Guideline 1.4.5: challenges and 'never stop working'",
+   "rule": "1.4.5: \"Apps should not urge customers to participate in activities (like bets, challenges, etc.) or use their devices in a way that risks physical harm to themselves or others.\"",
+   "implication_for_unsetld": "Don't give XP for harmful extremes such as skipping sleep, extended fasting, training through injury or 'no rest days'. Hustle language is fine. Challenges should reward steady, safe consistency.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (1.4.5)"
+  },
+  {
+   "topic": "App Review Guidelines 4.2, 4.2.2 and 4.3(b): marketing-only apps and copycat categories",
+   "rule": "4.2: \"If your App doesn't provide some sort of lasting entertainment value or adequate utility, it may not be accepted.\" 4.2.2: \"Other than catalogs, apps shouldn't primarily be marketing materials, advertisements, web clippings, content aggregators, or a collection of links.\" 4.3(b) (revised June 2026): \"Don't submit apps that are indistinguishable from what's already widely available. Opportunistically creating variants of existing app categories or popular apps degrades App Store discovery...\"",
+   "implication_for_unsetld": "Two rejection risks. First, an app that is mainly a UNSETLD storefront or ad fails 4.2.2, which supports the founder's call to put motivation first and the brand second. Second, a plain quote-widget app is a crowded category and risks 4.3(b). Lead with what's different (XP ranks, streaks, discipline check-ins, custom affirmations) in the app and in the review notes. The store link and rewards should be a secondary tab.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (4.2, 4.2.2, 4.3) ; https://developer.apple.com/news/?id=a233fmpw"
+  },
+  {
+   "topic": "App Review Guidelines 3.1.1 and 3.1.4: paid features vs XP and merch",
+   "rule": "3.1.1: \"If you want to unlock features or functionality within your app, (by way of example: subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use in-app purchase. Apps may not use their own mechanisms to unlock content or functionality, such as license keys, augmented reality markers, QR codes...\" Also: \"Any credits or in-game currencies purchased via in-app purchase may not expire.\" 3.1.4: \"You may not, however, require users to purchase unrelated products or engage in advertising or marketing activities to unlock app functionality.\" 3.1.3(b): content bought on your website can be accessed in the app only if \"those items are also available as in-app purchases within the app.\"",
+   "implication_for_unsetld": "Pro must be sold through in-app purchase (RevenueCat). XP earned for free can unlock in-app cosmetics. Never sell XP, which keeps it a free loyalty currency and avoids the no-expiry rule for purchased currency. Don't print QR or NFC codes on hoodie tags that unlock Pro. A 'buy a hoodie, get Pro' bundle would need user accounts, Pro still on sale in the app, and buying merch must never be the only way to get Pro.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (3.1.1, 3.1.3(b), 3.1.4)"
+  },
+  {
+   "topic": "App Review Guideline 3.1.3(e): physical goods (the old 3.1.5 number now covers crypto)",
+   "rule": "3.1.3(e): \"If your app enables people to purchase physical goods or services that will be consumed outside of the app, you must use purchase methods other than in-app purchase to collect those payments, such as Apple Pay or traditional credit card entry.\" 3.1.3: these apps \"cannot, within the app, encourage users to use a purchasing method other than in-app purchase, except for apps on the United States storefront.\" (3.1.5 is now 'Cryptocurrencies'.)",
+   "implication_for_unsetld": "Clothing is paid for through Shopify checkout or Apple Pay, never in-app purchase. Discount codes for clothing are rewards for physical goods, so Apple's payment system doesn't apply. Never sell discount codes or 'XP packs that buy discounts' through in-app purchase, and don't make a subscription tier whose main value is merch discounts. Linking to the store from the app is fine.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (3.1.3, 3.1.3(e), 3.1.5)"
+  },
+  {
+   "topic": "App Review Guideline 3.1.2(a): subscriptions vs streak and XP gating",
+   "rule": "\"As with all apps, those offering subscriptions should allow a user to get what they've paid for without performing additional tasks, such as posting on social media, uploading contacts, checking in to the app a certain number of times, etc.\" Also: \"you may offer subscriptions that include access to discounted consumable goods.\"",
+   "implication_for_unsetld": "Everything Pro includes (all categories, themes, full widgets) must unlock the moment someone subscribes, never after a streak or XP level. An XP multiplier for subscribers is fine as an extra, but free users should also be able to earn discounts, and Pro should be sold on its digital features.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (3.1.2(a))"
+  },
+  {
+   "topic": "App Review Guideline 3.2.2(x): rewarding actions",
+   "rule": "3.2.2(x): \"Apps must not force users to rate the app, review the app, download other apps, or other store-related actions in order to access functionality, content, or use of the app. Apps may otherwise incentivize users to take specific actions within apps (e.g. completing a level, watching an ad).\"",
+   "implication_for_unsetld": "Apple explicitly allows XP for actions inside the app, such as opening the app daily, finishing a challenge, logging a workout or writing an affirmation. Rewards must never depend on App Store ratings or reviews, or on installing other apps.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (3.2.2(x))"
+  },
+  {
+   "topic": "Apple rules on rewarded reviews, plus the FTC review rule",
+   "rule": "Apple, Section 3 intro: \"If we find that you have attempted to manipulate reviews, inflate your chart rankings with paid, incentivized, filtered, or fake feedback ... which may include expelling you from the Apple Developer Program.\" 5.6.1: \"Use the provided API to prompt users to review your app ... we will disallow custom review prompts.\" FTC rule 16 CFR 465.4: it is unlawful \"to provide compensation or other incentives in exchange for, or conditioned expressly or by implication on, the writing or creation of consumer reviews expressing a particular sentiment.\"",
+   "implication_for_unsetld": "Give no XP, points or discounts for App Store reviews, and none for positive reviews on Shopify or social media. Ask for reviews only with Apple's standard review prompt, never your own pop-up.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (3, 5.6.1) ; https://www.ecfr.gov/current/title-16/part-465/section-465.4"
+  },
+  {
+   "topic": "App Review Guideline 5.1.2(i): no rewards for turning on notifications or tracking",
+   "rule": "\"Your app may not require users to enable system functionalities (e.g. push notifications, location services, tracking) in order to access functionality, content, use the app, or receive monetary or other compensation, including but not limited to gift cards and codes.\"",
+   "implication_for_unsetld": "No XP, rank boost or discount code for allowing notifications or tracking, and widgets and core features must work without notifications. Streak reminders must stay optional.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (5.1.2(i))"
+  },
+  {
+   "topic": "App Review Guidelines 5.1.1(v), 5.1.1(x) and 4.8: email, accounts and logins for rewards",
+   "rule": "5.1.1(x): \"Apps may request basic contact information (such as name and email address) so long as the request is optional for the user, features and services are not conditional on providing the information.\" 5.1.1(v): \"If your app supports account creation, you must also offer account deletion within the app.\" 4.8: if you use a third-party login, you must also offer an equivalent privacy-preserving option, such as Sign in with Apple.",
+   "implication_for_unsetld": "Show reward codes inside the app without requiring an email; asking for email can be optional ('email me my code'). If you add accounts to sync XP through the Vercel API, add account deletion in the app. If you use Google login, also offer Sign in with Apple.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (4.8, 5.1.1)"
+  },
+  {
+   "topic": "App Review Guideline 4.5.4 and Apple's design guidelines: marketing notifications need opt-in",
+   "rule": "4.5.4: \"Push Notifications should not be used for promotions or direct marketing purposes unless customers have explicitly opted in to receive them via consent language displayed in your app's UI, and you provide a method in your app for a user to opt out from receiving such messages.\" Apple's design guidelines (Managing notifications): \"Don't use notifications to send marketing or promotional content unless people explicitly agree to receive such information ... Never use the Time Sensitive interruption level to send a marketing notification ... you must also provide an in-app settings screen that lets people change their choice.\"",
+   "implication_for_unsetld": "Motivational reminders are normal app notifications. Alerts about drops, rank-up codes or sales are marketing: they need their own opt-in screen, separate from the general notification permission, plus an in-app on/off switch. Never mark them Time Sensitive. This applies even though launch uses local notifications.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (4.5.4) ; https://developer.apple.com/design/human-interface-guidelines/managing-notifications"
+  },
+  {
+   "topic": "Widgets: no marketing allowed",
+   "rule": "4.4: \"the extensions may not include marketing, advertising, or in-app purchases.\" 2.5.16: \"Widgets, extensions, and notifications should be related to the content and functionality of your app.\" 2.5.18: \"Display advertising should be limited to your main app binary, and should not be included in extensions, App Clips, widgets, notifications...\"",
+   "implication_for_unsetld": "Lock screen and home screen widgets should show only the daily line, the streak and XP or rank. Banners like 'New drop live' or '15% off' break the rules. A small UNSETLD wordmark is fine; shop promotion belongs inside the app.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (2.5.16, 2.5.18, 4.4)"
+  },
+  {
+   "topic": "Profanity on the lock screen and in notifications",
+   "rule": "I found no Apple guideline that bans profanity in widgets or notifications; they follow the app's age rating and guideline 1.1. The design guidelines only say: \"Avoid including sensitive, personal, or confidential information in a notification.\" Widgets appear on the Lock Screen, StandBy, CarPlay and the Apple Watch Smart Stack. WidgetKit can hide content marked privacy-sensitive while the phone is locked, depending on the user's settings.",
+   "implication_for_unsetld": "No rule problem, but a real experience problem: an uncensored 'fuck' on the lock screen is seen by parents, bosses, classmates, in the car and in StandBy. That leads to deleted widgets and uninstalls. Add a 'Lock screen language' setting (Clean / Censored, e.g. 'f*ck' / Raw), with Censored as the default for widgets and notifications and Raw inside the app. Optionally hide widget text while the phone is locked.",
+   "source": "https://developer.apple.com/design/human-interface-guidelines/notifications ; https://developer.apple.com/design/human-interface-guidelines/widgets ; https://developer.apple.com/app-store/review/guidelines/"
+  },
+  {
+   "topic": "App Review Guideline 5.3: leaderboard prizes, contests and sweepstakes",
+   "rule": "5.3: \"Only include this functionality if you've fully vetted your legal obligations everywhere you make your app available and are prepared for extra time during the review process.\" 5.3.1: \"Sweepstakes and contests must be sponsored by the developer of the app.\" 5.3.2: \"Official rules for sweepstakes, contests, and raffles must be presented in the app and make clear that Apple is not a sponsor or involved in the activity in any manner.\" 5.3.3: \"Apps may not use in-app purchase to purchase credit or currency for use in conjunction with real money gaming of any kind.\"",
+   "implication_for_unsetld": "Ranks that unlock standard discounts are a loyalty program, not a contest. A leaderboard that hands out prizes (e.g., 'top 10 this month win a hoodie') triggers 5.3. It needs UNSETLD as sponsor, official rules inside the app saying Apple is not a sponsor, and entry that subscriptions or in-app purchase can't buy. Expect longer review.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (5.3)"
+  },
+  {
+   "topic": "App Review Guideline 1.2: if affirmations ever become shareable in the app",
+   "rule": "\"Apps with user-generated content or social networking services must include: A method for filtering objectionable material from being posted to the app; A mechanism to report offensive content and timely responses to concerns; The ability to block abusive users from the service; Published contact information.\"",
+   "implication_for_unsetld": "Private custom affirmations don't trigger this. A future community feed or affirmation sharing would need filtering, reporting and blocking, plus the UGC and Social Media answers (13+ minimum).",
+   "source": "https://developer.apple.com/app-store/review/guidelines/ (1.2) ; https://developer.apple.com/news/?id=0d2gpmml"
+  },
+  {
+   "topic": "TikTok: profanity and For You feed eligibility (Community Guidelines effective Sept 24, 2026)",
+   "rule": "Harassment section: \"FYF INELIGIBLE & AGE-RESTRICTED: Hostile and profane language or behavior targeted at a private figure.\" Also: \"Content that includes lower-severity degrading behavior may be ineligible for the FYF.\" Hate section: \"Content that indirectly demeans or furthers exclusion of protected groups may not be eligible for the FYF.\" Sexual content: \"In some regions, adults using sexually explicit language\" is FYF-ineligible. Comments: comments may be ranked lower for \"Profanity that's non-neutral or targets others.\" Process: \"Content first goes through an automated review process.\"",
+   "implication_for_unsetld": "The current guidelines contain no blanket rule that swearing in captions, on-screen text or audio loses For You feed eligibility. Talk of 'swear-word shadowbans' is not backed by TikTok policy. The risk comes from targeting: insulting a named or recognizable person gets pulled from the For You feed and limited to 18+, and gendered put-downs can be read as demeaning a protected group. Speak to the viewer's excuses, not to a person or group. Keep 'bitch' out of the hook if you want the lowest risk.",
+   "source": "https://www.tiktok.com/community-guidelines/en/ (version effective September 24, 2026)"
+  },
+  {
+   "topic": "TikTok: other For You feed rules that hit motivation and gym content",
+   "rule": "\"FYF INELIGIBLE: Reused or unoriginal content posted without creative edits, such as clips that show someone else's watermark or logo\". \"Content that tries to manipulate people into giving gifts or inflating likes or follows isn't eligible for the FYF.\" Fitness: \"FYF INELIGIBLE & AGE-RESTRICTED: ... Diets, exercises, products, or services that include exaggerated or harmful claims, such as those promising fast or dramatic results; Restrictive low-calorie diets, including extended intermittent fasting.\"",
+   "implication_for_unsetld": "Don't repost clipped motivational speeches (Goggins-style edits) without major original editing; it also risks copyright claims. Don't post 'follow + comment for a discount code'. Avoid gym claims like '30 days to shredded'.",
+   "source": "https://www.tiktok.com/community-guidelines/en/"
+  },
+  {
+   "topic": "TikTok: disclosing promotion of your own brand or app in normal posts",
+   "rule": "Community Guidelines: \"If you're posting commercial content on TikTok, you must clearly disclose it using the content disclosure setting ... Disclosure is required when you're: Promoting your own business, product, or service; Posting branded content ... and receiving any kind of incentive in exchange ... If we find commercial content that hasn't been properly disclosed, we may reduce its visibility or apply the content disclosure setting. Repeated failure to make a disclosure can lead to your account being temporarily restricted from posting content, or can lead to an account ban.\" TikTok Ads help (Jan 2026): the setting \"adds a Commercial content label\". Pick 'Your brand' for your own products and 'Branded content' for paid third-party promotion.",
+   "implication_for_unsetld": "Posts from @unsetld or @unsetldclo that push the app ('download UNSETLD'), a hoodie or a discount must use the disclosure setting with 'Your brand'. A pure motivation post with no product or app call to action can arguably skip it. If users get XP or discounts for posting about UNSETLD, their posts become incentivized and need disclosure.",
+   "source": "https://www.tiktok.com/community-guidelines/en/ ; https://ads.tiktok.com/help/article/how-to-turn-on-the-commercial-content-disclosure-setting-in-tiktok"
+  },
+  {
+   "topic": "TikTok: paid ads and brand-safety settings",
+   "rule": "Ads policy (Apr 2026): ad captions must be \"free of spelling or grammatical mistakes\"; \"commonly accepted slang\" is allowed. In TikTok's advertiser placement filter, content that \"glamorizes or gratuitously depicts the use of profanities, slurs, obscene gestures, and sexual references\" is excluded at the stricter settings. Business accounts are limited to the Commercial Music Library for promotional posts. That last point comes from third-party summaries; I could not load TikTok's own help page.",
+   "implication_for_unsetld": "I could not find a published TikTok ad rule that explicitly bans profanity. Still, prepare clean versions of any paid ads (Spark Ads or Promote) in case review rejects them, and check the Ad Creatives policy before spending. Profanity doesn't hurt organic reach under the filter; it only keeps your videos away from cautious advertisers' ads. Use commercial-cleared music on brand posts.",
+   "source": "https://ads.tiktok.com/help/article/tiktok-ads-policy-ad-format-and-functionality ; https://ads.tiktok.com/help/article/tiktok-inventory-filter ; https://www.soundstripe.com/blogs/tiktok-music-licensing-rules (third party)"
+  },
+  {
+   "topic": "FTC Endorsement Guides: rewards for posting or referring",
+   "rule": "16 CFR 255.5(a): \"Material connections ... can include monetary payment or the provision of free or discounted products ... to an endorser, regardless of whether the advertiser requires an endorsement in return. Material connections can also include other benefits to the endorser, such as early access to a product or the possibility of being paid, of winning a prize ... such connection must be disclosed clearly and conspicuously.\"",
+   "implication_for_unsetld": "If XP or discounts reward users for posting about UNSETLD, tagging the brand or referring friends publicly, those posts are endorsements and need a disclosure (#ad plus TikTok's Branded content setting). The brand is expected to tell users this and check that they comply. The simplest launch policy is to give XP only for actions inside the app.",
+   "source": "https://www.ecfr.gov/current/title-16/part-255/section-255.5"
+  },
+  {
+   "topic": "US gift card rules: use discount codes, not store credit",
+   "rule": "12 CFR 1005.20 excludes from the gift card rules any \"loyalty, award, or promotional gift card\" (\"a card, code, or other device ... issued ... in connection with a loyalty, award, or promotional program\"). To qualify, the code itself must show a statement that it is promotional, \"The expiration date for the underlying funds\", any fees, and a toll-free number or website.",
+   "implication_for_unsetld": "Reward with percent-off or dollar-off discount codes (Shopify discounts). Avoid stored-value store credit or Shopify gift cards. If you ever issue store credit, show 'Promotional reward - expires MM/DD/YYYY - no fees - unsetld.com' on the code itself.",
+   "source": "https://www.ecfr.gov/current/title-12/part-1005/section-1005.20"
+  },
+  {
+   "topic": "Prize contests: state registration rules and tax forms",
+   "rule": "New York (GBL §369-e) and Florida (Fla. Stat. §849.094) require registration and a bond for chance-based promotions with prizes over $5,000 (per compliance-vendor summaries). Federal: from tax year 2026 the Form 1099-MISC threshold for prizes and awards rose from $600 to $2,000 per recipient per year (One Big Beautiful Bill Act; EY and Reed Smith summaries). A lottery is prize + chance + consideration.",
+   "implication_for_unsetld": "If a leaderboard ever gives prizes: keep it skill-based or free to enter (paying Pro members must not get better odds of winning a chance-based prize), limit it to adults in the US ('void where prohibited'), keep total prizes at or under $5,000 or register in NY and FL, and collect a W-9 and file a 1099-MISC for anyone winning more than $2,000 in a year.",
+   "source": "https://blog.sweeppea.com/sweepstakes-regulations-new-york-florida/ ; https://www.reedsmith.com/our-insights/blogs/viewpoints/102ku4y/one-big-beautiful-bill-act-could-mean-more-valuable-prizes/ ; https://taxnews.ey.com/news/2026-1065-treasury-proposes-regulations-aligning-information-reporting-thresholds-and-wagering-loss-rules-with-recent-statutory-changes"
+  },
+  {
+   "topic": "California privacy law (CCPA): notice for loyalty programs",
+   "rule": "A covered business must give a Notice of Financial Incentive (summary, material terms, categories of data, how to opt in, right to withdraw, good-faith estimate of the data's value) before a consumer joins a loyalty program in exchange for personal data. The law covers companies with over $26,625,000 in gross revenue (as of Jan 1, 2025), or that buy, sell or share data on 100,000 or more consumers, or that earn 50% or more of revenue from selling or sharing data.",
+   "implication_for_unsetld": "A small founder is probably below these thresholds today. Keeping XP on the device also keeps exposure low. Plan for this notice if the program later collects emails or phone numbers at scale.",
+   "source": "https://www.cppa.ca.gov/regulations/cpi_adjustment.html ; https://kleinmoynihan.com/loyalty-comes-at-a-price-dont-forget-to-include-ccpas-notice-of-financial-incentive/"
+  }
+ ],
+ "expected_age_rating": "13+ on iOS/iPadOS 26 and later (shown as 12+ on older iOS), set by 'Frequent Profanity or Crude Humor'. Comparable apps with frequent profanity ('toxic!', 'Brutox') show 13+ on the US App Store today. It stays 13+ only if all of these hold: stores and links open in Safari or a web view locked to your own domains (a free-browsing in-app browser makes it 16+); weed, vape and alcohol references stay Infrequent (Frequent makes it 18+); sexual or porn-quitting themes stay Infrequent (Frequent makes it 16+); quitting tips stay motivational rather than treatment advice (Frequent medical information makes it 16+); and there are no spin-wheel or mystery rewards (Frequent simulated gambling makes it 18+). Health or Wellness (gym) and Contests (XP ranks) don't raise it above 13+. You may choose 16+ or 18+ to match the 18-30 audience; 18+ adds adult verification in Australia, Brazil and Singapore and excludes 16-17 year olds.",
+ "must_dos": [
+  "Age-rating answers in App Store Connect: Profanity = Frequent; Health or Wellness = Yes; Contests = Infrequent or Frequent (both still 13+); User-Generated Content = No; Social Media = No (this question is required since Sept 2026); Unrestricted Web Access = No; Advertising = No unless you add third-party ads; substance, sexual and medical themes = Infrequent at most. Decide whether to choose 16+ or 18+ instead, and you must if your terms set a higher minimum age.",
+  "Keep the App Store listing all-ages: clean or censored lines in screenshots, preview video and audio, icon, subtitle, keywords, subscription promo images and in-app event cards (2.3.7, 2.3.8).",
+  "Profanity rules for writers: no slurs and no gender, sexuality or race-based insults (1.1.1); aim swearing at excuses and habits, not people; no XP for harmful extremes like no sleep, fasting or training through injury (1.4.5).",
+  "Add a 'Lock screen language' setting (Clean / Censored / Raw), default Censored for widgets and notifications; optionally hide widget text while the phone is locked.",
+  "Widgets show only the daily line, streak and XP or rank. No drop, sale or discount promos in widgets or extensions (4.4, 2.5.16, 2.5.18).",
+  "Two notification permissions: reminders under the normal prompt, and drops or discounts behind a separate explicit opt-in screen with an in-app on/off switch. Never mark marketing as Time Sensitive (4.5.4, Apple design guidelines).",
+  "Give XP only for actions inside the app (3.2.2(x)). Never for allowing notifications or tracking (5.1.2(i)), App Store ratings or reviews (Section 3, 5.6.1), positive reviews anywhere (FTC 16 CFR 465.4), or installing other apps. Avoid XP for social posts; if you add it, require #ad plus TikTok's Branded content setting (FTC 255.5).",
+  "Money: Pro only through in-app purchase via RevenueCat; never sell XP, discount codes or 'discount boosts' through in-app purchase; merch only through Shopify checkout or Apple Pay (3.1.3(e)); no QR or NFC codes on clothing that unlock Pro (3.1.1, 3.1.4); Pro unlocks immediately, never gated by streaks (3.1.2(a)); free users can also earn discounts.",
+  "Publish reward terms in the app and on unsetld.com before launch: who can join (US; 13+ or 18+), how XP is earned, rank thresholds, the exact reward at each rank, 'no cash value, not transferable, not exchangeable for cash or gift cards', when codes expire (date shown on the code), one code per order, no stacking with the 10% email-signup code, which drops or limited runs are excluded, how this fits with all sales being final, limits (e.g., at most one code per 30 days and a maximum % off), forfeiture for cheating (clock changes, multiple devices), the right to change or end the program for the future with about 30 days' notice and no retroactive devaluation, and a statement that Apple is not a sponsor.",
+  "Plan the economics so you don't over-discount: small fixed rewards (e.g., 10% at a higher rank, 15% at the top, never free items at launch). Issue each code once, valid for one customer, with an expiry date and a minimum order, using Shopify discount codes rather than store credit or gift cards (otherwise the promotional disclosures in 12 CFR 1005.20 apply).",
+  "Because XP lives only on the device and is easy to fake, create real-value codes on the server: a small Vercel API calling Shopify's Admin API, checked with Apple's App Attest or DeviceCheck, with per-device limits. The code shows in the app and email is optional (5.1.1(x)).",
+  "No leaderboard prizes at launch. If added later: UNSETLD as sponsor, official rules inside the app saying Apple is not a sponsor (5.3.1, 5.3.2), free and skill-based entry with no purchase advantage, adults in the US only, total prizes at or under $5,000 (or register and bond in NY and FL), and W-9 plus 1099-MISC for winners above $2,000 a year.",
+  "Add the Declared Age Range API. If the rewards program launches after the app, treat it as a possible 'significant change' for minors in Texas, Utah and Louisiana. Consider limiting real-value rewards to users 18+.",
+  "Review readiness: describe the XP-to-discount flow and the store link in the App Review notes, give the reviewer a quick way to see a reward unlock (2.1, 2.3.1), and position the app as a discipline tool first with the store secondary (4.2.2, 4.3(b)).",
+  "Privacy: a privacy policy linked in App Store Connect and in the app; an accurate privacy label (more items if you add email or identifiers for rewards); in-app account deletion if accounts are added; Sign in with Apple-equivalent if you use Google login (4.8, 5.1.1).",
+  "TikTok: turn on the commercial disclosure setting with 'Your brand' for any post pushing the app, merch or codes; use commercial-cleared music on brand posts; post original footage rather than reposted speech clips; no 'follow or comment for a code' engagement bait; no profanity aimed at a real person and no gendered slurs in hooks; no fitness claims promising fast results. Prepare clean versions of paid ads and check TikTok's Ad Creatives policy before spending."
+ ]
+}

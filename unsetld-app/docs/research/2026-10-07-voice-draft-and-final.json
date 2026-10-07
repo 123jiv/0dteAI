@@ -1,0 +1,1014 @@
+{
+ "draft": {
+  "category_names": [
+   {
+    "id": "discipline",
+    "display": "No Days Off",
+    "why": "The phrase young guys already use for keeping their word to themselves, and it carries 'never stop working' straight away. In the copy it means 'don't skip what you said you'd do', not 'never rest'."
+   },
+   {
+    "id": "money",
+    "display": "Bag Talk",
+    "why": "Slang for talking about money, so it reads as money habits and skills. It doesn't promise anyone they'll get rich."
+   },
+   {
+    "id": "gym",
+    "display": "Gym Rat Era",
+    "why": "Calling it an 'era' is very Gen Z: self-aware, a bit funny, and about who you are and showing up, not how your body will look."
+   },
+   {
+    "id": "focus",
+    "display": "Lock In",
+    "why": "The most common Gen Z word for focus. It's short enough for a widget label and turns into a verb in the lines ('lock the f*** in')."
+   },
+   {
+    "id": "confidence",
+    "display": "Aura Up",
+    "why": "Aura is the word this crowd uses for presence. The 'up' makes it something you build through reps, not something you're born with."
+   },
+   {
+    "id": "habits",
+    "display": "Cut It Off",
+    "why": "People already say they 'cut off' a toxic ex or friend. Using that for habits is instantly clear and punchy."
+   }
+  ],
+  "lines": [
+   {
+    "text": "Nobody's coming to drag you out of bed. That's your job.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "You don't need a new plan. You need to finish the old one.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 13
+   },
+   {
+    "text": "Tired, bored, unmotivated. Still counts if you do it.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Settling is a habit too. Break that one first.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Don't wait to feel ready. Ready shows up after you start.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Stop being the snooze button's bitch. Get up.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 8
+   },
+   {
+    "text": "Your mood is not a schedule. Do the shit anyway.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Half-assing it is just settling with extra steps.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 8
+   },
+   {
+    "text": "Motivation ghosted you? Cool. Discipline doesn't give a damn. Go.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "You said \"tomorrow\" yesterday. Congrats, it's here. Now fucking move.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Check your account before you check your feed.",
+    "category": "money",
+    "explicit": false,
+    "words": 8
+   },
+   {
+    "text": "Nobody's handing you the bag. You stack it one boring day at a time.",
+    "category": "money",
+    "explicit": false,
+    "words": 14
+   },
+   {
+    "text": "Know where every dollar went this week. That's step one.",
+    "category": "money",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Starting with nothing just means every win is yours.",
+    "category": "money",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Save something today. Even if it's small. Especially if it's small.",
+    "category": "money",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Adding to cart at 2am? Go the hell to sleep.",
+    "category": "money",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Avoiding your bank app won't fix shit. Open it today.",
+    "category": "money",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Fuck the get-rich-quick ads. Learn something boring and get good at it.",
+    "category": "money",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Your side-hustle idea is rotting in your notes app. Get off your ass.",
+    "category": "money",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "Damn, another food delivery? Cook something and stack the difference.",
+    "category": "money",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "The weights weigh the same whether you're hyped or not. Go.",
+    "category": "gym",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Empty gym, early alarm, no audience. That's the good stuff.",
+    "category": "gym",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Log the lift. Beat the log. Repeat.",
+    "category": "gym",
+    "explicit": false,
+    "words": 7
+   },
+   {
+    "text": "Watching gym videos isn't training. Put the phone down and lift.",
+    "category": "gym",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Skipping today makes tomorrow heavier. Pack the bag.",
+    "category": "gym",
+    "explicit": false,
+    "words": 8
+   },
+   {
+    "text": "Your couch has never made anyone stronger. Get your ass off it.",
+    "category": "gym",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Rest day was yesterday. Quit stalling and go lift some heavy shit.",
+    "category": "gym",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "You've been \"about to go\" for an hour. Damn, just go.",
+    "category": "gym",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Stop filming the warm-up and do the actual fucking set.",
+    "category": "gym",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Busy, tired, not feeling it? Hell, same. Go anyway.",
+    "category": "gym",
+    "explicit": true,
+    "words": 9
+   },
+   {
+    "text": "Phone face down. Door shut. One hour, locked in.",
+    "category": "focus",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "You can't build anything in 12-second pieces.",
+    "category": "focus",
+    "explicit": false,
+    "words": 7
+   },
+   {
+    "text": "Busy isn't locked in. Pick one thing and finish it.",
+    "category": "focus",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Do the hard task first. Everything else is a hiding spot.",
+    "category": "focus",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Apps get paid for your attention. You don't. Act like it.",
+    "category": "focus",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Your screen time report is a confession. Put the damn phone down.",
+    "category": "focus",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "The algorithm is feasting on your hours. Fuck that. Take them back.",
+    "category": "focus",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Twelve tabs, three apps, zero progress. Close all that shit.",
+    "category": "focus",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Third hour of scrolling? Hell nah. Phone goes in another room.",
+    "category": "focus",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "The group chat will survive an hour without you. Lock the fuck in.",
+    "category": "focus",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "Every promise you keep to yourself adds a little aura.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Being cringe for a week beats being stuck for a year.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Hype yourself up like you'd hype your boy up.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Say it with your chest. Then go back it up.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Confidence isn't a feeling you wait for. It's reps.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Your first try will be rough as hell. That's the entry fee.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Stop asking permission to be good at shit.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 8
+   },
+   {
+    "text": "Your inner critic talks big for someone who's never done a damn thing.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "Overthinking is just fear in a nice outfit. Fuck it, send it.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Stop scrolling other people's wins. Get your ass back in your own lane.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "You're not quitting forever. Just today. Then again tomorrow.",
+    "category": "habits",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Every urge you ride out is a rep. Count it.",
+    "category": "habits",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Your old habits had a good run. Their contract's up.",
+    "category": "habits",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Delete it, hide it, block it. Make the bad habit a hassle.",
+    "category": "habits",
+    "explicit": false,
+    "words": 12
+   },
+   {
+    "text": "Bad habits love a bored you. Keep your hands busy.",
+    "category": "habits",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "That habit isn't helping you chill. It's running your whole damn day.",
+    "category": "habits",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "You don't owe your bad habits shit. Cut them off.",
+    "category": "habits",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Vape, scroll, snooze, repeat? Hell no. Break the loop today.",
+    "category": "habits",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Slipped up? Cool, you're human. Now get your ass back on track.",
+    "category": "habits",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Cravings are loud as fuck, then they pass. Outlast them.",
+    "category": "habits",
+    "explicit": true,
+    "words": 10
+   }
+  ],
+  "notifications": [
+   {
+    "text": "Today's line just dropped. Read it before you open anything else.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Your streak's still alive. Keep it breathing tonight.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 8
+   },
+   {
+    "text": "Quick check: did you do the hard thing yet?",
+    "category": "focus",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Today's mission is tiny. Knock it out before bed.",
+    "category": "habits",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "You said you'd train today. Still the plan?",
+    "category": "gym",
+    "explicit": false,
+    "words": 8
+   },
+   {
+    "text": "Checked your bank app this week, or still avoiding it?",
+    "category": "money",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Get your ass up. Today's line is waiting.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 8
+   },
+   {
+    "text": "Streak dies at midnight. Don't be your couch's bitch.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 9
+   },
+   {
+    "text": "Put the damn phone down after this one.",
+    "category": "focus",
+    "explicit": true,
+    "words": 8
+   },
+   {
+    "text": "Close the feed. Open the work. Quit fucking around.",
+    "category": "focus",
+    "explicit": true,
+    "words": 9
+   },
+   {
+    "text": "Excuses are loud today. Tell them to shut the hell up.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Mission's still open. Stop dodging it and knock that shit out.",
+    "category": "habits",
+    "explicit": true,
+    "words": 11
+   }
+  ],
+  "missions": [
+   "No phone for the first 30 minutes after you wake up",
+   "Make your bed before you open any app",
+   "Drink a full glass of water before anything else",
+   "Move for 15 minutes: walk, lift, push-ups, anything counts",
+   "One 25-minute lock-in with your phone in another room",
+   "Write down today's one must-do and finish it first",
+   "Log every dollar you spent today",
+   "Spend 15 minutes practicing a skill you'd want to get paid for",
+   "Skip your go-to bad habit once today, on purpose",
+   "Do the one thing you've been putting off for a week"
+  ],
+  "rank_names": [
+   "NPC",
+   "Awake",
+   "Grinder",
+   "Relentless",
+   "Built Different",
+   "UNSETLD"
+  ],
+  "onboarding_copy": [
+   "Never settle for less. — A new line every day for the moments you'd rather stay comfortable.",
+   "What are you working on? — Pick your lanes: No Days Off, Bag Talk, Gym Rat Era, Lock In, Aura Up, Cut It Off. Switch anytime.",
+   "How do you want it? — Clean: straight talk, zero swearing. Unfiltered: same energy, curse words included. Change it anytime in Settings.",
+   "When should we check on you? — Pick your times. Nudges, not spam.",
+   "Put it where you already look. — Add the lock screen widget. Every unlock reminds you you're not done yet.",
+   "Everyone starts as an NPC. — Show up, knock out missions, earn XP, rank up. Day 1 is today."
+  ],
+  "paywall_headlines": [
+   "Go all in: every category, theme and widget.",
+   "3 days free, then $24.99/year. Cancel anytime.",
+   "You bring the work. We'll bring a new line every day.",
+   "Don't settle for the free version.",
+   "Pay once, keep it: lifetime access for $39.99."
+  ],
+  "voice_guide": "VOICE: A friend who doesn't let you slack. Funny on the surface, serious underneath. Write to one person ('you'), never to a crowd.\n\nDO\n- Keep every line under 15 words and aim for 12 or fewer so it fits a widget. One idea per line, readable in one glance.\n- Be specific: the snooze button, the 2am cart, 12 tabs, the group chat, the notes app. Specific is funny. Vague hype is cringe.\n- Aim every swear at the reader's excuses, phone, couch, comfort zone, cravings or circumstances. Use at most one swear per line, and rotate fuck, shit, damn, ass and hell so no single word dominates.\n- Keep 'bitch' rare (about 1 in 30 unfiltered lines) and only in the 'don't be your [snooze button/couch/phone]'s bitch' pattern.\n- Write each clean line as its own line, not a bleeped copy of the unfiltered one. Never write 'f*ck'.\n- Be tough on effort and kind on slip-ups. A relapse line says 'reset', never 'you failed'.\n- Go light on slang: at most one slang term per line (lock in, aura, the bag, cringe, era, NPC, send it). If a term needs explaining, cut it.\n- Carry 'never settle' through ideas (settling, half-assing, staying comfortable), not the brand name. 'UNSETLD' should appear in about 1 of 50 lines, tops.\n\nDON'T\n- Swear at or about women, other people or any group. No slurs, no 'real men', no alpha/sigma talk, no 'females', and never hype the reader by putting someone else down.\n- Promise results: no 'you'll be rich', no 'six figures by 25', no 'get shredded', no 'this will change your life'. Talk about the work, not the payoff.\n- Glorify training through pain or injury, skipping sleep or skipping meals. 'No days off' means don't skip what you said you'd do. It doesn't mean never rest.\n- Mock ADHD, depression, anxiety or therapy, or call someone's struggle laziness.\n- Copy or lightly remix famous lines (Goggins, Jocko, Cam Hanes, Nike, viral TikTok sounds). If a line sounds familiar, search it and rewrite it.\n- Write fortune-cookie lines, hashtags, emojis or ALL CAPS shouting.\n\nPRODUCT NOTES\n- Unfiltered is opt-in and off by default. Unfiltered notifications show on the lock screen, so add a 'keep lock screen clean' toggle.\n- Frequent profanity raises the App Store age rating, so answer Apple's age-rating questionnaire to match.\n- Paywall prices must come from StoreKit/RevenueCat when the app runs, not typed into the code.\n- XP copy rewards showing up. Never write 'buy to earn'. Store perks should feel like a bonus, not the point of the app."
+ },
+ "final": {
+  "category_names": [
+   {
+    "id": "discipline",
+    "display": "Show Up",
+    "why": "Plain words young guys already use for keeping their word to themselves. It carries 'never stop working' as everyday consistency. It replaces 'No Days Off', a gym-bro hashtag whose literal meaning ('never rest') contradicted our own rest-day rule."
+   },
+   {
+    "id": "money",
+    "display": "Bag Talk",
+    "why": "Slang for talking about money, so it reads as money habits and skills. It doesn't promise anyone they'll get rich."
+   },
+   {
+    "id": "gym",
+    "display": "Gym Rat",
+    "why": "A label guys already give themselves half-jokingly. It's about being the one who shows up, not about how your body looks. I cut 'Era' because 'X era' reads as 2023 slang and would get screenshotted ironically by 2026."
+   },
+   {
+    "id": "focus",
+    "display": "Lock In",
+    "why": "The most common Gen Z word for focus. It's short enough for a widget label and works as a verb in the lines ('lock the fuck in')."
+   },
+   {
+    "id": "confidence",
+    "display": "Back Yourself",
+    "why": "A plain phrase that won't date: trust yourself enough to act, then back it up. It replaces 'Aura Up', since 'aura' slang is already mostly used ironically and won't last as a category name."
+   },
+   {
+    "id": "habits",
+    "display": "Cut It Off",
+    "why": "People already say they 'cut off' a toxic ex or friend. Using it for habits is instantly clear and punchy, and the lines echo it ('or the old shit moves back in')."
+   }
+  ],
+  "lines": [
+   {
+    "text": "Pick one non-negotiable today. Then don't negotiate.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 7
+   },
+   {
+    "text": "You've made enough plans. Go do one of them.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Lay out tomorrow tonight: clothes, bag, first task. Less to argue with.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 12
+   },
+   {
+    "text": "Settling is a habit too. Break that one first.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "You'll feel ready around rep three. Start at rep one.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Stop being the snooze button's bitch. Get up.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 8
+   },
+   {
+    "text": "Your mood is not a schedule. Do the shit anyway.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Half-assing it is just settling with better excuses.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 8
+   },
+   {
+    "text": "You'd show up for your boys. Show the hell up for yourself.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Fuck waiting for Monday. 4:13pm on a Thursday works fine.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Carrying a card balance means paying extra for stuff you already have.",
+    "category": "money",
+    "explicit": false,
+    "words": 12
+   },
+   {
+    "text": "The bag gets stacked on boring days. Have a boring one.",
+    "category": "money",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Learn one money thing this week. Taxes count. Sorry.",
+    "category": "money",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Ask what the job pays. Asking isn't rude, it's homework.",
+    "category": "money",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Save something today. Even if it's small. Especially if it's small.",
+    "category": "money",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "2am cart? Close the damn app. Sleep on it.",
+    "category": "money",
+    "explicit": true,
+    "words": 9
+   },
+   {
+    "text": "Avoiding your bank app won't fix shit. Open it today.",
+    "category": "money",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Fuck the get-rich-quick ads. Learn a real skill and get good at it.",
+    "category": "money",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "Your side-hustle idea is rotting in your notes app. Get off your ass.",
+    "category": "money",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "Paying $8 in fees to skip a ten-minute walk? Hell no.",
+    "category": "money",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Same time, every training day, until skipping feels weird.",
+    "category": "gym",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Empty gym, early alarm, no audience. That's the good stuff.",
+    "category": "gym",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Log the lift. Beat the log. Repeat.",
+    "category": "gym",
+    "explicit": false,
+    "words": 7
+   },
+   {
+    "text": "Watching gym videos isn't training. Close the app and go lift.",
+    "category": "gym",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Skipping today makes tomorrow heavier. Pack the bag.",
+    "category": "gym",
+    "explicit": false,
+    "words": 8
+   },
+   {
+    "text": "Your membership charges you either way. Get your ass in there.",
+    "category": "gym",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Rest day was yesterday. Quit stalling and go lift some heavy shit.",
+    "category": "gym",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "You've been \"about to go\" for an hour. Damn, just go.",
+    "category": "gym",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Stop filming the warm-up and do the actual fucking set.",
+    "category": "gym",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Think everyone's watching you lift? They're busy as hell with their own reps.",
+    "category": "gym",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "Phone face down. Door shut. One hour, locked in.",
+    "category": "focus",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "You can't build anything in 12-second pieces.",
+    "category": "focus",
+    "explicit": false,
+    "words": 7
+   },
+   {
+    "text": "Getting bored is part of the work. Stay in the chair.",
+    "category": "focus",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Do the hard task first. Everything else is a hiding spot.",
+    "category": "focus",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Make the first ugly version. Fixing is easier than starting.",
+    "category": "focus",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Your screen time report is a confession. Put the damn phone down.",
+    "category": "focus",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "The algorithm is feasting on your hours. Fuck that. Take them back.",
+    "category": "focus",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Twelve tabs, three apps, zero progress. Close all that shit.",
+    "category": "focus",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Color-coding your to-do list for an hour? Hell nah. Do item one.",
+    "category": "focus",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "The group chat will survive an hour without you. Lock the fuck in.",
+    "category": "focus",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "Take the compliment. Just say thanks. No \"nah, it was luck.\"",
+    "category": "confidence",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "Being cringe for a week beats being stuck for a year.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "A \"no\" means you actually asked. Keep collecting them.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Say it with your chest. Then go back it up.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Cut \"this might be dumb, but.\" Lead with the idea.",
+    "category": "confidence",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Your first try will be rough as hell. That's the entry fee.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "You don't need anyone's blessing to get good at shit.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Your inner critic talks big for someone who's never done a damn thing.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "Rewrote the email nine times? It's fine. Fuck it, send it.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Quit roasting your own ass before anyone else can. You hear every joke.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 13
+   },
+   {
+    "text": "You're not quitting forever. Just today. Then again tomorrow.",
+    "category": "habits",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Every urge you ride out is a rep. Count it.",
+    "category": "habits",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Your old habits had a good run. Their contract's up.",
+    "category": "habits",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Delete it, hide it, block it. Make the bad habit a hassle.",
+    "category": "habits",
+    "explicit": false,
+    "words": 12
+   },
+   {
+    "text": "Know your weak hour. Have something else to do in it.",
+    "category": "habits",
+    "explicit": false,
+    "words": 11
+   },
+   {
+    "text": "That habit isn't helping you chill. It's running your whole damn day.",
+    "category": "habits",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "You don't owe your bad habits shit. Cut them off.",
+    "category": "habits",
+    "explicit": true,
+    "words": 10
+   },
+   {
+    "text": "Vape, scroll, snooze, repeat. That loop is kicking your ass. Break it.",
+    "category": "habits",
+    "explicit": true,
+    "words": 12
+   },
+   {
+    "text": "Slipped up? You're human, not a fuckup. Reset and go again.",
+    "category": "habits",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Quitting leaves a gap. Fill it, or the old shit moves back in.",
+    "category": "habits",
+    "explicit": true,
+    "words": 13
+   }
+  ],
+  "notifications": [
+   {
+    "text": "Today's line just dropped. Read it before the group chat.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 10
+   },
+   {
+    "text": "Your streak's still alive. Keep it breathing tonight.",
+    "category": "discipline",
+    "explicit": false,
+    "words": 8
+   },
+   {
+    "text": "Quick check: did you do the hard thing yet?",
+    "category": "focus",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "Today's mission is tiny. Knock it out before bed.",
+    "category": "habits",
+    "explicit": false,
+    "words": 9
+   },
+   {
+    "text": "You said you'd train today. Still the plan?",
+    "category": "gym",
+    "explicit": false,
+    "words": 8
+   },
+   {
+    "text": "Two-minute money check: what did you spend yesterday?",
+    "category": "money",
+    "explicit": false,
+    "words": 8
+   },
+   {
+    "text": "Up yet? New line's waiting. The bullshit can wait.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 9
+   },
+   {
+    "text": "Streak dies at midnight. Don't be your couch's bitch.",
+    "category": "discipline",
+    "explicit": true,
+    "words": 9
+   },
+   {
+    "text": "Payday? Move some to savings before you spend a damn cent.",
+    "category": "money",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Close the feed. Open the work. Quit fucking around.",
+    "category": "focus",
+    "explicit": true,
+    "words": 9
+   },
+   {
+    "text": "Excuses are loud today. Tell them to shut the hell up.",
+    "category": "confidence",
+    "explicit": true,
+    "words": 11
+   },
+   {
+    "text": "Mission's still open. Stop dodging it and knock that shit out.",
+    "category": "habits",
+    "explicit": true,
+    "words": 11
+   }
+  ],
+  "missions": [
+   "No phone for the first 30 minutes after you wake up",
+   "Start one conversation you'd normally avoid",
+   "Drink a full glass of water before anything else",
+   "Move for 15 minutes: walk, lift, push-ups, anything counts",
+   "One 25-minute lock-in with your phone in another room",
+   "Write down today's one must-do and finish it first",
+   "Log every dollar you spent today",
+   "Spend 15 minutes practicing a skill you'd want to get paid for",
+   "Skip your go-to bad habit once today, on purpose",
+   "Do the one thing you've been putting off for a week"
+  ],
+  "rank_names": [
+   "NPC",
+   "Awake",
+   "Workhorse",
+   "Relentless",
+   "Unshakable",
+   "UNSETLD"
+  ],
+  "onboarding_copy": [
+   "Never settle for less. — A new line every day for the moments you'd rather stay comfortable.",
+   "What are you working on? — Pick your lanes: Show Up, Bag Talk, Gym Rat, Lock In, Back Yourself, Cut It Off. Switch anytime.",
+   "How do you want it? — Clean: straight talk, zero swearing. Unfiltered: same energy, curse words included. Change it anytime in Settings.",
+   "When should we check on you? — Pick your times. Nudges, not spam.",
+   "Put it where you already look. — Add the lock screen widget. Every unlock is a reminder you're not done yet.",
+   "Everyone starts as an NPC. — Show up, knock out missions, earn XP, rank up. Higher ranks unlock the occasional UNSETLD perk. Your first mission is waiting."
+  ],
+  "paywall_headlines": [
+   "Go all in: every category, theme and widget.",
+   "3 days free, then {annual_price}/year. Cancel anytime.",
+   "You bring the work. We'll bring all six lanes.",
+   "Don't settle for the free version.",
+   "Pay once, keep it: lifetime access for {lifetime_price}."
+  ],
+  "voice_guide": "VOICE: A friend who doesn't let you slack. Funny on the surface, serious underneath. Write to one person ('you'), never to a crowd.\n\nDO\n- Keep every line under 15 words and every notification under 12. Aim for 12 or fewer so it fits a widget. One idea per line, readable in one glance. A word is anything between spaces, so a hyphenated word or '4:13pm' counts as one.\n- Be specific: the snooze button, the 2am cart, 12 tabs, the group chat, the notes app, the email you rewrote nine times. Specific is funny. Vague hype is cringe.\n- Aim every swear at the reader's excuses, phone, couch, feed, cravings or habits. Use one swear per line, and rotate them so no word dominates. The current 30 unfiltered lines use fuck 7, shit 7, damn 5, hell 5, ass 5 and bitch 1.\n- Use 'bitch' no more than twice in the whole library, and only in the 'the snooze button's / your couch's bitch' pattern, meaning an object or excuse is running you. Never aim it at a person.\n- Write each clean line as its own line, not a bleeped copy of the unfiltered one. Never write 'f*ck'.\n- Be tough on effort and kind on slip-ups. A relapse line says 'You're human, not a fuckup. Reset.', never 'you failed'.\n- Use at most one slang term per line (lock in, the bag, cringe, NPC, send it, with your chest). Skip slang that dates fast (aura, era, sigma, rizz): within a year it only gets used ironically.\n- Carry 'never settle' through ideas (settling, half-assing, staying comfortable), not the brand name. 'UNSETLD' appears only in the top rank and one onboarding line, never in daily lines or notifications.\n\nDON'T\n- Swear at or about women, other people or any group. No slurs, no 'real men', no alpha/sigma talk, no 'females', and never hype the reader by putting someone else down.\n- Promise results: no 'you'll be rich', no 'six figures by 25', no 'get shredded', no 'this will change your life'. Talk about the work, not the payoff.\n- Glorify training through pain or injury, skipping sleep or skipping meals. 'Show Up' means do what you said you'd do. It doesn't mean never rest.\n- Mock ADHD, depression, anxiety or therapy, or call someone's struggle laziness.\n- Copy or lightly remix famous lines (Goggins, Jocko, Nike, Brené Brown, Atomic Habits rules, viral TikTok sounds, meme templates like 'X with extra steps'). Motivational copy is so saturated that if a line sounds familiar, it probably is. Search every quote-like line before it ships.\n- Write fortune-cookie lines, hashtags, emojis or ALL CAPS shouting.\n- Sell inside the content. Lines and notifications never say 'shop' or 'drop'.\n\nPRODUCT NOTES\n- Unfiltered is opt-in and off by default. Unfiltered notifications show on the lock screen, so add a 'keep lock screen clean' toggle.\n- Frequent profanity raises the App Store age rating, so answer Apple's age-rating questionnaire to match.\n- Paywall prices come from StoreKit/RevenueCat when the app runs. That's why the headlines use {annual_price} and {lifetime_price} instead of typed prices.\n- XP copy rewards showing up. Never write 'buy to earn'. Store perks should feel like a bonus, not the point of the app. Keep them occasional so discounts stay rare.\n\nEDITOR NOTES\nI changed 31 of 60 lines, 3 notifications, 1 mission, 2 rank names, 3 category names, 2 onboarding lines and 3 paywall headlines. I ran about 25 web searches.\n\nOriginality: I replaced lines that turned out to be near-copies of famous quotes:\n- Nike's 'Yesterday you said tomorrow' billboard (the 'tomorrow' line).\n- Elizabeth Gilbert's 'perfectionism is just fear in fancy shoes' (the 'fear in a nice outfit' line).\n- 'Nobody is coming to save you' (the 'drag you out of bed' line).\n- Henry Rollins' 'two hundred pounds is always two hundred pounds' (the 'weights weigh the same' line).\n- The book title 'Go the F**k to Sleep' (the 'go the hell to sleep' line).\n- The line credited to Brené Brown, 'talk to yourself like you would to someone you love' (the 'hype your boy' line).\n- Ed Mylett's 'confidence comes from keeping the promises you make to yourself' (the 'adds a little aura' line).\n- The line credited to Ryder Carroll, 'busy is not the same as productive' (the 'Busy isn't locked in' line).\n- 'You don't need a new plan, you need commitment', which one blog credits to Seth Godin (the 'finish the old one' line).\n- 'Someone else's success doesn't take away from yours' (the replacement I first drafted for the 'other people's wins' line).\n- Rick and Morty's 'with extra steps' template.\n- The generic 'don't wait to feel ready' and 'motivation fades, discipline stays' clichés.\n- The 'idle hands' proverb.\nI also swapped the 'make your bed' mission (Admiral McRaven's speech) for a confidence mission, since confidence had none. Searches on 'cringe for a week', 'mood is not a schedule', 'hiding spot', '12-second pieces', 'settling is a habit', 'rest day was yesterday', 'inner critic talks big' and 'check your account before your feed' found nothing matching, so those lines stayed.\n\nCringe: I renamed No Days Off, Gym Rat Era and Aura Up. I renamed the 'Grinder' rank, which invites a Grindr joke, and the 'Built Different' rank, which is a meme. I cut forced openers like 'Damn, another…' and 'Motivation ghosted you? Cool.', and the 'Day 1 is today' riff on 'one day or day one'.\n\nRepetition: the draft said 'check your bank app' 3 times, 'put the phone down' 3 times, 'get your ass' 4 times, 'Hell no' twice and 'tired/busy, do it anyway' twice. Each is now used once or twice at most.\n\nToxicity: 'bitch' now appears 2 times in total, both about the alarm or couch. No swear targets a person.\n\nClaims and pricing: no line promises results. One paywall headline sold 'a new line every day', which the free tier also gets, so it was misleading and is replaced. Prices are now tokens, and no headline uses urgency. Only keep the onboarding perks sentence once rewards are actually live."
+ }
+}

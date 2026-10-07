@@ -1,0 +1,213 @@
+{
+ "peaceinwar_findings": "WHAT IT IS: 'PEACEINWAR' (App Store id6778673766), seller Brendon Hill, (c) 2026 PEACEINWAR, LLC.\n- Bundle ID com.peaceinwar.app; v1.0 released 2026-06-30, still the only version on 2026-10-07.\n- Shopping category, 4.9 stars from 69 ratings, 50.2 MB, iOS 15.1+.\n- Brand: Dallas streetwear label started by YouTuber 'Box' (per Grailed). Reviews praise 'Box' and 'grim' by name.\n- mwm.ai estimates 5k+ downloads and outside the top 30 in Shopping.\n- App tabs (from the screenshots): Home (shop grid), Updates (drop countdown, e.g. 'DROPS IN 4 DAYS 19 HOURS - duality'), Prestige, Leaderboard, Profile/Closet. The top bar has search, a barcode scanner and the cart.\n\nPRESTIGE IS A PAID MEMBERSHIP, AND XP COMES FROM SPENDING:\n- The Shopify product 'Prestige (VIP)' (peaceinwar.com/products/prestige-vip) costs $9.00/month.\n- It is set to require a recurring plan (Appstle Subscriptions, 'Monthly Subscription'; created 2026-05-07, published 2026-06-19).\n- Product copy: 'Official Prestige Token For The Peaceinwar IOS App. Get 24 hour early access before anyone else drops. Prestige unlocks your ability to purchase products that may not be available during public release. Rank up through XP earned on every order. Higher ranks unlock exclusive discounts and free items. By joining to Prestige, you consent to receive marketing communications via email and text message.'\n- The App Store text says 'Join PRESTIGE to earn XP on every order', so XP appears to be for paying members only.\n- The membership is sold through Shopify checkout, not Apple in-app purchase.\n\nXP RATE: 10 XP per $1 of order value.\n- Screenshot order list: 'CREST' DENIM $87 = +870 XP; PRESTIGE (VIP) $9 = +90 XP, listed twice. So each monthly renewal also earns 90 XP.\n- Nothing earns XP for using the app (no streaks, no content). XP is spending.\n\nRANKS AND REWARDS:\n- Call-of-Duty-style emblems: PRESTIGE TIER 0 (coin), PRESTIGE I (skull with laurels and sword), PRESTIGE II (shield, crossed rifles, stars), up to at least Tier 5 (seen on the leaderboard).\n- A screenshot shows 'RANK PROGRESS 1,050 / 1,500 XP', so the next threshold is about $150 of lifetime spend.\n- Prestige I reward is '10% OFF' with a 'CLAIM DISCOUNT' button ('REWARDS EARNED 10% OFF').\n- I could not find published thresholds or rewards for higher tiers anywhere. The product copy only says 'exclusive discounts and free items'.\n- The screenshots look like mock data: Prestige I and II both show 1,050 XP.\n- No public terms on caps, stacking, code expiry or rank decay.\n\nLEADERBOARD: all-time XP, with columns TIER / ORDERS / DAYS / XP.\n- Sample entries: #1 @adam 24,850 XP; #2 @jupi 19,340; #3 @grim 16,775; #4 @box (the founder) Tier 5, 16 orders, 198 days, 12,210 XP; @henry Tier 4, 12 orders, 9,480; @maddox Tier 3, 9 orders, 6,925.\n- Because XP is 10x dollars, the board is really a lifetime-spend ranking (#1 is about $2,485).\n- One review reports a bug that blocks setting a handle and appearing on the leaderboard.\n\nCLOSET, AUTHENTICITY AND TRADING:\n- You scan the barcode on a garment and get a card with product, size, price, release date and edition number (e.g. \"NWO\" HOODIE, SMALL, $70.00, Released 06/01/2026, 92/100), then 'ADD TO CLOSET'.\n- A verified item page shows 'VERIFIED PRODUCT, Claimed June 11, 2026' and a 'Verification token' hash.\n- 'Trade With Trust' transfers verified items between owners.\n- Profile shows @handle plus rank (e.g. 'Prestige II') with Closet / Prestige / Details tabs.\n\nDROPS: a pre-permission screen ('Don't miss a drop' / 'ENABLE NOTIFICATIONS') and pushes like 'New drop - DUALITY live now'.\n\nPLATFORM: custom-built, not Tapcart. Tapcart apps use com.tapcart.* bundle IDs, and this one is com.peaceinwar.app.\n- The privacy policy (verify.peaceinwar.com/privacy, effective June 13, 2026) names three services: Shopify Customer Account API for accounts, checkout and orders (storing order history, 'Prestige membership status' and verified product records), Sentry for crash reporting, and Expo for app distribution and push. So it is a React Native/Expo app.\n- verify.peaceinwar.com is a Next.js app on Vercel (headers 'server: Vercel' and 'x-nextjs-prerender'; /_next/static assets) with an 'Admin API Key' login at /admin/login. That is their custom backend for verification tokens and Prestige.\n- The storefront is Shopify with Appstle (subscriptions), Klaviyo, Postscript (SMS) and Rebuy.\n- In short, it is the same Next.js + Vercel + Shopify stack UNSETLD already runs.\n\nCODE LEAKS: the coupon site joincheckmate.com lists about 10 live peaceinwar codes (including '10% OFF RX2#####' and 'box###'). I can't tell whether any are Prestige codes, but this brand's codes clearly end up on coupon sites.\n\nAPPLE RISK: selling a $9/mo membership that is used inside the app through Shopify instead of in-app purchase could draw a 3.1.1 review. They frame it as access to buy physical goods (3.1.3(e)). UNSETLD avoids the question by keeping Pro on in-app purchase and never selling rank.\n\nTAKEAWAY: copy their UI patterns: emblems, progress bar, 'Claim discount' button, rank on profile, drop countdowns, closet and verify. Reverse the economics: PEACEINWAR lets you pay to rank (subscription plus spend); UNSETLD should make you work to rank.\n\nSOURCES:\n- https://apps.apple.com/us/app/peaceinwar/id6778673766\n- https://itunes.apple.com/lookup?id=6778673766 (bundle ID, release date, 9 screenshots)\n- https://peaceinwar.com/products/prestige-vip.js and https://peaceinwar.com/products.json\n- https://verify.peaceinwar.com/privacy and https://verify.peaceinwar.com/admin/login\n- https://www.grailed.com/browse/peace-in-war\n- https://mwm.ai/apps/peaceinwar/6778673766\n- https://joincheckmate.com/merchants/peaceinwar.com\n\nNOT FOUND: peaceinwar.com/pages/prestige, /pages/rewards and /pages/faq all return 404. TikTok discover pages render only with JavaScript and gave no captions. I found no press coverage of the app.",
+ "comparables": [
+  {
+   "name": "Gymshark Loyalty (launched May 2025)",
+   "mechanic": "Opt-in XP program that pays for both purchases and app usage. Purchases earn 10 XP per GBP1 in the UK and 8 XP per $1 in the US (shipping and tax excluded; returns deduct XP). Each completed workout in the Gymshark Training app earns 10 XP, capped at 50 XP a week. One-off XP: app download 50, email signup 25, SMS 25, events 100. Tiers: 0-1,249 / 1,250 / 3,000 / 5,000+ XP. Unlocking Tier 2, 3 or 4 gives a one-time fixed voucher (GBP10 / 15 / 20) that is single-use, non-transferable, limited to one code per order and expires after 90 days. XP can't be cashed out and expires on a rolling 12 months. One account per customer; fraud ends the membership and wipes XP.",
+   "takeaway": "The closest precedent: an apparel brand awarding status XP for using a fitness app, with a hard weekly cap so usage XP can't run away. Copy the structure: XP is status, not cash; codes are capped and single-use, expire quickly, and only one applies per order; XP decays; one account per person. Gymshark leans heavily on spend; UNSETLD should do the reverse (usage first, spend XP flat and capped).",
+   "source": "https://www.gymshark.com/pages/loyalty-terms-and-conditions ; https://no.gymshark.com/pages/gymshark-loyalty ; https://uk.gymshark.com/pages/gymshark-loyalty ; https://www.retailgazette.co.uk/blog/2025/05/gymshark-loyalty-scheme/"
+  },
+  {
+   "name": "Duolingo streaks, Streak Freeze and Leagues",
+   "mechanic": "The daily streak is the core loop. A Streak Freeze covers one missed day, must be equipped in advance, and you can hold at most 2 (Super subscribers get extras). Duolingo reports that raising the limit to 2 lifted daily active learners 0.38% without more days off. Learners who reach a 7-day streak are 3.6x more likely to finish a course. Leagues are weekly leaderboards of 30 random users ranked by XP earned that week, across 10 tiers (Bronze to Diamond). The top finishers move up and the bottom ones move down, and XP resets every week.",
+   "takeaway": "Give a small number of streak shields (2 a month), not unlimited forgiveness. A little slack keeps people going, and fear of losing a long streak becomes the main motivator. For competition, use weekly leagues among friends that reset each week, not an all-time board like PEACEINWAR's, which turns into a list of big spenders that newcomers can never catch. Put early milestones at 7 and 30 days, where habits form.",
+   "source": "https://blog.duolingo.com/how-duolingo-streak-builds-habit ; https://duolingo.deconstructoroffun.com/mechanics/leagues"
+  },
+  {
+   "name": "Starbucks Rewards tiered relaunch (March 10, 2026)",
+   "mechanic": "Three tiers based on Stars earned in a 12-month window: Green (under 500), Gold (500+), Reserve (2,500+). US reports give earn rates of 1.0 / 1.2 / 1.7 Stars per $. Status is valid for 12 months and must be re-earned. Green Stars expire after 6 months unless the member is active monthly; Gold Stars never expire. Chief brand officer Tressie Lieberman said the aim is to 'focus discount dollars on what members value most' and to drive visit frequency.",
+   "takeaway": "Shows that status you have to re-earn, and points that decay when you stop showing up, work at mass scale. That matches 'never stop working'. Spend discount dollars only on the members who are consistently engaged right now, with bigger perks at the top.",
+   "source": "https://www.nrn.com/quick-service/starbucks-is-bringing-back-tiered-rewards-for-a-new-era ; https://about.starbucks.com/press/2026/starbucks-unveils-reimagined-loyalty-program-to-deliver-more-meaningful-value-personalization-and-engagement-to-members/ ; https://joy.so/blog/starbucks-loyalty-program/"
+  },
+  {
+   "name": "Nike SNKRS Exclusive Access",
+   "mechanic": "Members get personal invitations to buy limited product at full price. Nike says it picks them using 50+ signals of in-app engagement: past launch entries, content views (Behind the Design), poll answers, SNKRS Live participation, purchase history and past losses. Invitations arrive by push, expire after a set time and don't guarantee a size. Bots and multiple accounts risk losing launch access.",
+   "takeaway": "For limited runs, access is worth more than a discount. The right to buy first at full price costs zero margin and is what hype buyers value most. Tie UNSETLD early access and app-only colorways to rank, so app usage unlocks the purchase rather than a lower price.",
+   "source": "https://www.soleretriever.com/guides/nike-snkrs-exclusive-access-explained-everything-you-need-to-know ; https://www.complex.com/sneakers/nike-snkrs-app-exclusive-access"
+  },
+  {
+   "name": "Represent 'Prestige' (streetwear, run on LoyaltyLion) - cautionary example",
+   "mechanic": "Points come from purchases and 'Missions'. Tiers: Member (0-250), Bronze (250), Silver (500), Gold (1,000), Platinum (5,000), VIP (10,000 points). Bronze gets a one-time GBP25 off a GBP75 order; Silver, Gold, Platinum and VIP get permanent LIFETIME discounts of 10% / 15% / 20% / 25%, plus access to drops and the Vault. Points expire after 12 months without earning, but tiers never drop. LoyaltyLion's case study claims members drive 19.6% of revenue and have 4x the lifetime value.",
+   "takeaway": "This is what 'too many discounts' looks like. Permanent percentage discounts that never decay become a standing 20-25% markdown for your best customers, who would have bought anyway. UNSETLD caps how often, how much and how many dollars, and lets rank decay. Missions that earn bonus XP are worth borrowing.",
+   "source": "https://representclo.com/pages/prestige-help-guide ; https://loyaltylion.com/customers/represent-clothing"
+  }
+ ],
+ "recommended_design": {
+  "model_summary": "UNSETLD RANK is a discipline system with merch perks attached, not a store with a points program. You earn XP only by showing up: open today's line, lock in one non-negotiable, and finish one mission. That is about 35 XP a day, hard-capped, plus streak milestones and a full-week bonus. Free and Pro users earn the same XP, and XP is never sold, spent or turned into cash. XP sets your rank: SETTLED, then HUNGRY, LOCKED IN, RELENTLESS, UNSETLD and NEVER SETTLE. Everyone starts as SETTLED, and the whole app is about getting out of it. The ranks take about 1 week, 1 month, 2 months, 4 months and 7 months of near-daily work, so a rank is proof of discipline people can show off (badge on profile, widget frame, share cards). Because the brand is 'never stop working', rank is rented: miss more days than your 2 monthly shields cover and your rank XP drops 2% a day until you come back. Lifetime XP and your highest-rank badge stay forever, and a double-XP comeback streak gets you back up. Perks grow with rank, so the more someone uses the app, the more they unlock. Most perks cost the founder nothing: early access to drops, app-only colorways at full price, votes on drops, first pick of numbered pieces. On top of that sits a strictly capped discount ladder: 10% at about 1 month, 15% at about 4 months, and 20% only at the top rank. That means at most one single-use code every 60-90 days, never stacked with other codes, with a ceiling of $25 per order and $150 per account per year. The brand stays in the background. A rank-up screen celebrates the person ('30 days locked in. That's not luck, that's you.') and mentions the perk second. The copy can curse ('Day 3 gone. Don't be a bitch about it, open the app.'). Answer Apple's age-rating questions about profanity honestly, since that will raise the age rating, and offer a Clean Mode toggle.",
+  "xp_sources": [
+   {
+    "action": "Open today's line in the app (tap the widget or notification, or open the app and view the daily card)",
+    "xp": "10",
+    "limit": "Once per day (local day, checked against trusted time). The app can't detect someone just looking at the widget, so a widget tap opens the card.",
+    "verifiable_without_backend": true,
+    "apple_ok": "Yes. It's an in-app action, and guideline 3.2.2(x) (updated June 8, 2026) explicitly allows rewarding actions inside the app."
+   },
+   {
+    "action": "Lock In: choose today's one non-negotiable (from your categories or written yourself)",
+    "xp": "10",
+    "limit": "Once per day",
+    "verifiable_without_backend": true,
+    "apple_ok": "Yes, in-app action."
+   },
+   {
+    "action": "Finish the daily mission (self-reported check-off, e.g. phone in another room for 60 min, train, no weed today, save $10)",
+    "xp": "15",
+    "limit": "Only one mission counts per day. Same XP for free and Pro; Pro only gets more mission variety.",
+    "verifiable_without_backend": true,
+    "apple_ok": "Yes, in-app action. Keeping XP identical for free and Pro means XP can never be bought through the subscription."
+   },
+   {
+    "action": "Full Week: line plus Lock In done on all 7 days, Mon-Sun",
+    "xp": "+30 bonus",
+    "limit": "Once per week. A day covered by a shield does not count as done.",
+    "verifiable_without_backend": true,
+    "apple_ok": "Yes."
+   },
+   {
+    "action": "Streak milestones",
+    "xp": "+50 (7 days), +150 (30), +250 (60), +400 (100), +600 (180), +1,000 (365)",
+    "limit": "Each milestone pays once per rolling 365 days, so restarting a streak can't farm it again.",
+    "verifiable_without_backend": true,
+    "apple_ok": "Yes."
+   },
+   {
+    "action": "Comeback: the first 7-day streak after any decay",
+    "xp": "Double XP on the daily actions",
+    "limit": "Until the XP lost to decay is earned back; at most once every 60 days",
+    "verifiable_without_backend": true,
+    "apple_ok": "Yes."
+   },
+   {
+    "action": "Write a custom affirmation (added to your widget rotation)",
+    "xp": "10",
+    "limit": "Once per week",
+    "verifiable_without_backend": true,
+    "apple_ok": "Yes."
+   },
+   {
+    "action": "Share a line card (showing your rank badge) through the iOS share sheet",
+    "xp": "10",
+    "limit": "3 per week, credited when the share sheet reports completion. Never require a follow, tag or post.",
+    "verifiable_without_backend": true,
+    "apple_ok": "Yes, as an optional in-app action. Do NOT give XP for following @unsetld or @unsetldclo: it can't be verified, and 3.2.2(vii) bars apps from artificially boosting someone's status on other services."
+   },
+   {
+    "action": "Place an order on unsetld.com with a linked account",
+    "xp": "+100 flat (not per dollar)",
+    "limit": "At most 1 order per 30 days, so at most 1,200 XP a year from orders. Revoked on chargeback.",
+    "verifiable_without_backend": false,
+    "apple_ok": "Yes. Physical goods paid for outside Apple's in-app purchase are allowed (3.1.3(e)). The flat, capped amount stops money from buying rank. Never sell XP or XP boosts through in-app purchase or Shopify."
+   },
+   {
+    "action": "Scan the hang tag (QR or NFC) on an UNSETLD piece you own, which adds it to your Closet with a Verified Owner badge",
+    "xp": "+100 per unique garment (first claim only)",
+    "limit": "2 per month. Each tag can be claimed once; a transfer after resale earns no XP.",
+    "verifiable_without_backend": false,
+    "apple_ok": "Yes, with one condition. Guideline 3.1.1 bars QR codes from unlocking app content or features, so the scan may only add the closet item and XP toward merch perks. It must never unlock Pro features, themes or categories."
+   },
+   {
+    "action": "Referral: a friend joins through your link AND completes a 7-day streak",
+    "xp": "+150",
+    "limit": "3 per month",
+    "verifiable_without_backend": false,
+    "apple_ok": "Yes, if the reward is for the friend's activity in the app rather than the install. Never tie it to ratings or reviews (5.6.3 bans manipulating referrals)."
+   },
+   {
+    "action": "Weekly friend league: finish in the top 3 of your league",
+    "xp": "+50 / +30 / +20",
+    "limit": "Weekly. Prize is XP only, no cash or merch.",
+    "verifiable_without_backend": false,
+    "apple_ok": "Yes for XP-only prizes. Merch prizes would turn it into a contest: 5.3.1 and 5.3.2 require you to sponsor it and show official rules in the app saying Apple isn't involved."
+   },
+   {
+    "action": "Rate or review the app",
+    "xp": "0",
+    "limit": "Never",
+    "verifiable_without_backend": true,
+    "apple_ok": "NO. Rewarded ratings count as manipulating reviews (Section 3 intro and 5.6.3), and 3.2.2(x) bars forcing App Store actions. Ask with SKStoreReviewController and give nothing for it."
+   },
+   {
+    "action": "Turn on notifications, tracking or location",
+    "xp": "0",
+    "limit": "Never",
+    "verifiable_without_backend": true,
+    "apple_ok": "NO. 5.1.2(i) says an app can't require turning on push, tracking or location to get money or other rewards, including gift cards and codes. Drop-alert pushes also need explicit in-app opt-in consent (4.5.4)."
+   },
+   {
+    "action": "Buy Pro, or buy XP or XP boosts",
+    "xp": "0",
+    "limit": "Never",
+    "verifiable_without_backend": true,
+    "apple_ok": "Excluded by design: points are never bought. Pro stays a digital in-app subscription through RevenueCat, and free and Pro earn XP at the same rates."
+   }
+  ],
+  "ranks": [
+   {
+    "name": "SETTLED",
+    "xp_threshold": 0,
+    "approx_days_of_consistent_use": "Day 0",
+    "perks": "Everyone starts here, and that's the problem. Daily line, streaks, Lock In, missions. The website's existing 10%-off email signup still applies (a cost you already carry); the app adds no discount here."
+   },
+   {
+    "name": "HUNGRY",
+    "xp_threshold": 300,
+    "approx_days_of_consistent_use": "About 1 week (day 7; about day 11 at 80% consistency)",
+    "perks": "Rank badge on your profile and share cards. Opt-in drop alerts. No discount, which stops people from reinstalling and grinding a week just for a code."
+   },
+   {
+    "name": "LOCKED IN",
+    "xp_threshold": 1300,
+    "approx_days_of_consistent_use": "About 1 month (day 28-30; about day 45 at 80% consistency)",
+    "perks": "10% off code, once every 90 days. Rank frame on widgets. Votes in drop polls (colorway or name)."
+   },
+   {
+    "name": "RELENTLESS",
+    "xp_threshold": 2750,
+    "approx_days_of_consistent_use": "About 2 months (day 57-60; about day 92 at 80% consistency)",
+    "perks": "10% off code, once every 60 days. 24-hour early access to every drop at full price."
+   },
+   {
+    "name": "UNSETLD",
+    "xp_threshold": 5500,
+    "approx_days_of_consistent_use": "About 4 months (day 105-119; about day 180 at 80% consistency)",
+    "perks": "15% off code, once every 60 days. 48-hour early access. Can buy app-only colorways at full price."
+   },
+   {
+    "name": "NEVER SETTLE",
+    "xp_threshold": 10000,
+    "approx_days_of_consistent_use": "About 7 months (day 191-218; about day 330 at 80% consistency)",
+    "perks": "20% off code, capped at $25, once every 60 days. First pick of numbered and limited pieces. A physical rank card or patch packed with the next order (about $1-2 cost). Featured on a monthly NEVER SETTLE wall or Instagram story. The highest-rank badge is kept forever."
+   }
+  ],
+  "discount_caps": [
+   "The ladder is 10% at LOCKED IN and RELENTLESS, 15% at UNSETLD and 20% at NEVER SETTLE. 20% is the absolute ceiling, and no single order can get more than $25 off.",
+   "How often: one code every 90 days at LOCKED IN and one every 60 days from RELENTLESS up, which is at most 4 or 6 a year. Every account is also capped at 6 codes and $150 of discount per rolling 12 months, whatever the rank.",
+   "To claim a code you must hold the rank right now (after any decay) and be on a live streak of at least 7 days. Codes reward discipline you're showing now, not discipline from months ago.",
+   "Each code works once and expires 14 days after it's claimed. A code that expires unused still starts the cooldown.",
+   "One code per order and no stacking. Turn off Shopify's discount combinations for product, order and shipping discounts. A rank code can't be combined with the 10% email welcome code, sale prices, bundles or any other promo.",
+   "Orders must be at least $60 before discount. A single $45 tee doesn't qualify; a hoodie plus anything does.",
+   "Exclusions: every new drop for its first 72 hours (limited runs sell out at full price, so early access is the perk there), restocks of sold-out items for their first 72 hours, numbered and 1-of-1 pieces, collabs, app-only colorways, gift cards, shipping and taxes.",
+   "Budget kill switch: a hard monthly cap on total redemptions. In v1 that's Shopify's total-usage limit on each monthly code (e.g. 100). In v2 it's a server-side monthly dollar budget (e.g. $1,000). When the cap is hit, claiming shows 'Sold out this month. Back on the 1st.' The program terms keep the right to change rates and perks.",
+   "v1 (no backend) ships only the 10% tier. That's the same as the public email-signup offer, so a leaked code costs nothing new. 15% and 20% switch on with v2's per-person codes. Nobody can reach UNSETLD before about day 105 after launch, so v2 has roughly 3.5 months to ship.",
+   "All sales stay final. In v2, a chargeback or fraud revokes the XP and resets the account."
+  ],
+  "decay_rule": "Rank is rented, and rent is due daily. Each account tracks two numbers. Lifetime XP never goes down; it shows as a stat alongside a highest-rank badge. Rank XP sets your current rank and perks, and that is the number that can drop.\n\n1. Shields: every account gets 2 Streak Shields per calendar month. They're used automatically on a missed day, protect both the streak and the decay clock, and don't roll over. Duolingo found that allowing 2 freezes raised daily use without people taking more days off.\n2. Grace: the first 2 missed days in a row without a shield cost only the streak.\n3. Decay: from the 3rd missed day in a row, Rank XP drops 2% per missed day (compounding). It stops the moment you open today's line.\n4. Floor: you can drop at most one rank per 30 days. Lifetime XP and the highest-rank badge are never touched.\n5. Comeback: after any decay, your next 7-day streak earns double XP on the daily actions until the lost XP is back (at most once every 60 days).\n\nExamples:\n- A NEVER SETTLE user at 10,000 XP who disappears for 10 days with 2 shields left has 6 decay days and ends at 8,858 XP, which drops them to UNSETLD.\n- A one-year user at 16,785 XP who misses 14 days ends at 13,715 and keeps the top rank, because people who've been around longer have built up a buffer.\n- A user at 10,000 XP who is gone 30 days would fall to 5,914, but the one-rank floor applies.\n\nWidget and push copy while it's happening: 'Day 3 gone. You're losing 2% a day. Don't be a bitch about it, open the app.'\n\nThis fits the tagline. Starbucks (2026) and Gymshark already make status something you re-earn or that expires. Unlike Represent's tiers, which never drop, UNSETLD perks only go to people who are still putting in the work.",
+  "anti_abuse": [
+   "[v1] The daily XP cap is the main defense. With at most about 35 XP a day from the daily actions plus small weekly bonuses, NEVER SETTLE takes at least about 190 real days. Faking mission check-offs gains nothing because the cap still applies. The only way to cheat is to fake the passage of time.",
+   "[v1] Clock tampering: each XP credit records the wall-clock time, the phone's internal uptime timer (which counts sleep and can't be changed by the user) and a reboot ID. A new day only counts if at least 18 hours have passed on that timer since the last credit (same reboot), or, after a reboot, if the trusted-time check passes. Trusted time comes from the Date header of a request to unsetld.com, the existing Vercel site, so no new backend is needed. If the phone's clock is more than 10 minutes off trusted time, or ever goes backwards, that day earns no XP and the record is flagged. Days earned offline stay 'pending' until the next trusted-time check.",
+   "[v1] Claiming a code requires a live trusted-time check, at least 7 days with trusted timestamps in the current streak, and an 18-hour gap or trusted timestamp behind every credited day. If any of that fails, the app says 'connect to verify before claiming'.",
+   "[v1] Reinstalling: the XP record and claim history (last claim date, codes claimed this year) live in the Keychain, which survives deleting the app, and are mirrored to iCloud so honest users keep their progress on a new phone. Reinstalling can't reset cooldowns, and wiping the Keychain also wipes the XP, so there's nothing to gain.",
+   "[v1] Code leaks: there is no single fixed code. The app works out a code for each rank and month on the phone (e.g. UNS- plus the first 8 characters of a signature of '2026-11|LOCKEDIN'). The founder runs a one-off script that creates the next 12 months of codes in Shopify, each limited to one use per customer, with a total-use cap (e.g. 100 a month), a $60 minimum, an end-of-month expiry, combinations off and the exclusions. A leaked code is capped, dies within weeks and is worth the same as the public 10% welcome offer.",
+   "[v1] Editing the on-phone data: each XP entry is signed and chained to the previous one with a key stored in the Keychain. A jailbroken user can still cheat, but the v1 payoff is about $6-10, which isn't worth more protection. That's why 15% and 20% wait for v2.",
+   "[v1] Monitoring: check Shopify's discount report weekly. If a monthly code is used more often than the number of people who could plausibly be LOCKED IN (from privacy-safe rank-up counts in analytics), kill it early.",
+   "[v2] The server owns XP: Sign in with Apple creates an account on a Next.js API route (Vercel plus a Postgres or key-value store). Each daily action is sent to the server and timestamped there. Each account gets one credit per day on the server, using a timezone fixed at signup that can change at most once every 30 days. Rank and perks come only from the server's XP.",
+   "[v2] Apple App Attest rejects requests from modified or emulated copies of the app. Apple DeviceCheck stores two flags per phone (e.g. 'already claimed' and 'banned') to stop someone creating new accounts on one phone to farm codes.",
+   "[v2] Codes made per person, per claim: a claim endpoint asks Shopify's admin API to create a code locked to that person's linked Shopify customer. It works once, needs a $60 minimum, can't be combined with anything, expires in 14 days and carries the exclusions. A leaked code is useless to anyone else, which is what makes 15% and 20% safe.",
+   "[v2] Linking accounts: confirm the Shopify customer with an email code or a Shopify customer login before linking, one Shopify customer per app account. Shopify webhooks for paid orders and refunds add or remove order XP and cancel codes after a chargeback.",
+   "[v2] Unusual activity and review: flag accounts with perfect XP from day 1, or many accounts on one phone, IP address or payment card. Approve NEVER SETTLE physical perks by hand. Leaderboards show streak days verified by the server, so self-reported missions can't put anyone at #1.",
+   "[v2] Hang tags: each garment gets its own signed serial in the QR or NFC tag. The first scan binds it to one account; later scans show 'already claimed' and offer a transfer, as PEACEINWAR does. A photo of a tag can't be reused for XP."
+  ],
+  "margin_math": "ASSUMPTIONS (replace with your real numbers):\n- Product cost is 40% of full price, i.e. 60% gross margin (a $55 hoodie costs about $22 with print and packaging).\n- Shopify Payments fee is 2.9% + $0.30. Shipping is charged to the customer at cost.\n- A typical discounted order is $100 (hoodie $55 + tee $45). The minimum order is $60.\n\nPROFIT PER $100 ORDER (after product cost and card fees):\n- Full price: $56.80.\n- 10% off: $47.09 (you give up $9.71).\n- 15% off: $42.23 (you give up $14.56).\n- 20% off: $37.38 (you give up $19.42).\n- Even at 20% off, every order still keeps about 47% of what the customer pays.\n- On a $60 order the same discounts cost $5.83, $8.74 and $11.65.\n\nWHEN A CODE PAYS FOR ITSELF:\n- A code only costs you money when the person would have bought anyway.\n- It breaks even when this share of redemptions are purchases that otherwise wouldn't have happened: 17% for 10% off, 26% for 15% off, 34% for 20% off.\n- In plain terms: if at least 1 in 3 top-rank redemptions is an extra sale, the 20% code makes money.\n\nMOST ONE PERSON CAN COST YOU PER YEAR (hard caps):\n- LOCKED IN: 4 codes x $10 on $100 orders = $40 ($100 if every order hits the $25 cap).\n- RELENTLESS: 6 x $10 = $60.\n- UNSETLD: 6 x $15 = $90.\n- NEVER SETTLE: 6 x $20 = $120.\n- No account can ever exceed $150 a year. Reaching that takes 6 orders of $125+ (about $750 of product), which at your margins still earns you roughly $300+ after the discounts.\n\nWHOLE-PROGRAM EXAMPLE, 10,000 installs in a year:\n- How far people get is my assumption (motivation apps lose most users in the first month): 3% stop at LOCKED IN and use 0.5 codes a year; 2% at RELENTLESS (1 a year); 1.2% at UNSETLD (1.5 a year); 0.8% at NEVER SETTLE (2 a year).\n- That's 690 discounted orders worth $69,000 at full price, $9,400 of discount (13.6% on average) and $59,600 of revenue.\n- Compared with having no program, profit goes up about $700 if only 25% of those orders are extra sales, and about $10,500 if 50% are.\n- Absolute worst case: with a monthly cap of 100 codes or $1,000, the most the program can ever give away is about $12,000 a year.\n\nCONTEXT:\n- The site already gives 10% to anyone who enters an email. The app's first 10% takes about 30 days of daily work, so v1 adds almost no new discount cost.\n- Pro helps pay for it. An annual subscription brings in about $21.24 after Apple's 15% small-business fee, which covers two 10% codes on $100 orders.\n- Early access, app-only colorways, badges and drop votes cost $0 in margin. They should carry most of the value people feel, especially for limited runs that sell out at full price anyway.",
+  "v1_vs_v2": "V1 - SHIPS AT LAUNCH WITH NO BACKEND (everything on the phone):\n- XP record stored on the phone and mirrored to the Keychain and iCloud.\n- XP sources: daily line, Lock In, mission, full-week bonus, streak milestones, comeback, custom affirmation, share card.\n- A Rank tab with emblems, a progress bar and the perk list. All six ranks are visible from day 1 so people can see what they're climbing toward.\n- Shields and decay are calculated on the phone. Trusted time comes from the Date header on unsetld.com.\n- Rank badge on share images and a rank frame on widgets.\n- Discounts: only the 10% tier (LOCKED IN and up), using monthly rotating codes worked out on the phone. The founder pre-creates them in Shopify with all the limits. 15% and 20% show as locked ('unlocks with Rank Sync').\n- Early access: a link with a signed token that the existing Next.js site checks before showing the early product page (no database needed). App-only colorways sit behind hidden product URLs using the same token.\n- The shop is a single Perks card, not a tab.\n- No public leaderboard, because it can't be trusted when everything is on the phone. Show 'You vs. last week' instead.\n\nV2 - A SMALL API ON THE EXISTING NEXT.JS/VERCEL SITE (essentially what PEACEINWAR runs at verify.peaceinwar.com, which is also Next.js on Vercel):\n- Sign in with Apple, linked to the person's Shopify customer account.\n- XP and daily credits kept on the server. Apple App Attest and DeviceCheck to block modified apps and account farming.\n- A claim endpoint that creates single-use codes locked to one customer. This switches on 15% and 20%, the $150-a-year account cap and the monthly dollar budget.\n- Shopify webhooks for order XP (+100 flat, once per 30 days) and for removing it on chargebacks.\n- Rank saved as a Shopify customer tag, so the headless storefront can hide early-access product pages on the server.\n- Hang-tag QR/NFC claims, the Closet and transfers.\n- Weekly friend leagues that reset every 7 days, Duolingo-style, with XP-only prizes.\n- Referral XP once the friend finishes a 7-day streak.\n- Server-sent pushes for rank-ups and decay warnings.\n\nTIMING: nobody can reach UNSETLD (15%) before about day 105 after launch, or NEVER SETTLE before about day 190. V2 needs to be live about 3 months after launch, not on day 1.\n\nCOMPLIANCE NOTE: Apple's App Review Guidelines (last updated June 8, 2026) differ slightly from the brief. Rewarding in-app actions, even watching an ad, is explicitly allowed (3.2.2(x)). What's banned is forcing App Store actions (3.2.2(x)), rewarded ratings or reviews (Section 3 intro, 5.6.3), and making rewards, including codes, depend on turning on push, tracking or location (5.1.2(i)). QR codes can't unlock app features (3.1.1). Physical goods must be paid for outside Apple's in-app purchase (3.1.3(e)). Source: https://developer.apple.com/app-store/review/guidelines/"
+ }
+}

@@ -1,0 +1,214 @@
+{
+ "facts": [
+  {
+   "topic": "Expo SDK (latest stable)",
+   "finding": "npm dist-tag latest = expo@57.0.27 (published 2026-10-06), same as tag sdk-57. Tag next = expo@58.0.6 (SDK 58 beta, 2026-10-06). The sdk-56 tag is 56.0.23.",
+   "source": "https://registry.npmjs.org/expo"
+  },
+  {
+   "topic": "Expo SDK 57 React Native version",
+   "finding": "expo@57.0.27's bundledNativeModules.json pins react-native 0.86.3 and react 19.2.3. SDK 57 was released 2026-06-30 and moved React Native from 0.85 to 0.86. expo@57.0.17 brought RN 0.86.3, which fixed a Hermes V1 memory regression present in SDK 56.",
+   "source": "https://expo.dev/changelog/sdk-57"
+  },
+  {
+   "topic": "React Native npm",
+   "finding": "react-native latest = 0.87.1 (2026-08-26). next = 0.88.0-rc.4. Expo SDK 58 beta bundles 0.88.0-rc.3 with react 19.3.0.",
+   "source": "https://registry.npmjs.org/react-native"
+  },
+  {
+   "topic": "Expo SDK 58 beta",
+   "finding": "Announced 2026-09-15: SDK 58 is built for iOS 27, uses the UIKit scene-based life cycle by default, and ships RN 0.88 RC. Stable will follow RN 0.88's release. It adds an Android implementation of expo-widgets and a new alpha expo-app-intents package.",
+   "source": "https://expo.dev/changelog/sdk-58-beta"
+  },
+  {
+   "topic": "SDK 57 + Xcode 27",
+   "finding": "Apps built with the iOS 27 SDK must use the UIKit scene life cycle or they don't launch correctly on iOS 27. On SDK 57, expo@57.0.23+ adds opt-in scene support through expo-build-properties ios.enableSceneSupport.",
+   "source": "https://expo.dev/changelog/sdk-57"
+  },
+  {
+   "topic": "Expo SDK 57 minimum iOS",
+   "finding": "ExpoModulesCore 57.0.21's podspec sets the iOS platform to 16.4. The ExpoWidgets podspec also requires iOS 16.4, and the expo-widgets config plugin defaults the widget target deployment target to 16.4.",
+   "source": "https://registry.npmjs.org/expo-modules-core/57.0.21"
+  },
+  {
+   "topic": "expo-widgets (official) existence and version",
+   "finding": "Yes, it's an official Expo package in the expo/expo monorepo at packages/expo-widgets. npm latest/sdk-57 = 57.0.23 (2026-10-06), next = 58.0.14. It depends on @expo/ui ~57.0.22. The 55.0.0-alpha.0 release was 2026-01-21.",
+   "source": "https://registry.npmjs.org/expo-widgets"
+  },
+  {
+   "topic": "expo-widgets maturity",
+   "finding": "It was alpha in SDK 55 (March 2026). Expo's 2026-06-18 post says 'expo-widgets is stable' as of SDK 56, describing it as hardened and promoted: widgets get WidgetEnvironment, don't require pre-rendering in the app, support configurable widgets, and have better error handling. The changelog still shows regular widget-runtime bug fixes in 57.0.13–57.0.23 (Aug–Oct 2026).",
+   "source": "https://expo.dev/blog/ios-widgets-and-live-activities-in-expo"
+  },
+  {
+   "topic": "expo-widgets capabilities",
+   "finding": "Supported families: systemSmall/Medium/Large, systemExtraLarge (iPad only), and accessoryCircular/Rectangular/Inline. Widgets are written in JSX using @expo/ui/swift-ui components behind a 'widget' directive and rendered in an isolated JS runtime (JavaScriptCore per changelog). There are no React Native View/Text, hooks, state, async work or imports, and the widget can't reference anything outside the component. APIs: updateSnapshot, updateTimeline(entries), getTimeline, reload. Interactive buttons and configurable widgets need iOS 17+. widgetRenderingMode is fullColor/vibrant/accented (accented on iOS 18+). Not available in Expo Go, so a dev build is required.",
+   "source": "https://docs.expo.dev/versions/latest/sdk/widgets/"
+  },
+  {
+   "topic": "expo-widgets App Group",
+   "finding": "groupIdentifier defaults to group.<bundleId>. widgetsDirectory is a file:// URL to the shared container, and widgets can't read the app sandbox. The plugin writes the app-group entitlement to the app and to extra.eas.build.experimental.ios.appExtensions (seen in withEasConfig.js), so EAS CLI generates extension credentials.",
+   "source": "https://docs.expo.dev/versions/latest/sdk/widgets/"
+  },
+  {
+   "topic": "@bacons/apple-targets",
+   "finding": "npm latest = 5.0.0 (2026-07-17). Peer dependency expo >=52. Its README requires CocoaPods 1.16.2, Xcode 16 and Expo SDK 53+. Widgets are written in native Swift/SwiftUI under /targets. App Groups mirror ios.entitlements, and the plugin auto-populates extra.eas.build.experimental.ios.appExtensions. The README says EAS code signing is 'theoretically' handled and was tested end-to-end only on the author's widget. ExtensionStorage (UserDefaults via App Group) plus reloadWidget() is provided. expo-apple-targets is not an npm package name (404).",
+   "source": "https://registry.npmjs.org/@bacons/apple-targets"
+  },
+  {
+   "topic": "react-native-purchases / -ui",
+   "finding": "Both are at latest = 10.11.0 (2026-10-01). Peer dependency react-native >=0.73. RNPurchases.podspec pins PurchasesHybridCommon 19.5.0, which pins RevenueCat (purchases-ios) 5.92.0. The pod's iOS platform is 13.0.",
+   "source": "https://registry.npmjs.org/react-native-purchases"
+  },
+  {
+   "topic": "purchases-ios latest",
+   "finding": "RevenueCat purchases-ios 5.93.0 was published to CocoaPods trunk on 2026-10-07 (the git tag exists). Earlier releases: 5.92.0 on 2026-09-30, 5.91.0 on 2026-09-23. RevenueCat and RevenueCatUI 5.93.0 support iOS 13.0+. SDK v5 uses StoreKit 2 by default and falls back to SK1 on iOS 15 and earlier.",
+   "source": "https://trunk.cocoapods.org/api/v1/pods/RevenueCat"
+  },
+  {
+   "topic": "RevenueCat in Expo",
+   "finding": "Install with npx expo install react-native-purchases react-native-purchases-ui. Expo Go runs a 'Preview API Mode' with JS mocks, so real purchases need a development build. Building with Xcode 27 on Expo SDK 56 or earlier needs a Podfile post_install hook via a config plugin to work around a CocoaPods deployment-target error.",
+   "source": "https://www.revenuecat.com/docs/getting-started/installation/expo"
+  },
+  {
+   "topic": "RevenueCat Paywalls",
+   "finding": "Remote-configured paywalls need iOS 15+, purchases-ios 5.27.1+ and react-native-purchases 8.11.3+. Multi-step paywalls need 5.83.0 / RN 10.6.0. Presentation: iOS uses presentPaywallIfNeeded / PaywallView. React Native uses RevenueCatUI.presentPaywall, presentPaywallIfNeeded({requiredEntitlementIdentifier}) or <RevenueCatUI.Paywall>.",
+   "source": "https://www.revenuecat.com/docs/tools/paywalls"
+  },
+  {
+   "topic": "RevenueCat intro eligibility",
+   "finding": "checkTrialOrIntroDiscountEligibility(product:) is iOS-only and best-effort, based on prior purchases, and can return unknown. The App Store sheet is authoritative. Paywalls v2 text and visibility rules can switch on intro-offer eligibility, with offer variables like product.offer_period_with_unit.",
+   "source": "https://www.revenuecat.com/docs/subscription-guidance/subscription-offers"
+  },
+  {
+   "topic": "RevenueCat entitlements / lifetime",
+   "finding": "Products (subscription, non-consumable, consumable) attach to Entitlements. A non-consumable attached to an entitlement unlocks it permanently, as in RevenueCat's 'lifetime access to pro' example. Offerings group Packages, and getOfferings().current returns the default offering.",
+   "source": "https://www.revenuecat.com/docs/getting-started/entitlements"
+  },
+  {
+   "topic": "Latest iOS",
+   "finding": "The latest public release is iOS 27.0.1 (24A446) from 2026-09-28. iOS 27.2 beta 3 (24B5099f) came out 2026-10-05. iPadOS 26.7.1 is the latest iOS 26-line update.",
+   "source": "https://developer.apple.com/news/releases/"
+  },
+  {
+   "topic": "Latest Xcode",
+   "finding": "Xcode 27 (27A266a) was released 2026-09-14. Xcode 27.1 RC (27A9275) came 2026-10-05 and Xcode 27.2 beta 2 on 2026-09-28. Xcode 27 includes Swift 6.4 and the iOS 27 SDKs, requires macOS Tahoe 26.6 or later, and supports on-device debugging on iOS 17+.",
+   "source": "https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes"
+  },
+  {
+   "topic": "App Store minimum SDK",
+   "finding": "Since 2026-04-28, apps uploaded to App Store Connect must be built with Xcode 26 or later using the iOS 26 SDK (or another OS 26 SDK). Since 2026-09-09, iOS/iPadOS apps uploaded must target iOS 13 or later. No Xcode 27 upload requirement is listed yet.",
+   "source": "https://developer.apple.com/news/upcoming-requirements/"
+  },
+  {
+   "topic": "WidgetKit families (iOS 27)",
+   "finding": "WidgetFamily adds systemExtraLargePortrait for iOS/iPadOS/macOS 27. Accessory families: accessoryCircular, accessoryRectangular, accessoryInline (iOS 16+). accessoryRectangular appears on the iPhone Lock Screen and on the iPad Lock Screen from iPadOS 17.",
+   "source": "https://developer.apple.com/documentation/widgetkit/widgetfamily"
+  },
+  {
+   "topic": "WidgetKit rendering modes / Liquid Glass",
+   "finding": "WidgetRenderingMode is fullColor, accented or vibrant (iOS 16+). When the user picks a tinted or clear Home Screen, the system renders the widget in accented mode, tints primary and accent content white, removes the background, and replaces it with a themed glass or tint. Developers use widgetAccentable() (iOS 16+) and widgetAccentedRenderingMode(.accented / .desaturated / .accentedDesaturated / .fullColor) (iOS 18+). containerBackground(for: .widget) marks the background that glass replaces. Lock Screen widgets render in vibrant mode.",
+   "source": "https://developer.apple.com/documentation/widgetkit/optimizing-your-widget-for-accented-rendering-mode-and-liquid-glass"
+  },
+  {
+   "topic": "WWDC26 WidgetKit",
+   "finding": "Session 277 'WidgetKit foundations' covers the widget extension as a separate process sharing data through an App Group, timelines with atEnd/afterDate/never reload policies, StaticConfiguration vs AppIntentConfiguration, full color/tinted/clear appearances, and the new systemExtraLargePortrait family.",
+   "source": "https://developer.apple.com/videos/play/wwdc2026/277"
+  },
+  {
+   "topic": "Native StoreKit / App Intents availability",
+   "finding": "SubscriptionStoreView and AppIntentConfiguration require iOS 17.0. Product.SubscriptionInfo.isEligibleForIntroOffer requires iOS 15.0.",
+   "source": "https://developer.apple.com/documentation/storekit/subscriptionstoreview"
+  },
+  {
+   "topic": "Guideline 3.1.2",
+   "finding": "Guidelines last updated 2026-06-08. 3.1.2(a): subscriptions must provide ongoing value, last at least 7 days, and work across all of the user's devices. A free trial is allowed by providing the information in App Store Connect. Apps that trick users into subscribing or use bait-and-switch are removed. 3.1.2(c): before asking a customer to subscribe, clearly describe what they get for the price and comply with Schedule 2.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/#subscriptions"
+  },
+  {
+   "topic": "Restore requirement",
+   "finding": "Guideline 3.1.1: 'you should make sure you have a restore mechanism for any restorable in-app purchases.' This covers the lifetime non-consumable.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/#in-app-purchase"
+  },
+  {
+   "topic": "Apple subscription sign-up screen requirements",
+   "finding": "The sign-up screen must show the subscription name, duration and what is provided, and the full renewal price shown clearly and prominently and localized. It must offer a way to sign in or restore purchases. The app and App Store metadata must link to the Terms of Use and Privacy Policy. The billed amount must be the most prominent pricing element; a per-month breakdown or savings badge must be subordinate in position and size to the annual price. For free trials, clearly state the trial length and the price billed after it ends.",
+   "source": "https://developer.apple.com/app-store/subscriptions/"
+  },
+  {
+   "topic": "Intro offer durations",
+   "finding": "Free-trial introductory offers can last 3 Days, 1 or 2 Weeks, 1/2/3/6 Months, or 1 Year, so a 3-day trial on annual is valid. Customers get one introductory offer per subscription group. A confirmed offer can't be edited; it must be deleted and recreated.",
+   "source": "https://developer.apple.com/help/app-store-connect/manage-subscriptions/set-up-introductory-offers-for-auto-renewable-subscriptions"
+  },
+  {
+   "topic": "App name rules",
+   "finding": "Guideline 2.3.7: choose a unique app name, limited to 30 characters. Don't pack metadata with trademarks, popular app names, pricing or irrelevant terms. Names, subtitles and screenshots shouldn't include prices or terms that don't belong to that metadata type. Subtitles can't reference other apps or make unverifiable claims.",
+   "source": "https://developer.apple.com/app-store/review/guidelines/#accurate-metadata"
+  },
+  {
+   "topic": "App Store Connect name field",
+   "finding": "Name must be 2–30 characters, is localized, and is editable until submission; afterwards it changes only with a new version. Subtitle is at most 30 characters. 'You can use an app name for one app per localization.' If another developer uses the name and you hold trademark rights, file a claim.",
+   "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-information"
+  },
+  {
+   "topic": "Name disputes",
+   "finding": "Trademark owners blocked by another app's name file an App Name Dispute, and Apple usually contacts the blocking provider. A name conflict inside your own or an associated account goes to the App Store Connect team.",
+   "source": "https://www.apple.com/legal/intellectual-property/dispute-forms/app-store"
+  },
+  {
+   "topic": "EAS Build images",
+   "finding": "iOS builds run on fresh macOS VMs on Mac minis. The sdk-57 and latest image is macos-tahoe-26.5-xcode-26.6 (Xcode 26.6, 17F113), which meets the Xcode 26+ upload rule. The sdk-58 image is macos-tahoe-26.6-xcode-27.0 (27A266a), and a macos-tahoe-26.6-xcode-27.1 image exists.",
+   "source": "https://docs.expo.dev/build-reference/infrastructure/"
+  },
+  {
+   "topic": "EAS app extensions",
+   "finding": "For CNG projects, extension targets are added by config plugins and declared in extra.eas.build.experimental.ios.appExtensions (targetName, bundleIdentifier, entitlements), which lets EAS CLI generate and validate credentials for each target. Docs still label this experimental.",
+   "source": "https://docs.expo.dev/build-reference/app-extensions/"
+  },
+  {
+   "topic": "EAS capability sync",
+   "finding": "eas build auto-syncs entitlements, App Groups included, to the Apple Developer Console. Registering and assigning App Group IDs automatically 'require[s] Apple cookies authentication (running locally)', meaning an interactive Apple ID login when running eas build, not a CI-only ASC API key. This runs from any OS.",
+   "source": "https://docs.expo.dev/build-reference/ios-capabilities/"
+  },
+  {
+   "topic": "Dev build without a Mac",
+   "finding": "EAS can trigger iOS builds from non-macOS platforms. Steps: install expo-dev-client, then run eas build --platform ios --profile development. A paid Apple Developer account is required. Install by scanning the QR code or link on the iPhone, then enable Developer Mode.",
+   "source": "https://docs.expo.dev/develop/development-builds/create-a-build/"
+  },
+  {
+   "topic": "Device registration (ad hoc)",
+   "finding": "Run eas device:create and register the iPhone via the website URL or QR code. Ad hoc profiles allow-list UDIDs, up to 100 iPhones per year, and adding a device requires a rebuild or re-sign. New memberships can take 24–72 hours to process devices.",
+   "source": "https://docs.expo.dev/build/internal-distribution/"
+  },
+  {
+   "topic": "Developer Mode",
+   "finding": "iOS 16+ requires Developer Mode for internal-distribution and dev builds (not enterprise builds). Install the build, open it, then go to Settings > Privacy & Security > Developer Mode, toggle it on, restart and confirm. No Mac is needed.",
+   "source": "https://docs.expo.dev/guides/ios-developer-mode/"
+  },
+  {
+   "topic": "TestFlight without Mac",
+   "finding": "EAS Submit runs on macOS, Linux and Windows. eas submit --platform ios uploads to TestFlight, where builds appear in roughly 10–15 minutes. A paid Apple Developer account and an ascAppId are needed.",
+   "source": "https://docs.expo.dev/submit/ios/"
+  },
+  {
+   "topic": "EAS pricing",
+   "finding": "The Free plan includes 15 iOS builds in a low-priority queue. Starter is $19/month plus usage, with $45 of build credit and a high-priority queue.",
+   "source": "https://expo.dev/pricing"
+  },
+  {
+   "topic": "expo-notifications",
+   "finding": "latest/sdk-57 = 57.0.22 (2026-10-06). DailyTriggerInput (hour, minute) works on iOS and Android, and CalendarTriggerInput is iOS-only. Local notifications work in Expo Go and need no push keys.",
+   "source": "https://docs.expo.dev/versions/latest/sdk/notifications/"
+  },
+  {
+   "topic": "Expo UI stable",
+   "finding": "Expo UI (the @expo/ui SwiftUI components that expo-widgets is built on) was declared stable and production-ready in SDK 56 (post dated 2026-05-26).",
+   "source": "https://expo.dev/blog/expo-ui-stable-sdk-56"
+  }
+ ],
+ "expo_widget_options": "Checked 2026-10-07. There are two viable options. Both build in EAS's cloud, so no local Mac is needed.\n\n(1) **Official expo-widgets.** npm latest/sdk-57 is 57.0.23; next is 58.0.14. It lives in the expo/expo monorepo and depends on @expo/ui.\n- **Maturity:** alpha in SDK 55 (Jan–Mar 2026), declared stable in SDK 56 (Expo blog, 2026-06-18). Bug fixes to the widget JS runtime were still landing through Aug–Oct 2026, e.g. 57.0.14 and 57.0.15 fixed regressions where every widget failed to render.\n- **Families:** systemSmall/Medium/Large, systemExtraLarge (iPad only), and lock screen accessoryCircular/Rectangular/Inline. This covers the app's needs.\n- **Authoring:** widgets are JSX built from @expo/ui/swift-ui components with a 'widget' directive. They run in an isolated JavaScriptCore runtime with no RN View/Text, hooks, state, async work or imports, and they can't reference outer scope; data comes in through props.\n- **Timelines:** updateSnapshot, updateTimeline(entries with dates), getTimeline, reload.\n- **Environment:** exposes widgetFamily, widgetRenderingMode (fullColor/vibrant/accented; accented on iOS 18+), colorScheme, isLuminanceReduced and content margins. @expo/ui also has widgetAccentedRenderingMode, containerBackground(widget), widgetURL and AccessoryWidgetBackground modifiers. Interactive and configurable widgets need iOS 17+. levelOfDetail needs iOS 26+.\n- **App Group:** groupIdentifier defaults to group.<bundleId>, and widgetsDirectory points to the shared container. The plugin adds the app-group entitlement and auto-registers the extension under extra.eas.build.experimental.ios.appExtensions so EAS generates its provisioning profile.\n- **Deployment target:** 16.4 by default.\n- **Expo Go:** not supported; a dev build is required.\n- **Platforms:** iOS only on SDK 57. SDK 58 (beta, built for iOS 27) adds Android.\n- **Limitations:** you can't use arbitrary SwiftUI/WidgetKit APIs beyond what @expo/ui exposes. The docs don't mention a 'glass' mode explicitly; glass is handled by the system's accented rendering.\n\n(2) **@bacons/apple-targets 5.0.0** (2026-07-17; peer dependency expo >=52; README says Expo SDK 53+).\n- A config plugin that generates real native Xcode targets from /targets/<name>/expo-target.config.js. The widget is written in plain Swift/SwiftUI, so all of WidgetKit is available: every rendering mode, widgetAccentable, AppIntentConfiguration.\n- App Groups mirror ios.entitlements. ExtensionStorage (UserDefaults suite plus WidgetCenter reload) bridges data from JS.\n- It also auto-populates extra.eas.build.experimental.ios.appExtensions.\n- The README says EAS code signing is 'theoretically' handled and was tested end-to-end only on the author's widget.\n- Without a Mac you can't use Xcode previews or a simulator, so Swift compile errors only show up in EAS build logs.\n\n**Without a Mac:**\n- EAS Build compiles on macOS cloud VMs. The sdk-57/latest image has Xcode 26.6, which satisfies Apple's Xcode 26+ upload rule; the sdk-58 image has Xcode 27.0.\n- EAS CLI runs on any OS. Capability sync auto-registers App Group IDs, but that requires an interactive Apple ID login ('Apple cookies auth, running locally'), not just an ASC API key in CI.\n- Installing a dev build on an iPhone: join the paid Apple Developer Program ($99/yr), run eas device:create, open the registration URL/QR on the iPhone, and install the profile. Then run eas build -p ios --profile development with expo-dev-client, install from the QR/link, enable Settings > Privacy & Security > Developer Mode, restart, and run npx expo start.\n- Alternatively, use eas build plus eas submit to TestFlight. EAS Submit works on Linux/Windows, and this route skips UDID registration and Developer Mode.\n- Ad hoc distribution is capped at 100 devices per year.\n- The EAS Free plan includes 15 iOS builds in a low-priority queue; Starter is $19/mo with $45 credit.\n- Each widget change needs a native rebuild, because the widget bundle is embedded in the extension.\n\n**SDK 57 vs 58:** Building with Xcode 27 / iOS 27 SDK on SDK 57 requires expo@57.0.23+ with expo-build-properties ios.enableSceneSupport. SDK 58 uses the scene life cycle by default. Apple doesn't yet require Xcode 27 for uploads.",
+ "swiftui_notes": "**Latest versions (as of 2026-10-07):**\n- Latest public iOS is 27.0.1 (24A446, released 2026-09-28). iOS 27.2 beta 3 came out 2026-10-05.\n- Latest Xcode is 27 (27A266a, 2026-09-14). Xcode 27.1 RC (27A9275) came out 2026-10-05, and 27.2 beta 2 on 2026-09-28.\n- Xcode 27 ships Swift 6.4 and the iOS 27 SDK, requires macOS Tahoe 26.6+, and supports on-device debugging on iOS 17+. Its release notes mention a Preview Snapshot MCP tool that can render widget timelines.\n\n**App Store upload rules:**\n- Since 2026-04-28, uploads must be built with Xcode 26+ against an OS 26 SDK.\n- Since 2026-09-09, apps must target iOS 13 or later.\n- No Xcode 27 requirement has been announced yet.\n\n**Building natively requires a Mac:** Xcode only runs on macOS.\n\n**WidgetKit:**\n- **Families:** systemSmall/Medium/Large/ExtraLarge, plus the new systemExtraLargePortrait (iOS/iPadOS/macOS 27; on visionOS since 26). Accessory families are accessoryCircular, accessoryRectangular and accessoryInline (iOS 16+; iPad Lock Screen needs iPadOS 17+).\n- **Rendering modes:** WidgetRenderingMode is fullColor / accented / vibrant (iOS 16+). The Lock Screen uses vibrant, a desaturated monochrome.\n- **Tinted or clear (Liquid Glass) Home Screens:** the system renders the widget in accented mode, tints primary and accent content white, tints opaque images to a single white, and removes the containerBackground, replacing it with themed glass or tint.\n- **Developer tools for these modes:** widgetAccentable() (iOS 16+) and widgetAccentedRenderingMode(.accented / .desaturated / .accentedDesaturated / .fullColor; iOS 18+, with fullColor applying to iOS only). Apple reserves fullColor for media artwork. Use .containerBackground(for: .widget).\n- **Architecture (WWDC26 session 277):** the extension runs as a separate process and shares data through an App Group (shared UserDefaults or database). Timeline reload policies are atEnd, afterDate and never. Reload explicitly with WidgetCenter, e.g. when the app goes to the background.\n- **Configuration:** StaticConfiguration, or AppIntentConfiguration for configurable widgets (iOS 17+).\n- **Interactive widgets:** Button and Toggle with App Intents (iOS 17+).\n\n**StoreKit 2:**\n- Product.SubscriptionInfo.isEligibleForIntroOffer is available from iOS 15.\n- SubscriptionStoreView, a native merchandising view for one subscription group, needs iOS 17+. A lifetime non-consumable would sit outside that group and need its own UI or a RevenueCat paywall.\n\n**RevenueCat native:** RevenueCat 5.93.0 and RevenueCatUI support iOS 13+, use StoreKit 2 by default, and paywalls need iOS 15+.\n\n**Local notifications:** UNUserNotificationCenter with a UNCalendarNotificationTrigger set to repeat daily.\n\n**Expo SDK 57 for comparison:** its minimum deployment target is iOS 16.4, which already covers Lock Screen widgets.",
+ "revenuecat_notes": "**Versions:**\n- purchases-ios (RevenueCat pod) latest is 5.93.0, published to CocoaPods trunk 2026-10-07 (git tag 5.93.0). Earlier: 5.92.0 on 2026-09-30, 5.91.0 on 2026-09-23. It supports iOS 13.0+ and uses StoreKit 2 by default since v5, falling back to StoreKit 1 on iOS 15 and earlier.\n- react-native-purchases and react-native-purchases-ui are both at latest 10.11.0 (2026-10-01), with peer dependency react-native >=0.73.\n- RNPurchases.podspec pins PurchasesHybridCommon 19.5.0, which pins RevenueCat 5.92.0. So the RN SDK trails native by about one minor version.\n\n**Expo setup:**\n- npx expo install react-native-purchases react-native-purchases-ui. No config plugin is needed for the standard setup.\n- Expo Go runs 'Preview API Mode', where JS mocks stand in and real purchases don't work. Real testing needs a development build.\n- Building with Xcode 27 on Expo SDK 56 or earlier needs a Podfile post_install hook, added via a config plugin, to work around a CocoaPods deployment-target error.\n\n**Data model:**\n- Products (auto-renewable subscriptions, non-consumables, consumables) attach to Entitlements. Most apps use one entitlement, e.g. 'pro'.\n- A non-consumable attached to an entitlement unlocks it permanently. This is the documented 'lifetime access' pattern, so a $39.99 lifetime non-consumable plus $24.99/yr and $4.99/mo subscriptions can all grant 'pro'.\n- Offerings contain Packages, which group equivalent products across platforms. Package identifiers come from a dashboard dropdown by duration (annual, monthly, lifetime, and so on; the docs page didn't list the literal $rc_ strings), or a custom identifier.\n- Use getOfferings().current, the Default Offering, so you can retarget and run experiments without an app update.\n\n**Paywalls (RevenueCatUI):**\n- Remotely configured, available on iOS and Android, and require iOS 15+.\n- Minimum SDKs: purchases-ios 5.27.1+ and react-native-purchases 8.11.3+. Multi-step paywalls need 5.83.0 / RN 10.6.0.\n- iOS: .presentPaywallIfNeeded(requiredEntitlementIdentifier:) or PaywallView.\n- React Native: RevenueCatUI.presentPaywall(), presentPaywallIfNeeded({requiredEntitlementIdentifier}), or the embedded <RevenueCatUI.Paywall onDismiss>, with restore callbacks.\n- Paywalls v2 text and visibility rules can branch on intro-offer eligibility, with variables such as product.offer_period_with_unit. Offer variables may only appear in offer-eligible rules.\n- Restore is added as a button action in the paywall editor. Community reports say auto-dismiss after restore happens only when requiredEntitlementIdentifier is passed.\n\n**Intro offer eligibility:**\n- Purchases.checkTrialOrIntroDiscountEligibility(product) works on iOS only. It is best-effort, based on prior purchases, and may return unknown, so treat unknown as ineligible or neutral copy. The App Store payment sheet is authoritative.\n- Apple's rules: one intro offer per subscription group per customer. Current subscribers in the group aren't eligible.\n- Native StoreKit 2 equivalent: Product.SubscriptionInfo.isEligibleForIntroOffer (iOS 15+).\n- A 3-day free trial is a valid App Store Connect intro-offer duration.",
+ "apple_paywall_rules": "**App Review Guidelines (last updated 2026-06-08):**\n- **3.1.2(a):**\n  - Auto-renewable subscriptions must provide ongoing value, last at least 7 days, and be available on all of the user's devices.\n  - A free trial is allowed by providing the relevant information in App Store Connect.\n  - Apps that trick users into subscribing under false pretenses, or that use bait-and-switch, are removed, and the developer may be expelled from the program.\n  - Users must get what they paid for without extra tasks.\n- **3.1.2(b):** Upgrades and downgrades must be seamless, with no accidental multiple subscriptions. Put annual and monthly in the same subscription group.\n- **3.1.2(c):** Before asking a customer to subscribe, clearly describe what the user gets for the price, and communicate the Schedule 2 requirements.\n- **3.1.1:** 'make sure you have a restore mechanism for any restorable in-app purchases.' The lifetime non-consumable and the subscriptions need a visible Restore Purchases control.\n- **2.3.1(a)** (misleading-marketing clause): promoting a false price is grounds for removal.\n\n**Apple's subscription page (developer.apple.com/app-store/subscriptions):** the sign-up screen MUST include:\n- The subscription name and duration, and the content or services provided.\n- The full renewal price, shown clearly and prominently and localized.\n- A way for current subscribers to sign in or restore purchases.\n- Links to the Terms of Use (EULA) and Privacy Policy, in both the app and the App Store metadata. Use the Privacy Policy URL field, plus either the standard Apple EULA link in the description or a custom EULA.\n\n**Billing amount:** the amount billed must be the most prominent pricing element in the layout.\n- An annual plan should clearly display the total billed, e.g. $24.99/year.\n- A per-month equivalent (≈$2.08/mo) or a savings badge ('Save 58%' vs monthly) is allowed only in a subordinate position and smaller size than the annual price.\n\n**Free trials:** in the purchase flow, clearly state how long the trial lasts and the price billed after it ends, e.g. '3 days free, then $24.99/year'.\n\n**Intro offer setup (App Store Connect):**\n- Free-trial durations: 3 Days, 1–2 Weeks, 1/2/3/6 Months, 1 Year.\n- One intro offer per subscription group per customer.\n- One current and one future intro offer per storefront.\n- Offers can't be edited after confirmation.\n- Show trial copy in-app only to eligible users.\n\n**Metadata:** app names, subtitles, screenshots and previews should not include prices or terms (2.3.7).",
+ "app_name_rules": "**App Review Guideline 2.3.7:**\n- 'Choose a unique app name... App names must be limited to 30 characters.'\n- Don't pack metadata with trademarked terms, popular app names, pricing information or irrelevant phrases.\n- Names, subtitles, screenshots and previews should not include prices, terms or descriptions that aren't specific to that metadata type.\n- Subtitles must follow the metadata rules: no inappropriate content, no references to other apps, no unverifiable claims.\n- 5.2.1: no misleading, copycat or trademark-infringing names.\n\n**App Store Connect field rules:**\n- **Name:** localized, at least 2 and at most 30 characters. Editable until you submit to App Review; after that it changes only with a new version.\n- **Subtitle:** at most 30 characters.\n- **Uniqueness:** 'You can use an app name for one app per localization.'\n- **If an app in your own account already uses the name:** either update that app to rename it, or remove that app from App Store Connect.\n- **If another developer uses the name and you hold trademark rights:** submit a claim through Apple's App Name Dispute process. Apple identifies the blocking app(s) and usually contacts that provider to resolve the matter directly with you.\n- **If the conflict is with an associated developer account:** contact the App Store Connect team.\n\n**Practical notes (developer forums, not official):**\n- Names can be blocked by unreleased, unlisted or other-region apps that don't appear in search.\n- Appending characters to someone else's name risks a copycat rejection.\n- Apple's current help pages don't state a name-reservation time limit, so don't rely on the old 120/180-day lore."
+}

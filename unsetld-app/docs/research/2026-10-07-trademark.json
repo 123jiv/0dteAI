@@ -1,0 +1,203 @@
+{
+ "uspto_findings": [
+  {
+   "mark": "UNSETLD / UNSETTLD / UNSETLED / UN SETTLED / UNSETL'D (exact variants)",
+   "owner": "None found",
+   "classes": "Any",
+   "status": "NO RECORDS. Zero hits for these spellings in the wordmark, pseudo-mark, owner, attorney and goods/services fields, including wildcard searches (*unsetld*, unsetl*, *settld*).",
+   "serial_or_reg": "n/a",
+   "source": "USPTO tmsearch backend API (tmsearch.uspto.gov/prod-stage-v1-0-0/tmsearch), queried 2026-10-07"
+  },
+  {
+   "mark": "UNSET (standard characters)",
+   "owner": "UNSET LLC, Hampden, Massachusetts",
+   "classes": "25 (swimwear; women's shirts, dresses, skirts, blouses)",
+   "status": "LIVE. Pending 1(b) intent-to-use application filed 2026-02-03, published 2026-06-30, Notice of Allowance issued 2026-08-25. Its filing date is earlier than unsetld.com (domain registered 2026-03-12). MODERATE risk for UNSETLD in class 25: UNSETLD contains UNSET, and the opposition window has closed.",
+   "serial_or_reg": "SN 99631669",
+   "source": "tmsearch API + TSDR status page"
+  },
+  {
+   "mark": "SETLD (stylized; pseudo-mark SETTLED)",
+   "owner": "Adroit DRX, LLC dba SETLD, Melbourne, Florida",
+   "classes": "9 (downloadable mobile app for automated financial settlement of transactions)",
+   "status": "LIVE. Registered 2026-09-01. Same class as the app but a different field (fintech). Low to moderate risk.",
+   "serial_or_reg": "SN 97304849 / Reg. 8423714",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "UNSETTLED",
+   "owner": "Orange Nebula, LLC dba Blue Blazes, Vancouver, Washington",
+   "classes": "28 (board games; card games)",
+   "status": "LIVE. Registered 2021-07-27. Low risk (different goods).",
+   "serial_or_reg": "SN 88440078 / Reg. 6435033",
+   "source": "tmsearch API + TSDR"
+  },
+  {
+   "mark": "UNSETTLED SCORES (words + design)",
+   "owner": "Unsettled Scores (partnership, London, Ontario, Canada)",
+   "classes": "9 (downloadable sheet music), 16, 41 (music concerts, theatre), 45",
+   "status": "LIVE. Registered 2025-12-09. Low risk (music field, adds SCORES).",
+   "serial_or_reg": "SN 98490694 / Reg. 8055487",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "THE UNSETTLING",
+   "owner": "AwesomenessTV Holdings, LLC",
+   "classes": "41 (horror television series)",
+   "status": "LIVE. Section 8 & 15 accepted. Low risk.",
+   "serial_or_reg": "SN 87668169 / Reg. 6080547",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "UNTLD (pseudo-mark UNTOLD)",
+   "owner": "Untld LLC, New York",
+   "classes": "25 (tops, bottoms, headwear, footwear, undergarments)",
+   "status": "LIVE. Registered 2022-09-13. Low risk (different word, some visual overlap).",
+   "serial_or_reg": "SN 90119252 / Reg. 6841813",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "SETTLD",
+   "owner": "Changyin Liu (China)",
+   "classes": "20 (pet beds, storage, plastic containers)",
+   "status": "LIVE. New application filed 2026-09-13. Not relevant (class 20).",
+   "serial_or_reg": "SN 50105075",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "UNSETTLED",
+   "owner": "Unsettled Inc. (Delaware), coworking/travel retreats",
+   "classes": "39 (travel)",
+   "status": "DEAD. Cancelled under Section 8 on 2025-04-18. The company may still hold common-law rights for retreats or career-transition programs.",
+   "serial_or_reg": "SN 87699085 / Reg. 5577277",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "UNSETTLE; UN.SETTLE; OBJECTS FOR THE UNSETTLED",
+   "owner": "Unsettle&Company LLC (CA); Jessica Wu; Brent Haas",
+   "classes": "25 (and 28 for UNSETTLE)",
+   "status": "DEAD. All abandoned or cancelled. Shows earlier apparel attempts in this name space, but nothing live.",
+   "serial_or_reg": "SN 97369372; SN 87218576; SN 86832703 / Reg. 5002477",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NS NEVER SETTLE (words + design)",
+   "owner": "Dean Mitchell, Chestnut Ridge, NY (nscollective.net)",
+   "classes": "25 (hats, headwear, hoodies, pants, shirts, sweatpants)",
+   "status": "LIVE. Registered 2020-12-01. The USPTO cited it in June 2024 to refuse NEVER SETTLE for clothing (SN 98218468, which was later abandoned).",
+   "serial_or_reg": "SN 88467812 / Reg. 6208536",
+   "source": "tmsearch API + TSDR + office action PDF"
+  },
+  {
+   "mark": "NEVER $ETTLE XXX 4 LESS (stylized)",
+   "owner": "Daquan Borney, Cincinnati, OH",
+   "classes": "25 (hoodies, sweatshirts, tops, bottoms, sweaters, leggings, headwear, footwear)",
+   "status": "LIVE. Registered 2022-07-19. The closest registered mark to 'Never Settle For Less' on apparel.",
+   "serial_or_reg": "SN 90814925 / Reg. 6794897",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NEVER SETTLE FOR AVERAGE",
+   "owner": "SWP Holdings LLC (AZ/NV)",
+   "classes": "25 (t-shirts, hats)",
+   "status": "LIVE. Registered 2023-05-30.",
+   "serial_or_reg": "SN 97302340 / Reg. 7065854",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NEVER SETTLE, BE DIFFERENT, DJ DESIGNS (words + design)",
+   "owner": "David Newman & Jesse Webster dba DJDesigns",
+   "classes": "25 (men's socks)",
+   "status": "LIVE. Section 8 accepted.",
+   "serial_or_reg": "SN 87588927 / Reg. 5447604",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NEVER SETTLE. ALWAYS WANDER.",
+   "owner": "Wantable, Inc.",
+   "classes": "25, 35, 42, 45",
+   "status": "LIVE. Pending (revived).",
+   "serial_or_reg": "SN 98539827",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NEVER SETTLE",
+   "owner": "OnePlus Technology (Shenzhen) Co., Ltd.",
+   "classes": "9 (includes downloadable mobile phone software, smartphones, smartwatches)",
+   "status": "LIVE. Registered 2023-10-10. A second registration, Reg. 4967023 (SN 79180410, words + design, smartphones/headphones), is also live.",
+   "serial_or_reg": "SN 79367358 / Reg. 7185318",
+   "source": "tmsearch API + TSDR"
+  },
+  {
+   "mark": "NEVER SETTLE SHOW",
+   "owner": "Never Settle Productions, LLC (Mario Armstrong), Baltimore, MD",
+   "classes": "41 (shows and programs on personal growth and lifestyle)",
+   "status": "LIVE. Section 8 & 15 accepted. The USPTO cited it in May 2025 to refuse NEVER SETTLE for motivation and mindset podcasts in classes 9/41 (SN 98887443, which was later abandoned).",
+   "serial_or_reg": "SN 87105675 / Reg. 5242859",
+   "source": "tmsearch API + TSDR office action PDF"
+  },
+  {
+   "mark": "MARIO ARMSTRONG NEVER SETTLE",
+   "owner": "Never Settle Productions, LLC",
+   "classes": "41 (shows on personal growth, empowerment, motivation, mindfulness, physical wellness)",
+   "status": "LIVE. Registered 2020-12-01.",
+   "serial_or_reg": "SN 88670909 / Reg. 6212581",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NEVER SETTLE SISTER",
+   "owner": "Courtney Meadows Fitness LLC (FL)",
+   "classes": "41 (mindset, manifestation and life coaching; personal fitness training)",
+   "status": "LIVE. Registered 2024-11-19.",
+   "serial_or_reg": "SN 97167316 / Reg. 7567905",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "BLAISE TRAINING NEVER SETTLE (two registrations) + NS weight design",
+   "owner": "Blaise Training Never Settle, LLC (Des Moines, IA)",
+   "classes": "41 (strength and conditioning training; fitness coaching)",
+   "status": "LIVE. All registered.",
+   "serial_or_reg": "Reg. 6928101 (SN 97051781); Reg. 6928102 (SN 97051826); Reg. 6939433 (SN 97051847, design only)",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NEVER SETTLE",
+   "owner": "Never Settle LLC, Lakewood, CO",
+   "classes": "35, 42 (branding, marketing, advertising, business consulting; web/graphic design)",
+   "status": "LIVE. Registered 2025-06-10.",
+   "serial_or_reg": "SN 98340057 / Reg. 7821980",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NEVER SETTLE FOR LESS (various)",
+   "owner": "Frankl & Kominsky P.A. (45, legal); LXRY Tea Company (30); Marsh & McLennan Agency / McGriff (36)",
+   "classes": "45; 30; 36",
+   "status": "LIVE. No live NEVER SETTLE FOR LESS mark found in classes 9, 25, 35 or 41. Cancelled ones in 35 belonged to HRB Innovations (H&R Block) and Con-way.",
+   "serial_or_reg": "Reg. 4177799 (SN 85208975); Reg. 6426124 (SN 90281129); Reg. 7740595 (SN 98118238); SN 98118215 pending",
+   "source": "tmsearch API"
+  },
+  {
+   "mark": "NEVER SETTLE (refused or dead apparel and motivation filings)",
+   "owner": "Never Settle20 LLC; Amir Pasha Esfandiary; SHEFIT; Mizuno; NEVR SETTL LLC; several individuals",
+   "classes": "25; 9/41",
+   "status": "DEAD. SN 98218468 (class 25) was refused under 2(d) over Reg. 6208536 and abandoned in 2024. SN 98887443 (classes 9/41, motivation podcasts) was refused under 2(d) over Reg. 5242859 and abandoned in 2025. About 15 other class 25 NEVER SETTLE / NEVER SETTLE 4 LESS filings are abandoned or cancelled (e.g., SN 88022940, 86669492, 90356904, 77648513, 97871889, 86384817, 75100093).",
+   "serial_or_reg": "SN 98218468; SN 98887443; others listed",
+   "source": "tmsearch API + TSDR document viewer (office action PDFs read)"
+  }
+ ],
+ "other_conflicts": [
+  "App Store (iTunes Search API, US): no app is named UNSETLD, UNSETTLD or UNSETLED. 'Live Unsettled' (Field Day Apps, LLC; Lifestyle; a faith/apologetics app with 3 ratings, id6450682320) is also on Google Play. 'Never Settle Lifestyle' (Emily Sudduth, 0 ratings) and 'AA - Never Settle Up' (finance) exist. None is a meaningful conflict for an app named UNSETLD.",
+  "Google Play web search for unsetld/unsettled/unsettld: no UNSETLD app. Only 'Live Unsettled' (Field Day Apps) and unrelated apps such as 'Settle: Nervous System Reset' and 'Settled: pay back screen time'.",
+  "TikTok (public profile data): founder's @unsetldclo has 175 followers and @unsetld has 2. Other accounts are all small: @unsettled (4 followers, no bio), @unsettld (72 followers, a personal 'China & fashion' account), @stayunsettled (8 followers, a 'strange facts' channel). @neversettle and @neversettleforless are tiny personal accounts. None has a large following.",
+  "unsettld.com (registered 2023-07-21 via GoDaddy): live 'Unsettld - Navigate Your Future' coming-soon page, copyright 2026, meta text mentions 'website development services'. The business is unidentified. Watch it in case it launches in coaching or career content (class 41).",
+  "unsettled.com (registered 2000): parked 'Coming Soon' page. Unsettled Inc. (unsettled.co, founded 2016) ran coworking retreats and an online 'Lifestyle Incubator' career-transition program. Its US class 39 registration was cancelled in 2025, but it may keep common-law rights in retreats and coaching. Coverage found is from 2017-2020; current activity was not confirmed.",
+  "Podcasts using UNSETTLED in the class 41 space: 'Unsettled' (Iowa Public Radio, Charity Nebbe) and 'Unsettled with Matt George' (Unsettled Media, Atlantic Canada). No US trademark filings found for either. Several 'Never Settle' motivational podcasts exist (Never Settle Radio; The Never Settle Podcast; Mario Armstrong's Never Settle Network on YouTube).",
+  "Apparel spelled close to UNSETLD: UNTTLD (Montreal designer label sold at Neiman Marcus and Saks; its US filings are abandoned); ASOS 'Unrvlld Spply' (in-house line); Court of the Dead 'Unsettled Union' t-shirt (Sideshow licensed product, not a brand). No independent clothing brand named Unsetld, Unsettld or Unsettled was found on the web.",
+  "Web search for 'unsetld' returned no third-party uses. The founder's site unsetld.com (title 'UNSETLD - Never Settle For Less.', copyright 2026) was registered 2026-03-12. Its first-use date is therefore probably later than UNSET's 2026-02-03 filing date.",
+  "Available-looking domains: unsetld.app and unsetldapp.com returned RDAP 404, so they are probably unregistered. Worth securing for the app.",
+  "Tagline risk: 'Never Settle For Less' and 'Never Settle' are heavily used and registered by others in classes 9, 25, 35 and 41 (OnePlus; NS NEVER SETTLE; NEVER $ETTLE XXX 4 LESS; Mario Armstrong's NEVER SETTLE SHOW; NEVER SETTLE SISTER). Using the phrase as a slogan alongside UNSETLD is a lower risk. Using it as the app name, App Store title, or main mark on hoodies invites refusal or a demand letter."
+ ],
+ "founder_has_filed": "No filing found. The USPTO search API returned zero records containing 'unsetld' (exact or wildcard) in the wordmark, pseudo-mark, owner name, owner address text, attorney or goods/services fields. The index includes filings made up to at least 2026-09-30, with records loaded through 2026-10-02. So the founder has not filed for UNSETLD as a word mark, except possibly in the last week or so before the index caught up. Two cases this search would not catch: a design-only logo filing with no literal element, and a filing under a different word mark in the founder's personal name, since that name is unknown and was not searched. The domain unsetld.com was registered 2026-03-12, so the brand's US priority currently rests on actual use from roughly March 2026 or later.",
+ "recommendation": "File UNSETLD now as a STANDARD CHARACTER word mark, which covers any font or logo, owned by the founder's business entity. No identical or near-identical UNSETLD/UNSETTLED mark is live in the key classes, so the name is reasonably clear. But nationwide priority only comes with the filing date, and the 'SET/SETTLED' space is active in 2026 (UNSET filed Feb 2026, SETLD registered Sept 2026, SETTLD filed Sept 2026).\n\nSuggested classes:\n(1) Class 25, filed on a 1(a) use basis if hoodies and tees have actually sold and shipped across state lines. Use Trademark ID Manual entries such as 'Hooded sweatshirts; T-shirts; Long-sleeved shirts; Polo shirts; Hats', with real first-use dates and specimens (photo of the neck label or hang tag, or a product page with an add-to-cart button).\n(2) Class 9, intent-to-use 1(b): downloadable mobile application software for providing motivational quotes, affirmations, reminders, and habit and goal tracking.\n(3) Class 41, 1(b): providing online non-downloadable content, namely motivational quotes, affirmations and articles in the fields of personal development, discipline, fitness and self-improvement, plus personal coaching if that is planned.\n(4) Optional class 35, 1(b): online retail store services featuring clothing, and administering a customer loyalty program that provides discounts and rewards. This protects the points and rewards system named under UNSETLD.\n\nApproximate USPTO fees (current schedule; verify on uspto.gov): $350 per class base, so about $1,050 for classes 9/25/41 or $1,400 with 35. Add $100 per class if required ID details are missing and $200 per class for free-form ID text. Intent-to-use classes later need a Statement of Use (about $150 per class) or extensions (about $125 per class).\n\nMain risk: UNSET (SN 99631669, class 25 women's clothing and swimwear, allowed 2026-08-25, filed before the founder's domain existed) could be cited against UNSETLD in class 25, because UNSETLD contains UNSET and a coined spelling has no fixed pronunciation. Counter-arguments are the different meaning and commercial impression ('unsettled' versus 'unset') and the stylization. Have a trademark attorney assess this before filing class 25. The opposition window has already closed. Classes 9 and 41 look clearer; the closest mark is SETLD in class 9 for a fintech settlement app, a different field.\n\nDo NOT file for, or brand the app as, NEVER SETTLE or NEVER SETTLE FOR LESS. The USPTO has already refused NEVER SETTLE twice on likelihood-of-confusion grounds: for clothing in 2024, citing NS NEVER SETTLE (Reg. 6208536), and for motivation podcasts in classes 9/41 in 2025, citing NEVER SETTLE SHOW (Reg. 5242859). Live registrations also exist for OnePlus (class 9), NEVER $ETTLE XXX 4 LESS and NEVER SETTLE FOR AVERAGE (class 25), NEVER SETTLE SISTER and Blaise Training (class 41), and Never Settle LLC (class 35). Keep 'Never Settle For Less' as a secondary tagline that always appears with the UNSETLD house mark. In the App Store, lead with UNSETLD (e.g., 'UNSETLD: Daily Discipline'), not 'Never Settle'.\n\nAlso secure unsetld.app and unsetldapp.com, and claim matching handles on other platforms. Before filing, have a trademark attorney run a full clearance search covering common-law use, state registrations and Madrid/foreign marks.",
+ "search_limitations": "1) USPTO data: I queried the backend JSON API that powers tmsearch.uspto.gov directly, plus TSDR status pages and two office-action PDFs. Records were loaded through about 2026-10-02, so applications filed in roughly the last week may be missing. Design-only marks are only searchable by their text descriptions, not their images. Matching is lexical and wildcard-based, not true phonetic or sound-alike searching: I covered UNSET*, UNSETT*, *SETLD*, *SETTLD*, *SETL, UNSAT*, UNTTLD and UNTLD, but not every possible misspelling. State registrations, common-law use, and foreign or WIPO/EUIPO marks were not searched. The founder's personal name is unknown, so no owner-name search under it was possible. 2) TSDR: full status was verified for only a subset of marks (UNSET, UNSETTLED/Orange Nebula, NS NEVER SETTLE, OnePlus NEVER SETTLE, NEVER SETTLE SN 98887443). Other statuses come from the search index. 3) Apps: the iTunes Search API (US store, top 50 results per term) and the Google Play web search page (top results) were checked. Other countries' stores were not. 4) Social and marketplaces: Instagram could not be checked (login wall and rate limiting), so follower counts for any Instagram 'unsettled' accounts are unknown. TikTok was checked only for specific exact handles. Etsy blocked automated access (HTTP 403), and Shopify stores were covered only through general web search. 5) Web search tools return a limited set of results, and the evidence on Unsettled Inc. (unsettled.co) is historical; its current activity was not confirmed. 6) Domain availability was inferred from RDAP 404 responses, which is not a guarantee. 7) This is a preliminary knockout search, not legal advice or a clearance opinion. A US trademark attorney should review it before filing, especially the UNSET class 25 issue."
+}
