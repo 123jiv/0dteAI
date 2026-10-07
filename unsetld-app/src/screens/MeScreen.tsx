@@ -5,7 +5,6 @@ import { AppConfig } from '../config/app';
 import { rankIndex } from '../core/rank';
 import { LANE_NAMES, ONBOARDING, RANK_CONFIG, THEMES } from '../content';
 import type { TabProps } from '../navigation/types';
-import { clearBackup } from '../services/backup';
 import { purchaseMode, restore } from '../services/purchases';
 import { useApp, useEntitlements } from '../state/store';
 import { Button, Card, Row, Screen, SectionLabel, T } from '../ui/components';
@@ -109,13 +108,12 @@ export function MeScreen({ navigation }: TabProps<'Me'>) {
       <Sheet visible={confirmReset} onClose={() => setConfirmReset(false)}>
         <T variant="h2">Reset all progress?</T>
         <T variant="muted" style={{ marginTop: space.sm }}>
-          Streak, XP, rank and favorites go back to zero, including the Keychain backup. Your settings and Premium stay.
+          Streak, XP, rank and favorites go back to zero. Settings, Premium and your code history stay, so code cooldowns still apply.
         </T>
         <Button
           title="Reset to SETTLED"
           style={{ marginTop: space.xl }}
           onPress={async () => {
-            await clearBackup();
             resetProgress();
             setConfirmReset(false);
             pushToast('Progress reset. Everyone starts SETTLED.', 'info');

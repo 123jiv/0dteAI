@@ -1,5 +1,5 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, FlatList, Pressable, Text, View, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { buildPool, customToLine, feedFor } from '../core/lines';
@@ -7,7 +7,6 @@ import { rankOf } from '../core/rank';
 import type { Line } from '../core/types';
 import { LANE_NAMES, LINES, LINES_BY_ID, RANK_CONFIG } from '../content';
 import type { TabProps } from '../navigation/types';
-import { today } from '../services/clock';
 import { tap } from '../services/haptics';
 import { checkTrustedTime } from '../services/trustedTime';
 import { useApp, useEntitlements } from '../state/store';
@@ -27,11 +26,11 @@ export function TodayScreen({ navigation, route }: TabProps<'Today'>) {
   const toggleFavorite = useApp(s => s.toggleFavorite);
   const dailyCheckIn = useApp(s => s.dailyCheckIn);
   const pushToast = useApp(s => s.pushToast);
-  const dayOffset = useApp(s => s.dayOffset);
   const [height, setHeight] = useState(0);
   const [shareLine, setShareLine] = useState<Line | null>(null);
   const listRef = useRef<FlatList<Line>>(null);
-  const day = today();
+  const day = useApp(s => s.currentDay);
+  const isFocused = useIsFocused();
 
   const lanesKey = ent.lanes.join(',');
   const openedId = route.params?.lineId;
@@ -42,31 +41,30 @@ export function TodayScreen({ navigation, route }: TabProps<'Today'>) {
     return opened ? [opened, ...base.filter(l => l.id !== opened.id)] : base;
     // dayOffset: re-pick when the dev tools time-travel
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lanesKey, settings.tone, custom, ent.customLines, progress.installSalt, day, openedId, dayOffset]);
+  }, [lanesKey, settings.tone, custom, ent.customLines, progress.installSalt, day, openedId]);
 
   useEffect(() => {
     if (route.params?.lineId) listRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [route.params?.lineId]);
 
   // Opening the app and seeing today's line is the daily check-in.
+  // Keyed on the current day, so reopening the app on a new day checks in too.
   const checkedIn = Boolean(progress.days[day]?.line);
-  useFocusEffect(
-    useCallback(() => {
-      if (checkedIn) return;
-      let cancelled = false;
-      checkTrustedTime().then(t => {
-        if (cancelled) return;
-        if (t.suspect) {
-          pushToast("Your phone's clock looks off. Set it to automatic to earn XP.", 'warn');
-          return;
-        }
-        dailyCheckIn(t.verified);
-      });
-      return () => {
-        cancelled = true;
-      };
-    }, [checkedIn, dailyCheckIn, pushToast]),
-  );
+  useEffect(() => {
+    if (!isFocused || checkedIn) return;
+    let cancelled = false;
+    checkTrustedTime().then(t => {
+      if (cancelled) return;
+      if (t.suspect) {
+        pushToast("Your phone's clock looks off. Set it to automatic to earn XP.", 'warn');
+        return;
+      }
+      dailyCheckIn(t.verified);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isFocused, checkedIn, day, dailyCheckIn, pushToast]);
 
   const todayRec = progress.days[day];
   const left = (todayRec?.nonNegotiable ? 0 : 1) + (todayRec?.mission ? 0 : 1);

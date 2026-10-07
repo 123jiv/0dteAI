@@ -62,7 +62,6 @@
     "nonNegotiable": 10,
     "mission": 15,
     "fullWeek": 30,
-    "customLine": 10,
     "milestones": { "7": 50, "30": 150, "60": 250, "100": 400, "180": 600, "365": 1000 }
   },
   "shieldsPerMonth": 2,

@@ -21,7 +21,7 @@ export function CustomLinesScreen({ navigation }: RootProps<'CustomLines'>) {
     <Screen>
       <Header title="Your lines" onBack={() => navigation.goBack()} />
       <T variant="muted" style={{ marginTop: space.sm }}>
-        Your own lines rotate into your widget, feed and reminders. First one each week: +10 XP.
+        Your own lines rotate into your widget, feed and reminders.
       </T>
       <View style={{ marginTop: space.lg }}>
         <TextInput

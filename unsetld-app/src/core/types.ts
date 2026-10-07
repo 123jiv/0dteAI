@@ -43,6 +43,8 @@ export interface CodeClaim {
   code: string;
   percent: number;
   rank: number;
+  /** Last day the code works at checkout. */
+  expires: DayKey;
 }
 
 export interface Progress {
@@ -50,10 +52,10 @@ export interface Progress {
   lastOpenDay: DayKey | null;
   streak: number;
   bestStreak: number;
-  shieldsMonth: string | null;
-  shieldsUsed: number;
+  /** Streak shields used per calendar month ("YYYY-MM"). */
+  shieldsUsedByMonth: Record<string, number>;
   /** Bookkeeping for the gap since lastOpenDay, so reconciling is idempotent. */
-  gap: { covered: number; decayDays: number; broken: boolean } | null;
+  gap: { usedByMonth: Record<string, number>; decayDays: number; broken: boolean } | null;
   lifetimeXP: number;
   rankXP: number;
   highestRank: number;
@@ -63,7 +65,6 @@ export interface Progress {
   days: Record<DayKey, DayRecord>;
   milestonesPaid: Record<string, DayKey>;
   fullWeeksPaid: DayKey[];
-  customLineWeek: DayKey | null;
   comeback: { remaining: number; startedOn: DayKey } | null;
   lastComebackStart: DayKey | null;
   claims: CodeClaim[];
@@ -88,7 +89,6 @@ export interface RankConfig {
     nonNegotiable: number;
     mission: number;
     fullWeek: number;
-    customLine: number;
     milestones: Record<string, number>;
   };
   shieldsPerMonth: number;

@@ -7,12 +7,16 @@ import {
   checkIn,
   claimStatus,
   completeMission,
-  customLineWritten,
+  activeClaim,
   emptyProgress,
+  migrateProgress,
   rankIndex,
   reconcile,
   recordClaim,
+  resetKeepingHistory,
   setNonNegotiable,
+  shieldsLeft,
+  verifiedStreakDays,
 } from '../rank';
 import { MAX_PENDING, planReminders } from '../reminders';
 import { seededShuffle, shortCode } from '../random';
@@ -125,13 +129,13 @@ describe('streak + XP', () => {
     p = r.progress;
     expect(r.events.some(e => e.type === 'shields' && e.used === 2)).toBe(true);
     expect(p.streak).toBe(6);
-    expect(p.shieldsUsed).toBe(2);
+    expect(p.shieldsUsedByMonth['2026-10']).toBe(2);
+    expect(shieldsLeft(p, cfg, '2026-10-08')).toBe(0);
   });
 
   it('breaks the streak once shields run out, with no decay inside grace', () => {
     let p = grind(emptyProgress('s'), '2026-10-01', 5);
-    p.shieldsUsed = 2;
-    p.shieldsMonth = '2026-10';
+    p.shieldsUsedByMonth = { '2026-10': 2 };
     const xpBefore = p.rankXP;
     const r = checkIn(p, cfg, '2026-10-08'); // 2 uncovered days = grace
     expect(r.progress.streak).toBe(1);
@@ -142,7 +146,7 @@ describe('streak + XP', () => {
 
   it('decays 2% per day after grace and starts a comeback', () => {
     let p = emptyProgress('s');
-    p = { ...p, rankXP: 8000, lifetimeXP: 9000, lastOpenDay: '2026-10-01', streak: 40, shieldsMonth: '2026-10', shieldsUsed: 2 };
+    p = { ...p, rankXP: 8000, lifetimeXP: 9000, lastOpenDay: '2026-10-01', streak: 40, shieldsUsedByMonth: { '2026-10': 2 } };
     // Away 10 days (missed 2..11), back on the 12th: 10 missed, 0 shields, 2 grace, 8 decay days.
     const r = reconcile(p, cfg, '2026-10-12');
     const expected = Math.floor(8000 * Math.pow(0.98, 8));
@@ -160,7 +164,7 @@ describe('streak + XP', () => {
 
   it('drops at most one rank per 30 days', () => {
     let p = emptyProgress('s');
-    p = { ...p, rankXP: 8000, lastOpenDay: '2026-01-01', shieldsMonth: '2026-01', shieldsUsed: 2 };
+    p = { ...p, rankXP: 8000, lastOpenDay: '2026-01-01', shieldsUsedByMonth: { '2026-01': 2 } };
     const r = reconcile(p, cfg, '2026-04-01'); // ~3 months away
     expect(rankIndex(cfg, r.progress.rankXP)).toBe(3); // RELENTLESS floor
     expect(r.progress.rankXP).toBe(3500);
@@ -168,7 +172,7 @@ describe('streak + XP', () => {
 
   it('applies decay incrementally across days without double counting', () => {
     let p = emptyProgress('s');
-    p = { ...p, rankXP: 2000, lastOpenDay: '2026-10-01', shieldsMonth: '2026-10', shieldsUsed: 2 };
+    p = { ...p, rankXP: 2000, lastOpenDay: '2026-10-01', shieldsUsedByMonth: { '2026-10': 2 } };
     const day6 = reconcile(p, cfg, '2026-10-06').progress; // 4 missed: 2 grace + 2 decay
     const day8 = reconcile(day6, cfg, '2026-10-08').progress; // 6 missed: 4 decay total
     const direct = reconcile(p, cfg, '2026-10-08').progress;
@@ -182,13 +186,54 @@ describe('streak + XP', () => {
     expect(r.progress).toBe(p);
   });
 
-  it('gives custom-line XP once per week', () => {
-    let p = emptyProgress('s');
-    p = customLineWritten(p, cfg, '2026-10-05').progress;
-    p = customLineWritten(p, cfg, '2026-10-07').progress;
-    expect(p.lifetimeXP).toBe(10);
-    p = customLineWritten(p, cfg, '2026-10-12').progress;
-    expect(p.lifetimeXP).toBe(20);
+  it("charges a missed day to the shields of that day's month", () => {
+    // October shields unused; miss Oct 31, come back Nov 1.
+    let p = grind(emptyProgress('s'), '2026-10-20', 11); // Oct 20..30
+    p = checkIn(p, cfg, '2026-11-01').progress;
+    expect(p.shieldsUsedByMonth['2026-10']).toBe(1);
+    expect(shieldsLeft(p, cfg, '2026-11-01')).toBe(2);
+    expect(p.streak).toBe(12);
+    // October shields already spent: Oct 31 is uncovered, the streak resets.
+    let q = grind(emptyProgress('s'), '2026-10-20', 11);
+    q.shieldsUsedByMonth = { '2026-10': 2 };
+    q = checkIn(q, cfg, '2026-11-01').progress;
+    expect(q.streak).toBe(1);
+    expect(q.shieldsUsedByMonth['2026-11'] ?? 0).toBe(0);
+  });
+
+  it('only pays non-negotiable and mission XP after today\'s check-in', () => {
+    let p = grind(emptyProgress('s'), '2026-10-01', 3);
+    const xp = p.lifetimeXP;
+    const r1 = setNonNegotiable(p, cfg, '2026-10-09', 'Train'); // phone date moved ahead
+    expect(r1.events[0].type).toBe('needsCheckIn');
+    const r2 = completeMission(p, cfg, '2026-10-09', 'm');
+    expect(r2.progress.lifetimeXP).toBe(xp);
+    p = setNonNegotiable(p, cfg, '2026-10-03', 'Train').progress;
+    expect(p.lifetimeXP).toBe(xp + 10);
+  });
+
+  it('counts verified days across shield-covered gaps', () => {
+    let p = grind(emptyProgress('s'), '2026-10-01', 5); // Oct 1-5
+    p = checkIn(p, cfg, '2026-10-08').progress; // Oct 6-7 shielded
+    p = checkIn(p, cfg, '2026-10-09').progress;
+    expect(p.streak).toBe(7);
+    expect(verifiedStreakDays(p, '2026-10-09')).toBe(7);
+  });
+
+  it('keeps claim history through a reset', () => {
+    let p = grind(emptyProgress('s'), '2026-09-01', 35, true);
+    p = recordClaim(p, { day: '2026-10-05', code: 'X', percent: 10, rank: 2, expires: '2026-11-14' });
+    const reset = resetKeepingHistory(p, 'new');
+    expect(reset.rankXP).toBe(0);
+    expect(reset.claims).toHaveLength(1);
+  });
+
+  it('migrates progress saved by the first build', () => {
+    const old = { ...emptyProgress('s'), shieldsMonth: '2026-10', shieldsUsed: 1, customLineWeek: '2026-10-05', claims: [{ day: '2026-10-05', code: 'X', percent: 10, rank: 2 }] };
+    const m = migrateProgress(old, 's');
+    expect(m.shieldsUsedByMonth).toEqual({ '2026-10': 1 });
+    expect(m.claims[0].expires).toBe('2026-10-31');
+    expect('shieldsMonth' in m).toBe(false);
   });
 });
 
@@ -201,9 +246,11 @@ describe('codes and claims', () => {
     const st = claimStatus(p, cfg, today);
     expect(st.ok).toBe(true);
     expect(st.percent).toBe(10);
-    p = recordClaim(p, { day: today, code: 'X', percent: 10, rank: 2 });
+    p = recordClaim(p, { day: today, code: 'X', percent: 10, rank: 2, expires: addDays(today, 20) });
     const cool = claimStatus(p, cfg, today);
     expect(cool.ok).toBe(false);
+    expect(activeClaim(p, addDays(today, 20))?.code).toBe('X');
+    expect(activeClaim(p, addDays(today, 21))).toBeNull();
   });
 
   it('keeps 15% and 20% behind Rank Sync in v1', () => {
@@ -212,6 +259,9 @@ describe('codes and claims', () => {
     expect(rankIndex(cfg, p.rankXP)).toBe(4);
     expect(claimStatus(p, cfg, today).percent).toBe(10);
     expect(claimStatus(p, cfg, today, { rankSync: true }).percent).toBe(20);
+    // v1 hands out the 10% tier, so its 90-day cooldown applies even at the top rank.
+    p = recordClaim(p, { day: today, code: 'X', percent: 10, rank: 4, expires: today });
+    expect(claimStatus(p, cfg, addDays(today, 61)).ok).toBe(false);
   });
 
   it('requires verified days unless verification is skipped', () => {

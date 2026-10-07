@@ -2,12 +2,12 @@ import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { Linking, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { AppConfig } from '../config/app';
-import { claimStatus, rankIndex, rankProgress } from '../core/rank';
+import { claimStatus, rankIndex, rankProgress, shieldsLeft } from '../core/rank';
 import { hash32 } from '../core/random';
 import { addDays, diffDays, parseDay, weekStart } from '../core/time';
 import { MISSIONS, ONBOARDING, RANK_CONFIG } from '../content';
 import type { TabProps } from '../navigation/types';
-import { getDayOffset, today } from '../services/clock';
+import { getDayOffset } from '../services/clock';
 import { success } from '../services/haptics';
 import { requestNotifications } from '../services/notifications';
 import { useApp } from '../state/store';
@@ -26,13 +26,12 @@ export function RankScreen({ navigation }: TabProps<'Rank'>) {
   const claimCode = useApp(s => s.claimCode);
   const update = useApp(s => s.updateSettings);
   const pushToast = useApp(s => s.pushToast);
-  useApp(s => s.dayOffset); // re-render when the dev tools time-travel
-  const day = today();
+  const day = useApp(s => s.currentDay);
   const rec = progress.days[day];
   const ri = rankIndex(RANK_CONFIG, progress.rankXP);
   const rank = RANK_CONFIG.ranks[ri];
   const prog = rankProgress(RANK_CONFIG, progress.rankXP);
-  const shieldsLeft = RANK_CONFIG.shieldsPerMonth - (progress.shieldsMonth === day.slice(0, 7) ? progress.shieldsUsed : 0);
+  const shields = shieldsLeft(progress, RANK_CONFIG, day);
 
   const [nnOpen, setNnOpen] = useState(false);
   const [nnText, setNnText] = useState('');
@@ -86,7 +85,7 @@ export function RankScreen({ navigation }: TabProps<'Rank'>) {
 
       <View style={{ flexDirection: 'row', gap: space.md, marginTop: space.lg }}>
         <Stat icon="flame" label="Streak" value={`${progress.streak}d`} sub={`Best ${progress.bestStreak}d`} />
-        <Stat icon="shield" label="Shields" value={`${Math.max(0, shieldsLeft)}`} sub="left this month" />
+        <Stat icon="shield" label="Shields" value={`${shields}`} sub="left this month" />
         <Stat icon="bolt" label="Lifetime" value={`${progress.lifetimeXP.toLocaleString()}`} sub="XP, never decays" />
       </View>
       {missedRun > 0 ? (

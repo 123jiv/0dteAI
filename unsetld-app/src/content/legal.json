@@ -21,7 +21,7 @@
       },
       {
         "h": "Deleting your data",
-        "p": "Delete the app to remove everything stored on the phone. To also clear the Keychain backup of your rank, use Me → Reset progress before deleting."
+        "p": "Delete the app to remove what's stored in the app. A small backup of your rank and code history is kept in the iPhone's Keychain so a reinstall restores it; Me → Reset progress sets your rank back to zero but keeps code history so cooldowns still apply."
       },
       {
         "h": "Contact",
@@ -61,7 +61,7 @@
       },
       {
         "h": "Earning XP",
-        "p": "Open today's line (10 XP), set today's non-negotiable (10), finish today's mission (15), complete a full week (30), streak milestones (7, 30, 60, 100, 180, 365 days), and write a custom line (10, once a week). XP is never given for ratings, reviews, notifications, tracking, following accounts or posting on social media."
+        "p": "Open today's line (10 XP), set today's non-negotiable (10), finish today's mission (15), complete a full week (30), and streak milestones (7, 30, 60, 100, 180, 365 days). XP is never given for ratings, reviews, notifications, tracking, following accounts or posting on social media."
       },
       {
         "h": "Ranks and decay",

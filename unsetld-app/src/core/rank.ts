@@ -2,6 +2,7 @@
 // Pure functions over a Progress object so they can be unit-tested and so the
 // same rules run in the app and (later) on the Rank Sync server.
 
+import { monthEnd } from './codes';
 import { addDays, diffDays, isSunday, monthKey, weekStart, type DayKey } from './time';
 import type { CodeClaim, DayRecord, Progress, RankConfig, RankDef } from './types';
 
@@ -10,13 +11,15 @@ export type RankEvent =
   | { type: 'rankUp'; rank: number }
   | { type: 'rankDown'; rank: number }
   | { type: 'decay'; lost: number; days: number }
+  | { type: 'comeback'; remaining: number }
   | { type: 'shields'; used: number }
   | { type: 'streakBroken'; was: number }
   | { type: 'milestone'; days: number; xp: number }
   | { type: 'fullWeek'; xp: number }
+  | { type: 'needsCheckIn' }
   | { type: 'clockBackwards' };
 
-export type XPReason = 'line' | 'nonNegotiable' | 'mission' | 'milestone' | 'fullWeek' | 'customLine';
+export type XPReason = 'line' | 'nonNegotiable' | 'mission' | 'milestone' | 'fullWeek';
 
 export interface Result {
   progress: Progress;
@@ -31,8 +34,7 @@ export function emptyProgress(installSalt: string): Progress {
     lastOpenDay: null,
     streak: 0,
     bestStreak: 0,
-    shieldsMonth: null,
-    shieldsUsed: 0,
+    shieldsUsedByMonth: {},
     gap: null,
     lifetimeXP: 0,
     rankXP: 0,
@@ -42,11 +44,30 @@ export function emptyProgress(installSalt: string): Progress {
     days: {},
     milestonesPaid: {},
     fullWeeksPaid: [],
-    customLineWeek: null,
     comeback: null,
     lastComebackStart: null,
     claims: [],
   };
+}
+
+/** Brings progress saved by an older build up to the current shape. */
+export function migrateProgress(raw: unknown, salt: string): Progress {
+  const base = emptyProgress(salt);
+  if (!raw || typeof raw !== 'object') return base;
+  const old = raw as Record<string, unknown> & Partial<Progress>;
+  const p: Progress = { ...base, ...(old as Partial<Progress>) };
+  if (!p.shieldsUsedByMonth || typeof p.shieldsUsedByMonth !== 'object') p.shieldsUsedByMonth = {};
+  const legacyMonth = old.shieldsMonth as string | undefined;
+  const legacyUsed = old.shieldsUsed as number | undefined;
+  if (legacyMonth && legacyUsed) {
+    p.shieldsUsedByMonth = { ...p.shieldsUsedByMonth, [legacyMonth]: Math.max(legacyUsed, p.shieldsUsedByMonth[legacyMonth] ?? 0) };
+  }
+  if (p.gap && !('usedByMonth' in p.gap)) p.gap = null;
+  p.claims = (p.claims ?? []).map(c => ({ ...c, expires: c.expires ?? monthEnd(c.day) }));
+  delete (p as unknown as Record<string, unknown>).shieldsMonth;
+  delete (p as unknown as Record<string, unknown>).shieldsUsed;
+  delete (p as unknown as Record<string, unknown>).customLineWeek;
+  return p;
 }
 
 export function rankIndex(cfg: RankConfig, xp: number): number {
@@ -71,6 +92,10 @@ export function rankProgress(cfg: RankConfig, xp: number) {
   return { fraction: Math.max(0, Math.min(1, fraction)), toNext: next.xp - xp, next };
 }
 
+export function shieldsLeft(p: Progress, cfg: RankConfig, day: DayKey): number {
+  return Math.max(0, cfg.shieldsPerMonth - (p.shieldsUsedByMonth[monthKey(day)] ?? 0));
+}
+
 function clone(p: Progress): Progress {
   return {
     ...p,
@@ -78,7 +103,8 @@ function clone(p: Progress): Progress {
     milestonesPaid: { ...p.milestonesPaid },
     fullWeeksPaid: [...p.fullWeeksPaid],
     claims: [...p.claims],
-    gap: p.gap ? { ...p.gap } : null,
+    shieldsUsedByMonth: { ...p.shieldsUsedByMonth },
+    gap: p.gap ? { ...p.gap, usedByMonth: { ...p.gap.usedByMonth } } : null,
     comeback: p.comeback ? { ...p.comeback } : null,
   };
 }
@@ -114,9 +140,12 @@ function award(
   if (after > p.highestRank) p.highestRank = after;
 }
 
+const sum = (o: Record<string, number>) => Object.values(o).reduce((a, b) => a + b, 0);
+
 /**
- * Applies missed days since the last check-in: streak shields first, then a
- * grace period, then rank decay. Safe to call repeatedly on the same day.
+ * Applies missed days since the last check-in: streak shields first (each
+ * missed day uses a shield from its own month), then a grace period, then rank
+ * decay. Safe to call repeatedly: it recomputes the whole gap each time.
  */
 export function reconcile(input: Progress, cfg: RankConfig, today: DayKey): Result {
   const events: RankEvent[] = [];
@@ -125,15 +154,25 @@ export function reconcile(input: Progress, cfg: RankConfig, today: DayKey): Resu
   if (missed <= 0) return { progress: input, events };
 
   const p = clone(input);
-  const month = monthKey(today);
-  let shieldsUsed = p.shieldsMonth === month ? p.shieldsUsed : 0;
-  const gap = p.gap ?? { covered: 0, decayDays: 0, broken: false };
+  const gap = p.gap ?? { usedByMonth: {}, decayDays: 0, broken: false };
 
-  const available = Math.max(0, cfg.shieldsPerMonth - shieldsUsed);
-  const covered = Math.min(missed, gap.covered + available);
-  const newlyCovered = covered - gap.covered;
-  shieldsUsed += newlyCovered;
+  // Shield use by everything except this gap, so the allocation below is idempotent.
+  const base: Record<string, number> = { ...p.shieldsUsedByMonth };
+  for (const [m, n] of Object.entries(gap.usedByMonth)) base[m] = Math.max(0, (base[m] ?? 0) - n);
+  const alloc: Record<string, number> = {};
+  let covered = 0;
+  for (let i = 1; i <= missed; i++) {
+    const m = monthKey(addDays(input.lastOpenDay, i));
+    if ((base[m] ?? 0) + (alloc[m] ?? 0) < cfg.shieldsPerMonth) {
+      alloc[m] = (alloc[m] ?? 0) + 1;
+      covered++;
+    }
+  }
+  const newlyCovered = covered - sum(gap.usedByMonth);
   if (newlyCovered > 0) events.push({ type: 'shields', used: newlyCovered });
+  const usedByMonth: Record<string, number> = { ...base };
+  for (const [m, n] of Object.entries(alloc)) usedByMonth[m] = (usedByMonth[m] ?? 0) + n;
+  p.shieldsUsedByMonth = usedByMonth;
 
   const uncovered = missed - covered;
   const broken = uncovered > 0;
@@ -158,9 +197,11 @@ export function reconcile(input: Progress, cfg: RankConfig, today: DayKey): Resu
         !p.lastComebackStart || diffDays(p.lastComebackStart, today) >= cfg.comebackCooldownDays;
       if (p.comeback) {
         p.comeback = { ...p.comeback, remaining: p.comeback.remaining + lost };
+        events.push({ type: 'comeback', remaining: p.comeback.remaining });
       } else if (canStartComeback) {
         p.comeback = { remaining: lost, startedOn: today };
         p.lastComebackStart = today;
+        events.push({ type: 'comeback', remaining: lost });
       }
     }
     const afterRank = rankIndex(cfg, after);
@@ -170,9 +211,7 @@ export function reconcile(input: Progress, cfg: RankConfig, today: DayKey): Resu
     }
   }
 
-  p.gap = { covered, decayDays: Math.max(gap.decayDays, decayTotal), broken };
-  p.shieldsUsed = shieldsUsed;
-  p.shieldsMonth = month;
+  p.gap = { usedByMonth: alloc, decayDays: Math.max(gap.decayDays, decayTotal), broken };
   return { progress: p, events };
 }
 
@@ -201,10 +240,6 @@ export function checkIn(
   p.bestStreak = Math.max(p.bestStreak, p.streak);
   p.lastOpenDay = today;
   p.gap = null;
-  if (p.shieldsMonth !== monthKey(today)) {
-    p.shieldsMonth = monthKey(today);
-    p.shieldsUsed = 0;
-  }
 
   const rec = dayRec(p, today);
   rec.line = true;
@@ -225,7 +260,13 @@ export function checkIn(
   return { progress: p, events };
 }
 
+/** Daily actions only count after today's check-in, so a changed phone date can't farm them. */
+function checkedInToday(p: Progress, today: DayKey) {
+  return p.lastOpenDay === today && Boolean(p.days[today]?.line);
+}
+
 export function setNonNegotiable(input: Progress, cfg: RankConfig, today: DayKey, text: string): Result {
+  if (!checkedInToday(input, today)) return { progress: input, events: [{ type: 'needsCheckIn' }] };
   const p = clone(input);
   const events: RankEvent[] = [];
   const rec = dayRec(p, today);
@@ -239,21 +280,12 @@ export function setNonNegotiable(input: Progress, cfg: RankConfig, today: DayKey
 }
 
 export function completeMission(input: Progress, cfg: RankConfig, today: DayKey, missionId: string): Result {
+  if (!checkedInToday(input, today)) return { progress: input, events: [{ type: 'needsCheckIn' }] };
   if (input.days[today]?.mission) return { progress: input, events: [] };
   const p = clone(input);
   const events: RankEvent[] = [];
   dayRec(p, today).mission = missionId;
   award(p, cfg, today, cfg.xp.mission, 'mission', events);
-  return { progress: p, events };
-}
-
-export function customLineWritten(input: Progress, cfg: RankConfig, today: DayKey): Result {
-  const week = weekStart(today);
-  if (input.customLineWeek === week) return { progress: input, events: [] };
-  const p = clone(input);
-  const events: RankEvent[] = [];
-  p.customLineWeek = week;
-  award(p, cfg, today, cfg.xp.customLine, 'customLine', events);
   return { progress: p, events };
 }
 
@@ -275,16 +307,33 @@ function prune(p: Progress, today: DayKey) {
     if (diffDays(k, today) > 120) delete p.days[k];
   }
   p.fullWeeksPaid = p.fullWeeksPaid.filter(w => diffDays(w, today) <= 400);
+  const oldest = monthKey(addDays(today, -62));
+  for (const m of Object.keys(p.shieldsUsedByMonth)) {
+    if (m < oldest) delete p.shieldsUsedByMonth[m];
+  }
 }
 
-/** Days in the current streak that were verified against server time. */
+/**
+ * Verified check-ins in the current streak. Walks back past shield-covered
+ * days (which have no record) until the streak's check-ins are counted.
+ */
 export function verifiedStreakDays(p: Progress, today: DayKey): number {
-  let n = 0;
-  for (let i = 0; i < p.streak; i++) {
+  let seen = 0;
+  let verified = 0;
+  for (let i = 0; seen < p.streak && i < p.streak + 70; i++) {
     const d = p.days[addDays(today, -i)];
-    if (d?.line && !d.unverified) n++;
+    if (d?.line) {
+      seen++;
+      if (!d.unverified) verified++;
+    }
   }
-  return n;
+  return verified;
+}
+
+/** The last code, if it can still be used. */
+export function activeClaim(p: Progress, today: DayKey): CodeClaim | null {
+  const last = p.claims[p.claims.length - 1];
+  return last && diffDays(today, last.expires) >= 0 ? last : null;
 }
 
 export type ClaimStatus =
@@ -314,8 +363,6 @@ export function claimStatus(
     const first = cfg.ranks.find(r => r.discountPercent > 0);
     return { ok: false, reason: `Reach ${first?.name ?? 'a higher rank'} to unlock codes.`, percent: 0 };
   }
-  const current = cfg.ranks[ri];
-  const cooldown = current.cooldownDays || tier.cooldownDays;
   if (p.streak < cfg.claims.minStreak || p.lastOpenDay !== today) {
     return {
       ok: false,
@@ -326,21 +373,22 @@ export function claimStatus(
   if (!opts.skipVerification && verifiedStreakDays(p, today) < cfg.claims.minStreak) {
     return {
       ok: false,
-      reason: 'Connect to the internet for a few days so we can verify your streak.',
+      reason: 'Open the app online for a few more days so your streak can be verified.',
       percent: tier.discountPercent,
     };
   }
   const yearClaims = p.claims.filter(c => diffDays(c.day, today) < 365);
   if (yearClaims.length >= cfg.claims.maxPerYear) {
-    return { ok: false, reason: 'You hit the yearly code limit. Perks still apply.', percent: tier.discountPercent };
+    return { ok: false, reason: 'Yearly code limit reached. Your other perks still apply.', percent: tier.discountPercent };
   }
+  // The cooldown belongs to the tier actually being claimed.
   const last = p.claims[p.claims.length - 1];
-  if (last && diffDays(last.day, today) < cooldown) {
+  if (last && diffDays(last.day, today) < tier.cooldownDays) {
     return {
       ok: false,
-      reason: 'Next code unlocks after your cooldown.',
+      reason: 'Your next code unlocks after the cooldown.',
       percent: tier.discountPercent,
-      nextDay: addDays(last.day, cooldown),
+      nextDay: addDays(last.day, tier.cooldownDays),
     };
   }
   return { ok: true, percent: tier.discountPercent, tier };
@@ -348,4 +396,17 @@ export function claimStatus(
 
 export function recordClaim(input: Progress, claim: CodeClaim): Progress {
   return { ...input, claims: [...input.claims, claim] };
+}
+
+/**
+ * Start over at the lowest rank. Claim history, paid milestones and comeback
+ * timing are kept so a reset can't be used to dodge code cooldowns.
+ */
+export function resetKeepingHistory(p: Progress, newSalt: string): Progress {
+  return {
+    ...emptyProgress(newSalt),
+    claims: p.claims,
+    milestonesPaid: p.milestonesPaid,
+    lastComebackStart: p.lastComebackStart,
+  };
 }

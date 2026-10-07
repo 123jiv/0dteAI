@@ -78,5 +78,725 @@
     "tone": "unfiltered",
     "status": "draft",
     "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-011",
+    "lane": "cut-it-off",
+    "text": "6am. Feet on the floor before thumbs on the screen.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-012",
+    "lane": "cut-it-off",
+    "text": "Some nights the whole win is going to bed before midnight.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-013",
+    "lane": "cut-it-off",
+    "text": "Post-breakup is the worst time to decide the habit was fine.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-014",
+    "lane": "cut-it-off",
+    "text": "The controller will be there after leg day. Same spot.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-015",
+    "lane": "cut-it-off",
+    "text": "Write why you're quitting in your notes app. Read it at 11pm.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-016",
+    "lane": "cut-it-off",
+    "text": "Tell the group chat you're cutting it. Now it's on the record.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-017",
+    "lane": "cut-it-off",
+    "text": "The drive-thru isn't on the way. You're making it on the way.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-018",
+    "lane": "cut-it-off",
+    "text": "Stop introducing the habit like it's part of your personality.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-019",
+    "lane": "cut-it-off",
+    "text": "You slipped. Your goals didn't move. Walk back to them.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-020",
+    "lane": "cut-it-off",
+    "text": "Same habit, same night, same regret. You've seen this episode.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-021",
+    "lane": "cut-it-off",
+    "text": "Your quitting doesn't have to look pretty. Messy still counts.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-022",
+    "lane": "cut-it-off",
+    "text": "Cutting it off won't feel heroic. It'll feel like a normal Tuesday.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-023",
+    "lane": "cut-it-off",
+    "text": "Nobody's ever reached the end of the feed. Quit looking for it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-024",
+    "lane": "cut-it-off",
+    "text": "Walk without earbuds today. Let your own thoughts get a word in.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-025",
+    "lane": "cut-it-off",
+    "text": "Start with the habit that eats the most hours.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-026",
+    "lane": "cut-it-off",
+    "text": "Plan Saturday before Friday night plans it for you.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-027",
+    "lane": "cut-it-off",
+    "text": "Some friendships run entirely on the habit. Worth knowing which ones.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-028",
+    "lane": "cut-it-off",
+    "text": "Caring about the news doesn't mean refreshing it forty times a day.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-029",
+    "lane": "cut-it-off",
+    "text": "Muting someone isn't rude. It's maintenance.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-030",
+    "lane": "cut-it-off",
+    "text": "Pick your last match before the first one starts.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-031",
+    "lane": "cut-it-off",
+    "text": "Betting to win back what you lost is how Sundays get expensive.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-032",
+    "lane": "cut-it-off",
+    "text": "If a conversation always ends in a fight, stop restarting it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-033",
+    "lane": "cut-it-off",
+    "text": "Try one week without weed. See what you actually want to do.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-034",
+    "lane": "cut-it-off",
+    "text": "Notice every time your hand goes for the vape today. Just notice.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-035",
+    "lane": "cut-it-off",
+    "text": "Struggling with porn isn't rare. Talk to someone you trust about it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-036",
+    "lane": "cut-it-off",
+    "text": "Keeping a habit just because it's easy? That's settling in sweatpants.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-037",
+    "lane": "cut-it-off",
+    "text": "Quitting is you taking your own side for once.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-038",
+    "lane": "cut-it-off",
+    "text": "You opened the app to check one thing. What was it?",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-039",
+    "lane": "cut-it-off",
+    "text": "Who taught you that every rough day needs a reward?",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-040",
+    "lane": "cut-it-off",
+    "text": "A slip tells you where the plan was weak. Patch that spot.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-041",
+    "lane": "cut-it-off",
+    "text": "Boredom isn't an emergency. It doesn't need fixing in five seconds.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-042",
+    "lane": "cut-it-off",
+    "text": "Lonely and scrolling is still lonely. Text an actual friend.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-043",
+    "lane": "cut-it-off",
+    "text": "You'll miss it for a while. Missing something isn't needing it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-044",
+    "lane": "cut-it-off",
+    "text": "Turn off autoplay. Make the next episode a choice, not a default.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-045",
+    "lane": "cut-it-off",
+    "text": "Practice saying \"nah, I'm good\" until it sounds normal.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-046",
+    "lane": "cut-it-off",
+    "text": "Eat something real before the gas station starts looking like dinner.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-047",
+    "lane": "cut-it-off",
+    "text": "Checking your ex's stories isn't closure. It's a subscription.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-048",
+    "lane": "cut-it-off",
+    "text": "Total what the habit cost you this month. Say it out loud.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-049",
+    "lane": "cut-it-off",
+    "text": "Proud of you for the boring night in. Boring is working.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-050",
+    "lane": "cut-it-off",
+    "text": "The last hour of a binge is never the best hour.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-051",
+    "lane": "cut-it-off",
+    "text": "Stand in line without your phone. You'll survive the 90 seconds.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-052",
+    "lane": "cut-it-off",
+    "text": "Would you want your little brother copying this habit? There's your answer.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-053",
+    "lane": "cut-it-off",
+    "text": "Get outside before noon. Most bad habits are night owls.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-054",
+    "lane": "cut-it-off",
+    "text": "That habit sells you a mood. The fine print is tomorrow morning.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-055",
+    "lane": "cut-it-off",
+    "text": "Tally marks on the mirror. One for every day you didn't cave.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-056",
+    "lane": "cut-it-off",
+    "text": "Feed still pushing the old habit? Hit \"not interested\" every damn time.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-057",
+    "lane": "cut-it-off",
+    "text": "Blacking out Friday and losing all of Saturday is a shit trade.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-058",
+    "lane": "cut-it-off",
+    "text": "At 1am your cravings sound like geniuses. They're full of shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-059",
+    "lane": "cut-it-off",
+    "text": "Swapping one bad habit for another is just a fucking transfer window.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-060",
+    "lane": "cut-it-off",
+    "text": "3am scrolling isn't me time. It's unpaid overtime for the fucking app.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-061",
+    "lane": "cut-it-off",
+    "text": "Sixth fridge check this hour. Nothing new grew. Shut the damn door.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-062",
+    "lane": "cut-it-off",
+    "text": "Day 40 and you slipped? That's still 39 damn good days.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-063",
+    "lane": "cut-it-off",
+    "text": "Slipped once? Don't let it drag the whole week into fuck-it mode.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-064",
+    "lane": "cut-it-off",
+    "text": "Beating yourself up is just another bad habit. Cut that shit too.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-065",
+    "lane": "cut-it-off",
+    "text": "Your habit gets your best hours. Your goals get the leftover shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-066",
+    "lane": "cut-it-off",
+    "text": "If it relaxes you, why are you stressed as hell without it?",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-067",
+    "lane": "cut-it-off",
+    "text": "Out with the boys and everyone's on their phone? Damn. Say something.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-068",
+    "lane": "cut-it-off",
+    "text": "That 2am \"you up?\" text never fixed a damn thing.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-069",
+    "lane": "cut-it-off",
+    "text": "You know every streamer's schedule but not your own. Fix that shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-070",
+    "lane": "cut-it-off",
+    "text": "Twenty minutes scrolling in the parked car? Go the fuck inside.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-071",
+    "lane": "cut-it-off",
+    "text": "Arguing with strangers in the comments again? Log your ass off.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-072",
+    "lane": "cut-it-off",
+    "text": "Your excuses for not quitting are better written than your resume. Damn.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-073",
+    "lane": "cut-it-off",
+    "text": "\"I can stop whenever\" is a hell of a claim. Prove it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-074",
+    "lane": "cut-it-off",
+    "text": "Your old habit always texts first. Leave its ass on read.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-075",
+    "lane": "cut-it-off",
+    "text": "Not even fun anymore? Then why the hell is it still here?",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-076",
+    "lane": "cut-it-off",
+    "text": "You've said \"after this weekend\" since spring. Pick a fucking date.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-077",
+    "lane": "cut-it-off",
+    "text": "Phone hit your face again? Its ass sleeps across the room now.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-078",
+    "lane": "cut-it-off",
+    "text": "Mid-binge, ask what the hell you're avoiding. Then go handle that.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-079",
+    "lane": "cut-it-off",
+    "text": "Still wearing the hoodie that smells like the habit? Wash that shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-080",
+    "lane": "cut-it-off",
+    "text": "You keep saying you'll \"cut back.\" Cut it the hell off.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-081",
+    "lane": "cut-it-off",
+    "text": "You rage-quit three games tonight. Rage-quit one fucking habit instead.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-082",
+    "lane": "cut-it-off",
+    "text": "Your skins budget beat your grocery budget. That's some backwards shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-083",
+    "lane": "cut-it-off",
+    "text": "Phone dead by lunch again? Hell, the battery isn't the problem.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-084",
+    "lane": "cut-it-off",
+    "text": "Gum, cologne, cleared history. Hiding it is a hell of a job.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-085",
+    "lane": "cut-it-off",
+    "text": "You're still running a habit your 16-year-old self picked. Update that shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-086",
+    "lane": "cut-it-off",
+    "text": "\"Not that bad\" is a low as hell bar for your life.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-087",
+    "lane": "cut-it-off",
+    "text": "Delivery driver knows your gate code by heart? Damn. Cook something.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-088",
+    "lane": "cut-it-off",
+    "text": "Fourteen \"Day 1\" notes in your phone? Write the damn fifteenth.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-089",
+    "lane": "cut-it-off",
+    "text": "Holding a soda at the party works. Nobody's checking your damn cup.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-090",
+    "lane": "cut-it-off",
+    "text": "Seven days clean? That's a hell of a week. Go for eight.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-091",
+    "lane": "cut-it-off",
+    "text": "For once, hit snooze on the craving instead of the damn alarm.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-092",
+    "lane": "cut-it-off",
+    "text": "Sunset clips during an actual sunset? Take your ass to a window.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-093",
+    "lane": "cut-it-off",
+    "text": "Four hundred videos today. Can't name one. That was your fucking afternoon.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-094",
+    "lane": "cut-it-off",
+    "text": "The first clean week feels weird as fuck. Weird is fine.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-095",
+    "lane": "cut-it-off",
+    "text": "Going back because it's familiar? Fuck familiar. Pick better.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-096",
+    "lane": "cut-it-off",
+    "text": "You had a life before this habit. Go get that shit back.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-097",
+    "lane": "cut-it-off",
+    "text": "Your eyes hurt, your thumb hurts, your ass hurts. Close the app.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-098",
+    "lane": "cut-it-off",
+    "text": "Getting roasted for staying in? Let them. Your ass has a 7am.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-099",
+    "lane": "cut-it-off",
+    "text": "Finals week, season four? Get your ass to the library.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "cut-it-off-100",
+    "lane": "cut-it-off",
+    "text": "New place, same habit? You moved boxes. Now move your ass.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
   }
 ]

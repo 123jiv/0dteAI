@@ -6,19 +6,21 @@ import {
   checkIn,
   claimStatus,
   completeMission,
-  customLineWritten,
   emptyProgress,
+  migrateProgress,
   rankIndex,
   reconcile,
   recordClaim,
+  resetKeepingHistory,
   setNonNegotiable,
   type RankEvent,
   type Result,
 } from '../core/rank';
+import { addDays } from '../core/time';
 import { randomSalt } from '../core/random';
 import type { CustomLine, LaneId, Progress, Tone } from '../core/types';
 import { RANK_CONFIG, THEMES } from '../content';
-import { setDayOffset, today } from '../services/clock';
+import { getDayOffset, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
 import { appStorage } from './storage';
 
@@ -61,6 +63,10 @@ interface State {
   customLines: CustomLine[];
   premium: Premium;
   dayOffset: number;
+  /** Real progress saved when tester time travel starts; restored on return. */
+  devSnapshot: Progress | null;
+  /** The calendar day the UI is showing; refreshed on foreground and at midnight. */
+  currentDay: string;
   toasts: Toast[];
 
   updateSettings: (patch: Partial<Settings>) => void;
@@ -77,6 +83,8 @@ interface State {
   claimCode: (opts: { skipVerification: boolean }) => ClaimedCode | { error: string };
   markRankSeen: () => void;
   setDayOffset: (days: number) => void;
+  backToRealToday: () => void;
+  refreshDay: () => void;
   resetProgress: () => void;
   restoreProgress: (p: Progress) => void;
   pushToast: (text: string, kind?: Toast['kind']) => void;
@@ -112,7 +120,9 @@ function describe(events: RankEvent[]): { text: string; kind: Toast['kind'] }[] 
   for (const e of events) {
     if (e.type === 'shields') out.push({ text: `Streak shield used (${e.used})`, kind: 'info' });
     if (e.type === 'streakBroken') out.push({ text: `Streak reset. ${e.was} days. Start again today.`, kind: 'warn' });
-    if (e.type === 'decay') out.push({ text: `Rank decayed −${e.lost} XP. Comeback: double XP until it's back.`, kind: 'warn' });
+    if (e.type === 'decay') out.push({ text: `Rank decayed −${e.lost} XP.`, kind: 'warn' });
+    if (e.type === 'comeback') out.push({ text: `Comeback: double XP until you win back ${e.remaining}.`, kind: 'info' });
+    if (e.type === 'needsCheckIn') out.push({ text: "Open today's line first.", kind: 'info' });
     if (e.type === 'rankDown') out.push({ text: `Dropped to ${RANK_CONFIG.ranks[e.rank].name}.`, kind: 'warn' });
     if (e.type === 'milestone') out.push({ text: `${e.days}-day streak · +${e.xp} XP`, kind: 'rank' });
     if (e.type === 'fullWeek') out.push({ text: `Full week · +${e.xp} XP`, kind: 'rank' });
@@ -136,6 +146,8 @@ export const useApp = create<State>()(
         customLines: [],
         premium: { active: false, plan: null, mode: null },
         dayOffset: 0,
+        devSnapshot: null,
+        currentDay: today(),
         toasts: [],
 
         updateSettings: patch => set(s => ({ settings: { ...s.settings, ...patch } })),
@@ -150,7 +162,6 @@ export const useApp = create<State>()(
         addCustomLine: text => {
           const line: CustomLine = { id: `custom-${Date.now().toString(36)}`, text: text.trim(), createdAt: Date.now() };
           set(s => ({ customLines: [line, ...s.customLines] }));
-          apply(customLineWritten(get().progress, RANK_CONFIG, today()));
         },
         updateCustomLine: (id, text) =>
           set(s => ({ customLines: s.customLines.map(c => (c.id === id ? { ...c, text: text.trim() } : c)) })),
@@ -176,19 +187,33 @@ export const useApp = create<State>()(
           if (!st.ok) return { error: st.reason };
           const code = monthlyCode(AppConfig.codeSalt, st.percent, day);
           const rank = rankIndex(RANK_CONFIG, get().progress.rankXP);
-          set({ progress: recordClaim(get().progress, { day, code, percent: st.percent, rank }) });
-          return { code, percent: st.percent, expires: monthEnd(day) };
+          // Each monthly code stays valid into the next month, so every claim gets at least this long.
+          const expires = addDays(monthEnd(day), RANK_CONFIG.claims.expiresDays);
+          set({ progress: recordClaim(get().progress, { day, code, percent: st.percent, rank, expires }) });
+          return { code, percent: st.percent, expires };
         },
 
         markRankSeen: () =>
           set(s => ({ progress: { ...s.progress, seenRank: rankIndex(RANK_CONFIG, s.progress.rankXP) } })),
 
         setDayOffset: days => {
+          // First jump away from the real date: keep the real progress to come back to.
+          if (getDayOffset() === 0 && days !== 0 && !get().devSnapshot) set({ devSnapshot: get().progress });
           setDayOffset(days);
-          set({ dayOffset: days });
+          set({ dayOffset: days, currentDay: today() });
+        },
+        backToRealToday: () => {
+          const snap = get().devSnapshot;
+          setDayOffset(0);
+          set({ dayOffset: 0, currentDay: today(), devSnapshot: null, ...(snap ? { progress: snap } : {}) });
+        },
+        refreshDay: () => {
+          const d = today();
+          if (d !== get().currentDay) set({ currentDay: d });
         },
 
-        resetProgress: () => set({ progress: emptyProgress(randomSalt()), favorites: [] }),
+        resetProgress: () =>
+          set(s => ({ progress: resetKeepingHistory(s.progress, randomSalt()), favorites: [] })),
         restoreProgress: p => set({ progress: p }),
 
         pushToast: (text, kind = 'info') => {
@@ -209,7 +234,18 @@ export const useApp = create<State>()(
         customLines: s.customLines,
         premium: s.premium,
         dayOffset: s.dayOffset,
+        devSnapshot: s.devSnapshot,
       }),
+      version: 2,
+      migrate: (persisted, version) => {
+        const state = (persisted ?? {}) as Record<string, unknown>;
+        if (version < 2) {
+          const prog = state.progress as { installSalt?: string } | undefined;
+          state.progress = migrateProgress(prog, prog?.installSalt ?? randomSalt());
+          state.devSnapshot = null;
+        }
+        return state as never;
+      },
       onRehydrateStorage: () => state => {
         if (state) setDayOffset(state.dayOffset ?? 0);
       },
@@ -219,7 +255,7 @@ export const useApp = create<State>()(
 
 // Storage can be synchronous (web), in which case hydration finishes while the
 // store is still being created; mark it afterwards either way.
-const markHydrated = () => useApp.setState({ hydrated: true });
+const markHydrated = () => useApp.setState({ hydrated: true, currentDay: today() });
 if (useApp.persist.hasHydrated()) markHydrated();
 else useApp.persist.onFinishHydration(markHydrated);
 

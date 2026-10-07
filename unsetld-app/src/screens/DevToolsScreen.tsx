@@ -16,6 +16,7 @@ import { space } from '../ui/theme';
 export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
   const offset = useApp(s => s.dayOffset);
   const setOffset = useApp(s => s.setDayOffset);
+  const backToReal = useApp(s => s.backToRealToday);
   const progress = useApp(s => s.progress);
   const premium = useApp(s => s.premium);
   const setPremium = useApp(s => s.setPremium);
@@ -59,7 +60,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
         <Button title="Grind 30 days (only opening the app)" variant="secondary" onPress={() => grind(30, false)} />
         <Button title="Disappear for 5 days" variant="secondary" onPress={() => setOffset(offset + 5)} />
         <Button title="Disappear for 14 days" variant="secondary" onPress={() => setOffset(offset + 14)} />
-        <Button title="Back to real today" variant="ghost" onPress={() => setOffset(0)} />
+        <Button title="Back to real today (restores real progress)" variant="ghost" onPress={backToReal} />
       </View>
       <T variant="caption" style={{ marginTop: space.sm }}>
         After skipping days, open the Today tab: shields, grace and decay apply on the next check-in.

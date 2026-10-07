@@ -3,7 +3,8 @@ import { AppState } from 'react-native';
 import { rankOf } from '../core/rank';
 import { LINES, RANK_CONFIG } from '../content';
 import { backupProgress, readBackup } from '../services/backup';
-import { today } from '../services/clock';
+import { nextMidnight } from '../core/time';
+import { now } from '../services/clock';
 import { rescheduleReminders, scheduleDropAlerts } from '../services/notifications';
 import { fetchPerksFeed } from '../services/perksFeed';
 import { initPurchases, purchaseMode, refreshPremium, setAcquisitionSource } from '../services/purchases';
@@ -38,11 +39,24 @@ export function useBootstrap() {
       .catch(() => {});
     setAcquisitionSource(s.settings.source);
 
+    useApp.getState().refreshDay();
     useApp.getState().reconcileNow();
     syncDrops();
 
+    // Roll the day over at midnight even if the app stays open.
+    let midnight: ReturnType<typeof setTimeout>;
+    const armMidnight = () => {
+      midnight = setTimeout(() => {
+        useApp.getState().refreshDay();
+        useApp.getState().reconcileNow();
+        armMidnight();
+      }, Math.max(1000, nextMidnight(now()).getTime() - now().getTime() + 500));
+    };
+    armMidnight();
+
     const sub = AppState.addEventListener('change', st => {
       if (st === 'active') {
+        useApp.getState().refreshDay();
         useApp.getState().reconcileNow();
         refreshPremium()
           .then(active => {
@@ -51,7 +65,10 @@ export function useBootstrap() {
           .catch(() => {});
       }
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      clearTimeout(midnight);
+    };
   }, [hydrated]);
 }
 
@@ -66,6 +83,7 @@ export function useSideEffects() {
   const settings = useApp(s => s.settings);
   const custom = useApp(s => s.customLines);
   const progress = useApp(s => s.progress);
+  const day = useApp(s => s.currentDay);
   const ent = useEntitlements();
 
   const rankName = rankOf(RANK_CONFIG, progress.rankXP).name;
@@ -81,13 +99,13 @@ export function useSideEffects() {
       lockScreenClean: settings.lockScreenClean,
       custom: customLines,
       salt: progress.installSalt,
-      today: today(),
+      today: day,
       streak: progress.streak,
       rankName,
       theme: ent.theme,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, settings.onboarded, lanesKey, settings.tone, settings.lockScreenClean, customLines, progress.streak, rankName, ent.theme.id, progress.installSalt]);
+  }, [hydrated, settings.onboarded, lanesKey, settings.tone, settings.lockScreenClean, customLines, progress.streak, rankName, ent.theme.id, progress.installSalt, day]);
 
   useEffect(() => {
     if (!hydrated || !settings.onboarded) return;

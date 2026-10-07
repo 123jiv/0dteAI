@@ -8,7 +8,8 @@
 //   - Limit to one use per customer: ON
 //   - Limit total uses: e.g. 100 per month (your monthly kill switch)
 //   - Combinations: all OFF
-//   - Active dates: the month shown (ends 11:59 PM on the last day)
+//   - Active dates: from the 1st of the month shown until the end date shown
+//     (14 days into the next month, so a code claimed on the 31st still has 2 weeks)
 //   - Exclude new drops / collabs / numbered pieces by limiting to the
 //     collections the code may apply to.
 //
@@ -48,14 +49,16 @@ function shortCode(input, length = 6) {
 }
 
 const percents = [10]; // v1 ships only the 10% tier; 15/20 need Rank Sync (v2)
+const expiresDays = JSON.parse(fs.readFileSync(path.join(here, '..', 'src', 'content', 'rank.json'), 'utf8')).claims.expiresDays;
 const start = new Date();
-console.log('Month     Code                 Ends');
+console.log('Month     Code                 Active until');
 for (let m = 0; m < 12; m++) {
   const d = new Date(start.getFullYear(), start.getMonth() + m, 1);
   const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  const end = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const until = new Date(d.getFullYear(), d.getMonth() + 1, expiresDays);
+  const untilKey = `${until.getFullYear()}-${String(until.getMonth() + 1).padStart(2, '0')}-${String(until.getDate()).padStart(2, '0')}`;
   for (const p of percents) {
     const code = `UNSETLD${p}-${shortCode(`${salt}|${month}|${p}`, 6)}`;
-    console.log(`${month}   ${code.padEnd(20)} ${month}-${end}`);
+    console.log(`${month}   ${code.padEnd(20)} ${untilKey}`);
   }
 }
