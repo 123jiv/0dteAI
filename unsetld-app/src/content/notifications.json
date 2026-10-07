@@ -1,0 +1,86 @@
+[
+  {
+    "id": "n-001",
+    "text": "Today's line just dropped. Read it before the group chat.",
+    "tone": "clean",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-002",
+    "text": "Your streak's still alive. Keep it breathing tonight.",
+    "tone": "clean",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-003",
+    "text": "Quick check: did you do the hard thing yet?",
+    "tone": "clean",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-004",
+    "text": "Today's mission is tiny. Knock it out before bed.",
+    "tone": "clean",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-005",
+    "text": "You said you'd train today. Still the plan?",
+    "tone": "clean",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-006",
+    "text": "Two-minute money check: what did you spend yesterday?",
+    "tone": "clean",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-007",
+    "text": "Up yet? New line's waiting. The bullshit can wait.",
+    "tone": "unfiltered",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-008",
+    "text": "Streak dies at midnight. Don't be your couch's bitch.",
+    "tone": "unfiltered",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-009",
+    "text": "Payday? Move some to savings before you spend a damn cent.",
+    "tone": "unfiltered",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-010",
+    "text": "Close the feed. Open the work. Quit fucking around.",
+    "tone": "unfiltered",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-011",
+    "text": "Excuses are loud today. Tell them to shut the hell up.",
+    "tone": "unfiltered",
+    "kind": "reminder",
+    "status": "draft"
+  },
+  {
+    "id": "n-012",
+    "text": "Mission's still open. Stop dodging it and knock that shit out.",
+    "tone": "unfiltered",
+    "kind": "reminder",
+    "status": "draft"
+  }
+]

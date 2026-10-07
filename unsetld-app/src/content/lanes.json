@@ -1,0 +1,9 @@
+[
+  { "id": "show-up", "name": "Show Up", "category": "Discipline", "blurb": "Do what you said you'd do." },
+  { "id": "bag-talk", "name": "Bag Talk", "category": "Money", "blurb": "Stack it on boring days." },
+  { "id": "gym-rat", "name": "Gym Rat", "category": "Gym", "blurb": "Get your ass in there." },
+  { "id": "lock-in", "name": "Lock In", "category": "Focus", "blurb": "Phone down. One thing." },
+  { "id": "back-yourself", "name": "Back Yourself", "category": "Confidence", "blurb": "Say it with your chest." },
+  { "id": "cut-it-off", "name": "Cut It Off", "category": "Quitting bad habits", "blurb": "The loop ends today." },
+  { "id": "stoic", "name": "The Stoics", "category": "Stoic quotes", "blurb": "2,000-year-old discipline." }
+]

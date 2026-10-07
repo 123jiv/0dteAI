@@ -1,0 +1,70 @@
+{
+  "welcome": {
+    "title": "Never settle for less.",
+    "body": "A new line every day for the moments you'd rather stay comfortable."
+  },
+  "goals": {
+    "title": "What are you working on?",
+    "body": "Pick your lanes. Switch anytime."
+  },
+  "struggles": {
+    "title": "What's hitting hardest right now?",
+    "body": "Be honest. It shapes your daily missions.",
+    "options": [
+      { "id": "consistency", "label": "Can't stay consistent" },
+      { "id": "phone", "label": "Phone and scrolling" },
+      { "id": "money", "label": "Money stress" },
+      { "id": "gym", "label": "Skipping the gym" },
+      { "id": "confidence", "label": "Low confidence" },
+      { "id": "procrastination", "label": "Putting things off" },
+      { "id": "habits", "label": "A habit I need to cut" },
+      { "id": "motivation", "label": "Motivation comes and goes" },
+      { "id": "sleep", "label": "Sleep schedule is cooked" }
+    ]
+  },
+  "tone": {
+    "title": "How do you want it?",
+    "clean": { "label": "Clean", "body": "Straight talk, zero swearing." },
+    "unfiltered": { "label": "Unfiltered", "body": "Same energy, curse words included." },
+    "lockScreen": "Keep my lock screen and reminders clean",
+    "lockScreenBody": "People see your lock screen. We'll only put clean lines there."
+  },
+  "reminders": {
+    "title": "When should we check on you?",
+    "body": "Nudges, not spam."
+  },
+  "theme": {
+    "title": "Pick your look.",
+    "body": "Your feed and widgets follow it."
+  },
+  "source": {
+    "title": "How did you find us?",
+    "options": [
+      { "id": "tiktok-unsetldclo", "label": "TikTok · @unsetldclo" },
+      { "id": "tiktok-unsetld", "label": "TikTok · @unsetld" },
+      { "id": "instagram-unsetld", "label": "Instagram · @unsetld" },
+      { "id": "clothing", "label": "UNSETLD clothing / hang tag" },
+      { "id": "friend", "label": "A friend" },
+      { "id": "app-store", "label": "App Store search" },
+      { "id": "other", "label": "Other" }
+    ]
+  },
+  "notifications": {
+    "title": "Let us check on you.",
+    "body": "Your lines, inside the window you picked. Turn them off anytime."
+  },
+  "rank": {
+    "title": "Everyone starts SETTLED.",
+    "body": "Show up, knock out missions, earn XP, rank up. Higher ranks unlock the occasional UNSETLD perk. You can't buy rank. Not even with Premium."
+  },
+  "nonNegotiables": [
+    "Train",
+    "Finish the assignment",
+    "Phone in another room for an hour",
+    "Save $20",
+    "Bed by 11",
+    "Read 10 pages",
+    "Apply to one job",
+    "Cook instead of ordering"
+  ]
+}

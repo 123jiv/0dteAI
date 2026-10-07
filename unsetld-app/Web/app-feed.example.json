@@ -1,0 +1,11 @@
+{
+  "note": "Host this at https://www.unsetld.com/app-feed.json (e.g. public/app-feed.json in the Next.js site). The app reads it on launch. Users who turned on Drop alerts get a notification at each drop's date.",
+  "drops": [
+    {
+      "id": "winter-26",
+      "name": "Winter '26",
+      "date": "2026-11-20T17:00:00-05:00",
+      "earlyAccessHours": 24
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "ranks": [
+    {
+      "id": "settled",
+      "name": "SETTLED",
+      "xp": 0,
+      "approx": "Day 0",
+      "perks": ["Everyone starts here. The whole app is about getting out of it."],
+      "discountPercent": 0,
+      "cooldownDays": 0,
+      "needsRankSync": false
+    },
+    {
+      "id": "hungry",
+      "name": "HUNGRY",
+      "xp": 300,
+      "approx": "~1 week",
+      "perks": ["Rank badge on your profile and share cards", "Drop alerts (opt-in)", "Vote in drop polls"],
+      "discountPercent": 0,
+      "cooldownDays": 0,
+      "needsRankSync": false
+    },
+    {
+      "id": "dialed-in",
+      "name": "DIALED IN",
+      "xp": 1300,
+      "approx": "~1 month",
+      "perks": ["10% off at unsetld.com, one code every 90 days"],
+      "discountPercent": 10,
+      "cooldownDays": 90,
+      "needsRankSync": false
+    },
+    {
+      "id": "relentless",
+      "name": "RELENTLESS",
+      "xp": 3500,
+      "approx": "~2.5 months",
+      "perks": ["15% off, one code every 60 days", "24-hour early access to drops"],
+      "discountPercent": 15,
+      "cooldownDays": 60,
+      "needsRankSync": true
+    },
+    {
+      "id": "unsetld",
+      "name": "UNSETLD",
+      "xp": 8000,
+      "approx": "~6 months",
+      "perks": [
+        "20% off (max $25), one code every 60 days",
+        "48-hour early access to drops",
+        "App-only colorways",
+        "First pick of numbered pieces",
+        "A physical rank patch in your next order"
+      ],
+      "discountPercent": 20,
+      "cooldownDays": 60,
+      "needsRankSync": true
+    }
+  ],
+  "xp": {
+    "line": 10,
+    "nonNegotiable": 10,
+    "mission": 15,
+    "fullWeek": 30,
+    "customLine": 10,
+    "milestones": { "7": 50, "30": 150, "60": 250, "100": 400, "180": 600, "365": 1000 }
+  },
+  "shieldsPerMonth": 2,
+  "graceDays": 2,
+  "decayPerDay": 0.02,
+  "rankDropFloorDays": 30,
+  "comebackCooldownDays": 60,
+  "claims": {
+    "minStreak": 7,
+    "maxPerYear": 6,
+    "maxDollarsPerOrder": 25,
+    "minOrder": 60,
+    "expiresDays": 14
+  }
+}

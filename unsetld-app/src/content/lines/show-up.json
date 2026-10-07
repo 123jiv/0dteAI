@@ -1,0 +1,130 @@
+[
+  {
+    "id": "show-up-001",
+    "lane": "show-up",
+    "text": "Pick one non-negotiable today. Then don't negotiate.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-002",
+    "lane": "show-up",
+    "text": "You've made enough plans. Go do one of them.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-003",
+    "lane": "show-up",
+    "text": "Lay out tomorrow tonight: clothes, bag, first task. Less to argue with.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-004",
+    "lane": "show-up",
+    "text": "Settling is a habit too. Break that one first.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-005",
+    "lane": "show-up",
+    "text": "You'll feel ready around rep three. Start at rep one.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-006",
+    "lane": "show-up",
+    "text": "Stop being the snooze button's bitch. Get up.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-007",
+    "lane": "show-up",
+    "text": "Your mood is not a schedule. Do the shit anyway.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-008",
+    "lane": "show-up",
+    "text": "Half-assing it is just settling with better excuses.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-009",
+    "lane": "show-up",
+    "text": "You'd show up for your boys. Show the hell up for yourself.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-010",
+    "lane": "show-up",
+    "text": "Fuck waiting for Monday. 4:13pm on a Thursday works fine.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "show-up-011",
+    "lane": "show-up",
+    "text": "Do it tired.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "tiktok-slideshow"
+  },
+  {
+    "id": "show-up-012",
+    "lane": "show-up",
+    "text": "Quiet work. Loud results.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "tiktok-slideshow"
+  },
+  {
+    "id": "show-up-013",
+    "lane": "show-up",
+    "text": "Comfort is the enemy of who I want to be.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "tiktok-slideshow"
+  },
+  {
+    "id": "show-up-014",
+    "lane": "show-up",
+    "text": "I don't negotiate with my excuses.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "tiktok-slideshow"
+  },
+  {
+    "id": "show-up-015",
+    "lane": "show-up",
+    "text": "Do it before you feel like it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "tiktok-slideshow"
+  },
+  {
+    "id": "show-up-016",
+    "lane": "show-up",
+    "text": "Halfway isn't done.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "tiktok-slideshow"
+  }
+]

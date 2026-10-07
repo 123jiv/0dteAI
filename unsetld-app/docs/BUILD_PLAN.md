@@ -1,6 +1,6 @@
 # UNSETLD app: build plan
 
-**Status:** proposal, waiting for your go-ahead. No app code has been written yet.
+**Status:** v1 built (2026-10-07). All phases below are in the code, plus a browser preview. See the README to run it.
 **Updated:** 2026-10-07. Current platforms: iOS 27.0.1, Xcode 27, Expo SDK 57, RevenueCat iOS 5.93.
 
 **What it is:** a real discipline app for guys 18–30, not a store. A new line every day on the lock screen and home screen, a swipe feed, reminders and streaks, all in a raw Gen Z voice: *never settle for less, never stop working.* Showing up earns XP, and XP moves you up ranks. The top ranks unlock capped UNSETLD perks: early access, app-only pieces, and occasional discount codes. The brand stays in the background.
@@ -14,31 +14,24 @@ Related docs:
 
 ---
 
-## 1. Expo vs. native SwiftUI
+## 1. Platform: Expo SDK 57 (decided at build time)
 
-**Recommendation: native SwiftUI + WidgetKit.** Your git history shows commits from a MacBook Air, so you can build natively. It needs a Mac that runs Xcode 26 or newer, which is Apple's current upload requirement. If that Mac can't, the fallback is Expo SDK 57 + EAS cloud builds.
+The plan first recommended native SwiftUI. When you asked to see and test the whole app right away, I switched to **Expo SDK 57**. It's the same product, with these advantages:
 
-Every iOS widget, lock screen ones included, is drawn by SwiftUI/WidgetKit. Expo doesn't remove that layer; it changes who writes it:
+- **I could run it.** This cloud container can't build SwiftUI. With Expo I ran the app in a browser here, clicked through every screen, and fixed what broke before handing it over.
+- **You can see it now.** A one-file browser preview works on any phone or computer. Expo Go on your iPhone runs the app with no Xcode.
+- **Real iOS widgets are still in.** The official `expo-widgets` (stable since SDK 56) builds the Lock Screen widgets (rectangular, inline, circular) and the Home Screen widgets (small, medium) in a development build.
+- **No Mac needed.** EAS cloud builds produce dev builds and App Store builds.
 
-| | **Native SwiftUI** | **Expo SDK 57** |
-|---|---|---|
-| Widget code | Swift, sharing models and logic with the app through one Swift package | Official `expo-widgets` (stable since SDK 56): JSX widgets built from `@expo/ui` components, run in an isolated JS runtime with no imports or shared code, data passed as props. Or `@bacons/apple-targets` with a hand-written Swift widget |
-| Today's line when the app hasn't been opened in weeks | Widget computes it from shared content + settings, so it never runs dry | App pre-writes future timeline entries, which can run out |
-| Lock screen vibrant mode, iOS 26/27 tinted and clear (Liquid Glass) Home Screens | Every WidgetKit API | What `@expo/ui` exposes |
-| Rank system needs (Keychain, iCloud sync, App Attest, trusted time) | First-class | Native modules or extra libraries |
-| RevenueCat | `purchases-ios` 5.93 + RevenueCatUI | `react-native-purchases` 10.11 (about one version behind) |
-| Build without a Mac | No | Yes: EAS Build + EAS Submit to TestFlight from any OS |
-| Android later | UI rewrite | Most of the app ports, and `expo-widgets` gains Android in SDK 58 |
+Trade-offs, and how the app handles them:
 
-**Why native wins here:** the widget *is* the product, and the rank system adds device-level work: Keychain, iCloud, App Attest, tamper-resistant day tracking. Both are best done in Swift, with one tested `UnsetldCore` package shared by the app and the widget. Onboarding, the feed, the paywall and the rank screens are straightforward in SwiftUI.
+| Trade-off | Handling |
+|---|---|
+| Widget code can't share app code (isolated JS runtime) | The app writes **30 days** of timeline entries, one per midnight, each time it opens or settings change, so the widget keeps rotating for a month without the app |
+| Fewer low-level WidgetKit knobs | The widgets use what `@expo/ui` exposes: rendering-mode detection for tinted/clear Home Screens, `containerBackground`, `widgetURL` |
+| iCloud key-value sync and App Attest aren't built in | v1 backs up rank to the iOS Keychain (`expo-secure-store`). App Attest arrives with Rank Sync (v2) |
 
-PEACEINWAR's app is built with Expo, but it's a shopping app with no widgets. That's where Expo is strongest.
-
-**How we'll work:**
-- I write the code; you build and run it on your Mac. This cloud container is Linux, so I can't run the iOS Simulator.
-- The Xcode project is generated from a readable `project.yml` (XcodeGen). You run `xcodegen` and open the project, and nobody hand-edits a `.pbxproj`.
-- All the logic lives in `UnsetldCore`, a plain Swift package with unit tests (⌘U): daily picks, streaks, XP and ranks, decay, reminder planning, entitlements.
-- Content JSON and scripts are validated here before you see them.
+**Navigation note:** the app uses React Navigation directly rather than Expo Router. In the browser preview, navigation never changes the page URL, so the one-file preview works from any link or file.
 
 ---
 
@@ -48,12 +41,12 @@ I stop after every phase so you can test.
 
 | # | Phase | What gets built | You test |
 |---|---|---|---|
-| 0 | **Skeleton** | XcodeGen project with app + widget extension and an App Group. `AppConfig`: one source for the name, bundle IDs, App Group, RevenueCat key, URLs and TikTok handles; the display name comes from a single xcconfig value. `UnsetldCore` package. Brand design tokens. ~40 placeholder lines in the real JSON format. Content validation script | Runs on Simulator + iPhone. Widget appears in the gallery |
+| 0 | **Skeleton** | Expo project with the widget extension (`expo-widgets`) and an App Group. `AppConfig` (`src/config/app.ts`): one source for the name, bundle IDs, App Group, RevenueCat key, URLs and TikTok handles. Pure logic in `src/core` with unit tests. Brand design tokens. ~40 placeholder lines in the real JSON format. Content validation script | Runs in the browser preview, Expo Go and a dev build. Widget appears in the gallery |
 | 1 | **Content engine + widgets** | JSON loading, category filter and tone filter (Clean / Unfiltered). Daily pick: seeded, no repeats until the pool is exhausted, rolls over at local midnight. Widgets: lock screen inline + rectangular + circular (streak or rank), home screen small + medium. Timeline with an entry per midnight; reload on settings change. **Widgets show only the line, streak and rank, never promos** | Add every size. Switch categories and tone. Change the date. Try tinted and clear Home Screens |
 | 2 | **Onboarding + widget guide** | Goals → struggles → tone (Clean / Unfiltered) + "keep my lock screen clean" → reminders per day + time window → theme → "How did you find us?" (each TikTok account, "UNSETLD clothing / hang tag", Other) → reminder permission → animated step-by-step widget setup guide (lock screen + home screen). Ends: *"Everyone starts SETTLED."* | Fresh install end to end. VoiceOver. Largest Dynamic Type |
 | 3 | **Feed, favorites, share, streak** | Full-screen vertical paging feed with today's line first. Tap to favorite; favorites list. Share as a 1080×1920 story image with a small UNSETLD mark and rank badge. Streak = consecutive local days today's line was opened | Swipe, favorite, share to IG/TikTok/Photos, streak across days |
 | 4 | **Reminders** | N lines per day at random times inside the window. iOS holds at most 64 pending local notifications, so a rolling schedule is refilled on app open, settings change and background refresh. Tapping a reminder opens that line. The lock-screen-clean setting is honored | 5/day in a short window. Change the window. Leave the app closed for 2 days |
-| 5 | **Premium** | RevenueCat, paywall after onboarding (spec below), restore, entitlement gating, custom affirmations feeding the widget and feed. Settings: subscription, restore, terms, privacy, tone, reminders, theme, categories. Local `.storekit` file for testing | Buy each plan in the sandbox, restore on a 2nd install, cancel and watch the gating return |
+| 5 | **Premium** | RevenueCat, paywall after onboarding (spec below), restore, entitlement gating, custom affirmations feeding the widget and feed. Settings: subscription, restore, terms, privacy, tone, reminders, theme, categories. Preview mode for testing before App Store Connect is set up | Buy each plan in the sandbox, restore on a 2nd install, cancel and watch the gating return |
 | 6 | **Rank (v1)** | Rank tab with all five ranks visible from day 1 (SETTLED → HUNGRY → DIALED IN → RELENTLESS → UNSETLD). XP from the daily line, today's non-negotiable, the daily mission, streak milestones and full weeks; capped per day. Streak shields + rank decay + comeback. Rank-up screens that celebrate the person, with the perk mentioned second. One "Perks" card: early-access link + the 10% code at DIALED IN, with all caps. Drop alerts behind their own opt-in. Tamper resistance (trusted time from unsetld.com, Keychain + iCloud). Rewards terms page. Details: [REWARDS.md](REWARDS.md) | Earn XP over several days. Try changing the phone clock. Reinstall. Claim a code and check out on unsetld.com |
 | 7 | **Content** | 600 original lines: ~100 per lane, each written in a clean and an unfiltered version per the approved voice, under 15 words, all `"status": "draft"`. Plus 60+ notification lines, 30+ missions, and the Stoic set (Marcus Aurelius, George Long, Gutenberg #15877; Seneca, see §5), with a script that checks every quote word for word. An HTML review sheet lets you approve or reject lines fast. Lines from the TikTok slideshows are in the app | Review sheet; I revise what you flag |
 | 8 | **Themes + polish** | 8–12 themes: default **UNSETLD** (brand colors below), plus premium Obsidian Gold, Onyx Silver, Black Marble, Carbon, Gunmetal, Espresso, Midnight, Noir Grain, Graphite. Grain and marble textures generated by a script. App icon from your figure mark. Haptics, Reduce Motion, VoiceOver, contrast audit. Privacy policy + terms pages | Look and feel, accessibility |
@@ -135,47 +128,31 @@ Lock screen widgets are always monochrome (iOS vibrant mode), so they rely on ty
 
 ---
 
-## 6. Folder structure
+## 6. Folder structure (as built)
 
 ```
 unsetld-app/
-├── project.yml                     # XcodeGen spec → UNSETLD.xcodeproj (generated, git-ignored)
-├── Config/
-│   ├── Base.xcconfig               # APP_DISPLAY_NAME = UNSETLD, bundle IDs, App Group, team ID
-│   ├── Debug.xcconfig  Release.xcconfig
-│   ├── Secrets.xcconfig.example    # RevenueCat public SDK key (real file git-ignored)
-│   └── UNSETLD.storekit            # local StoreKit test products
-├── Packages/UnsetldCore/           # shared by app + widget; no UI imports; unit-tested
-│   ├── Sources/UnsetldCore/
-│   │   ├── AppConfig.swift         # the one config constant
-│   │   ├── Models/                 # Line, Lane, Tone, Theme, UserSettings, Entitlement
-│   │   ├── Content/                # ContentLoader, DailyLinePicker, SeededShuffle
-│   │   ├── Storage/                # SharedStore (App Group), SecureStore (Keychain), CloudBackup (iCloud)
-│   │   ├── Streak/                 # StreakTracker, Shields
-│   │   ├── Rank/                   # XPLedger, RankEngine, Decay, TrustedClock, PerkCatalog
-│   │   └── Reminders/              # ReminderPlanner
-│   └── Tests/UnsetldCoreTests/
-├── App/
-│   ├── Features/  Onboarding/ WidgetGuide/ Paywall/ Feed/ Favorites/ CustomLines/
-│   │              Rank/ Missions/ Settings/ Share/
-│   ├── Services/  Purchases (RevenueCat), Notifications, WidgetRefresher, PerksFeed
-│   ├── DesignSystem/  Resources/ (Fonts: Cormorant Garamond, Inter)  Info.plist  App.entitlements
-├── Widget/  WidgetBundle.swift  DailyLineProvider.swift  Views/  Info.plist  Widget.entitlements
-├── Content/                        # ← edit freely; no code changes
-│   ├── lanes.json  themes.json  onboarding.json  rank.json  missions.json
-│   ├── lines/show-up.json bag-talk.json gym-rat.json lock-in.json back-yourself.json cut-it-off.json
-│   ├── notifications.json  stoic.json
-│   └── schema/*.schema.json
-├── Scripts/  validate_content.py  verify_stoic.py  review_sheet.py  gen_textures.py  shopify_codes.py
-├── Web/                            # drop-ins for unsetld.com: /app page, perks feed, early-access check, (v2) API
-├── Legal/    privacy.md  terms.md  rewards-terms.md
-├── marketing/  tiktok-slideshows.md  app-store-copy.md  screenshots.md
-└── docs/     BUILD_PLAN.md  REWARDS.md  VOICE_SAMPLE.md  COMPLIANCE.md  NAME_AND_TRADEMARK.md  research/
+├── app.json                 # name, bundle ID com.unsetld.app, widgets + plugins config
+├── eas.json                 # EAS cloud build profiles (development / preview / production)
+├── index.ts                 # entry
+├── src/
+│   ├── App.tsx              # fonts, providers, deep links, navigation container
+│   ├── config/app.ts        # AppConfig: the one config constant (name, IDs, URLs, limits, TikTok handles)
+│   ├── core/                # pure logic, unit-tested: lines, rank (streak/XP/decay/claims), reminders, pricing, codes, time, random
+│   ├── content/             # ← edit freely: lines/*.json, stoic, missions, notifications, onboarding, rank, themes, lanes, legal
+│   ├── state/               # zustand store (persisted), lifecycle (sync widgets/reminders/backup), storage
+│   ├── services/            # purchases (RevenueCat + preview), notifications, widgets(.ios), trusted time, share, backup, haptics, clock, perks feed
+│   ├── navigation/          # React Navigation: stack + Today/Rank/Me tabs
+│   ├── screens/             # onboarding, paywall, widget guide, Today, Rank, Me, settings, favorites, custom lines, legal, tester tools
+│   └── ui/                  # theme tokens, components, icons, rank emblems, overlays, phone frame
+├── widgets/                 # expo-widgets: UnsetldHome (small/medium), UnsetldLock (rectangular/inline/circular)
+├── assets/                  # icon + splash from the brand figure, textures (generated)
+├── scripts/                 # validate-content, shopify-codes, build-preview, gen_textures.py
+├── Web/                     # drop-ins for unsetld.com (app-feed.example.json)
+├── docs/  marketing/
 ```
 
----
-
-## 7. Questions before Phase 0
+## 7. Open questions (defaults used for the build)
 
 Each has a default, so "defaults are fine" is a valid answer.
 

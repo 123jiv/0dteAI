@@ -1,0 +1,802 @@
+[
+  {
+    "id": "back-yourself-001",
+    "lane": "back-yourself",
+    "text": "Take the compliment. Just say thanks. No \"nah, it was luck.\"",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-002",
+    "lane": "back-yourself",
+    "text": "Being cringe for a week beats being stuck for a year.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-003",
+    "lane": "back-yourself",
+    "text": "A \"no\" means you actually asked. Keep collecting them.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-004",
+    "lane": "back-yourself",
+    "text": "Say it with your chest. Then go back it up.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-005",
+    "lane": "back-yourself",
+    "text": "Cut \"this might be dumb, but.\" Lead with the idea.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-006",
+    "lane": "back-yourself",
+    "text": "Your first try will be rough as hell. That's the entry fee.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-007",
+    "lane": "back-yourself",
+    "text": "You don't need anyone's blessing to get good at shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-008",
+    "lane": "back-yourself",
+    "text": "Your inner critic talks big for someone who's never done a damn thing.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-009",
+    "lane": "back-yourself",
+    "text": "Rewrote the email nine times? It's fine. Fuck it, send it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-010",
+    "lane": "back-yourself",
+    "text": "Quit roasting your own ass before anyone else can. You hear every joke.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "back-yourself-011",
+    "lane": "back-yourself",
+    "text": "Go to office hours. Your professor is paid to talk to you.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-012",
+    "lane": "back-yourself",
+    "text": "Sit with the new guy at lunch. You remember being him.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-013",
+    "lane": "back-yourself",
+    "text": "Order the thing you actually want, even if you can't pronounce it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-014",
+    "lane": "back-yourself",
+    "text": "Wrong order? Say so politely. That's not being difficult.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-015",
+    "lane": "back-yourself",
+    "text": "Tell the barber exactly what you want. Bring the picture.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-016",
+    "lane": "back-yourself",
+    "text": "Text first. Nobody's keeping score except you.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-017",
+    "lane": "back-yourself",
+    "text": "Introduce your friends to each other. Being the connector takes nerve.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-018",
+    "lane": "back-yourself",
+    "text": "Say your name like you've said it before. You have.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-019",
+    "lane": "back-yourself",
+    "text": "Practice your interview answers out loud. The car counts.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-020",
+    "lane": "back-yourself",
+    "text": "Look people in the eye when you thank them.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-021",
+    "lane": "back-yourself",
+    "text": "Two years of nodding at the neighbor. Go say hi.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-022",
+    "lane": "back-yourself",
+    "text": "Compliment a stranger's jacket out loud. Then keep walking.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-023",
+    "lane": "back-yourself",
+    "text": "Tell your boy you're proud of him. Out loud, not in a meme.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-024",
+    "lane": "back-yourself",
+    "text": "Front row once this week. Back row is just hiding.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-025",
+    "lane": "back-yourself",
+    "text": "Go to the event alone. Talk to one person. Leave whenever.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-026",
+    "lane": "back-yourself",
+    "text": "Stand by your choice for a full week before second-guessing it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-027",
+    "lane": "back-yourself",
+    "text": "Tell your friends your real budget. Nobody needs you broke after brunch.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-028",
+    "lane": "back-yourself",
+    "text": "Disagree in the meeting, not in the group chat after.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-029",
+    "lane": "back-yourself",
+    "text": "Know four chords? Play them at the party. That's a set.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-030",
+    "lane": "back-yourself",
+    "text": "Join the pickup game. Worst case, you get a workout.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-031",
+    "lane": "back-yourself",
+    "text": "Meet their parents with a handshake and an actual question.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-032",
+    "lane": "back-yourself",
+    "text": "Wear the fit you've been saving. Tuesday is occasion enough.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-033",
+    "lane": "back-yourself",
+    "text": "Back your idea in the room before someone else says it louder.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-034",
+    "lane": "back-yourself",
+    "text": "Ask someone at the gym for a spot. People like being asked.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-035",
+    "lane": "back-yourself",
+    "text": "Awkward silence lasts about four seconds. You can survive four seconds.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-036",
+    "lane": "back-yourself",
+    "text": "Finals week: join the study group even if you only know one person.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-037",
+    "lane": "back-yourself",
+    "text": "Invite the coworker to lunch. It's a sandwich, not a proposal.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-038",
+    "lane": "back-yourself",
+    "text": "Volunteer to present. Shaky hands still click the slides.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-039",
+    "lane": "back-yourself",
+    "text": "Ask a stranger for directions instead of wandering for twenty minutes.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-040",
+    "lane": "back-yourself",
+    "text": "Ask them out with a day and a place. Vague gets vague.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-041",
+    "lane": "back-yourself",
+    "text": "Left on read? Their silence isn't a review of you.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-042",
+    "lane": "back-yourself",
+    "text": "They said no. Say \"all good,\" mean it, keep your head up.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-043",
+    "lane": "back-yourself",
+    "text": "Speak loud enough to be heard the first time. Saves everyone a \"what?\"",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-044",
+    "lane": "back-yourself",
+    "text": "Not invited this time? Host the next one yourself.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-045",
+    "lane": "back-yourself",
+    "text": "Missing two bullet points on the job post? Apply anyway.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-046",
+    "lane": "back-yourself",
+    "text": "Someone says your name wrong? Correct them. Once, kindly, clearly.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-047",
+    "lane": "back-yourself",
+    "text": "Send the cold DM to someone doing what you want to do.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-048",
+    "lane": "back-yourself",
+    "text": "Sing the karaoke song you actually like. Off-key is allowed.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-049",
+    "lane": "back-yourself",
+    "text": "Speak first in the icebreaker. Everyone after you will be grateful.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-050",
+    "lane": "back-yourself",
+    "text": "Ask the follow-up question. It proves you were listening.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-051",
+    "lane": "back-yourself",
+    "text": "Make the toast at dinner. Short, honest, done.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-052",
+    "lane": "back-yourself",
+    "text": "Ask a question at the career fair instead of just grabbing pens.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-053",
+    "lane": "back-yourself",
+    "text": "Book the solo trip. You're decent company.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-054",
+    "lane": "back-yourself",
+    "text": "Your laugh, your accent, your height: factory settings. Own them.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-055",
+    "lane": "back-yourself",
+    "text": "Small talk with the cashier is a free practice rep. Take it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-056",
+    "lane": "back-yourself",
+    "text": "You've rehearsed it forty times in the shower. Have the damn conversation.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-057",
+    "lane": "back-yourself",
+    "text": "Squat rack looks intimidating? Walk your ass over. It's just metal.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-058",
+    "lane": "back-yourself",
+    "text": "Make the phone call. The receptionist has heard way weirder shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-059",
+    "lane": "back-yourself",
+    "text": "Deleting posts that only got eleven likes? Hell no. Leave them up.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-060",
+    "lane": "back-yourself",
+    "text": "Someone talks over you mid-sentence? Finish your damn sentence.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-061",
+    "lane": "back-yourself",
+    "text": "Not every decision needs a group chat poll. Decide your own shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-062",
+    "lane": "back-yourself",
+    "text": "Feel like a fraud at the new job? Normal as hell. Keep asking questions.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-063",
+    "lane": "back-yourself",
+    "text": "Rejection email stings like hell. Feel it, then send the next application.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-064",
+    "lane": "back-yourself",
+    "text": "Dancing badly at the wedding is a public service. Move your ass.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-065",
+    "lane": "back-yourself",
+    "text": "Say your rate, then stay quiet. Don't lower the damn number yourself.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-066",
+    "lane": "back-yourself",
+    "text": "Bombed the presentation? One shit day isn't a pattern. Book the next one.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-067",
+    "lane": "back-yourself",
+    "text": "You can love your family and still pick your own damn major.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-068",
+    "lane": "back-yourself",
+    "text": "Group project stalled? Fuck waiting. You're the leader now. Send the plan.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-069",
+    "lane": "back-yourself",
+    "text": "Want more minutes? Ask the coach what it takes. Then do that shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-070",
+    "lane": "back-yourself",
+    "text": "Stop adding \"lol\" to stuff you mean. Mean it with your whole ass.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-071",
+    "lane": "back-yourself",
+    "text": "You said sorry to a chair yesterday. Cut that shit out.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-072",
+    "lane": "back-yourself",
+    "text": "Still \"the shy one\" from tenth grade? That old-ass label expired.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-073",
+    "lane": "back-yourself",
+    "text": "Ask for help before the deadline. Pride is a shit project manager.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-074",
+    "lane": "back-yourself",
+    "text": "Got the offer? Hell yeah. Tell your people instead of downplaying it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-075",
+    "lane": "back-yourself",
+    "text": "One snide comment at work doesn't get to run your whole damn week.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-076",
+    "lane": "back-yourself",
+    "text": "Want the bigger project? Hinting isn't asking. Ask for the damn thing.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-077",
+    "lane": "back-yourself",
+    "text": "Friend about to make a bad call? Tell him. Hype-man shit isn't loyalty.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-078",
+    "lane": "back-yourself",
+    "text": "Can't make it? Just say that. The fake dentist appointment shit is exhausting.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-079",
+    "lane": "back-yourself",
+    "text": "Group chat piling on one guy? Say \"that's enough.\" Laughing along is easy shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-080",
+    "lane": "back-yourself",
+    "text": "Lent your roommate twenty bucks a month ago? Fuck the awkwardness. Ask.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-081",
+    "lane": "back-yourself",
+    "text": "Fuck the perfect opener. \"Hey, what's your name?\" has worked for centuries.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-082",
+    "lane": "back-yourself",
+    "text": "You say \"I could never\" about stuff you've never tried. Fucking try it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-083",
+    "lane": "back-yourself",
+    "text": "Payday? Buy stuff you'd want even if nobody saw it. Fuck the flex.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-084",
+    "lane": "back-yourself",
+    "text": "Open mic list? Write your name before your brain argues. Fuck it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-085",
+    "lane": "back-yourself",
+    "text": "Scared of looking like a tryhard? Fuck that. Trying hard is the point.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-086",
+    "lane": "back-yourself",
+    "text": "Asked your plans at Thanksgiving? Say the real goal. Fuck the safe answer.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-087",
+    "lane": "back-yourself",
+    "text": "Wrong in class? Saying \"I was wrong\" out loud is confident as hell.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-088",
+    "lane": "back-yourself",
+    "text": "Prepped like hell? Trust it once you're in the room.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-089",
+    "lane": "back-yourself",
+    "text": "Landlord ignoring the broken heater? Email again. And again. Hell, cc someone.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-090",
+    "lane": "back-yourself",
+    "text": "Hand went halfway up, then back down? Next time, all the damn way.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-091",
+    "lane": "back-yourself",
+    "text": "Your \"I'm fine with whatever\" is getting old. Pick the damn movie.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-092",
+    "lane": "back-yourself",
+    "text": "Hold your point past the first pushback. Folding instantly is a weak-ass habit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-093",
+    "lane": "back-yourself",
+    "text": "Someone took credit for your idea? Say so. It's your damn work.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-094",
+    "lane": "back-yourself",
+    "text": "Ten confidence videos, zero conversations. Fuck the videos. Go talk to someone.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-095",
+    "lane": "back-yourself",
+    "text": "Replaying the conversation at 2am? It probably went fine. Get your ass to sleep.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-096",
+    "lane": "back-yourself",
+    "text": "Been sitting in the parked car ten minutes? Fair. Haul your ass inside.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-097",
+    "lane": "back-yourself",
+    "text": "Waiting to get discovered? Nobody's scouting your bedroom. Drag your ass out there.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-098",
+    "lane": "back-yourself",
+    "text": "Got cut from the team? Train your ass off and try out again.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-099",
+    "lane": "back-yourself",
+    "text": "Youngest one in the meeting? Hell, that's a fresh angle. Use it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "back-yourself-100",
+    "lane": "back-yourself",
+    "text": "Ask for honest feedback, then don't argue with it. Hard as hell.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  }
+]

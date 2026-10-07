@@ -1,0 +1,87 @@
+[
+  {
+    "id": "m-001",
+    "text": "No phone for the first 30 minutes after you wake up",
+    "tags": [
+      "phone",
+      "focus"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-002",
+    "text": "Start one conversation you'd normally avoid",
+    "tags": [
+      "confidence"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-003",
+    "text": "Drink a full glass of water before anything else",
+    "tags": [
+      "consistency"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-004",
+    "text": "Move for 15 minutes: walk, lift, push-ups, anything counts",
+    "tags": [
+      "gym",
+      "consistency"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-005",
+    "text": "One 25-minute lock-in with your phone in another room",
+    "tags": [
+      "focus",
+      "phone"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-006",
+    "text": "Write down today's one must-do and finish it first",
+    "tags": [
+      "procrastination",
+      "focus"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-007",
+    "text": "Log every dollar you spent today",
+    "tags": [
+      "money"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-008",
+    "text": "Spend 15 minutes practicing a skill you'd want to get paid for",
+    "tags": [
+      "money",
+      "motivation"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-009",
+    "text": "Skip your go-to bad habit once today, on purpose",
+    "tags": [
+      "habits"
+    ],
+    "status": "draft"
+  },
+  {
+    "id": "m-010",
+    "text": "Do the one thing you've been putting off for a week",
+    "tags": [
+      "procrastination"
+    ],
+    "status": "draft"
+  }
+]

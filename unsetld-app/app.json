@@ -1,0 +1,81 @@
+{
+  "expo": {
+    "name": "UNSETLD",
+    "slug": "unsetld",
+    "scheme": "unsetld",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0a0a0a",
+    "ios": {
+      "bundleIdentifier": "com.unsetld.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.unsetld.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "UNSETLD",
+      "backgroundColor": "#0a0a0a",
+      "output": "single"
+    },
+    "plugins": [
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "com.unsetld.app.widgets",
+          "groupIdentifier": "group.com.unsetld.app",
+          "widgets": [
+            {
+              "name": "UnsetldHome",
+              "displayName": "Today's line",
+              "description": "A new line every day, with your streak and rank.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium"
+                ]
+              }
+            },
+            {
+              "name": "UnsetldLock",
+              "displayName": "Lock Screen line",
+              "description": "Today's line or your streak on the Lock Screen.",
+              "ios": {
+                "supportedFamilies": [
+                  "accessoryRectangular",
+                  "accessoryInline",
+                  "accessoryCircular"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "expo-notifications",
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#0a0a0a"
+        }
+      ]
+    ]
+  }
+}

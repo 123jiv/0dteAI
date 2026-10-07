@@ -1,0 +1,810 @@
+[
+  {
+    "id": "lock-in-001",
+    "lane": "lock-in",
+    "text": "Phone face down. Door shut. One hour, locked in.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-002",
+    "lane": "lock-in",
+    "text": "You can't build anything in 12-second pieces.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-003",
+    "lane": "lock-in",
+    "text": "Getting bored is part of the work. Stay in the chair.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-004",
+    "lane": "lock-in",
+    "text": "Do the hard task first. Everything else is a hiding spot.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-005",
+    "lane": "lock-in",
+    "text": "Make the first ugly version. Fixing is easier than starting.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-006",
+    "lane": "lock-in",
+    "text": "Your screen time report is a confession. Put the damn phone down.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-007",
+    "lane": "lock-in",
+    "text": "The algorithm is feasting on your hours. Fuck that. Take them back.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-008",
+    "lane": "lock-in",
+    "text": "Twelve tabs, three apps, zero progress. Close all that shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-009",
+    "lane": "lock-in",
+    "text": "Color-coding your to-do list for an hour? Hell nah. Do item one.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-010",
+    "lane": "lock-in",
+    "text": "The group chat will survive an hour without you. Lock the fuck in.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "lock-in-011",
+    "lane": "lock-in",
+    "text": "Phone down. Tomorrow starts tonight.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "tiktok-slideshow"
+  },
+  {
+    "id": "lock-in-012",
+    "lane": "lock-in",
+    "text": "Before you unlock your phone, name what you're unlocking it for.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-013",
+    "lane": "lock-in",
+    "text": "Phone in your bag, bag across the room. Make checking it a hike.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-014",
+    "lane": "lock-in",
+    "text": "Finals week: study the stuff you hope isn't on the test.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-015",
+    "lane": "lock-in",
+    "text": "\"One more video\" has never once meant one.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-016",
+    "lane": "lock-in",
+    "text": "Random thought mid-task? Dump it in the notes app. Back to work.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-017",
+    "lane": "lock-in",
+    "text": "Studying with a show on in the background is just watching a show.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-018",
+    "lane": "lock-in",
+    "text": "Headphones on doesn't count if you're skipping songs every two minutes.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-019",
+    "lane": "lock-in",
+    "text": "Read that page again. Your eyes moved, but nothing went in.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-020",
+    "lane": "lock-in",
+    "text": "Do Not Disturb isn't rude. It's how anything gets built.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-021",
+    "lane": "lock-in",
+    "text": "Studying with friends turned into hanging out with friends. Pick one.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-022",
+    "lane": "lock-in",
+    "text": "Downloading another study app is the most fun way to not study.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-023",
+    "lane": "lock-in",
+    "text": "Three hours of \"research\" and zero words written. Start writing.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-024",
+    "lane": "lock-in",
+    "text": "Sit in the front row. It's hard to scroll with the professor right there.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-025",
+    "lane": "lock-in",
+    "text": "Cramming the night before feels like studying. Spread it across the week.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-026",
+    "lane": "lock-in",
+    "text": "Finish your part of the group project first. Be the one nobody chases.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-027",
+    "lane": "lock-in",
+    "text": "Done for the night? Write down exactly where to pick up tomorrow.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-028",
+    "lane": "lock-in",
+    "text": "Every time you switch tasks, you pay a restart fee. Stop paying it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-029",
+    "lane": "lock-in",
+    "text": "Write your three tasks on paper. Paper doesn't send notifications.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-030",
+    "lane": "lock-in",
+    "text": "Take a walk without headphones. Let your brain finish a thought.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-031",
+    "lane": "lock-in",
+    "text": "Picked up your phone to set a timer. Still no timer.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-032",
+    "lane": "lock-in",
+    "text": "Set a screen time limit. Then stop tapping \"ignore for today.\"",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-033",
+    "lane": "lock-in",
+    "text": "Use a website blocker. Willpower is good. A lock is better.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-034",
+    "lane": "lock-in",
+    "text": "Your browser's homepage shouldn't be a feed. Change it to a blank page.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-035",
+    "lane": "lock-in",
+    "text": "Grayscale your screen for a week. Watch how boring the feed gets.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-036",
+    "lane": "lock-in",
+    "text": "Read ten pages of a real book. Notice how long ten pages feels.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-037",
+    "lane": "lock-in",
+    "text": "Skimming past the confusing part means meeting it again on the exam.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-038",
+    "lane": "lock-in",
+    "text": "Count the hours you actually focused, not the hours you sat there.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-039",
+    "lane": "lock-in",
+    "text": "Answer texts in batches, not every time your phone lights up.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-040",
+    "lane": "lock-in",
+    "text": "Tell someone your deadline out loud. Now you have to hit it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-041",
+    "lane": "lock-in",
+    "text": "You don't need motivation to open the file. Just open the file.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-042",
+    "lane": "lock-in",
+    "text": "A lecture at 2x speed while scrolling isn't learning twice as fast.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-043",
+    "lane": "lock-in",
+    "text": "Finished a problem? Start the next one before you reach for your phone.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-044",
+    "lane": "lock-in",
+    "text": "The good ideas show up around minute forty. Don't leave at minute twelve.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-045",
+    "lane": "lock-in",
+    "text": "Library, back corner, no charger. Work until the battery quits.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-046",
+    "lane": "lock-in",
+    "text": "Office hours exist. Go to one before the exam, not after.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-047",
+    "lane": "lock-in",
+    "text": "Waiting room, bus stop, checkout line. Not every gap needs a screen.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-048",
+    "lane": "lock-in",
+    "text": "What did you finish today? Not start. Finish.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-049",
+    "lane": "lock-in",
+    "text": "Explain the chapter to your roommate. Wherever you stall, study that.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-050",
+    "lane": "lock-in",
+    "text": "Turn off autoplay. Make every next video a decision.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-051",
+    "lane": "lock-in",
+    "text": "Phone off the table at dinner. Hear a whole story without checking anything.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-052",
+    "lane": "lock-in",
+    "text": "Start each session by writing what \"done\" looks like.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-053",
+    "lane": "lock-in",
+    "text": "Due at 11:59 doesn't mean start at 11:15.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-054",
+    "lane": "lock-in",
+    "text": "Put focus time on your calendar like a lecture you can't skip.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-055",
+    "lane": "lock-in",
+    "text": "You've been \"almost done\" for three days. Find the last step.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-056",
+    "lane": "lock-in",
+    "text": "Clear the desk first. A guitar within reach is a forty-minute break.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-057",
+    "lane": "lock-in",
+    "text": "Unlocked your phone 60 times before noon? Nothing's that fucking interesting.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-058",
+    "lane": "lock-in",
+    "text": "Your phone isn't a stress ball. Stop grabbing that shit every time it's hard.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-059",
+    "lane": "lock-in",
+    "text": "Exam's Thursday. You're watching someone pressure-wash a driveway. Shit, really?",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-060",
+    "lane": "lock-in",
+    "text": "It's 1am and strangers are ranking fast food for you. Hell no. Sleep.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-061",
+    "lane": "lock-in",
+    "text": "Your focus is out of shape. Hell, everyone's is. Start with 20-minute sets.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-062",
+    "lane": "lock-in",
+    "text": "Watched a productivity video about not watching videos? Fuck. Close it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-063",
+    "lane": "lock-in",
+    "text": "A buzz isn't an emergency. Finish the damn paragraph.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-064",
+    "lane": "lock-in",
+    "text": "Deep in a stranger's Reddit drama? Get your ass back to chapter four.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-065",
+    "lane": "lock-in",
+    "text": "Six hours of daily scrolling is a part-time job paying jack shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-066",
+    "lane": "lock-in",
+    "text": "That bookmark's been on page 40 since February. Damn, move it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-067",
+    "lane": "lock-in",
+    "text": "Phone's in the drawer but your watch keeps buzzing? Silence that shit too.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-068",
+    "lane": "lock-in",
+    "text": "Half your feed teaches you nothing. Unfollow the hell out of it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-069",
+    "lane": "lock-in",
+    "text": "You posted your study setup an hour ago. Did you study? Hell no.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-070",
+    "lane": "lock-in",
+    "text": "Checking the feed before you've sat up? Give your brain a damn minute.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-071",
+    "lane": "lock-in",
+    "text": "Task too big to start? Chop it smaller until starting is easy as hell.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-072",
+    "lane": "lock-in",
+    "text": "You know what your cousin ate for lunch, but not chapter three? Fuck.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-073",
+    "lane": "lock-in",
+    "text": "Your phone didn't buzz. You imagined it. Damn, put it away.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-074",
+    "lane": "lock-in",
+    "text": "Refreshing the news every hour won't change a damn thing. Read once, then work.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-075",
+    "lane": "lock-in",
+    "text": "Full-screen the doc so nothing else fits. Keep your ass in it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-076",
+    "lane": "lock-in",
+    "text": "Ten hours watching tutorials, zero hours building. Flip that shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-077",
+    "lane": "lock-in",
+    "text": "Checking your phone during a movie you picked? Hell, watch the whole thing.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-078",
+    "lane": "lock-in",
+    "text": "Ten minutes in and you're suddenly checking the weather? Sit your ass down.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-079",
+    "lane": "lock-in",
+    "text": "Lost forty minutes to \"one quick look\"? Happens. Restart the damn timer.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-080",
+    "lane": "lock-in",
+    "text": "Twenty minutes on the toilet scrolling? Your legs went numb for this shit?",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-081",
+    "lane": "lock-in",
+    "text": "Your five-minute break just hit the one-hour mark. Damn, back to it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-082",
+    "lane": "lock-in",
+    "text": "Your phone interrupts you more than any person would dare. Shut that shit off.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-083",
+    "lane": "lock-in",
+    "text": "Your phone's at 100% and your project's at 3%. Damn, charge the other one.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-084",
+    "lane": "lock-in",
+    "text": "The laundry suddenly feels urgent when the essay's due. Funny how that shit works.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-085",
+    "lane": "lock-in",
+    "text": "Your 45-minute leg day took two hours because of your phone. Damn.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-086",
+    "lane": "lock-in",
+    "text": "Open app, close app, open app again. What the hell are you looking for?",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-087",
+    "lane": "lock-in",
+    "text": "Mind wandered off? Normal. Drag its ass back to the page.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-088",
+    "lane": "lock-in",
+    "text": "Deadline's at midnight and you're picking a font? Fuck the font.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-089",
+    "lane": "lock-in",
+    "text": "The feed never ends. Your essay does. Get your ass there.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-090",
+    "lane": "lock-in",
+    "text": "\"I'll do it tonight\" was last night's plan too. Start the fucking thing.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-091",
+    "lane": "lock-in",
+    "text": "Texting at a red light? Fuck no. Nothing in there is worth it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-092",
+    "lane": "lock-in",
+    "text": "Unplug the router for an hour. Annoying as hell. That's the point.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-093",
+    "lane": "lock-in",
+    "text": "Sleeping next to your phone \"for the alarm\"? Buy a damn alarm clock.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-094",
+    "lane": "lock-in",
+    "text": "The final's tomorrow and you just opened the syllabus? Shit. Start anyway.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-095",
+    "lane": "lock-in",
+    "text": "Studying in bed always ends the same way. Get your ass to a desk.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-096",
+    "lane": "lock-in",
+    "text": "Taking breaks isn't slacking. Get your ass up, walk, then lock back in.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-097",
+    "lane": "lock-in",
+    "text": "Your ass is in the lecture hall. Is your brain?",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-098",
+    "lane": "lock-in",
+    "text": "That daily login reward in your game can wait. Do the damn assignment.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-099",
+    "lane": "lock-in",
+    "text": "Highlighting the whole book isn't studying, it's fucking coloring. Quiz yourself.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-100",
+    "lane": "lock-in",
+    "text": "Essay's written but the citations aren't? Finish the fucking citations.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  },
+  {
+    "id": "lock-in-101",
+    "lane": "lock-in",
+    "text": "Read the full assignment before you start. Saves your ass later.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "generated"
+  }
+]

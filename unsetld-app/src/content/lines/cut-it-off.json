@@ -1,0 +1,82 @@
+[
+  {
+    "id": "cut-it-off-001",
+    "lane": "cut-it-off",
+    "text": "You're not quitting forever. Just today. Then again tomorrow.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-002",
+    "lane": "cut-it-off",
+    "text": "Every urge you ride out is a rep. Count it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-003",
+    "lane": "cut-it-off",
+    "text": "Your old habits had a good run. Their contract's up.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-004",
+    "lane": "cut-it-off",
+    "text": "Delete it, hide it, block it. Make the bad habit a hassle.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-005",
+    "lane": "cut-it-off",
+    "text": "Know your weak hour. Have something else to do in it.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-006",
+    "lane": "cut-it-off",
+    "text": "That habit isn't helping you chill. It's running your whole damn day.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-007",
+    "lane": "cut-it-off",
+    "text": "You don't owe your bad habits shit. Cut them off.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-008",
+    "lane": "cut-it-off",
+    "text": "Vape, scroll, snooze, repeat. That loop is kicking your ass. Break it.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-009",
+    "lane": "cut-it-off",
+    "text": "Slipped up? You're human, not a fuckup. Reset and go again.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "cut-it-off-010",
+    "lane": "cut-it-off",
+    "text": "Quitting leaves a gap. Fill it, or the old shit moves back in.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  }
+]

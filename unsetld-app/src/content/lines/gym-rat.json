@@ -1,0 +1,90 @@
+[
+  {
+    "id": "gym-rat-001",
+    "lane": "gym-rat",
+    "text": "Same time, every training day, until skipping feels weird.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-002",
+    "lane": "gym-rat",
+    "text": "Empty gym, early alarm, no audience. That's the good stuff.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-003",
+    "lane": "gym-rat",
+    "text": "Log the lift. Beat the log. Repeat.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-004",
+    "lane": "gym-rat",
+    "text": "Watching gym videos isn't training. Close the app and go lift.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-005",
+    "lane": "gym-rat",
+    "text": "Skipping today makes tomorrow heavier. Pack the bag.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-006",
+    "lane": "gym-rat",
+    "text": "Your membership charges you either way. Get your ass in there.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-007",
+    "lane": "gym-rat",
+    "text": "Rest day was yesterday. Quit stalling and go lift some heavy shit.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-008",
+    "lane": "gym-rat",
+    "text": "You've been \"about to go\" for an hour. Damn, just go.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-009",
+    "lane": "gym-rat",
+    "text": "Stop filming the warm-up and do the actual fucking set.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-010",
+    "lane": "gym-rat",
+    "text": "Think everyone's watching you lift? They're busy as hell with their own reps.",
+    "tone": "unfiltered",
+    "status": "draft",
+    "source": "voice-sample"
+  },
+  {
+    "id": "gym-rat-011",
+    "lane": "gym-rat",
+    "text": "Train. No debate.",
+    "tone": "clean",
+    "status": "draft",
+    "source": "tiktok-slideshow"
+  }
+]
