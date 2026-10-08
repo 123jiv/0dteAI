@@ -57,6 +57,7 @@ export function YourLinesScreen({ navigation }: RootProps<'YourLines'>) {
         blurOnSubmit
         returnKeyType="done"
         maxLength={Y.max}
+        maxFontSizeMultiplier={1.3}
         placeholder={Y.placeholder}
         placeholderTextColor={C.ash}
         accessibilityLabel={Y.write}
@@ -92,12 +93,21 @@ export function YourLinesScreen({ navigation }: RootProps<'YourLines'>) {
             <Pressable
               key={l.id}
               accessibilityRole="button"
+              accessibilityLabel={l.text}
               accessibilityHint="Long press to edit or delete"
+              accessibilityActions={[
+                { name: 'edit', label: Y.edit },
+                { name: 'delete', label: Y.delete },
+              ]}
+              onAccessibilityAction={e => {
+                if (e.nativeEvent.actionName === 'edit') setWriting({ id: l.id, text: l.text });
+                else if (e.nativeEvent.actionName === 'delete') remove(l.id);
+              }}
               onLongPress={() =>
                 showActions({
                   options: [
                     { label: Y.edit, onPress: () => setWriting({ id: l.id, text: l.text }) },
-                    { label: Y.delete, destructive: true, onPress: () => remove(l.id) },
+                    { label: Y.delete, onPress: () => remove(l.id) },
                     { label: COPY.reader.menu.cancel, cancel: true },
                   ],
                 })

@@ -603,7 +603,9 @@ REMINDERS (push)
 ACCOUNT (push)
 - Title 'Account', body (copy deck).
 - Sign in with Apple via expo-apple-authentication: AppleAuthenticationButton, style WHITE, cornerRadius 2, height 54.
-- Signed in: shows the relay email in stone + text button 'Sign out'.
+- Signed in: shows the relay email in stone (or 'Signed in with Apple' when Apple gave no email) + text button 'Sign out'.
+- Under Sign out: a quiet text button 'Delete account' → confirm dialog (copy deck) → POST /api/app/account/delete, then sign out locally. Required by App Store Guideline 5.1.1(v).
+- The Account row in Settings shows while Access is on, or whenever the user is signed in, so deletion is always reachable.
 
 4. DAILY LOGIC
 - Day boundary: dayKey = local date of (now − 4h). A day runs 4:00 AM to 3:59 AM.
@@ -672,10 +674,12 @@ DELIVERY
 Account (Sign in with Apple) is required only to claim.
 
 Backend: one small route set on the existing Next.js site (Vercel), or Supabase.
-- POST /api/app/checkin {appleIdToken, dayKey}: one per account per server day.
-- POST /api/app/sync: on first sign-in, accepts only locally verified check-ins, one per day, none in the future.
+- The full route list (sync, checkin, proof, redeem, claim, account/delete) and the session model are in `docs/ACCESS.md`, which wins over this section.
+- POST /api/app/sync {appleIdToken, authorizationCode, days, proofs}: on first sign-in. Exchanges the authorization code with Apple (keeping the refresh token for revocation), accepts only locally verified check-ins, one per day, none in the future, and returns {sessionToken}.
+- Every later request carries the session token, never the Apple identity token. A 401 signs the phone out so the app asks to sign in again.
+- POST /api/app/checkin {dayKey}: one per account per server day.
+- POST /api/app/account/delete: deletes the account and what's held for it, and revokes the Apple refresh token.
 - POST /api/app/claim {perk}: mints a single-use Shopify discount via the Admin API (percentage, once per customer, combinesWith none, $25 cap) and returns a URL:
-  - Member price: https://www.unsetld.com/discount/{CODE}
   - Patch: https://www.unsetld.com/cart/{PATCH_VARIANT_ID}:1?discount={CODE} (100% off the patch)
   - Early access: a signed token that the storefront reads to reveal a drop collection 24h early (customer tag)
 - All shop links open in Safari via Linking.openURL. No in-app browser.

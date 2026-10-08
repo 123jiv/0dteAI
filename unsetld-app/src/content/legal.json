@@ -16,7 +16,7 @@
       },
       {
         "h": "Today’s work",
-        "p": "Each day's work is your three rules and one task from UNSETLD. Prove a task with a photo taken in the app; the photo stays on this phone. Each proven task is 10 points, up to 40 a day."
+        "p": "Each day's work is your three rules, one task from UNSETLD and up to three of your own. Prove a task with a photo taken in the app; the photo stays on this phone. Each proven task is 10 points, up to 40 a day."
       },
       {
         "h": "Points",
@@ -36,7 +36,7 @@
       },
       {
         "h": "Keeping it",
-        "p": "If 14 days pass with nothing on record, early access pauses until you put 7 more days on record. Your count, points and milestones stay."
+        "p": "Once early access is open, if 14 days pass with nothing on record, it pauses until you put 7 more days on record. Your count, points and milestones stay."
       },
       {
         "h": "Limits",
@@ -58,7 +58,7 @@
     "sections": [
       {
         "h": "Who can take part",
-        "p": "For US residents 18 and over."
+        "p": "For US residents 13 and over. If you're under 18, get a parent's or guardian's OK before you place an order."
       },
       {
         "h": "What you can earn",
@@ -74,7 +74,7 @@
       },
       {
         "h": "Pauses",
-        "p": "If 14 days pass with nothing on record, early access pauses until 7 more days are on record. Your count, points and milestones stay."
+        "p": "Once early access is open, if 14 days pass with nothing on record, it pauses until 7 more days are on record. Your count, points and milestones stay."
       },
       {
         "h": "Changes",
@@ -92,7 +92,7 @@
     "sections": [
       {
         "h": "Using UNSETLD",
-        "p": "UNSETLD gives you a daily line, reminders, a night check and a record of the days you showed up. It is motivation, not medical, financial or professional advice."
+        "p": "UNSETLD gives you a daily line, daily tasks, reminders, a night check and a record of the days you showed up. It is motivation, not medical, financial or professional advice."
       },
       {
         "h": "Full Edition",
@@ -147,6 +147,10 @@
       {
         "h": "Deleting your data",
         "p": "Delete the app to remove what's stored on your phone. To delete an access account, open Settings in the app, then Account, then Delete account. We remove the account and what we hold for it, and end the Sign in with Apple link. You can also email unsetldclothing@gmail.com from the address on the account."
+      },
+      {
+        "h": "Age",
+        "p": "UNSETLD is for people 13 and older. We don't knowingly collect personal information from anyone under 13. If you think a child under 13 has signed in, email us and we'll delete the account."
       },
       {
         "h": "Contact",

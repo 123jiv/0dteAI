@@ -24,6 +24,7 @@ import { allProofs, claimCode, completeTask, dailyTask, dayWork, pointsBalance, 
 import pointsJson from '../../content/points.json';
 import { dayReminderTimes, daysAhead, MAX_PENDING, planNotifications, slotOf } from '../reminders';
 import { addDays, atMinutes, dayKeyOf, diffDays, formatTime, nextDayStart } from '../time';
+import { lineOfDay } from '../today';
 import { breakBeats, lineSize, typo } from '../typography';
 import type { Line, Milestone, PointsConfig, RecordState, ReminderPrompt, Task } from '../types';
 
@@ -201,11 +202,14 @@ describe('record', () => {
   });
 });
 
+const t = (id: string, chapter: Task['chapter'], text: string, proof: string, when: Task['when'], lines: number[]): Task => ({
+  id, chapter, text, proof, when, why: 'Because it matters.', how: 'Start now.', lines,
+});
 const TASKS: Task[] = [
-  { id: 'disc-001', chapter: 'discipline', text: 'Make your bed.', proof: 'The made bed.', when: 'morning' },
-  { id: 'disc-002', chapter: 'discipline', text: 'Clear the sink.', proof: 'The empty sink.', when: 'evening' },
-  { id: 'focu-001', chapter: 'focus', text: 'One hour, phone away.', proof: 'Your phone, away.', when: 'day' },
-  { id: 'mone-001', chapter: 'money', text: 'Write down every payment.', proof: 'The list.', when: 'any' },
+  t('disc-001', 'discipline', 'Make your bed.', 'The made bed.', 'morning', [9001, 9002]),
+  t('disc-002', 'discipline', 'Clear the sink.', 'The empty sink.', 'evening', [9003]),
+  t('focu-001', 'focus', 'One hour, phone away.', 'Your phone, away.', 'day', [9004]),
+  t('mone-001', 'money', 'Write down every payment.', 'The list.', 'any', []),
 ];
 const proof = { uri: '', takenAt: 0, lineNo: 1 };
 
@@ -222,7 +226,29 @@ describe("today's work", () => {
   it('lists the rules, the daily task, then your own tasks', () => {
     const work = dayWork(['Up before 7.', 'Train every day.', 'Finish what I start.'], TASKS[0], [{ id: 'x', text: 'Call home.' }]);
     expect(work.map(w => w.key)).toEqual(['r0', 'r1', 'r2', 'd', 'o:x']);
-    expect(work[3]).toMatchObject({ source: 'daily', chapter: 'discipline', proof: 'The made bed.' });
+    expect(work[3]).toMatchObject({ source: 'daily', chapter: 'discipline', proof: 'The made bed.', why: 'Because it matters.', how: 'Start now.' });
+  });
+
+  it("takes the day's line from the daily task's paired lines", () => {
+    const L = (no: number, chapter: Line['chapter'], text: string, explicit = false): Line => ({ no, chapter, text, explicit, volume: 1 });
+    const lines = [
+      L(9001, 'discipline', 'The bed is the first thing you finish today.'),
+      L(9002, 'discipline', 'Two minutes, and the day already owes you one.'),
+      L(9003, 'discipline', 'The sink is tomorrow morning, cleaned up tonight.'),
+      L(9004, 'focus', 'The phone in the kitchen is the whole trick.'),
+      L(9005, 'focus', 'A swear makes this one damn explicit for testing.', true),
+    ];
+    const base = { lines, schedule: {}, tasks: TASKS, chapters: ['discipline', 'focus'] as Task['chapter'][], salt: 'salt' };
+    for (let i = 0; i < 12; i++) {
+      const day = addDays('2026-10-07', i);
+      const task = dailyTask(TASKS, base.chapters, 'salt', day)!;
+      const line = lineOfDay({ ...base, day })!;
+      expect(task.lines).toContain(line.no);
+    }
+    // A pinned day wins; a task with no usable pair falls back to the global rotation.
+    expect(lineOfDay({ ...base, schedule: { '2026-10-07': 9004 }, day: '2026-10-07' })!.no).toBe(9004);
+    const money = lineOfDay({ ...base, chapters: ['money'], day: '2026-10-07' })!;
+    expect(money.explicit).toBe(false);
   });
 
   it('earns 10 points per proven task, up to 4 a day; no points without a photo', () => {

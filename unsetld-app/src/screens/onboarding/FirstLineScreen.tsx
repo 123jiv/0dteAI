@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { breakBeats, catalogueNo, lineSize, typo } from '../../core/typography';
-import { chapterLabel, COLORWAY_BY_ID, LINE_BY_NO } from '../../content';
+import { chapterLabel, COLORWAY_BY_ID, ONBOARDING_LINE } from '../../content';
 import { COPY } from '../../content/copy';
 import type { RootProps } from '../../navigation/types';
 import { Button } from '../../ui/kit';
@@ -16,7 +16,7 @@ export function FirstLineScreen({ navigation }: RootProps<'FirstLine'>) {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const scale = useSerifScale();
-  const line = LINE_BY_NO[1];
+  const line = ONBOARDING_LINE;
   const [lineIn] = useState(() => new Animated.Value(0));
   const [buttonIn] = useState(() => new Animated.Value(0));
   const [ready, setReady] = useState(false);

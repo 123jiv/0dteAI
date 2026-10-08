@@ -1,6 +1,6 @@
 // All editable content lives in JSON next to this file. Edit the JSON, not the code.
 import type { Chapter, ChapterId, Colorway, Line, Milestone, PointsConfig, ReminderPrompt, Task } from '../core/types';
-import { isShippable } from '../core/feed';
+import { isShippable, todayCandidates } from '../core/feed';
 import chaptersJson from './chapters.json';
 import colorwaysJson from './colorways.json';
 import legalJson from './legal.json';
@@ -19,6 +19,9 @@ export const CHAPTER_BY_ID = Object.fromEntries(CHAPTERS.map(c => [c.id, c])) as
 export const LINES = (linesJson as Line[]).filter(isShippable);
 export const LINE_BY_NO: Record<number, Line> = Object.fromEntries(LINES.map(l => [l.no, l]));
 export const VOLUME = Math.max(1, ...LINES.map(l => l.volume));
+
+/** The line O2 shows on first launch: the first line of Discipline, the free chapter. */
+export const ONBOARDING_LINE: Line | undefined = LINE_BY_NO[1] ?? todayCandidates(LINES.filter(l => l.chapter === 'discipline'))[0];
 
 export const COLORWAYS = colorwaysJson as Colorway[];
 export const COLORWAY_BY_ID = Object.fromEntries(COLORWAYS.map(c => [c.id, c])) as Record<string, Colorway>;

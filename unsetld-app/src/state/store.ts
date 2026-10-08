@@ -125,7 +125,7 @@ export const DEFAULT_SETTINGS: Settings = {
   chapters: ['discipline', 'focus', 'training'],
   freeChapter: 'focus',
   colorway: 'black',
-  strongLanguage: true,
+  strongLanguage: false,
   reminders: { on: false, count: 3, first: 7 * 60, last: 22 * 60 },
   night: { on: true, time: 21 * 60 + 30 },
   dropAlerts: false,
@@ -376,7 +376,7 @@ export interface Entitlements {
   colorway: Colorway;
   maxReminders: number;
   yourLines: boolean;
-  /** Extra tasks of your own (Full Edition). */
+  /** Tasks of your own, on top of the rules and the daily task. Free for everyone. */
   maxOwnTasks: number;
 }
 
@@ -392,7 +392,7 @@ export function entitlementsOf(s: Pick<State, 'settings' | 'premium'>): Entitlem
     colorway: premium || chosen.free ? chosen : COLORWAYS[0],
     maxReminders: premium ? FULL_MAX_REMINDERS : FREE_MAX_REMINDERS,
     yourLines: premium,
-    maxOwnTasks: premium ? 3 : 0,
+    maxOwnTasks: 3,
   };
 }
 

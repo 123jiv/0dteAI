@@ -251,7 +251,8 @@ export function RecordScreen({ navigation }: RootProps<'Record'>) {
           if (r.ok) {
             useApp.getState().claimCode(tier, { code: r.code, url: r.url });
             light();
-          } else setCodeError(r.reason === 'used' ? R.oneEach : COPY.milestone.networkError);
+          } else if (r.reason === 'needs-account') navigation.navigate('Account');
+          else setCodeError(r.reason === 'used' ? R.oneEach : COPY.milestone.networkError);
         },
       },
     ]);

@@ -5,11 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, AppState, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { todayLine } from '../../core/feed';
 import { dayCount, pendingLetter } from '../../core/record';
 import { minutesIntoDay, minutesOf, widgetDate } from '../../core/time';
+import { lineOfDay } from '../../core/today';
 import { typo } from '../../core/typography';
-import { LINES, POINTS, SCHEDULE } from '../../content';
+import { LINES, POINTS, SCHEDULE, TASKS } from '../../content';
 import { COPY } from '../../content/copy';
 import type { RootProps } from '../../navigation/types';
 import { now } from '../../services/clock';
@@ -48,7 +48,9 @@ export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
   const accessIntroShown = useApp(s => s.reading.accessIntroShown);
   const work = useWork(day);
   const done = record.work[day] ?? {};
-  const line = todayLine(LINES, SCHEDULE, day);
+  const salt = useApp(s => s.installSalt);
+  // The day's line goes with the day's task.
+  const line = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: ent.mix, salt, day });
   const n = dayCount(record);
 
   const [sheet, setSheet] = useState<'chapters' | 'colorway' | null>(null);
@@ -171,12 +173,8 @@ export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
     });
   };
 
-  const ownCount = settings.ownTasks.length;
-  const canAdd = ownCount < 3;
-  const addRow = () => {
-    if (!ent.maxOwnTasks) return navigation.navigate('Paywall', { from: 'tasks' });
-    setAdding('');
-  };
+  const canAdd = settings.ownTasks.length < ent.maxOwnTasks;
+  const addRow = () => setAdding('');
   const commitAdd = () => {
     const text = (adding ?? '').trim().replace(/\s+/g, ' ');
     if (text) useApp.getState().addOwnTask(/[.?]$/.test(text) ? text : `${text}.`);
@@ -265,6 +263,7 @@ export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
                 onSubmitEditing={commitAdd}
                 onBlur={commitAdd}
                 maxLength={40}
+                maxFontSizeMultiplier={1.3}
                 returnKeyType="done"
                 placeholder={COPY.today.taskPlaceholder}
                 placeholderTextColor={`${colorway.ink}55`}
@@ -275,7 +274,7 @@ export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
           ) : canAdd ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={ent.maxOwnTasks ? COPY.today.addTask : `${COPY.today.addTask}, Full Edition`}
+              accessibilityLabel={COPY.today.addTask}
               onPress={addRow}
               style={({ pressed }) => ({
                 minHeight: 52,
@@ -292,11 +291,6 @@ export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
               <T v="body" color={colorway.secondary} style={{ flex: 1 }}>
                 {COPY.today.addTask}
               </T>
-              {!ent.maxOwnTasks ? (
-                <T v="label" color={colorway.secondary}>
-                  {COPY.today.locked}
-                </T>
-              ) : null}
             </Pressable>
           ) : null}
           {accessEnabled ? (

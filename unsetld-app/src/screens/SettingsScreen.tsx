@@ -123,10 +123,10 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
           </View>
         ) : null}
         <Footnote>{S.dropNote}</Footnote>
-        {accessEnabled ? (
+        {accessEnabled || account.userId ? (
           <>
             <View style={{ height: 8 }} />
-            <SettingsRow first title={S.account} value={account.email ?? (account.userId ? 'Signed in' : S.notSignedIn)} onPress={() => navigation.navigate('Account')} />
+            <SettingsRow first title={S.account} value={account.email ?? (account.userId ? COPY.account.signedInApple : S.notSignedIn)} onPress={() => navigation.navigate('Account')} />
           </>
         ) : null}
 

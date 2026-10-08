@@ -3,7 +3,7 @@
 There are two ways to earn, and neither can be bought. Full Edition doesn't change either one.
 
 - **Showing up opens access.** A day goes on record when you open the app that day, from the icon, a widget or a reminder. Days on record open early access, the patch and the 365 piece.
-- **Proof earns points; points become codes.** Each day's work is your three rules plus one task from UNSETLD (and up to three of your own in Full Edition). Prove a task with a photo taken in the app and it's 10 points, up to 4 tasks (40 points) a day. Trade points for a single-use discount code you use on unsetld.com.
+- **Proof earns points; points become codes.** Each day's work is your three rules plus one task from UNSETLD (and up to three of your own). Prove a task with a photo taken in the app and it's 10 points, up to 4 tasks (40 points) a day. Trade points for a single-use discount code you use on unsetld.com.
 
 The app has to make sense for someone who never buys a hoodie, so rewards appear only on the Record screen, in milestone letters, on milestone pages, on the task screen after a proof and in one footnote under Today's work. They never appear in the line, widgets, notifications, the paywall or share cards.
 
@@ -19,7 +19,7 @@ The app has to make sense for someone who never buys a hoodie, so rewards appear
 
 | | |
 |---|---|
-| Tasks | Each day: your three rules, one task from UNSETLD drawn from the chapters you read, and up to three of your own (Full Edition). A task can be marked done without a photo; only a photo earns points. |
+| Tasks | Each day: your three rules, one task from UNSETLD drawn from the chapters you read, and up to three of your own. A task can be marked done without a photo; only a photo earns points. |
 | Proof | A photo taken live in the app, one per task. It's stamped like a garment tag with the day's line number, the time and the date. |
 | Where photos go | Nowhere. They're saved inside the app on the phone. When signed in, only the date and the number of proven tasks that day are sent to the server. |
 | Points | 10 per proven task, up to 4 a day (40 points). Retaking a photo earns nothing more. Unmarking a task takes its points back. |
@@ -34,11 +34,12 @@ All numbers live in `src/content/points.json`, so you can change them without to
 - $25 maximum off an order.
 - No stacking with other codes, including the site's 10% first-order code.
 - Excludes the 365 piece.
-- US residents 18+ only.
+- US residents 13 and over. Under 18s need a parent's or guardian's OK to order. (Codes are a loyalty reward, not a sweepstakes; have a lawyer confirm the terms before launch.)
 - No cash value. Not transferable. Points can't be sold or bought.
 
 **Pause rule**
-- If 14 days pass with nothing on record, early access shows PAUSED.
+- Only once early access is open (7 or more days on record when the gap began): if 14 days pass with nothing on record, early access shows PAUSED. Before Day 7 nothing can pause.
+- While paused, the Day 7 letter for someone who reaches 7 during the pause waits until access reopens; the comeback letter then stands in for it.
 - It reopens once 7 more days are on record, and a comeback letter arrives.
 - The count and milestones never drop, and points don't expire. The patch and the 365 piece don't pause.
 
@@ -64,8 +65,10 @@ The browser preview simulates `accessEnabled: true` so the whole product can be 
 ## Drops
 
 The app also reads `https://www.unsetld.com/api/app/drops.json`; see [`Web/api/app/drops.json`](../Web/api/app/drops.json). Drop alerts are a separate opt-in switch in Settings and are off by default. When they're on:
-- Day 7 and up: a notification at `earlyAt` ("Collection 004 is open to you now. Everyone else gets it tomorrow at 9:00 PM.").
-- Everyone else: a heads-up at the same time ("Collection 004 opens tomorrow at 9:00 PM.").
+- Day 7 and up, with Access on and not paused: a notification at `earlyAt` ("Collection 004 is open to you now. Everyone else gets it tomorrow at 9:00 PM.").
+- Everyone else (including paused users): a heads-up at the same time ("Collection 004 opens tomorrow at 9:00 PM.").
+- Tapping the early alert opens the Day 7 page. While a drop is in its early window, that page shows `Open Collection 004`, which claims `early-access` (account needed) and opens the returned URL in Safari.
+- Turning alerts on asks for notification permission first; if it's denied, the switch stays off and the app points to Settings.
 
 If the file can't be read, the alerts already scheduled stay as they are.
 

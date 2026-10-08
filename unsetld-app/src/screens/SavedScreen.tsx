@@ -44,11 +44,15 @@ export function SavedScreen({ navigation }: RootProps<'Saved'>) {
             accessibilityRole="button"
             accessibilityLabel={`${item.text}. ${catalogueNo(item.no)}`}
             accessibilityHint="Opens it to share"
+            accessibilityActions={[{ name: 'remove', label: COPY.saved.remove }]}
+            onAccessibilityAction={e => {
+              if (e.nativeEvent.actionName === 'remove') useApp.getState().toggleSave(item.no);
+            }}
             onPress={() => open(item)}
             onLongPress={() =>
               showActions({
                 options: [
-                  { label: COPY.saved.remove, destructive: true, onPress: () => useApp.getState().toggleSave(item.no) },
+                  { label: COPY.saved.remove, onPress: () => useApp.getState().toggleSave(item.no) },
                   { label: COPY.reader.menu.cancel, cancel: true },
                 ],
               })

@@ -2,6 +2,8 @@
 
 UNSETLD 2.0: COPY DECK (final wording; build exactly; sentence case; no exclamation marks)
 
+Since 2.1/2.2 the Today screen, task modal and their strings are specified in `TODAY_SPEC.md`; where the two disagree, `TODAY_SPEC.md` and `src/content/copy.ts` win. Daily tasks and lines are written to `docs/research/2026-10-08-everyday-content.md`.
+
 GLOBAL
 - App name (store): UNSETLD: Daily Discipline
 - Subtitle: One line every morning.
@@ -21,14 +23,12 @@ O1 The name
 O2 First line
 - Running head: DISCIPLINE · No. 0001
 - Line: That restless feeling isn't a problem. It's an instruction.
-- Caption: One line every morning. Swipe up for the next.
-- Fallback text button: Next
-- Second page: No. 0002 · Settling rarely feels like a decision. It feels like a normal evening.
-- Button: Continue
+- Caption: One line every morning. Then the work.
+- Button: Continue (appears after 2.5 s)
 
 O3 Standard (01 / 04)
 - Title: Set your standard.
-- Body: Pick three. Each night you'll mark whether you held them. Only you see this.
+- Body: Pick three. They're your work every day, and each night you'll mark whether you held them. Only you see this.
 - Rules:
   01 Up before 7.
   02 Train every day.
@@ -46,7 +46,7 @@ O3 Standard (01 / 04)
 
 O4 Chapters (02 / 04)
 - Title: Choose your chapters.
-- Body: Your daily lines come from these. Free includes Discipline and one more. Full Edition opens all seven.
+- Body: Your daily task and lines come from these. Free includes Discipline and one more. Full Edition opens all seven.
 - Rows (name — scope):
   01 Discipline — Showing up, follow-through, standards. [ALWAYS]
   02 Focus — Attention, phones, deep work.
@@ -129,7 +129,7 @@ ONE-TIME PAGES
 - Day 3:
   - Label: ACCESS
   - Title: The days add up to something.
-  - Body: Day 7 opens early access to every UNSETLD drop. Day 30 opens a member price. None of it can be bought.
+  - Body: Day 7 opens early access to every UNSETLD drop. Proof of the work earns points toward codes at unsetld.com. None of it can be bought.
   - Link: See your record
 - New volume:
   - Label: VOLUME 002
@@ -206,13 +206,18 @@ RECORD
 - Note: Earned with days on record. It can't be bought.
 - Rows:
   - 007 Early access — Every drop opens to you 24 hours early.
-  - 030 Member price — 10% off one order each collection.
   - 090 The patch — Numbered. Free with your next order.
-  - 180 Member price, 15% — Up from 10%. Same limits.
   - 365 The 365 piece — Made only for people who reach a year.
 - Statuses: OPEN · USED · PAUSED · 49 DAYS (singular: 1 DAY)
-- Paused note (Inter 13 stone, under the road): Access is paused. Put 7 days on record to open it again.
-- Unused member price: Your member price is open. Use it at unsetld.com
+- Paused note (Inter 13 stone, under the road): Early access is paused. Put 7 days on record to open it again.
+- Proof: Proof · A photo of each task you prove, taken in the app. Each one is 10 points. · Today: 2 tasks proven. · See all
+- Codes header: CODES
+  - Tier rows: 10% off one order — 600 points. Up to $25 off at unsetld.com. · 15% off one order — 1,000 points. Up to $25 off at unsetld.com.
+  - Statuses: READY · USED · 120 TO GO
+  - Ready: You have enough points for a code. · Get your code
+  - Confirm: Trade 600 points for 10% off? / One order at unsetld.com, up to $25 off. The code works for 30 days. / Cancel · Get the code
+  - Got one: {CODE} · Works until 7 Nov. One order. · Use it at unsetld.com
+  - Used this collection: One code each collection. The next one opens with the next collection.
 
 MILESTONE DETAIL
 - 007 Early access:
@@ -220,15 +225,9 @@ MILESTONE DETAIL
   - Button: Turn on drop alerts
   - While a drop is open early (button, needs an account): Open Collection 004
   - Notifications off (under the button): Notifications are off for unsetld. · Open Settings
-- 030 Member price:
-  - 10% off one order each collection at unsetld.com. The code is applied for you.
-  - Button: Use it at unsetld.com
 - 090 The patch:
   - A woven UNSETLD patch with your number. It ships free with your next order. One per person.
   - Button: Add it to my next order
-- 180 Member price, 15%:
-  - Your member price is now 15%. Still one order each collection.
-  - Button: Use it at unsetld.com
 - 365 The 365 piece:
   - A numbered piece made only for people who reach a year. Sold at full price. Never restocked.
   - Button: View at unsetld.com
@@ -241,45 +240,36 @@ MILESTONE LETTERS
   - Early access is open. Every UNSETLD drop opens to you 24 hours before the public.
   - [Turn on drop alerts] · Not now
   - Notifications off (under the buttons): Notifications are off for unsetld. · Open Settings
-- DAY 030 · Day 30.
-  - A month on record. You kept your word.
-  - Member price is open: 10% off one order each collection at unsetld.com.
-  - [Use it at unsetld.com] · Details
 - DAY 090 · Day 90.
   - Ninety days. This isn't a phase anymore.
   - Your patch is numbered and waiting. It ships free with your next order.
   - [Add it to my next order] · Details
-- DAY 180 · Day 180.
-  - Half a year of keeping your word.
-  - Member price is now 15%. Still one order each collection.
-  - [Use it at unsetld.com] · Details
 - DAY 365 · Day 365.
   - A full year. You didn't settle.
   - The 365 piece is open to you. Made only for people who reach a year, numbered, never restocked.
   - [View at unsetld.com] · Details
 - Comeback · Day 52. (uses the current day)
   - You came back. That's the part that counts.
-  - Early access and your member price are open again.
+  - Early access is open again.
   - [Close]
 
 HOW THE RECORD WORKS (Details)
 - Title: How the record works
-- On record: A day goes on record when you open that day's line, in the app, from a widget or from a reminder. One a day. A day runs from 4:00 AM to 3:59 AM, so late nights count.
+- On record: A day goes on record when you open the app that day, or open it from a widget or a reminder. One a day. A day runs from 4:00 AM to 3:59 AM, so late nights count.
+- Today's work: Each day's work is your three rules, one task from UNSETLD and up to three of your own. Prove a task with a photo taken in the app; the photo stays on this phone. Each proven task is 10 points, up to 40 a day.
 - It only goes up: Missed days don't erase the ones on record.
 - The night check: It's between you and you. Saying Not today keeps the day on record.
 - Access:
   - Day 7: every UNSETLD drop opens to you 24 hours before the public.
-  - Day 30: 10% off one order each collection.
   - Day 90: a woven patch with your number, free with your next order.
-  - Day 180: the member price goes to 15%.
   - Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked.
-- Keeping it: If 14 days pass with nothing on record, early access and member prices pause until you put 7 more days on record. Your count and milestones stay.
-- Limits: One member-price order per collection. Up to $25 off an order. Doesn't combine with other codes, including the 10% first-order code. Excludes the 365 piece. One patch per person.
-- It can't be bought: Full Edition doesn't change any of this. Access is the same for everyone.
-- Account: To use access you need a free account, made with Sign in with Apple, so we can hold your place.
+- Keeping it: Once early access is open, if 14 days pass with nothing on record, it pauses until you put 7 more days on record. Your count, points and milestones stay.
+- Limits: One code each collection. Up to $25 off an order. Codes don't combine with other codes, including the 10% first-order code, and exclude the 365 piece. One patch per person.
+- It can't be bought: Full Edition doesn't change any of this. Points and access are the same for everyone.
+- Account: To use a code or access you need a free account, made with Sign in with Apple, so we can hold your place.
 
 ACCESS TERMS (legal page, lawyer review before launch)
-- For US residents 18 and over.
+- For US residents 13 and over. If you're under 18, get a parent's or guardian's OK before you place an order.
 - No cash value.
 - Not transferable.
 - Codes are single use.
@@ -288,8 +278,8 @@ ACCESS TERMS (legal page, lawyer review before launch)
 
 ACCOUNT
 - Title: Account
-- Body: You only need an account to use access: early access, member prices and the patch. Saved lines, your lines and your record stay on this phone.
-- Legal line: By signing in you confirm you're 18 or over and live in the US.
+- Body: You only need an account to use codes and access: discount codes, early access and the patch. Your record, proof photos, saved lines and your lines stay on this phone.
+- Legal line: By signing in you confirm you're 13 or over and live in the US. If you're under 18, check with a parent first.
 - Button: Sign in with Apple (system button)
 - Signed in: Signed in as {relay email} · Sign out
 - Signed in, no email from Apple: Signed in with Apple
@@ -303,12 +293,11 @@ PAYWALL
 - Header: Restore
 - Label: UNSETLD
 - Title: Full Edition
-- Description: Every chapter, every colorway, no daily limit.
+- Description: Every chapter, every colorway, more reminders.
 - Spec rows:
-  - CHAPTERS — All seven, and every new volume
+  - CHAPTERS — All seven, for your daily task and lines
   - COLORWAYS — All ten, in the app and on your widgets
-  - LINES — No daily limit. Write your own.
-  - REMINDERS — Up to ten a day
+  - REMINDERS — Up to ten a day. Write your own lines.
 - Plans:
   - Annual — 3 days free, then billed yearly — $24.99 / year — $2.08 a month
   - Monthly — Billed monthly — $4.99 / month
@@ -419,7 +408,7 @@ WIDGET GALLERY (app.json)
 ERRORS AND EMPTY STATES
 - Access claim network error: Couldn't reach unsetld.com. Try again in a moment.
 - Access paused claim: Access is paused. Put 7 days on record to open it again.
-- Member price used: USED (row) / You've used this collection's member price. It opens again with the next collection.
+- Code used this collection: USED (row) / One code each collection. The next one opens with the next collection.
 - No toasts anywhere. Confirmations are haptics or inline label swaps.
 
 APP STORE SCREENSHOTS (clean lines only)

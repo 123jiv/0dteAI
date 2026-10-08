@@ -40,7 +40,14 @@ export function handleNotificationEvent(e: NotificationEvent) {
   if (e.kind === 'night-answer') {
     queued.push({ day: e.day, held: e.held });
     if (useApp.getState().hydrated) applyQueued();
-    else useApp.persist.onFinishHydration(applyQueued);
+    else {
+      // Wait for the store, however hydration ends (including the fallback to defaults).
+      const unsub = useApp.subscribe(s => {
+        if (!s.hydrated) return;
+        unsub();
+        applyQueued();
+      });
+    }
     return;
   }
   useIntent.getState().push(e.kind === 'open-line' ? { kind: 'line', no: e.no } : e.kind === 'open-night' ? { kind: 'night' } : { kind: 'today' });

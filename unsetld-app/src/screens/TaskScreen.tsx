@@ -2,11 +2,12 @@ import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
 import { Linking, Platform, Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { lineForTask, todayLine } from '../core/feed';
+import { lineForTask } from '../core/feed';
 import { pointsBalance, provenOn } from '../core/points';
 import { dayCount } from '../core/record';
+import { lineOfDay } from '../core/today';
 import { typo } from '../core/typography';
-import { LINES, POINTS, SCHEDULE } from '../content';
+import { LINES, POINTS, SCHEDULE, TASKS } from '../content';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { syncProof } from '../services/access';
@@ -46,12 +47,12 @@ export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
   const [stage, setStage] = useState<Stage>({ kind: 'task' });
   const [denied, setDenied] = useState(false);
   const [busy, setBusy] = useState(false);
-  const lineNo = todayLine(LINES, SCHEDULE, day)?.no ?? null;
+  const lineNo = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: ent.mix, salt, day })?.no ?? null;
   const w = width - MARGIN * 2;
   const h = Math.round((w * 5) / 4);
   const n = dayCount(record);
-  // The line about this task: its chapter for the daily task, the user's mix for their own.
-  const line = item ? lineForTask(LINES, item.chapter ? [item.chapter] : ent.mix, `${salt}:${day}:${item.key}`, strong) : null;
+  // The daily task explains itself (why, how to start); rules and your own tasks get a line from your mix.
+  const line = item && !item.why ? lineForTask(LINES, ent.mix, `${salt}:${day}:${item.key}`, strong) : null;
 
   useEffect(() => {
     cameraPermission().then(p => setDenied(p === 'denied'));
@@ -168,10 +169,30 @@ export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
         <T v="title.xl" style={{ marginTop: 12 }} accessibilityRole="header">
           {item.text}
         </T>
-        {item.proof ? (
-          <T v="body" color={C.stone} style={{ marginTop: 12 }}>
-            {K.what(item.proof)}
+        {item.why ? (
+          <T v="body" style={{ marginTop: 16, fontSize: 17, lineHeight: 25 }}>
+            {item.why}
           </T>
+        ) : null}
+        {item.how || item.proof ? (
+          <View style={{ marginTop: 24, paddingTop: 16, borderTopWidth: hairline, borderTopColor: C.rule, gap: 16 }}>
+            {item.how ? (
+              <View style={{ gap: 6 }}>
+                <T v="label">{K.howLabel}</T>
+                <T v="body" color={C.stone}>
+                  {item.how}
+                </T>
+              </View>
+            ) : null}
+            {item.proof ? (
+              <View style={{ gap: 6 }}>
+                <T v="label">{K.proofLabel}</T>
+                <T v="body" color={C.stone}>
+                  {K.photoOf(item.proof)}
+                </T>
+              </View>
+            ) : null}
+          </View>
         ) : null}
         {line ? (
           <T v="italic" color={C.stone} style={{ marginTop: 28, fontSize: 20, lineHeight: 25, fontFamily: font.serifItalic }}>

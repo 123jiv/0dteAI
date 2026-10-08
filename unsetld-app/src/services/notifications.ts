@@ -1,10 +1,11 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { isClean, lineForTask, pickFor, todayLine } from '../core/feed';
+import { isClean, lineForTask, pickFor } from '../core/feed';
+import { lineOfDay } from '../core/today';
 import { planNotifications, type PlannedNotification } from '../core/reminders';
 import { dayKeyOf, type DayKey } from '../core/time';
 import type { ChapterId } from '../core/types';
-import { LINE_BY_NO, LINES, PROMPTS, SCHEDULE } from '../content';
+import { LINE_BY_NO, LINES, PROMPTS, SCHEDULE, TASKS } from '../content';
 import { COPY } from '../content/copy';
 
 const supported = Platform.OS !== 'web';
@@ -93,8 +94,8 @@ export function composePlan(input: ScheduleInput, now: Date): ComposedNotificati
       continue;
     }
     if (p.kind === 'today') {
-      const t = todayLine(LINES, SCHEDULE, p.day);
-      // Today's line is the same for everyone, unless this user hid it.
+      const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: input.mix, salt: input.seed, day: p.day });
+      // The day's line goes with the day's task, unless this user hid it.
       const l = t && !hidden.has(t.no) ? t : pickFor(mixPool, `${input.seed}:${p.id}`);
       out.push({ ...p, body: l?.text ?? '', lineNo: l?.no ?? null });
       continue;
