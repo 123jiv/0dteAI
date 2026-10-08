@@ -1,13 +1,13 @@
 [
-  { "slot": "morning", "text": "Up. Do one thing before you look at anyone else's life." },
-  { "slot": "morning", "text": "Today gets one priority. Write it down before you open anything." },
-  { "slot": "morning", "text": "Whatever you're avoiding today, give it the next thirty minutes." },
-  { "slot": "midday", "text": "Half the day is gone. The hard thing hasn't moved." },
-  { "slot": "midday", "text": "Eat something real. Drink some water. Then back to it." },
-  { "slot": "midday", "text": "Phone face down. Look at your list. Do the next thing on it." },
-  { "slot": "evening", "text": "Pick one thing you can finish before dinner. Finish it." },
-  { "slot": "evening", "text": "There's still enough day left to keep your word." },
-  { "slot": "evening", "text": "Whatever you skipped this morning, tonight still counts." },
-  { "slot": "night", "text": "Write tomorrow's first task down before you sleep. One line." },
-  { "slot": "night", "text": "Phone charges in another room tonight. Lights off by midnight." }
+  {"slot": "morning", "text": "Alarm off. Feet on the floor before you open a single app."},
+  {"slot": "morning", "text": "Before school or your shift, write down the one thing that has to get done today."},
+  {"slot": "morning", "text": "Pick the thing you're dreading today and the time you'll do it. Write both down."},
+  {"slot": "midday", "text": "Eat real food at lunch and drink a full glass of water before you open your phone."},
+  {"slot": "midday", "text": "Half the day is gone. Look at your list and start the next thing on it."},
+  {"slot": "midday", "text": "Free period or break coming up. Give ten minutes of it to the thing you keep putting off."},
+  {"slot": "evening", "text": "When you get home, put your phone in another room until the hard thing is done."},
+  {"slot": "evening", "text": "If you haven't moved today, get a 20-minute walk or run in before it gets dark."},
+  {"slot": "evening", "text": "Look at what's still open today. Finish the smallest one before dinner."},
+  {"slot": "night", "text": "Write tomorrow's first task on paper before bed. One line is enough."},
+  {"slot": "night", "text": "Count back nine hours from your alarm. Be in bed by then, phone across the room."}
 ]

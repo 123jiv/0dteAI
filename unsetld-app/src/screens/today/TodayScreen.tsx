@@ -50,7 +50,7 @@ export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
   const done = record.work[day] ?? {};
   const salt = useApp(s => s.installSalt);
   // The day's line goes with the day's task.
-  const line = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: ent.mix, salt, day });
+  const line = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: ent.mix, salt, day, doneDaily: done.d?.text });
   const n = dayCount(record);
 
   const [sheet, setSheet] = useState<'chapters' | 'colorway' | null>(null);

@@ -1,9 +1,9 @@
 [
-  { "id": "discipline", "no": 1, "name": "Discipline", "scope": "Showing up, follow-through, standards.", "free": true },
-  { "id": "focus", "no": 2, "name": "Focus", "scope": "Attention, phones, deep work.", "free": false },
-  { "id": "training", "no": 3, "name": "Training", "scope": "The gym, sleep, food.", "free": false },
-  { "id": "money", "no": 4, "name": "Money", "scope": "Earning, spending, asking for more.", "free": false },
-  { "id": "confidence", "no": 5, "name": "Confidence", "scope": "Speaking up, judgment, the face you show.", "free": false },
-  { "id": "vices", "no": 6, "name": "Vices", "scope": "Phones, drinking, betting, late nights.", "free": false },
-  { "id": "stoic", "no": 7, "name": "Stoic", "scope": "Control, discomfort, perspective.", "free": false }
+  {"id": "discipline", "no": 1, "name": "Discipline", "scope": "The alarm, chores, keeping your word.", "free": true},
+  {"id": "focus", "no": 2, "name": "Focus", "scope": "Your phone, homework, reading, practice.", "free": false},
+  {"id": "training", "no": 3, "name": "Training", "scope": "Workouts, sports, sleep, real food.", "free": false},
+  {"id": "money", "no": 4, "name": "Money", "scope": "Earning, saving, where your money goes.", "free": false},
+  {"id": "confidence", "no": 5, "name": "Confidence", "scope": "Speaking up, asking, showing your work.", "free": false},
+  {"id": "vices", "no": 6, "name": "Vices", "scope": "Scrolling, gaming, vapes, late nights.", "free": false},
+  {"id": "stoic", "no": 7, "name": "Stoic", "scope": "What you control, failing, bad days.", "free": false}
 ]

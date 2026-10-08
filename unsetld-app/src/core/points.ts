@@ -17,6 +17,18 @@ export function dailyTask(tasks: readonly Task[], chapters: readonly ChapterId[]
   return perm[((dayNumber(day) % perm.length) + perm.length) % perm.length];
 }
 
+/**
+ * The daily task as the user sees it: once it's done, it stays the task they
+ * did, even if a chapter change would now pick a different one.
+ */
+export function dailyTaskFor(tasks: readonly Task[], chapters: readonly ChapterId[], salt: string, day: DayKey, doneText?: string): Task | null {
+  if (doneText) {
+    const kept = tasks.find(t => t.text === doneText);
+    if (kept) return kept;
+  }
+  return dailyTask(tasks, chapters, salt, day);
+}
+
 /** A day's work: the three rules, the daily task, then your own tasks. */
 export function dayWork(rules: readonly string[], daily: Task | null, own: readonly { id: string; text: string }[]): WorkItem[] {
   const items: WorkItem[] = rules

@@ -20,8 +20,9 @@ export const LINES = (linesJson as Line[]).filter(isShippable);
 export const LINE_BY_NO: Record<number, Line> = Object.fromEntries(LINES.map(l => [l.no, l]));
 export const VOLUME = Math.max(1, ...LINES.map(l => l.volume));
 
-/** The line O2 shows on first launch: the first line of Discipline, the free chapter. */
-export const ONBOARDING_LINE: Line | undefined = LINE_BY_NO[1] ?? todayCandidates(LINES.filter(l => l.chapter === 'discipline'))[0];
+/** The line O2 shows on first launch (Discipline, the free chapter). */
+export const ONBOARDING_LINE_NO = 6;
+export const ONBOARDING_LINE: Line | undefined = LINE_BY_NO[ONBOARDING_LINE_NO] ?? todayCandidates(LINES.filter(l => l.chapter === 'discipline'))[0];
 
 export const COLORWAYS = colorwaysJson as Colorway[];
 export const COLORWAY_BY_ID = Object.fromEntries(COLORWAYS.map(c => [c.id, c])) as Record<string, Colorway>;

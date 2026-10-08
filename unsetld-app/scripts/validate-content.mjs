@@ -148,6 +148,13 @@ for (const [day, no] of Object.entries(schedule)) {
 if (standard.length !== 8) warnings.push(`standard.json: ${standard.length} rules (spec has 8)`);
 if (colorways.length !== 10) errors.push(`colorways.json: ${colorways.length} colorways (spec has 10)`);
 if (colorways.filter(c => c.free).map(c => c.id).join() !== 'black') errors.push('colorways.json: only Black is free');
+for (const c of colorways) {
+  const l = lines.find(x => norm(x.text) === norm(c.previewLine ?? ''));
+  if (!l || l.explicit) errors.push(`colorways.json ${c.id}: previewLine must be a clean line from the library: ${c.previewLine}`);
+}
+const onboarding = /ONBOARDING_LINE_NO = (\d+)/.exec(fs.readFileSync(path.join(root, 'index.ts'), 'utf8'));
+const first = onboarding && lines.find(x => x.no === Number(onboarding[1]));
+if (!first || first.explicit || first.attribution || first.chapter !== 'discipline') errors.push('index.ts ONBOARDING_LINE_NO must be a clean original Discipline line');
 
 // Daily tasks: short, doable today, provable with one photo.
 const taskIds = new Set();
@@ -172,6 +179,23 @@ for (const t of tasks) {
   if (/\bbuy\b|\bshop\b|\bunsetld\b/i.test(text)) errors.push(`${where}: tasks never sell or send people shopping: ${text}`);
   const proof = (t.proof ?? '').trim();
   if (!proof || words(proof) > 8) errors.push(`${where}: proof must be a short photo description: ${proof}`);
+  const why = (t.why ?? '').trim();
+  const how = (t.how ?? '').trim();
+  if (!why || why.length > 170) errors.push(`${where}: why must be 1–170 characters: ${why}`);
+  if (!how || how.length > 120) errors.push(`${where}: how must be 1–120 characters: ${how}`);
+  for (const s of [why, how]) {
+    if (/[!…]/.test(s) || SWEAR.test(s) || NEVER.test(s) || bannedRe.test(s)) errors.push(`${where}: off-voice: ${s}`);
+  }
+  if (/\bbuy\b|\bshop\b|\bunsetld\b|\bpoints?\b|\bdiscount\b/i.test(`${why} ${how}`)) errors.push(`${where}: tasks never sell or mention points: ${why} ${how}`);
+  // The day's line comes from these, so they must be clean originals from the same chapter.
+  if (!Array.isArray(t.lines) || t.lines.length < 1 || t.lines.length > 2) errors.push(`${where}: lines must list 1–2 line numbers`);
+  else {
+    for (const no of t.lines) {
+      const l = lines.find(x => x.no === no);
+      if (!l) errors.push(`${where}: paired line No. ${no} doesn't exist`);
+      else if (l.chapter !== t.chapter || l.explicit || l.attribution || l.text.length > 80) errors.push(`${where}: paired line No. ${no} must be a clean original of 80 characters or fewer from ${t.chapter}`);
+    }
+  }
   perChapterTasks[t.chapter] = (perChapterTasks[t.chapter] ?? 0) + 1;
 }
 if (!(points.perProof > 0 && points.maxPerDay > 0 && points.maxOff > 0)) errors.push('points.json: perProof, maxPerDay and maxOff must be positive');

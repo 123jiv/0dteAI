@@ -20,7 +20,7 @@ import {
   stats,
   week,
 } from '../record';
-import { allProofs, claimCode, completeTask, dailyTask, dayWork, pointsBalance, provenCounts, readyTier, tierStatus, uncompleteTask } from '../points';
+import { allProofs, claimCode, completeTask, dailyTask, dailyTaskFor, dayWork, pointsBalance, provenCounts, readyTier, tierStatus, uncompleteTask } from '../points';
 import pointsJson from '../../content/points.json';
 import { dayReminderTimes, daysAhead, MAX_PENDING, planNotifications, slotOf } from '../reminders';
 import { addDays, atMinutes, dayKeyOf, diffDays, formatTime, nextDayStart } from '../time';
@@ -227,6 +227,14 @@ describe("today's work", () => {
     const work = dayWork(['Up before 7.', 'Train every day.', 'Finish what I start.'], TASKS[0], [{ id: 'x', text: 'Call home.' }]);
     expect(work.map(w => w.key)).toEqual(['r0', 'r1', 'r2', 'd', 'o:x']);
     expect(work[3]).toMatchObject({ source: 'daily', chapter: 'discipline', proof: 'The made bed.', why: 'Because it matters.', how: 'Start now.' });
+  });
+
+  it('keeps a finished daily task for the rest of the day, even if the chapters change', () => {
+    const before = dailyTask(TASKS, ['discipline'], 'salt', '2026-10-07')!;
+    const after = dailyTaskFor(TASKS, ['focus', 'money'], 'salt', '2026-10-07', before.text)!;
+    expect(after.id).toBe(before.id);
+    expect(dailyTaskFor(TASKS, ['focus'], 'salt', '2026-10-07')!.chapter).toBe('focus');
+    expect(dailyTaskFor(TASKS, ['focus'], 'salt', '2026-10-07', 'A task that was removed.')!.chapter).toBe('focus');
   });
 
   it("takes the day's line from the daily task's paired lines", () => {

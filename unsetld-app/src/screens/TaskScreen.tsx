@@ -47,7 +47,7 @@ export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
   const [stage, setStage] = useState<Stage>({ kind: 'task' });
   const [denied, setDenied] = useState(false);
   const [busy, setBusy] = useState(false);
-  const lineNo = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: ent.mix, salt, day })?.no ?? null;
+  const lineNo = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: ent.mix, salt, day, doneDaily: record.work[day]?.d?.text })?.no ?? null;
   const w = width - MARGIN * 2;
   const h = Math.round((w * 5) / 4);
   const n = dayCount(record);

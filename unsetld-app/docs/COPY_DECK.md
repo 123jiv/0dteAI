@@ -21,8 +21,8 @@ O1 The name
 - Button: Begin
 
 O2 First line
-- Running head: DISCIPLINE · No. 0001
-- Line: That restless feeling isn't a problem. It's an instruction.
+- Running head: DISCIPLINE · No. 0006
+- Line: Count how many times you've started this. Now finish it once.
 - Caption: One line every morning. Then the work.
 - Button: Continue (appears after 2.5 s)
 
@@ -30,14 +30,14 @@ O3 Standard (01 / 04)
 - Title: Set your standard.
 - Body: Pick three. They're your work every day, and each night you'll mark whether you held them. Only you see this.
 - Rules:
-  01 Up before 7.
-  02 Train every day.
-  03 No phone for the first hour.
-  04 Do the hard thing first.
-  05 Finish what I start.
-  06 Know where every dollar goes.
-  07 Read before I scroll.
-  08 In bed before midnight.
+  01 Up on the first alarm.
+  02 No phone for the first hour.
+  03 Work out for 30 minutes.
+  04 Homework before scrolling.
+  05 Read 10 pages of a book.
+  06 No phone in bed.
+  07 Make something every day.
+  08 Write down what I spend.
 - Write your own:
   - row: + Write your own
   - placeholder: Say it plainly.
@@ -48,13 +48,13 @@ O4 Chapters (02 / 04)
 - Title: Choose your chapters.
 - Body: Your daily task and lines come from these. Free includes Discipline and one more. Full Edition opens all seven.
 - Rows (name — scope):
-  01 Discipline — Showing up, follow-through, standards. [ALWAYS]
-  02 Focus — Attention, phones, deep work.
-  03 Training — The gym, sleep, food.
-  04 Money — Earning, spending, asking for more.
-  05 Confidence — Speaking up, judgment, the face you show.
-  06 Vices — Phones, drinking, betting, late nights.
-  07 Stoic — Control, discomfort, perspective.
+  01 Discipline — The alarm, chores, keeping your word. [ALWAYS]
+  02 Focus — Your phone, homework, reading, practice.
+  03 Training — Workouts, sports, sleep, real food.
+  04 Money — Earning, saving, where your money goes.
+  05 Confidence — Speaking up, asking, showing your work.
+  06 Vices — Scrolling, gaming, vapes, late nights.
+  07 Stoic — What you control, failing, bad days.
 - Button: Continue
 
 O5 Your day (03 / 04)
