@@ -146,6 +146,7 @@ for (const [day, no] of Object.entries(schedule)) {
   else if (l.explicit || l.attribution || l.text.length > 80) errors.push(`schedule.json ${day}: today's line must be a clean original ≤80 characters`);
 }
 if (standard.length !== 8) warnings.push(`standard.json: ${standard.length} rules (spec has 8)`);
+for (const r of standard) if (typeof r.text !== 'string' || !CHAPTER_IDS.includes(r.chapter)) errors.push(`standard.json: each rule needs text and a chapter: ${JSON.stringify(r)}`);
 if (colorways.length !== 10) errors.push(`colorways.json: ${colorways.length} colorways (spec has 10)`);
 if (colorways.filter(c => c.free).map(c => c.id).join() !== 'black') errors.push('colorways.json: only Black is free');
 for (const c of colorways) {

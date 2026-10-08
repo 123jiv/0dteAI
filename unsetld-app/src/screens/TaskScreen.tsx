@@ -51,8 +51,8 @@ export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
   const w = width - MARGIN * 2;
   const h = Math.round((w * 5) / 4);
   const n = dayCount(record);
-  // The daily task explains itself (why, how to start); rules and your own tasks get a line from your mix.
-  const line = item && !item.why ? lineForTask(LINES, ent.mix, `${salt}:${day}:${item.key}`, strong) : null;
+  // The daily task explains itself (why, how to start); a rule gets a line from its chapter, your own tasks one from your mix.
+  const line = item && !item.why ? lineForTask(LINES, item.chapter ? [item.chapter] : ent.mix, `${salt}:${day}:${item.key}`, strong) : null;
 
   useEffect(() => {
     cameraPermission().then(p => setDenied(p === 'denied'));

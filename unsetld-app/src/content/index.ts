@@ -30,7 +30,10 @@ export const MILESTONES = milestonesJson as Milestone[];
 export const PROMPTS = remindersJson as ReminderPrompt[];
 export const POINTS = pointsJson as PointsConfig;
 export const SCHEDULE = scheduleJson as Record<string, number>;
-export const STANDARD_RULES = standardJson as string[];
+const standardRules = standardJson as { text: string; chapter: ChapterId }[];
+export const STANDARD_RULES = standardRules.map(r => r.text);
+/** The chapter each preset rule belongs to, so its line and reminders fit it. Written rules have none. */
+export const RULE_CHAPTER: Record<string, ChapterId> = Object.fromEntries(standardRules.map(r => [r.text, r.chapter]));
 export const TASKS = tasksJson as Task[];
 
 export interface LegalSection {

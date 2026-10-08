@@ -168,7 +168,7 @@ For the daily task, under the title:
 - label `HOW TO START`, then the **how**, Inter 15, secondary;
 - label `PROOF`, then `A photo of {proof}`, Inter 15, secondary.
 
-For rules and your own tasks there's no why: the modal keeps the italic line from the mix.
+For rules and your own tasks there's no why: the modal keeps the italic line. A preset rule takes its line from its own chapter (`standard.json` gives each preset a chapter, e.g. `Work out for 30 minutes.` → Training), whatever chapters the user reads, and its reminders do the same; a written rule or your own task takes one from the mix.
 
 ## Full Edition (replaces the table in 5)
 
