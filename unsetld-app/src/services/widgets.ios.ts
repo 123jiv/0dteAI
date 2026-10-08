@@ -6,13 +6,14 @@ import { AppState, Dimensions, Image, PixelRatio, type NativeEventSubscription }
 import type { LineWidgetProps } from '../../widgets/UnsetldLine';
 import type { RecordWidgetProps } from '../../widgets/UnsetldRecord';
 import type { StandardWidgetProps } from '../../widgets/UnsetldStandard';
-import { isClean, isLockEligible, pickFor, todayLine } from '../core/feed';
+import { isClean, isLockEligible, pickFor } from '../core/feed';
 import { dayCount, emptyRecord, week } from '../core/record';
 import { MAX_PENDING } from '../core/reminders';
 import { addDays, dayKeyOf, dayStart, widgetDate, type DayKey } from '../core/time';
+import { lineOfDay } from '../core/today';
 import { catalogueNo, typo } from '../core/typography';
 import type { Colorway, Line } from '../core/types';
-import { chapterLabel, COLORWAYS, LINE_BY_NO, LINES, SCHEDULE } from '../content';
+import { chapterLabel, COLORWAYS, LINE_BY_NO, LINES, SCHEDULE, TASKS } from '../content';
 import { COPY } from '../content/copy';
 import { getDayOffset } from './clock';
 import { composePlan, type ScheduleInput } from './notifications';
@@ -417,7 +418,7 @@ function lineFor(c: Ctx, p: Planned | null, day: DayKey): Line | null {
     const l = pickFor(c.pool, `${seed}:${p.id}`);
     if (l) return l;
   }
-  const t = todayLine(LINES, SCHEDULE, day);
+  const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: c.input.mix, salt: seed, day });
   if (ok(t)) return t;
   return pickFor(c.pool, `${seed}:today:${day}`) ?? t;
 }

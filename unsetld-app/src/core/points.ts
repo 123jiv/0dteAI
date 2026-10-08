@@ -23,7 +23,7 @@ export function dayWork(rules: readonly string[], daily: Task | null, own: reado
     .filter(r => r.trim())
     .slice(0, 3)
     .map((text, i) => ({ key: `r${i}`, text, source: 'rule', chapter: null }));
-  if (daily) items.push({ key: 'd', text: daily.text, source: 'daily', chapter: daily.chapter, proof: daily.proof });
+  if (daily) items.push({ key: 'd', text: daily.text, source: 'daily', chapter: daily.chapter, proof: daily.proof, why: daily.why, how: daily.how });
   for (const o of own) items.push({ key: `o:${o.id}`, text: o.text, source: 'own', chapter: null });
   return items;
 }

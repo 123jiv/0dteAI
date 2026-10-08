@@ -81,6 +81,12 @@ export interface Task {
   /** What the photo shows, e.g. "The page you finished on." */
   proof: string;
   when: 'morning' | 'day' | 'evening' | 'any';
+  /** Why it matters, in a sentence or two. */
+  why: string;
+  /** How to start, right now. */
+  how: string;
+  /** Lines from the same chapter that go with this task; the day's line comes from these. */
+  lines: number[];
 }
 
 /** One item of a day's work. Keys: 'r0'-'r2' (the rules), 'd' (the daily task), 'o:<id>' (your own). */
@@ -89,8 +95,10 @@ export interface WorkItem {
   text: string;
   source: 'rule' | 'daily' | 'own';
   chapter: ChapterId | null;
-  /** Daily task only: what to photograph. */
+  /** Daily task only: what to photograph, why it matters, how to start. */
   proof?: string;
+  why?: string;
+  how?: string;
 }
 
 /** A proof photo, taken in the app. The photo never leaves the phone. */

@@ -130,3 +130,58 @@ Description: `Every chapter, every colorway, more of your own work.`
 - **O4** body: `Your daily task and lines come from these. Free includes Discipline and one more. Full Edition opens all seven.`
 - **Day 3 note:** it appears once on Today under the work, not as a page. Label `ACCESS`, then: `Day 7 opens early access to every UNSETLD drop. Proven work earns points toward codes at unsetld.com.` Link: `See your record`.
 - **Removed copy:** end card, swipe hints, library exhausted, new-volume page, `FOCUS ONLY`.
+
+---
+
+# UNSETLD 2.2: Everyday (supersedes the parts of 2.1 noted below)
+
+**Founder decisions (8 Oct 2026, later)**
+- "Make these tasks like every day tasks for kids who want to become successful like me. I want this to feel relatable and actually mean something." The app has to be useful, not read like a marketing tool.
+- **Audience: 14 to 22.** Everything works for a 14-year-old in 9th grade and for a 21-year-old with a job who isn't in school.
+- **Lines are rewritten for that audience**, and the day's line is tied to the day's task.
+- **Your own tasks are free** for everyone (up to 3).
+- **Codes are open to 13+.** Get the terms reviewed before launch.
+
+## Tasks
+
+- Every library task has `text`, `proof` (what to photograph), `when`, **`why`** (one or two sentences on why it matters, at most 170 characters), **`how`** (how to start right now, at most 120 characters) and **`lines`** (1–2 clean original lines from the same chapter that go with it).
+- Tasks are everyday: they fit a school day or a work day, cost nothing, need no car, no gym and no special equipment, and are safe for a 14-year-old (no diets, weight, caffeine, cold exposure or stunts). The proof photo never needs anyone's face or anything private.
+- The content brief and the review panels that wrote the library are kept in `docs/research/2026-10-08-everyday-content.md`.
+
+## Today's line (replaces "Today's line: unchanged" in 4)
+
+- The day's line is one of the daily task's paired lines (alternating by day when there are two). A day pinned in `schedule.json` still wins. If the task has no usable pair, the global rotation is the fallback.
+- Because the daily task depends on the install and the user's chapters, the line is no longer the same for everyone on a given day. The morning notification, the Line widget and the proof stamp all use this line.
+- Onboarding O2 shows a fixed opening line (`ONBOARDING_LINE` in `src/content/index.ts`).
+
+## Today rows (replaces the second-line labels in 2)
+
+- Rules: `Every day`.
+- The daily task: `Today's task · Focus`.
+- Your own: `Your task`.
+- `+ Add a task` is open to everyone, up to 3. There's no `FULL EDITION` label in the list.
+
+## Task modal (replaces the line block in 3)
+
+For the daily task, under the title:
+- the **why**, Inter 17, ink;
+- label `HOW TO START`, then the **how**, Inter 15, secondary;
+- label `PROOF`, then `A photo of {proof}`, Inter 15, secondary.
+
+For rules and your own tasks there's no why: the modal keeps the italic line from the mix.
+
+## Full Edition (replaces the table in 5)
+
+| | Free | Full Edition |
+|---|---|---|
+| Daily task and lines from | Discipline and one chapter | All seven chapters |
+| Your own tasks | Up to 3 | Up to 3 |
+| Colorways | Black | All ten, app and widgets |
+| Reminders | Up to 3 a day | Up to 10 a day |
+| Your lines (in reminders and on widgets) | none | Yes |
+
+Paywall spec rows: `CHAPTERS`, `COLORWAYS`, `REMINDERS` (the `TASKS` row is removed). Description: `Every chapter, every colorway, more reminders.`
+
+## Defaults
+
+- **Strong language is off by default** (Settings → Strong language). The audience starts at 14.
