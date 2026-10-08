@@ -180,6 +180,12 @@ export function ReaderScreen({ navigation, route }: RootProps<'Reader'>) {
         });
       }
       const now = useApp.getState();
+      // Back in the reader after the night check came due: it becomes page 1.
+      if (mode.kind === 'mix' && !nightOn && nightDue(now.settings.night.on, now.settings.night.time) && now.record.nights[day] === undefined) {
+        setNightOn(true);
+        setActive(0);
+        setScrollTop(t => t + 1);
+      }
       if (!now.record.days[day] || now.reading.dayHeadShown === day) return;
       now.markDayHead(day);
       soft();
@@ -190,7 +196,7 @@ export function ReaderScreen({ navigation, route }: RootProps<'Reader'>) {
       setDayHead(COPY.reader.dayHead(dayCount(now.record)));
       const t = setTimeout(() => setDayHead(null), 2500);
       return () => clearTimeout(t);
-    }, [day, nudge]),
+    }, [day, nudge, mode.kind, nightOn]),
   );
 
   // Milestone and comeback letters: queued until the reader has been idle for 600 ms.

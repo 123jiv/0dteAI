@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, useWindowDimensions, View } from 'react-native';
 import { typo } from '../../core/typography';
 import type { Colorway } from '../../core/types';
 import { COLORWAYS } from '../../content';
@@ -30,6 +30,7 @@ export function ShareSheet({
   onClose: () => void;
   onLocked: () => void;
 }) {
+  const { width } = useWindowDimensions();
   const [format, setFormat] = useState<ShareFormat>('story');
   const [cw, setCw] = useState<Colorway>(colorway);
   const [copied, setCopied] = useState(false);
@@ -44,6 +45,8 @@ export function ShareSheet({
   }
 
   const shown = line ?? last;
+  // Ten 28pt squares on one row: 8pt gaps where they fit, tighter on narrow phones.
+  const squareGap = Math.min(8, Math.floor((width - MARGIN * 2 - 280) / 9));
   const share = async () => {
     const r = await shareCard(captureRef, format);
     if (r === 'preview') setNote(true);
@@ -66,7 +69,7 @@ export function ShareSheet({
               <ShareCard line={shown} colorway={cw} format={format} width={format === 'story' ? 220 : 300} />
             </View>
           </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 20, justifyContent: 'center' }}>
+          <View style={{ flexDirection: 'row', gap: squareGap, marginTop: 20, justifyContent: 'center' }}>
             {COLORWAYS.map(c => {
               const locked = !premium && !c.free;
               const on = c.id === cw.id;
@@ -77,8 +80,10 @@ export function ShareSheet({
                   accessibilityLabel={`${c.name}${locked ? ', Full Edition' : ''}`}
                   accessibilityState={{ selected: on }}
                   onPress={() => (locked ? onLocked() : setCw(c))}
-                  style={{ padding: 2, borderWidth: 1, borderColor: on ? C.bone : 'transparent', opacity: locked ? 0.4 : 1 }}>
+                  hitSlop={6}
+                  style={{ width: 28, height: 28, opacity: locked ? 0.4 : 1 }}>
                   <Image source={SWATCHES[c.id]} style={{ width: 28, height: 28 }} contentFit="cover" />
+                  {on ? <View style={{ position: 'absolute', top: -3, left: -3, right: -3, bottom: -3, borderWidth: 1, borderColor: C.bone }} /> : null}
                 </Pressable>
               );
             })}

@@ -137,11 +137,15 @@ export function ChaptersSheet({
                   accessibilityLabel={`${c.name} in the mix`}
                   accessibilityState={{ checked: on, disabled: c.id === 'discipline' }}
                   onPress={() => toggle(c.id)}
-                  style={{ width: 64, height: 60, alignItems: 'flex-end', justifyContent: 'center' }}>
+                  style={{ minWidth: 64, height: 60, paddingLeft: 12, alignItems: 'flex-end', justifyContent: 'center' }}>
                   {c.id === 'discipline' ? (
-                    <T v="label">{COPY.chapters.always}</T>
+                    <T v="label" numberOfLines={1}>
+                      {COPY.chapters.always}
+                    </T>
                   ) : isLocked ? (
-                    <T v="label">{COPY.chapters.locked}</T>
+                    <T v="label" numberOfLines={1}>
+                      {COPY.chapters.locked}
+                    </T>
                   ) : (
                     <Square on={on} />
                   )}

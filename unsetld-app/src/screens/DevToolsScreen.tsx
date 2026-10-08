@@ -5,9 +5,17 @@ import type { RootProps } from '../navigation/types';
 import { now, today } from '../services/clock';
 import { purchaseMode } from '../services/purchases';
 import { useApp } from '../state/store';
-import { Button, NavRow, PageTitle, Screen, SectionHeader, SettingsRow, Toggle } from '../ui/kit';
+import { Button, NavRow, PageTitle, Screen, SettingsRow, Toggle } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, MARGIN } from '../ui/tokens';
+
+function Label({ children }: { children: string }) {
+  return (
+    <T v="label" style={{ marginTop: 32, marginBottom: 12 }}>
+      {children}
+    </T>
+  );
+}
 
 /**
  * Tester tools (dev builds and the browser preview only): time travel so the
@@ -41,7 +49,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
         <T v="mono">{`DAY ${dayCount(record)} ON RECORD`}</T>
       </View>
 
-      <SectionHeader first>TIME TRAVEL</SectionHeader>
+      <Label>TIME TRAVEL</Label>
       <View style={{ gap: 12 }}>
         <Button kind="outline" title="Next day (then open the reader)" onPress={() => skip(1)} />
         <Button kind="outline" title="Jump 6 days, opening the app each day" onPress={() => grind(6)} />
@@ -51,7 +59,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
         <Button kind="outline" title="Back to the real today" onPress={() => st().backToRealToday()} />
       </View>
 
-      <SectionHeader>FLAGS</SectionHeader>
+      <Label>FLAGS</Label>
       <View style={{ marginHorizontal: -MARGIN }}>
         {purchaseMode === 'preview' ? (
           <SettingsRow
@@ -74,7 +82,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
         />
       </View>
 
-      <SectionHeader>RESET</SectionHeader>
+      <Label>RESET</Label>
       <View style={{ gap: 12 }}>
         <Button
           kind="outline"

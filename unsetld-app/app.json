@@ -39,25 +39,39 @@
           "groupIdentifier": "group.com.unsetld.app",
           "widgets": [
             {
-              "name": "UnsetldHome",
-              "displayName": "Today's line",
-              "description": "A new line every day, with your streak and rank.",
-              "ios": {
-                "supportedFamilies": [
-                  "systemSmall",
-                  "systemMedium"
-                ]
-              }
-            },
-            {
-              "name": "UnsetldLock",
-              "displayName": "Lock Screen line",
-              "description": "Today's line or your streak on the Lock Screen.",
+              "name": "UnsetldLine",
+              "displayName": "Line",
+              "description": "Today’s line, then a new one with each reminder.",
               "ios": {
                 "supportedFamilies": [
                   "accessoryRectangular",
-                  "accessoryInline",
-                  "accessoryCircular"
+                  "systemSmall",
+                  "systemMedium",
+                  "systemLarge"
+                ],
+                "contentMarginsDisabled": true
+              }
+            },
+            {
+              "name": "UnsetldRecord",
+              "displayName": "Record",
+              "description": "Your days on record and this week.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "accessoryCircular",
+                  "accessoryInline"
+                ],
+                "contentMarginsDisabled": true
+              }
+            },
+            {
+              "name": "UnsetldStandard",
+              "displayName": "Standard",
+              "description": "Your three rules, where you’ll see them.",
+              "ios": {
+                "supportedFamilies": [
+                  "accessoryRectangular"
                 ]
               }
             }
@@ -75,7 +89,9 @@
           "imageWidth": 160,
           "backgroundColor": "#0a0a0a"
         }
-      ]
+      ],
+      "expo-image",
+      "expo-video"
     ]
   }
 }

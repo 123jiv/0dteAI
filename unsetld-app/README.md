@@ -1,113 +1,130 @@
-# UNSETLD app
+# UNSETLD
 
-A daily discipline app for guys 18–30. It gives you:
-- lock screen and home screen widgets with a new line every day
-- a swipe feed
-- reminders
-- streaks and a rank system
+**One line every morning, and a record of the days you showed up.**
 
-*Never settle for less. Never stop working.* Showing up earns XP, and higher ranks unlock capped UNSETLD perks.
+UNSETLD is a daily line for the unsettled, built like the Motivation app and on the clothing brand of the same name ("unsettled" minus two letters; *never settle for less*).
 
-Built with **Expo SDK 57** (React Native + TypeScript). The iOS widgets use `expo-widgets`, subscriptions use RevenueCat, and all user data stays on the device.
+- **The line.** One raw, original line every morning, on the lock screen and in the notification. Swipe up for more from the chapters you chose: Discipline, Focus, Training, Money, Confidence, Vices, Stoic.
+- **The standard.** You set three plain rules. Each night the app asks one question: did you hold it?
+- **The record.** Every day you open the line goes on record, drawn like a garment-tag barcode.
+- **Access.** Days on record open access to the brand: drops 24 hours early (Day 7), a capped member price (Day 30), a numbered patch (Day 90), 15% (Day 180) and a piece only year-one people can buy (Day 365). It's never sold. See [docs/ACCESS.md](docs/ACCESS.md).
+
+The design is in [docs/DESIGN_SPEC.md](docs/DESIGN_SPEC.md) and every string is in [docs/COPY_DECK.md](docs/COPY_DECK.md). Built with **Expo SDK 57** (React Native, TypeScript), `expo-widgets` for the iOS widgets and RevenueCat for Full Edition.
 
 ---
 
-## See it and test it
+## See it
 
-### 1. Browser preview (instant, no setup)
+### Browser preview (no setup)
 
 Open the published preview link, or build it yourself:
 
 ```bash
 npm install
-npm run build:preview      # → dist-preview/unsetld-preview.html (one file, open it anywhere)
+npm run build:preview   # → dist-preview/unsetld-preview.html (one file, opens anywhere)
 ```
 
-The whole app runs in the browser. Widgets, notifications and purchases are simulated, and the paywall is in preview mode with no charges.
-- **Tester tools** are under **Me → Tester tools**. They time-travel days so you can watch streaks, rank-ups, shields and decay without waiting months.
+The whole app runs in the browser. Widgets, notifications, Sign in with Apple and purchases are simulated: the paywall is in preview mode and charges nothing.
 
-### 2. On your iPhone with Expo Go (about 5 minutes, needs a computer)
+**Tester tools:** Record → Settings → Tester tools. You can:
+- jump days ahead, to see Day 7 and its letter, Day 30 and so on;
+- disappear for 15 days, to see the pause and the comeback letter;
+- make the night check due now;
+- switch Full Edition on and off.
 
-1. Install **Expo Go** from the App Store on your iPhone.
-2. On a Mac or PC with Node 20+:
-   ```bash
-   cd unsetld-app
-   npm install
-   npx expo start
-   ```
-3. Scan the QR code with the iPhone camera.
+### On your iPhone
 
-Everything except widgets and real purchases works in Expo Go.
-
-### 3. Real build with widgets (dev build)
-
-Widgets need a development build. Pick one:
+Widgets and Sign in with Apple need a development build. Expo Go can't show them.
 
 - **With a Mac and Xcode 26+:** `npx expo run:ios --device`
-- **Without a Mac:** build in the cloud with EAS.
-  1. Make a free Expo account and run `npx eas-cli@latest login`.
-  2. Run `npx eas-cli@latest build --profile development --platform ios`.
-  3. The first time, it walks you through your Apple Developer account ($99/yr) and registering your iPhone.
-  4. Install the build from the QR code, then turn on **Settings → Privacy & Security → Developer Mode**.
-  5. Run `npx expo start` and open the dev build.
+- **Without a Mac (EAS cloud build):**
+  1. `npx eas-cli@latest login`
+  2. `npx eas-cli@latest build --profile development --platform ios`. The first build walks you through your Apple Developer account and registering the phone.
+  3. Install from the QR code, turn on **Settings → Privacy & Security → Developer Mode**, run `npx expo start`, then open the build.
 
-To add the widgets, follow the in-app guide (Me → Add the widget).
+To add a widget, follow the in-app guide: Record → Settings → Add a widget.
 
 ---
 
-## Make it yours
+## Before launch
 
-| What | Where |
-|---|---|
-| App name, links, TikTok accounts, limits | `src/config/app.ts` (display name under the icon: `app.json` → `name`) |
-| Daily lines (edit freely) | `src/content/lines/*.json`, then run `npm run validate` |
-| Stoic quotes (with sources) | `src/content/stoic.json` |
-| Missions, reminder texts, onboarding copy | `src/content/missions.json`, `notifications.json`, `onboarding.json` |
-| Rank thresholds, XP, decay, code limits | `src/content/rank.json` |
-| Themes | `src/content/themes.json` (textures: `npm run textures`) |
-| Privacy, terms, rewards terms | `src/content/legal.json` |
+### 1. Full Edition (App Store Connect + RevenueCat)
 
-Every line has `"status": "draft"`. Flip it to `"approved"` as you review them.
+Prices live in App Store Connect and RevenueCat, never in the code. The paywall reads the localized prices from StoreKit.
 
-## Payments (RevenueCat)
-
-Prices live in App Store Connect and RevenueCat, never in the code.
-
-1. **App Store Connect:** create one subscription group with two products:
-   - **Yearly** $24.99 (`unsetld.premium.annual`), with a **3-day free trial** introductory offer
-   - **Monthly** $4.99 (`unsetld.premium.monthly`)
-
-   Then create a non-consumable **Lifetime** $39.99 (`unsetld.premium.lifetime`).
+1. **App Store Connect:**
+   - Create one subscription group with:
+     - **Annual**, $24.99, `unsetld_full_annual`, with a **3-day free trial** introductory offer
+     - **Monthly**, $4.99, `unsetld_full_monthly`
+   - Create a non-consumable **Lifetime**, $39.99, `unsetld_full_lifetime`.
 2. **RevenueCat:**
-   - Add the three products and attach all of them to the entitlement **`premium`**.
-   - Make an Offering marked **Current**, with packages **Annual**, **Monthly** and **Lifetime**.
-3. Copy `.env.example` to `.env` and paste the RevenueCat **public iOS key**.
+   - Add the three products to the entitlement **`full_edition`**.
+   - Create the Offering **`default`**, marked Current, with packages Annual, Monthly and Lifetime.
+3. Copy `.env.example` to `.env` and paste the RevenueCat **public iOS key**. Without a key the paywall runs in preview mode.
 
-The paywall reads the current Offering. "Save 58%" is calculated from the real prices.
+What Full Edition opens:
+- all seven chapters
+- all ten colorways, in the app and on widgets
+- no daily line limit
+- up to ten reminders a day
+- Your lines
 
-## Discount codes (rank perks, v1)
+Free gets:
+- Discipline plus one chapter
+- the Black colorway
+- 10 lines a day
+- up to 3 reminders
+- the night check, saved lines, sharing, every widget, the Record and all of Access
 
-```bash
-npm run codes   # prints the next 12 months of codes the app will show
-```
+### 2. Access (optional at launch)
 
-Create each one in Shopify. The script's header lists the exact settings: 10% off, $60 minimum, one use per customer, a monthly usage cap, no combinations, and that month's end date. The 15% and 20% tiers turn on with Rank Sync (v2); see `docs/REWARDS.md`.
+Access stays hidden until `https://www.unsetld.com/api/app/config.json` says `"accessEnabled": true`. Build the three small routes in [docs/ACCESS.md](docs/ACCESS.md) first (check-in, sync, claim), then upload `Web/api/app/config.json` and `Web/api/app/drops.json` to the site.
 
-## Drops feed (optional)
+### 3. Content
 
-Put `Web/app-feed.example.json` on your site as `https://www.unsetld.com/app-feed.json`. Users who opted into drop alerts get notified at each drop's time.
+- **Lines:** in `src/content/lines.json`.
+  - Numbers are permanent catalogue numbers ("No. 0412").
+  - `explicit: true` lines never reach widgets, notifications, onboarding or the paywall. People who turn Strong language off never see them.
+  - Run `npm run validate` after every edit. It enforces the voice rules: 7–14 words, at most 80 characters, no "!", banned words, the explicit share and duplicates.
+- **Today's line:** the same line for everyone each day. To choose a specific day's line, add `"2026-11-01": 412` to `src/content/schedule.json`.
+- **Quotes:** attributed Stoic quotes ship only with `"verified": true`. Quotes still being checked live in `src/content/quotes-pending.json`.
+- **Other content:**
+  - reminder prompts: `reminders.json`
+  - standard rules: `standard.json`
+  - colorways: `colorways.json` (plates come from `npm run colorways`)
+  - milestone copy: `milestones.json`
+  - legal pages: `legal.json`
+  - all UI strings: `copy.ts`
+- **Widget guide images:** `assets/guide/widget-lock.jpg` and `widget-home.jpg` are high-fidelity stand-ins. Replace them with real screenshots, or with screen recordings shown via `expo-video`, before launch.
+
+### 4. App Store
+
+- **Name:** UNSETLD: Daily Discipline
+- **Subtitle:** One line every morning.
+- **Age rating:** declare *Frequent profanity*, which gives 13+.
+- **Privacy:** no tracking and no ads. Purchases go through RevenueCat. Identifiers are collected only if the user signs in for Access.
+- **Screenshots:**
+  - clean lines only (never an explicit line)
+  - the list is in the copy deck
+  - **Privacy Policy and Terms:** `src/content/legal.json` holds the in-app copies. Publish them at the URLs in `src/config/app.ts`.
+
+---
+
+## Project map
+
+| Path | What |
+|---|---|
+| `src/screens/` | Onboarding O1–O6, Paywall, Record, Milestone, Letter, Settings and its sub-pages |
+| `src/screens/reader/` | The reader: line pages, night check, end card, the Chapters / Colorway / Share sheets |
+| `src/core/` | Pure, unit-tested rules: the 4:00 AM day, feed, record, Access pause, reminder plan, typography |
+| `src/state/` | Zustand store (persisted), app lifecycle (4:00 AM rollover, rescheduling, deep links) |
+| `src/services/` | Notifications, purchases, widgets, sharing, Access network calls, Sign in with Apple |
+| `src/ui/` | Design tokens, type, buttons/squares/segmented control, icons, the walker, sheets |
+| `widgets/` | The iOS widgets: Line, Record, Standard |
+| `scripts/` | Preview build, content validation, colorway plates |
 
 ## Checks
 
 ```bash
-npm run check      # typecheck + unit tests + content validation
+npm run check   # typecheck + lint + unit tests + content validation
 ```
-
-## Docs
-
-- [Build plan](docs/BUILD_PLAN.md)
-- [Rewards / rank system](docs/REWARDS.md)
-- [Voice sample](docs/VOICE_SAMPLE.md)
-- [Compliance notes](docs/COMPLIANCE.md)
-- [Name + trademark](docs/NAME_AND_TRADEMARK.md)
-- [TikTok slideshows](marketing/tiktok-slideshows.md)

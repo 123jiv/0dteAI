@@ -25,8 +25,9 @@ Run lint and typecheck before declaring any task done.
 
 ## Navigation & Routing
 
-- This project deliberately uses **React Navigation directly** (`src/navigation/RootNavigator.tsx`), not Expo Router: the browser preview (`npm run build:preview`) must never touch the page URL so the single-file build works when opened from any link or file. Deep links for widgets/notifications are configured in `src/App.tsx` (native only). Don't migrate to Expo Router without solving that.
+- This project deliberately uses **React Navigation directly** (`src/navigation/RootNavigator.tsx`, one native stack, no tab bar), not Expo Router: the browser preview (`npm run build:preview`) must never touch the page URL so the single-file build works when opened from any link or file. Deep links (`unsetld://line/{no}`, `today`, `record`, `night-check`) and notification taps become intents (`src/state/intents.ts`, listened for in `src/state/lifecycle.ts` and `index.ts`) that `src/App.tsx` routes once navigation is ready. Don't migrate to Expo Router without solving that.
 - Screens live in `src/screens/`; pure logic in `src/core/` (unit-tested with `npm test`); editable content in `src/content/*.json` (`npm run validate`).
+- The design spec (`docs/DESIGN_SPEC.md`) and copy deck (`docs/COPY_DECK.md`) are the source of truth for UI. Use the tokens and primitives in `src/ui/` (`T`, `Button`, `Square`, `Segmented`, `Sheet`, …); red (`color.signal`) means "today" on the record and appears nowhere else.
 
 ## Building with EAS
 
