@@ -1,11 +1,12 @@
 // All editable content lives in JSON next to this file. Edit the JSON, not the code.
-import type { Chapter, ChapterId, Colorway, Line, Milestone, ReminderPrompt } from '../core/types';
+import type { Chapter, ChapterId, Colorway, Line, Milestone, PointsConfig, ReminderPrompt } from '../core/types';
 import { isShippable } from '../core/feed';
 import chaptersJson from './chapters.json';
 import colorwaysJson from './colorways.json';
 import legalJson from './legal.json';
 import linesJson from './lines.json';
 import milestonesJson from './milestones.json';
+import pointsJson from './points.json';
 import remindersJson from './reminders.json';
 import scheduleJson from './schedule.json';
 import standardJson from './standard.json';
@@ -22,6 +23,7 @@ export const COLORWAYS = colorwaysJson as Colorway[];
 export const COLORWAY_BY_ID = Object.fromEntries(COLORWAYS.map(c => [c.id, c])) as Record<string, Colorway>;
 export const MILESTONES = milestonesJson as Milestone[];
 export const PROMPTS = remindersJson as ReminderPrompt[];
+export const POINTS = pointsJson as PointsConfig;
 export const SCHEDULE = scheduleJson as Record<string, number>;
 export const STANDARD_RULES = standardJson as string[];
 

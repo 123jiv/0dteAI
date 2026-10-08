@@ -12,23 +12,24 @@ import {
   dayCount,
   emptyRecord,
   markLetterShown,
-  memberPriceOpenUnused,
   milestoneStatus,
   pendingLetter,
   recordDay,
   roadPosition,
-  spendMemberPrice,
   stats,
   week,
 } from '../record';
+import { addProof, claimCode, pointsBalance, readyTier, tierStatus } from '../points';
+import pointsJson from '../../content/points.json';
 import { dayReminderTimes, MAX_PENDING, planNotifications, slotOf } from '../reminders';
 import { addDays, atMinutes, dayKeyOf, diffDays, formatTime, nextDayStart } from '../time';
 import { breakBeats, lineSize, typo } from '../typography';
-import type { ChapterId, Line, Milestone, RecordState, ReminderPrompt } from '../types';
+import type { ChapterId, Line, Milestone, PointsConfig, RecordState, ReminderPrompt } from '../types';
 
 const MILESTONES = milestonesJson as Milestone[];
 const LIB = linesJson as Line[];
 const PROMPTS = promptsJson as ReminderPrompt[];
+const POINTS = pointsJson as PointsConfig;
 
 /** Records `n` consecutive days starting at `start`. */
 function onRecord(r: RecordState, start: string, n: number): RecordState {
@@ -108,20 +109,18 @@ describe('record', () => {
     expect(dayCount(r)).toBe(47);
   });
 
-  it('gives milestone statuses, sharing one member price per collection', () => {
-    let r = onRecord(emptyRecord(), '2026-01-01', 31);
+  it('gives milestone statuses: early access pauses, the patch is used once', () => {
+    const r = onRecord(emptyRecord(), '2026-01-01', 31);
     const today = '2026-01-31';
-    expect(milestoneStatus(r, m('early-access'), today, 'C004')).toEqual({ kind: 'open' });
-    expect(milestoneStatus(r, m('member-price'), today, 'C004')).toEqual({ kind: 'open' });
-    expect(milestoneStatus(r, m('patch'), today, 'C004')).toEqual({ kind: 'locked', daysLeft: 59 });
-    expect(memberPriceOpenUnused(r, MILESTONES, today, 'C004')).toBe(true);
-    r = spendMemberPrice(r, 'C004', today);
-    expect(milestoneStatus(r, m('member-price'), today, 'C004')).toEqual({ kind: 'used' });
-    expect(memberPriceOpenUnused(r, MILESTONES, today, 'C004')).toBe(false);
-    // A new collection opens it again.
-    expect(milestoneStatus(r, m('member-price'), today, 'C005')).toEqual({ kind: 'open' });
-    // Paused: early access and member price pause, the count stays.
-    expect(milestoneStatus(r, m('early-access'), '2026-03-01', 'C005')).toEqual({ kind: 'paused' });
+    expect(MILESTONES.map(x => x.day)).toEqual([7, 90, 365]);
+    expect(milestoneStatus(r, m('early-access'), today)).toEqual({ kind: 'open' });
+    expect(milestoneStatus(r, m('patch'), today)).toEqual({ kind: 'locked', daysLeft: 59 });
+    // Paused after 14 missed days: early access pauses, the count stays.
+    expect(milestoneStatus(r, m('early-access'), '2026-03-01')).toEqual({ kind: 'paused' });
+    const big = onRecord(emptyRecord(), '2025-01-01', 95);
+    expect(milestoneStatus(big, m('patch'), '2025-04-05')).toEqual({ kind: 'open' });
+    expect(milestoneStatus({ ...big, patchClaimed: '2025-04-05' }, m('patch'), '2025-04-05')).toEqual({ kind: 'used' });
+    expect(milestoneStatus(big, m('patch'), '2025-06-30')).toEqual({ kind: 'open' }); // the patch never pauses
   });
 
   it('sends one letter for the highest milestone, then a comeback letter', () => {
@@ -137,7 +136,7 @@ describe('record', () => {
     const top = pendingLetter(big, '2025-04-10')!;
     expect(top).toMatchObject({ day: 90 });
     big = markLetterShown(big, top);
-    expect(big.lettersShown).toEqual(expect.arrayContaining(['7', '30', '90']));
+    expect(big.lettersShown).toEqual(expect.arrayContaining(['7', '90']));
     // Comeback after a pause.
     r = onRecord(r, '2026-02-01', 7);
     const back = pendingLetter(r, '2026-02-07')!;
@@ -154,9 +153,44 @@ describe('record', () => {
     expect(barcodeGeometry(120, 334).bar).toBe(1);
     expect(week(r, '2026-10-05').map(d => d.on)).toEqual([false, false, true, true, true, false, true]);
     expect(roadPosition(0)).toBe(0);
-    expect(roadPosition(7)).toBeCloseTo(0.2);
-    expect(roadPosition(60)).toBeCloseTo(0.5);
+    expect(roadPosition(7)).toBeCloseTo(1 / 3);
+    expect(roadPosition(90)).toBeCloseTo(2 / 3);
     expect(roadPosition(400)).toBe(1);
+  });
+});
+
+describe('proof and points', () => {
+  const proof = { uri: '', rule: 0, takenAt: 0, lineNo: 1 };
+  const withProofs = (n: number) => {
+    let r = emptyRecord();
+    for (let i = 0; i < n; i++) r = addProof(r, addDays('2026-09-01', i), proof);
+    return r;
+  };
+
+  it('earns points once per day of proof', () => {
+    let r = withProofs(3);
+    expect(pointsBalance(r, POINTS)).toBe(3 * POINTS.perProof);
+    r = addProof(r, '2026-09-01', { ...proof, rule: 1 }); // replacing a photo earns nothing more
+    expect(pointsBalance(r, POINTS)).toBe(3 * POINTS.perProof);
+  });
+
+  it('trades points for one code each collection', () => {
+    const [ten, fifteen] = POINTS.tiers;
+    let r = withProofs(29);
+    expect(tierStatus(r, POINTS, ten, '004')).toEqual({ kind: 'short', need: ten.points - 29 * POINTS.perProof });
+    expect(readyTier(r, POINTS, '004')).toBeNull();
+    r = withProofs(30);
+    expect(tierStatus(r, POINTS, ten, '004')).toEqual({ kind: 'ready' });
+    expect(readyTier(r, POINTS, '004')).toEqual(ten);
+    r = claimCode(r, POINTS, ten, '004', '2026-10-01', { code: 'X', url: 'u' });
+    expect(pointsBalance(r, POINTS)).toBe(0);
+    expect(r.codes[0]).toMatchObject({ percent: 10, expires: '2026-10-31' });
+    // One code this collection, whatever the balance.
+    r = { ...r, proofs: withProofs(80).proofs };
+    expect(tierStatus(r, POINTS, fifteen, '004')).toEqual({ kind: 'used' });
+    expect(claimCode(r, POINTS, fifteen, '004', '2026-10-02', { code: 'Y', url: 'u' }).codes.length).toBe(1);
+    // The next collection opens it again.
+    expect(tierStatus(r, POINTS, fifteen, '005')).toEqual({ kind: 'ready' });
   });
 });
 

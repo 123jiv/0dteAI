@@ -92,7 +92,15 @@
         }
       ],
       "expo-image",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "unsetld uses the camera only when you add proof of the day’s work. Photos stay on your phone.",
+          "photosPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

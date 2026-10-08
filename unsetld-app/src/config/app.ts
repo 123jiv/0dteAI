@@ -35,7 +35,7 @@ export const AppConfig = {
    * whole product can be seen.
    */
   accessDefault: Platform.OS === 'web',
-  /** Collection the member price applies to until the config says otherwise. */
+  /** Current collection (one code each collection) until the config says otherwise. */
   defaultCollection: '004',
 } as const;
 

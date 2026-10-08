@@ -1,5 +1,7 @@
 import { View } from 'react-native';
-import { dayCount, recordDay } from '../core/record';
+import { dayCount, emptyRecord, recordDay } from '../core/record';
+import { pointsBalance } from '../core/points';
+import { POINTS } from '../content';
 import { addDays, formatTime, minutesOf } from '../core/time';
 import type { RootProps } from '../navigation/types';
 import { now, today } from '../services/clock';
@@ -46,7 +48,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
       <PageTitle title="Tester tools" body="Preview and dev builds only. Time travel changes the app's idea of today; notifications still use the real clock." />
       <View style={{ marginTop: 24, gap: 4 }}>
         <T v="mono">{`TODAY ${today()}  (${offset >= 0 ? '+' : ''}${offset} DAYS)`}</T>
-        <T v="mono">{`DAY ${dayCount(record)} ON RECORD`}</T>
+        <T v="mono">{`DAY ${dayCount(record)} ON RECORD · ${pointsBalance(record, POINTS)} POINTS`}</T>
       </View>
 
       <Label>TIME TRAVEL</Label>
@@ -57,6 +59,22 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
         <Button kind="outline" title="Jump 60 days, opening the app each day" onPress={() => grind(60)} />
         <Button kind="outline" title="Disappear for 15 days" onPress={() => skip(15)} />
         <Button kind="outline" title="Back to the real today" onPress={() => st().backToRealToday()} />
+      </View>
+
+      <Label>PROOF</Label>
+      <View style={{ gap: 12 }}>
+        <Button
+          kind="outline"
+          title="Add 30 days of test proof"
+          onPress={() => {
+            let r = st().record;
+            for (let i = 1; i <= 30; i++) {
+              const d = addDays(today(), -i);
+              if (!r.proofs[d]) r = { ...r, proofs: { ...r.proofs, [d]: { uri: '', rule: null, takenAt: Date.now(), lineNo: null } } };
+            }
+            st().setRecord(r);
+          }}
+        />
       </View>
 
       <Label>FLAGS</Label>
@@ -97,7 +115,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
           title="Clear the record and letters"
           onPress={() => {
             st().backToRealToday();
-            st().setRecord({ days: {}, nights: {}, lettersShown: [], memberPriceUsed: {}, patchClaimed: null });
+            st().setRecord(emptyRecord());
           }}
         />
       </View>

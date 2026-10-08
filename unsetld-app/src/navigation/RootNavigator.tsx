@@ -10,6 +10,8 @@ import { ChaptersScreen } from '../screens/onboarding/ChaptersScreen';
 import { FirstLineScreen } from '../screens/onboarding/FirstLineScreen';
 import { NameScreen } from '../screens/onboarding/NameScreen';
 import { PaywallScreen } from '../screens/PaywallScreen';
+import { ProofCaptureScreen } from '../screens/ProofCaptureScreen';
+import { ProofGalleryScreen } from '../screens/ProofGalleryScreen';
 import { ReaderScreen } from '../screens/reader/ReaderScreen';
 import { RecordScreen } from '../screens/RecordScreen';
 import { SavedScreen } from '../screens/SavedScreen';
@@ -51,6 +53,8 @@ export function RootNavigator() {
       <Stack.Screen name="Doc" component={DocScreen} />
       <Stack.Screen name="Milestone" component={MilestoneScreen} />
       <Stack.Screen name="DevTools" component={DevToolsScreen} />
+      <Stack.Screen name="ProofGallery" component={ProofGalleryScreen} />
+      <Stack.Screen name="ProofCapture" component={ProofCaptureScreen} options={{ presentation: 'fullScreenModal' }} />
       <Stack.Screen name="Paywall" component={PaywallScreen} options={{ presentation: 'fullScreenModal' }} />
       <Stack.Screen name="DocSheet" component={DocScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen

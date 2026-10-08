@@ -15,22 +15,6 @@
     }
   },
   {
-    "id": "member-price",
-    "day": 30,
-    "title": "Member price",
-    "short": "10% off one order each collection.",
-    "detail": "10% off one order each collection at unsetld.com. The code is applied for you.",
-    "action": "Use it at unsetld.com",
-    "pausable": true,
-    "percent": 10,
-    "letter": {
-      "sub": "A month on record. You kept your word.",
-      "body": "Member price is open: 10% off one order each collection at unsetld.com.",
-      "primary": "Use it at unsetld.com",
-      "secondary": "Details"
-    }
-  },
-  {
     "id": "patch",
     "day": 90,
     "title": "The patch",
@@ -42,22 +26,6 @@
       "sub": "Ninety days. This isn't a phase anymore.",
       "body": "Your patch is numbered and waiting. It ships free with your next order.",
       "primary": "Add it to my next order",
-      "secondary": "Details"
-    }
-  },
-  {
-    "id": "member-price-15",
-    "day": 180,
-    "title": "Member price, 15%",
-    "short": "Up from 10%. Same limits.",
-    "detail": "Your member price is now 15%. Still one order each collection.",
-    "action": "Use it at unsetld.com",
-    "pausable": true,
-    "percent": 15,
-    "letter": {
-      "sub": "Half a year of keeping your word.",
-      "body": "Member price is now 15%. Still one order each collection.",
-      "primary": "Use it at unsetld.com",
       "secondary": "Details"
     }
   },

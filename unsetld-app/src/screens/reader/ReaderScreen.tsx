@@ -337,6 +337,8 @@ export function ReaderScreen({ navigation, route }: RootProps<'Reader'>) {
             answer={record.nights[day]}
             day={dayN}
             onAnswer={held => useApp.getState().answerNight(day, held)}
+            hasProof={Boolean(record.proofs[day])}
+            onProof={() => navigation.navigate('ProofCapture')}
           />
         );
       case 'end':
@@ -400,7 +402,7 @@ export function ReaderScreen({ navigation, route }: RootProps<'Reader'>) {
           data={pages}
           keyExtractor={p => p.key}
           renderItem={renderItem}
-          extraData={[active, colorway.id, saved, record.nights[day], isFocused]}
+          extraData={[active, colorway.id, saved, record.nights[day], record.proofs[day], isFocused]}
           pagingEnabled
           decelerationRate="fast"
           showsVerticalScrollIndicator={false}

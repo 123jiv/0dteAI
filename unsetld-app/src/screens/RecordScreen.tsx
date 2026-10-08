@@ -1,25 +1,29 @@
 import { useEffect, useState } from 'react';
-import { Animated, Pressable, useWindowDimensions, View } from 'react-native';
+import { Animated, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
+import { codeForCollection, pointsBalance, proofDays, tierStatus, type TierStatus } from '../core/points';
 import {
   accessState,
   barcode,
   barcodeGeometry,
-  memberPriceOpenUnused,
   milestoneStatus,
   ROAD,
   roadPosition,
   stats,
   type MilestoneStatus,
 } from '../core/record';
-import { shortDate } from '../core/time';
+import { shortDate, type DayKey } from '../core/time';
 import { milestoneNo } from '../core/typography';
 import type { Milestone } from '../core/types';
-import { MILESTONES } from '../content';
+import { MILESTONES, POINTS } from '../content';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
+import { openStore, redeem } from '../services/access';
+import { light } from '../services/haptics';
 import { useAccessEnabled, useApp } from '../state/store';
-import { InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
+import { showDialog } from '../ui/actions';
+import { Button, InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
+import { ProofThumb } from './ProofGalleryScreen';
 import { T } from '../ui/text';
 import { color as C, ease, font, hairline, MARGIN } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
@@ -146,17 +150,82 @@ function MilestoneRow({ m, status, onPress, last }: { m: Milestone; status: Mile
   );
 }
 
-/** Record: days on record, the barcode, three stats, and Access. */
+function tierText(s: TierStatus): string {
+  return s.kind === 'ready' ? R.tierStatus.ready : s.kind === 'used' ? R.tierStatus.used : R.tierStatus.short(s.need);
+}
+
+/** A code tier: points on the left, what it's worth, and its status. Tappable when ready. */
+function TierRow({ points, percent, status, last, onPress }: { points: number; percent: number; status: TierStatus; last: boolean; onPress: () => void }) {
+  const ready = status.kind === 'ready';
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${points} points, ${R.tierTitle(percent)}. ${tierText(status)}`}
+      accessibilityState={{ disabled: !ready }}
+      disabled={!ready}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: 64,
+        paddingVertical: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderTopWidth: hairline,
+        borderBottomWidth: last ? hairline : 0,
+        borderColor: C.rule,
+        opacity: pressed ? 0.6 : 1,
+      })}>
+      <T v="mono" color={ready ? C.bone : C.stone} style={{ width: 48 }}>
+        {String(points)}
+      </T>
+      <View style={{ flex: 1, paddingRight: 12 }}>
+        <T v="row" color={ready ? C.bone : C.muted}>
+          {R.tierTitle(percent)}
+        </T>
+        <T v="note" color={C.stone}>
+          {R.tierSub(points, POINTS.maxOff)}
+        </T>
+      </View>
+      <T v="label" color={ready ? C.bone : C.stone}>
+        {tierText(status)}
+      </T>
+    </Pressable>
+  );
+}
+
+/** Record: days on record, the barcode, three stats, proof and codes, and Access. */
 export function RecordScreen({ navigation }: RootProps<'Record'>) {
   const { width } = useWindowDimensions();
   const w = width - MARGIN * 2;
   const record = useApp(s => s.record);
   const day = useApp(s => s.currentDay);
   const collection = useApp(s => s.remote.collection);
+  const signedIn = useApp(s => Boolean(s.account.userId));
   const accessEnabled = useAccessEnabled();
   const s = stats(record, day);
   const access = accessState(record, day);
-  const mpOpen = memberPriceOpenUnused(record, MILESTONES, day, collection);
+  const balance = pointsBalance(record, POINTS);
+  const claimed = codeForCollection(record, collection);
+  const recent = proofDays(record).slice(0, 6);
+  const thumb = Math.floor((w - 16) / 3);
+  const [codeError, setCodeError] = useState<string | null>(null);
+
+  const getCode = (tier: (typeof POINTS.tiers)[number]) => {
+    if (!signedIn) return navigation.navigate('Account');
+    showDialog(R.redeemTitle(tier.points, tier.percent), R.redeemBody(POINTS.maxOff, POINTS.codeValidDays), [
+      { label: R.redeemNo, cancel: true },
+      {
+        label: R.redeemYes,
+        onPress: async () => {
+          setCodeError(null);
+          const r = await redeem(tier.points, tier.percent);
+          if (r.ok) {
+            useApp.getState().claimCode(tier, { code: r.code, url: r.url });
+            light();
+          } else setCodeError(r.reason === 'used' ? R.oneEach : COPY.milestone.networkError);
+        },
+      },
+    ]);
+  };
 
   return (
     <Screen nav={<NavRow onBack={() => navigation.goBack()} right={<TextButton title={R.settings} onPress={() => navigation.navigate('Settings')} />} />}>
@@ -186,6 +255,79 @@ export function RecordScreen({ navigation }: RootProps<'Record'>) {
         <Stat label={R.held} value={String(s.held)} unit={`${R.of} ${s.total}`} divider />
       </View>
 
+      <View style={{ marginTop: 48, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <T v="title.m" accessibilityRole="header">
+          {R.proof}
+        </T>
+        {accessEnabled ? (
+          <T v="body" color={C.stone}>
+            {R.points(balance)}
+          </T>
+        ) : null}
+      </View>
+      <T v="note" color={C.stone}>
+        {accessEnabled ? R.proofNote(POINTS.perProof) : R.proofNoteNoPoints}
+      </T>
+      {recent.length ? (
+        <View style={{ marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {recent.map((d: DayKey) => (
+            <View key={d} style={{ width: thumb, gap: 6 }}>
+              <ProofThumb uri={record.proofs[d].uri} size={thumb} label={COPY.proof.a11yPhoto(shortDate(d))} onPress={() => navigation.navigate('ProofGallery')} />
+              <T v="mono.s">{shortDate(d)}</T>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      <View style={{ marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        {record.proofs[day] ? (
+          <T v="note" color={C.stone}>
+            {R.proofIn}
+          </T>
+        ) : (
+          <Button kind="outline" title={R.addToday} onPress={() => navigation.navigate('ProofCapture')} style={{ flex: 1 }} />
+        )}
+        {proofDays(record).length > recent.length ? <TextButton title={R.seeAll} onPress={() => navigation.navigate('ProofGallery')} /> : null}
+      </View>
+
+      {accessEnabled ? (
+        <View style={{ marginTop: 32 }}>
+          <T v="label">{R.codes}</T>
+          <View style={{ marginTop: 8 }}>
+            {POINTS.tiers.map((t, i) => (
+              <TierRow
+                key={t.points}
+                points={t.points}
+                percent={t.percent}
+                status={tierStatus(record, POINTS, t, collection)}
+                last={i === POINTS.tiers.length - 1}
+                onPress={() => getCode(t)}
+              />
+            ))}
+          </View>
+          {claimed ? (
+            <View style={{ marginTop: 16, gap: 6 }}>
+              <T v="mono.l" selectable accessibilityLabel={`Your code: ${claimed.code}`}>
+                {claimed.code}
+              </T>
+              <T v="note" color={C.stone}>
+                {R.codeExpires(shortDate(claimed.expires))}
+              </T>
+              <InlineLink title={R.useCode} onPress={() => openStore(claimed.url)} />
+              {Platform.OS === 'web' ? (
+                <T v="mono.s" style={{ marginTop: 4 }}>
+                  {R.previewCode}
+                </T>
+              ) : null}
+            </View>
+          ) : null}
+          {codeError ? (
+            <T v="note" color={C.stone} style={{ marginTop: 12 }}>
+              {codeError}
+            </T>
+          ) : null}
+        </View>
+      ) : null}
+
       {accessEnabled ? (
         <View>
           <View style={{ marginTop: 48, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
@@ -210,20 +352,12 @@ export function RecordScreen({ navigation }: RootProps<'Record'>) {
               <MilestoneRow
                 key={m.id}
                 m={m}
-                status={milestoneStatus(record, m, day, collection)}
+                status={milestoneStatus(record, m, day)}
                 last={i === MILESTONES.length - 1}
                 onPress={() => navigation.navigate('Milestone', { id: m.id })}
               />
             ))}
           </View>
-          {mpOpen ? (
-            <View style={{ marginTop: 24, gap: 4 }}>
-              <T v="body" color={C.stone}>
-                {R.memberOpen}
-              </T>
-              <InlineLink title={R.memberLink} onPress={() => navigation.navigate('Milestone', { id: s.total >= 180 ? 'member-price-15' : 'member-price' })} />
-            </View>
-          ) : null}
         </View>
       ) : null}
       <View style={{ height: 64 }} />

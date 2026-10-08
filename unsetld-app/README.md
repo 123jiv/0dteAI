@@ -7,7 +7,8 @@ UNSETLD is a daily line for the unsettled, built like the Motivation app and on 
 - **The line.** One raw, original line every morning, on the lock screen and in the notification. Swipe up for more from the chapters you chose: Discipline, Focus, Training, Money, Confidence, Vices, Stoic.
 - **The standard.** You set three plain rules. Each night the app asks one question: did you hold it?
 - **The record.** Every day you open the line goes on record, drawn like a garment-tag barcode.
-- **Access.** Days on record open access to the brand: drops 24 hours early (Day 7), a capped member price (Day 30), a numbered patch (Day 90), 15% (Day 180) and a piece only year-one people can buy (Day 365). It's never sold. See [docs/ACCESS.md](docs/ACCESS.md).
+- **Proof and points.** Once a day you can add proof: a photo of the work, taken live in the app and kept on the phone. Each day with proof is 10 points, and points trade for a discount code at unsetld.com (300 = 10% off, 500 = 15%, up to $25, one code each collection).
+- **Access.** Days on record open access to the brand: drops 24 hours early (Day 7), a numbered patch (Day 90) and a piece only year-one people can buy (Day 365). None of it is sold. See [docs/ACCESS.md](docs/ACCESS.md).
 
 The design is in [docs/DESIGN_SPEC.md](docs/DESIGN_SPEC.md) and every string is in [docs/COPY_DECK.md](docs/COPY_DECK.md). Built with **Expo SDK 57** (React Native, TypeScript), `expo-widgets` for the iOS widgets and RevenueCat for Full Edition.
 
@@ -27,7 +28,8 @@ npm run build:preview   # → dist-preview/unsetld-preview.html (one file, opens
 The whole app runs in the browser. Widgets, notifications, Sign in with Apple and purchases are simulated: the paywall is in preview mode and charges nothing.
 
 **Tester tools:** Record → Settings → Tester tools. You can:
-- jump days ahead, to see Day 7 and its letter, Day 30 and so on;
+- jump days ahead, to see Day 7 and its letter;
+- add 30 days of test proof, to trade points for a code;
 - disappear for 15 days, to see the pause and the comeback letter;
 - make the night check due now;
 - switch Full Edition on and off.
@@ -78,7 +80,7 @@ Free gets:
 
 ### 2. Access (optional at launch)
 
-Access stays hidden until `https://www.unsetld.com/api/app/config.json` says `"accessEnabled": true`. Build the three small routes in [docs/ACCESS.md](docs/ACCESS.md) first (check-in, sync, claim), then upload `Web/api/app/config.json` and `Web/api/app/drops.json` to the site.
+Access stays hidden until `https://www.unsetld.com/api/app/config.json` says `"accessEnabled": true`. Build the small routes in [docs/ACCESS.md](docs/ACCESS.md) first (check-in, sync, proof, redeem, claim), then upload `Web/api/app/config.json` and `Web/api/app/drops.json` to the site.
 
 ### 3. Content
 

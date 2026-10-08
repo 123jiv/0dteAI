@@ -30,6 +30,8 @@ export type RootParams = {
   DocSheet: { id: DocId };
   Milestone: { id: MilestoneId };
   Letter: { letter: Letter };
+  ProofCapture: undefined;
+  ProofGallery: undefined;
   DevTools: undefined;
 };
 

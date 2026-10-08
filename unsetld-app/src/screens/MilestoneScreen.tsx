@@ -26,12 +26,11 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
   const m = MILESTONES.find(x => x.id === id)!;
   const record = useApp(s => s.record);
   const day = useApp(s => s.currentDay);
-  const collection = useApp(s => s.remote.collection);
   const signedIn = useApp(s => Boolean(s.account.userId));
   const dropAlerts = useApp(s => s.settings.dropAlerts);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const status = milestoneStatus(record, m, day, collection);
+  const status = milestoneStatus(record, m, day);
 
   const statusLabel =
     status.kind === 'open' ? R.open : status.kind === 'used' ? R.used : status.kind === 'paused' ? R.paused : R.left(status.daysLeft);

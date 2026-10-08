@@ -54,7 +54,7 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
       useApp.getState().signIn({ userId: r.userId, email: r.email });
       // First sign-in: hold the user's place with the days already verified on this phone.
       const rec = useApp.getState().record;
-      syncRecord(sortedDays(rec).filter(d => rec.days[d].verified)).catch(() => {});
+      syncRecord(sortedDays(rec).filter(d => rec.days[d].verified), Object.keys(rec.proofs).sort()).catch(() => {});
       navigation.goBack();
     } catch {
       setError(true);

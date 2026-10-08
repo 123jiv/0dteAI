@@ -1,0 +1,9 @@
+{
+  "perProof": 10,
+  "tiers": [
+    { "points": 300, "percent": 10 },
+    { "points": 500, "percent": 15 }
+  ],
+  "maxOff": 25,
+  "codeValidDays": 30
+}

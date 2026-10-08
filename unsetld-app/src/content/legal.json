@@ -2,57 +2,156 @@
   "record": {
     "title": "How the record works",
     "sections": [
-      { "h": "On record", "p": "A day goes on record when you open that day's line, in the app, from a widget or from a reminder. One a day. A day runs from 4:00 AM to 3:59 AM, so late nights count." },
-      { "h": "It only goes up", "p": "Missed days don't erase the ones on record." },
-      { "h": "The night check", "p": "It's between you and you. Saying Not today keeps the day on record." },
-      { "h": "Access", "list": [
-        "Day 7: every UNSETLD drop opens to you 24 hours before the public.",
-        "Day 30: 10% off one order each collection.",
-        "Day 90: a woven patch with your number, free with your next order.",
-        "Day 180: the member price goes to 15%.",
-        "Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked."
-      ] },
-      { "h": "Keeping it", "p": "If 14 days pass with nothing on record, early access and member prices pause until you put 7 more days on record. Your count and milestones stay." },
-      { "h": "Limits", "p": "One member-price order per collection. Up to $25 off an order. Doesn't combine with other codes, including the 10% first-order code. Excludes the 365 piece. One patch per person." },
-      { "h": "It can't be bought", "p": "Full Edition doesn't change any of this. Access is the same for everyone." },
-      { "h": "Account", "p": "To use access you need a free account, made with Sign in with Apple, so we can hold your place." }
+      {
+        "h": "On record",
+        "p": "A day goes on record when you open that day's line, in the app, from a widget or from a reminder. One a day. A day runs from 4:00 AM to 3:59 AM, so late nights count."
+      },
+      {
+        "h": "It only goes up",
+        "p": "Missed days don't erase the ones on record."
+      },
+      {
+        "h": "The night check",
+        "p": "It's between you and you. Saying Not today keeps the day on record."
+      },
+      {
+        "h": "Proof",
+        "p": "Once a day you can add proof: a photo of the work, taken in the app. It stays on this phone. Each day with proof is 10 points."
+      },
+      {
+        "h": "Points",
+        "list": [
+          "300 points: 10% off one order at unsetld.com.",
+          "500 points: 15% off one order at unsetld.com.",
+          "Up to $25 off, one code each collection. Codes work for 30 days."
+        ]
+      },
+      {
+        "h": "Access",
+        "list": [
+          "Day 7: every UNSETLD drop opens to you 24 hours before the public.",
+          "Day 90: a woven patch with your number, free with your next order.",
+          "Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked."
+        ]
+      },
+      {
+        "h": "Keeping it",
+        "p": "If 14 days pass with nothing on record, early access pauses until you put 7 more days on record. Your count, points and milestones stay."
+      },
+      {
+        "h": "Limits",
+        "p": "One code each collection. Up to $25 off an order. Codes don't combine with other codes, including the 10% first-order code, and exclude the 365 piece. One patch per person."
+      },
+      {
+        "h": "It can't be bought",
+        "p": "Full Edition doesn't change any of this. Points and access are the same for everyone."
+      },
+      {
+        "h": "Account",
+        "p": "To use a code or access you need a free account, made with Sign in with Apple, so we can hold your place."
+      }
     ]
   },
   "access": {
     "title": "Access terms",
     "updated": "2026-10-07",
     "sections": [
-      { "h": "Who can take part", "p": "For US residents 18 and over." },
-      { "h": "What access is", "p": "Access is earned with days on record in the app. It can't be bought, and Full Edition doesn't change it. Early access opens drops 24 hours before the public. The member price is 10% off one order each collection, 15% from Day 180, up to $25 off an order. The patch is one per person and ships free with an order. The 365 piece is sold at full price." },
-      { "h": "Limits", "p": "No cash value. Not transferable. Codes are single use and don't combine with other codes, including the first-order code. The member price excludes the 365 piece." },
-      { "h": "Pauses", "p": "If 14 days pass with nothing on record, early access and member prices pause until 7 more days are on record. Your count and milestones stay." },
-      { "h": "Changes", "p": "We may change or end the program with 30 days' notice in the app." },
-      { "h": "Contact", "p": "unsetldclothing@gmail.com" }
+      {
+        "h": "Who can take part",
+        "p": "For US residents 18 and over."
+      },
+      {
+        "h": "What you can earn",
+        "p": "Access and points are earned in the app. They can't be bought, and Full Edition doesn't change them. Early access opens drops 24 hours before the public from Day 7. The patch is one per person and ships free with an order from Day 90. The 365 piece is sold at full price from Day 365."
+      },
+      {
+        "h": "Points and codes",
+        "p": "Each day with proof is 10 points. Proof must be your own photo of that day's work, taken in the app. 300 points can be traded for 10% off one order, 500 points for 15%, up to $25 off. One code each collection. Codes are single use, work for 30 days and are only valid at unsetld.com. We may remove points earned through misuse."
+      },
+      {
+        "h": "Limits",
+        "p": "No cash value. Not transferable. Points and codes can't be sold or exchanged for money. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece."
+      },
+      {
+        "h": "Pauses",
+        "p": "If 14 days pass with nothing on record, early access pauses until 7 more days are on record. Your count, points and milestones stay."
+      },
+      {
+        "h": "Changes",
+        "p": "We may change or end the program with 30 days' notice in the app. Points already earned can still be traded for 30 days after it ends."
+      },
+      {
+        "h": "Contact",
+        "p": "unsetldclothing@gmail.com"
+      }
     ]
   },
   "terms": {
     "title": "Terms of Use",
     "updated": "2026-10-07",
     "sections": [
-      { "h": "Using UNSETLD", "p": "UNSETLD gives you a daily line, reminders, a night check and a record of the days you showed up. It is motivation, not medical, financial or professional advice." },
-      { "h": "Full Edition", "p": "Full Edition is sold through Apple as an auto-renewing subscription (yearly or monthly) or a one-time lifetime purchase. Payment is charged to your Apple ID at confirmation of purchase, or when a free trial ends. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings, your name, Subscriptions. Any unused part of a free trial ends when you buy a subscription." },
-      { "h": "Apple's standard terms", "p": "Apple's Licensed Application End User License Agreement (apple.com/legal/internet-services/itunes/dev/stdeula) also applies." },
-      { "h": "Access", "p": "Access to the clothing brand is covered by the Access terms in Settings." },
-      { "h": "Content", "p": "The lines in the app are original to UNSETLD, except attributed quotes, which are public-domain translations. Lines you write yourself stay on your phone." },
-      { "h": "Contact", "p": "unsetldclothing@gmail.com" }
+      {
+        "h": "Using UNSETLD",
+        "p": "UNSETLD gives you a daily line, reminders, a night check and a record of the days you showed up. It is motivation, not medical, financial or professional advice."
+      },
+      {
+        "h": "Full Edition",
+        "p": "Full Edition is sold through Apple as an auto-renewing subscription (yearly or monthly) or a one-time lifetime purchase. Payment is charged to your Apple ID at confirmation of purchase, or when a free trial ends. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings, your name, Subscriptions. Any unused part of a free trial ends when you buy a subscription."
+      },
+      {
+        "h": "Apple's standard terms",
+        "p": "Apple's Licensed Application End User License Agreement (apple.com/legal/internet-services/itunes/dev/stdeula) also applies."
+      },
+      {
+        "h": "Access",
+        "p": "Access to the clothing brand is covered by the Access terms in Settings."
+      },
+      {
+        "h": "Content",
+        "p": "The lines in the app are original to UNSETLD, except attributed quotes, which are public-domain translations. Lines you write yourself stay on your phone."
+      },
+      {
+        "h": "Contact",
+        "p": "unsetldclothing@gmail.com"
+      }
     ]
   },
   "privacy": {
     "title": "Privacy Policy",
     "updated": "2026-10-07",
     "sections": [
-      { "h": "The short version", "p": "Your record, your standard, saved lines and your lines live on your iPhone. There are no ads, no tracking and no analytics SDKs." },
-      { "h": "What leaves your phone", "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so Full Edition works across your devices. Time check: the app asks unsetld.com for the current date so days on record stay honest. No identifier is sent. Config: the app reads a small public file from unsetld.com to know whether access is on and when drops open." },
-      { "h": "If you sign in for access", "p": "Signing in with Apple is optional and only needed to use access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you put on record so we can hold your place and issue single-use codes. Nothing else." },
-      { "h": "Notifications", "p": "Reminders and the night check are local notifications scheduled on your phone. Drop alerts are separate, off by default, and only on if you turn them on." },
-      { "h": "Store links", "p": "Links to unsetld.com open in Safari, which is covered by that site's privacy policy." },
-      { "h": "Deleting your data", "p": "Delete the app to remove what's stored on your phone. To delete an access account, email unsetldclothing@gmail.com from the address on the account or sign out and ask us to remove it." },
-      { "h": "Contact", "p": "unsetldclothing@gmail.com" }
+      {
+        "h": "The short version",
+        "p": "Your record, your standard, proof photos, saved lines and your lines live on your iPhone. There are no ads, no tracking and no analytics SDKs."
+      },
+      {
+        "h": "What leaves your phone",
+        "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so Full Edition works across your devices. Time check: the app asks unsetld.com for the current date so days on record stay honest. No identifier is sent. Config: the app reads a small public file from unsetld.com to know whether access is on and when drops open."
+      },
+      {
+        "h": "Camera",
+        "p": "The camera is used only when you add proof. Photos are saved inside the app on this phone and are never uploaded."
+      },
+      {
+        "h": "If you sign in for codes or access",
+        "p": "Signing in with Apple is optional and only needed to use codes and access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you put on record and the days you added proof (the date only, never the photo) so we can hold your place and issue single-use codes. Nothing else."
+      },
+      {
+        "h": "Notifications",
+        "p": "Reminders and the night check are local notifications scheduled on your phone. Drop alerts are separate, off by default, and only on if you turn them on."
+      },
+      {
+        "h": "Store links",
+        "p": "Links to unsetld.com open in Safari, which is covered by that site's privacy policy."
+      },
+      {
+        "h": "Deleting your data",
+        "p": "Delete the app to remove what's stored on your phone. To delete an access account, email unsetldclothing@gmail.com from the address on the account or sign out and ask us to remove it."
+      },
+      {
+        "h": "Contact",
+        "p": "unsetldclothing@gmail.com"
+      }
     ]
   }
 }

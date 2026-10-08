@@ -60,17 +60,41 @@ export async function syncCheckIn(day: DayKey) {
   await post('checkin', { dayKey: day });
 }
 
-/** First sign-in: send the locally verified days so the server can hold the user's place. */
-export async function syncRecord(days: DayKey[]) {
-  await post('sync', { days });
+/** First sign-in: send the locally verified days (and the days with proof) so the server can hold the user's place. */
+export async function syncRecord(days: DayKey[], proofDays: DayKey[]) {
+  await post('sync', { days, proofDays });
 }
 
-export type Perk = 'member-price' | 'patch' | 'early-access' | 'piece-365';
+/** One proof per account per server day. Only the date goes up, never the photo. */
+export async function syncProof(day: DayKey) {
+  await post('proof', { dayKey: day });
+}
+
+export type Perk = 'patch' | 'early-access' | 'piece-365';
 
 export type ClaimResult = { ok: true; url: string; simulated?: boolean } | { ok: false; reason: 'network' | 'paused' | 'used' };
 
+export type RedeemResult =
+  | { ok: true; code: string; url: string; simulated?: boolean }
+  | { ok: false; reason: 'network' | 'used' | 'short' };
+
 /**
- * Mints a single-use code on the server and returns the store URL that applies it.
+ * Trades points for a single-use code. The server recounts points from its own
+ * proof days, mints the Shopify code and returns it with the URL that applies it.
+ */
+export async function redeem(points: number, percent: number): Promise<RedeemResult> {
+  if (IS_PREVIEW && Platform.OS === 'web') {
+    const code = `UNSETLD${percent}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    return { ok: true, code, url: AppConfig.storeUrl, simulated: true };
+  }
+  const res = await post<{ code?: string; url?: string; error?: string }>('redeem', { points, percent });
+  if (res?.code && res.url) return { ok: true, code: res.code, url: res.url };
+  if (res?.error === 'used' || res?.error === 'short') return { ok: false, reason: res.error };
+  return { ok: false, reason: 'network' };
+}
+
+/**
+ * Claims a milestone (patch, early access, the 365 piece) and returns the store URL.
  * Preview builds simulate the claim and open the store front.
  */
 export async function claim(perk: Perk): Promise<ClaimResult> {

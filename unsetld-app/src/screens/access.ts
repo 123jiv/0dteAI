@@ -8,8 +8,6 @@ export type ActionResult = 'done' | 'needs-account' | 'paused' | 'used' | 'netwo
 
 const PERK: Record<MilestoneId, Perk | null> = {
   'early-access': null,
-  'member-price': 'member-price',
-  'member-price-15': 'member-price',
   patch: 'patch',
   'piece-365': 'piece-365',
 };
@@ -24,7 +22,6 @@ export async function runMilestoneAction(id: MilestoneId): Promise<ActionResult>
   const perk = PERK[id]!;
   const r = await claim(perk);
   if (!r.ok) return r.reason;
-  if (perk === 'member-price') useApp.getState().spendMemberPrice();
   if (perk === 'patch') useApp.getState().claimPatch();
   openStore(r.url);
   return 'done';

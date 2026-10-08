@@ -49,7 +49,7 @@ export interface Colorway {
   previewLine: string;
 }
 
-export type MilestoneId = 'early-access' | 'member-price' | 'patch' | 'member-price-15' | 'piece-365';
+export type MilestoneId = 'early-access' | 'patch' | 'piece-365';
 
 export interface Milestone {
   id: MilestoneId;
@@ -59,7 +59,6 @@ export interface Milestone {
   detail: string;
   action: string;
   pausable: boolean;
-  percent?: number;
   letter: { sub: string; body: string; primary: string; secondary: string };
 }
 
@@ -74,13 +73,46 @@ export interface DayEntry {
   verified: boolean;
 }
 
+/** One day's proof: a photo of the work, taken in the app. The photo never leaves the phone. */
+export interface Proof {
+  /** Local file (iOS) or stored image key (browser preview). Empty if the photo is gone (reinstall). */
+  uri: string;
+  /** Which of the three rules it proves (0-2), if the user picked one. */
+  rule: number | null;
+  /** Real time the photo was kept. */
+  takenAt: number;
+  /** The day's catalogue number, stamped on the photo. */
+  lineNo: number | null;
+}
+
+/** A discount code traded for points. */
+export interface CodeClaim {
+  day: DayKey;
+  collection: string;
+  points: number;
+  percent: number;
+  code: string;
+  url: string;
+  /** Last day it works. */
+  expires: DayKey;
+}
+
+export interface PointsConfig {
+  perProof: number;
+  tiers: { points: number; percent: number }[];
+  maxOff: number;
+  codeValidDays: number;
+}
+
 export interface RecordState {
   days: Record<DayKey, DayEntry>;
   /** Night check answers: true = Held, false = Not today. Never affects the record. */
   nights: Record<DayKey, boolean>;
-  /** Milestone letters already shown: '7', '30', '90', '180', '365', or 'comeback:YYYY-MM-DD'. */
+  /** Milestone letters already shown: '7', '90', '365', or 'comeback:YYYY-MM-DD'. */
   lettersShown: string[];
-  /** Member price used, per collection id. */
-  memberPriceUsed: Record<string, DayKey>;
   patchClaimed: DayKey | null;
+  /** Proof per day (at most one). */
+  proofs: Record<DayKey, Proof>;
+  /** Codes traded for points. */
+  codes: CodeClaim[];
 }

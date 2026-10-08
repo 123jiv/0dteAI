@@ -8,10 +8,10 @@ export const PAUSE_AFTER_MISSED = 14;
 /** Days on record needed after a pause to open access again. */
 export const REOPEN_AFTER = 7;
 /** Road milestones, in order. */
-export const ROAD = [7, 30, 90, 180, 365] as const;
+export const ROAD = [7, 90, 365] as const;
 
 export function emptyRecord(): RecordState {
-  return { days: {}, nights: {}, lettersShown: [], memberPriceUsed: {}, patchClaimed: null };
+  return { days: {}, nights: {}, lettersShown: [], patchClaimed: null, proofs: {}, codes: [] };
 }
 
 export function sortedDays(r: RecordState): DayKey[] {
@@ -121,30 +121,13 @@ export type MilestoneStatus =
   | { kind: 'paused' }
   | { kind: 'locked'; daysLeft: number };
 
-/** Member price shares one use per collection between the 10% and 15% rows. */
-export function milestoneStatus(
-  r: RecordState,
-  m: Milestone,
-  today: DayKey,
-  collection: string,
-): MilestoneStatus {
+/** Early access pauses; the patch is used once claimed; the 365 piece stays open. */
+export function milestoneStatus(r: RecordState, m: Milestone, today: DayKey): MilestoneStatus {
   const n = dayCount(r);
   if (n < m.day) return { kind: 'locked', daysLeft: m.day - n };
   if (m.pausable && accessState(r, today).paused) return { kind: 'paused' };
-  if ((m.id === 'member-price' || m.id === 'member-price-15') && r.memberPriceUsed[collection]) return { kind: 'used' };
   if (m.id === 'patch' && r.patchClaimed) return { kind: 'used' };
   return { kind: 'open' };
-}
-
-/** The member-price milestone that applies now (15% from Day 180), or null below Day 30. */
-export function currentMemberPrice(milestones: Milestone[], n: number): Milestone | null {
-  const mp = milestones.filter(m => m.id === 'member-price' || m.id === 'member-price-15').filter(m => n >= m.day);
-  return mp.length ? mp[mp.length - 1] : null;
-}
-
-export function memberPriceOpenUnused(r: RecordState, milestones: Milestone[], today: DayKey, collection: string): boolean {
-  const m = currentMemberPrice(milestones, dayCount(r));
-  return Boolean(m && milestoneStatus(r, m, today, collection).kind === 'open');
 }
 
 export type Letter = { kind: 'milestone'; day: number; key: string } | { kind: 'comeback'; day: DayKey; key: string };
@@ -170,11 +153,6 @@ export function markLetterShown(r: RecordState, letter: Letter): RecordState {
   keys.add(letter.key);
   if (letter.kind === 'milestone') for (const d of ROAD) if (d <= letter.day) keys.add(String(d));
   return { ...r, lettersShown: [...keys] };
-}
-
-export function spendMemberPrice(r: RecordState, collection: string, day: DayKey): RecordState {
-  if (r.memberPriceUsed[collection]) return r;
-  return { ...r, memberPriceUsed: { ...r.memberPriceUsed, [collection]: day } };
 }
 
 export function claimPatch(r: RecordState, day: DayKey): RecordState {
@@ -213,7 +191,7 @@ export function week(r: RecordState, today: DayKey): { day: DayKey; on: boolean;
   });
 }
 
-/** Walker position along the road, 0..1. Piecewise-linear over 0, 7, 30, 90, 180, 365. */
+/** Walker position along the road, 0..1. Piecewise-linear over 0, 7, 90, 365. */
 export function roadPosition(n: number): number {
   const stops = [0, ...ROAD];
   if (n <= 0) return 0;

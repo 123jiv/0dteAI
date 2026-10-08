@@ -2,19 +2,19 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { AppConfig } from '../config/app';
 import { randomSalt } from '../core/random';
+import { addProof, claimCode } from '../core/points';
 import {
   answerNight,
   claimPatch,
   emptyRecord,
   markLetterShown,
   recordDay,
-  spendMemberPrice,
   type Letter,
 } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
-import type { ChapterId, Colorway, RecordState, YourLine } from '../core/types';
-import { COLORWAY_BY_ID, COLORWAYS, STANDARD_RULES } from '../content';
+import type { ChapterId, Colorway, PointsConfig, Proof, RecordState, YourLine } from '../core/types';
+import { COLORWAY_BY_ID, COLORWAYS, POINTS, STANDARD_RULES } from '../content';
 import { getDayOffset, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
 import { appStorage } from './storage';
@@ -106,8 +106,10 @@ interface State {
   signOut: () => void;
   setRemote: (r: Partial<Remote>) => void;
   letterShown: (l: Letter) => void;
-  spendMemberPrice: () => void;
   claimPatch: () => void;
+  /** Today's proof. Returns the points it earned (0 if today already had proof). */
+  addProof: (proof: Proof) => number;
+  claimCode: (tier: PointsConfig['tiers'][number], minted: { code: string; url: string }) => void;
   markDayHead: (day: DayKey) => void;
   markAccessIntro: () => void;
   markVolume: (v: number) => void;
@@ -229,8 +231,15 @@ export const useApp = create<State>()(
       setRemote: r => set(s => ({ remote: { ...s.remote, ...r } })),
 
       letterShown: l => set(s => ({ record: markLetterShown(s.record, l) })),
-      spendMemberPrice: () => set(s => ({ record: spendMemberPrice(s.record, s.remote.collection, today()) })),
       claimPatch: () => set(s => ({ record: claimPatch(s.record, today()) })),
+      addProof: proof => {
+        const d = today();
+        const had = Boolean(get().record.proofs[d]);
+        set(s => ({ record: addProof(s.record, d, proof) }));
+        return had ? 0 : POINTS.perProof;
+      },
+      claimCode: (tier, minted) =>
+        set(s => ({ record: claimCode(s.record, POINTS, tier, s.remote.collection, today(), minted) })),
 
       markDayHead: day => set(s => ({ reading: { ...s.reading, dayHeadShown: day } })),
       markAccessIntro: () => set(s => ({ reading: { ...s.reading, accessIntroShown: true } })),

@@ -142,6 +142,8 @@ export function NightPage({
   answer,
   day,
   onAnswer,
+  hasProof,
+  onProof,
 }: {
   height: number;
   colorway: Colorway;
@@ -150,6 +152,9 @@ export function NightPage({
   answer: boolean | undefined;
   day: number;
   onAnswer: (held: boolean) => void;
+  /** Today already has proof. */
+  hasProof: boolean;
+  onProof: () => void;
 }) {
   const settle = useSettle(active);
   const [fade] = useState(() => new Animated.Value(answer === undefined ? 1 : 0));
@@ -212,6 +217,9 @@ export function NightPage({
               <T v="body" color={colorway.secondary} style={{ marginTop: 12 }}>
                 {shown ? COPY.night.heldBody(day) : COPY.night.notedBody(day)}
               </T>
+              {shown && !hasProof ? (
+                <Button title={COPY.proof.add} ink={colorway.ink} ground={colorway.bg} style={{ marginTop: 32 }} onPress={onProof} />
+              ) : null}
             </View>
           )}
         </Animated.View>
