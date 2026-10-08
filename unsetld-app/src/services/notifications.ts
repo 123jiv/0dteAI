@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { isClean, lineForTask, pickFor } from '../core/feed';
-import { dailyTask } from '../core/points';
+import { dailyTaskFor } from '../core/points';
 import { lineOfDay } from '../core/today';
 import { planNotifications, type PlannedNotification } from '../core/reminders';
 import { dayKeyOf, type DayKey } from '../core/time';
@@ -60,7 +60,7 @@ export interface ScheduleInput {
   /** Lines never to send. */
   hidden: number[];
   /** Open work per scheduled day (today: what's still not done). Task reminders name it. */
-  work: { day: DayKey; open: { text: string; chapter: ChapterId | null }[] }[];
+  work: { day: DayKey; doneDaily?: string; open: { text: string; chapter: ChapterId | null }[] }[];
   seed: string;
 }
 
@@ -88,6 +88,7 @@ export function composePlan(input: ScheduleInput, now: Date): ComposedNotificati
   const hidden = new Set(input.hidden);
   const mixPool = LINES.filter(l => mix.has(l.chapter) && isClean(l) && !l.attribution && l.text.length <= 90 && !hidden.has(l.no));
   const workByDay = new Map(input.work.map(w => [w.day, w.open]));
+  const doneDailyByDay = new Map(input.work.map(w => [w.day, w.doneDaily]));
   const out: ComposedNotification[] = [];
   for (const p of plan) {
     if (p.kind === 'night') {
@@ -95,13 +96,14 @@ export function composePlan(input: ScheduleInput, now: Date): ComposedNotificati
       continue;
     }
     if (p.kind === 'today') {
-      const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: input.mix, salt: input.seed, day: p.day });
+      const doneDaily = doneDailyByDay.get(p.day);
+      const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: input.mix, salt: input.seed, day: p.day, doneDaily });
       // The day's line goes with the day's task, unless this user hid it.
       const l = t && !hidden.has(t.no) ? t : pickFor(mixPool, `${input.seed}:${p.id}`);
       // Under the line, what today's task is, unless it's already done.
-      const daily = dailyTask(TASKS, input.mix, input.seed, p.day);
+      const daily = dailyTaskFor(TASKS, input.mix, input.seed, p.day, doneDaily);
       const open = workByDay.get(p.day);
-      const subtitle = daily && (!open || open.some(o => o.text === daily.text)) ? COPY.notifications.todayTask(daily.text) : undefined;
+      const subtitle = daily && !doneDaily && (!open || open.some(o => o.text === daily.text)) ? COPY.notifications.todayTask(daily.text) : undefined;
       out.push({ ...p, body: l?.text ?? '', subtitle, lineNo: l?.no ?? null });
       continue;
     }

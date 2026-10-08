@@ -418,7 +418,7 @@ function lineFor(c: Ctx, p: Planned | null, day: DayKey): Line | null {
     const l = pickFor(c.pool, `${seed}:${p.id}`);
     if (l) return l;
   }
-  const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: c.input.mix, salt: seed, day });
+  const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: c.input.mix, salt: seed, day, doneDaily: c.input.record.work[day]?.d?.text });
   if (ok(t)) return t;
   return pickFor(c.pool, `${seed}:today:${day}`) ?? t;
 }

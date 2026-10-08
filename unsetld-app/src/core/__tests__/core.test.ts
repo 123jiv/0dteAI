@@ -253,6 +253,13 @@ describe("today's work", () => {
       const line = lineOfDay({ ...base, day })!;
       expect(task.lines).toContain(line.no);
     }
+    // An even pool (Discipline alone: two tasks) still alternates a task's two lines from one round to the next.
+    const seen = new Set<number>();
+    for (let i = 0; i < 12; i++) {
+      const day = addDays('2026-10-07', i);
+      if (dailyTask(TASKS, ['discipline'], 'salt', day)!.id === 'disc-001') seen.add(lineOfDay({ ...base, chapters: ['discipline'], day })!.no);
+    }
+    expect([...seen].sort()).toEqual([9001, 9002]);
     // A pinned day wins; a task with no usable pair falls back to the global rotation.
     expect(lineOfDay({ ...base, schedule: { '2026-10-07': 9004 }, day: '2026-10-07' })!.no).toBe(9004);
     const money = lineOfDay({ ...base, chapters: ['money'], day: '2026-10-07' })!;

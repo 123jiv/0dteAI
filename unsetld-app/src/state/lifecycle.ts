@@ -137,7 +137,7 @@ export function useSideEffects() {
       work: Array.from({ length: daysAhead(settings.reminders.on ? Math.min(settings.reminders.count, ent.maxReminders) : 0, settings.night.on) }, (_, i) => {
         const d = addDays(day, i);
         const done = useApp.getState().record.work[d] ?? {};
-        return { day: d, open: workFor(d, settings, ent, salt, done.d?.text).filter(w => !done[w.key]).map(w => ({ text: w.text, chapter: w.chapter })) };
+        return { day: d, doneDaily: done.d?.text, open: workFor(d, settings, ent, salt, done.d?.text).filter(w => !done[w.key]).map(w => ({ text: w.text, chapter: w.chapter })) };
       }),
       seed: salt,
     }),

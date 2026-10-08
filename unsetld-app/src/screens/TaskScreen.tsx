@@ -11,6 +11,7 @@ import { LINES, POINTS, SCHEDULE, TASKS } from '../content';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { syncProof } from '../services/access';
+import { today } from '../services/clock';
 import { light, medium } from '../services/haptics';
 import { cameraPermission, capture, keepPhoto, proofImage } from '../services/proof';
 import { useAccessEnabled, useApp, useEntitlements } from '../state/store';
@@ -76,6 +77,8 @@ export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
     setBusy(true);
     try {
       const uri = await keepPhoto(stage.uri, `${day}-${item.key.replace(/[^a-z0-9]/gi, '')}`);
+      // 4:00 AM passed while the photo was saving: that day is over, so don't credit the new one.
+      if (today() !== day) return close();
       const earned = useApp.getState().completeTask(item, { uri, takenAt: stage.takenAt, lineNo });
       medium();
       pushCount();
@@ -87,6 +90,7 @@ export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
 
   const noPhoto = () => {
     if (!item) return;
+    if (today() !== day) return close();
     useApp.getState().completeTask(item, null);
     light();
     close();

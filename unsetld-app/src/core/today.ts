@@ -26,6 +26,13 @@ export function lineOfDay(o: DayLineInput): Line | null {
   const paired = (task?.lines ?? [])
     .map(no => o.lines.find(l => l.no === no))
     .filter((l): l is Line => !!l && isClean(l) && !l.attribution && l.text.length <= TODAY_MAX_CHARS);
-  if (paired.length) return paired[((dayNumber(o.day) % paired.length) + paired.length) % paired.length];
+  if (paired.length) {
+    // A task comes round once every n days (n = tasks in the mix); alternate its lines by round, not by day parity,
+    // or an even n would show the same one every time.
+    const mix = new Set(o.chapters);
+    const n = Math.max(1, o.tasks.filter(t => mix.has(t.chapter)).length);
+    const round = Math.floor(dayNumber(o.day) / n);
+    return paired[((round % paired.length) + paired.length) % paired.length];
+  }
   return todayLine(o.lines, o.schedule, o.day);
 }
