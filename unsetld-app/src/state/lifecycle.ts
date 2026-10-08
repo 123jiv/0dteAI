@@ -97,9 +97,12 @@ export function useSideEffects() {
   const salt = useApp(s => s.installSalt);
   const day = useApp(s => s.currentDay);
   const account = useApp(s => s.account.userId);
+  const hidden = useApp(s => s.reading.hidden);
+  const yourLines = useApp(s => s.yourLines);
   const ent = useEntitlements();
   const mixKey = ent.mix.join(',');
   const nightsKey = Object.keys(record.nights).sort().slice(-3).join(',');
+  const hiddenKey = hidden.join(',');
 
   const schedule: ScheduleInput = useMemo(
     () => ({
@@ -110,21 +113,30 @@ export function useSideEffects() {
       night: settings.night,
       answered: new Set(Object.keys(record.nights)),
       mix: ent.mix,
+      hidden,
       seed: salt,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [settings.reminders, settings.night, ent.maxReminders, mixKey, nightsKey, salt],
+    [settings.reminders, settings.night, ent.maxReminders, mixKey, nightsKey, hiddenKey, salt],
   );
 
-  // Notifications: on every foreground (day change) and after settings change.
+  // Notifications: after settings change, on a new day, and on every foreground
+  // (so allowing notifications in iOS Settings mid-day takes effect at once).
   useEffect(() => {
     if (!hydrated || !onboarded) return;
     const t = setTimeout(() => reschedule(schedule).catch(() => {}), 600);
-    return () => clearTimeout(t);
+    const sub = AppState.addEventListener('change', st => {
+      if (st === 'active') reschedule(schedule).catch(() => {});
+    });
+    return () => {
+      clearTimeout(t);
+      sub.remove();
+    };
   }, [hydrated, onboarded, schedule, day]);
 
   // Widgets: same plan, plus the record, colorway and standard.
   const standardKey = settings.standard.join('|');
+  const yoursKey = ent.yourLines ? yourLines.map(y => y.text).join('|') : '';
   const recordKey = `${dayCount(record)}:${sortedDays(record).slice(-7).join(',')}`;
   useEffect(() => {
     if (!hydrated || !onboarded) return;
@@ -135,10 +147,12 @@ export function useSideEffects() {
       mix: ent.mix,
       record: useApp.getState().record,
       standard: settings.standard,
+      hidden,
+      yourLines: ent.yourLines ? yourLines.map(y => y.text) : [],
       schedule,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, onboarded, day, ent.premium, ent.colorway.id, mixKey, recordKey, standardKey, schedule]);
+  }, [hydrated, onboarded, day, ent.premium, ent.colorway.id, mixKey, recordKey, standardKey, hiddenKey, yoursKey, schedule]);
 
   // Keychain backup of the record.
   useEffect(() => {

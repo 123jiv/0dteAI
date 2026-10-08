@@ -55,6 +55,8 @@ export interface ScheduleInput {
   night: { on: boolean; time: number };
   answered: Set<DayKey>;
   mix: ChapterId[];
+  /** "Don't show this line again": never sent. */
+  hidden: number[];
   seed: string;
 }
 
@@ -72,11 +74,14 @@ export function composePlan(input: ScheduleInput, now: Date): (PlannedNotificati
     seed: input.seed,
   });
   const mix = new Set(input.mix);
-  const mixPool = LINES.filter(l => mix.has(l.chapter) && isClean(l) && !l.attribution && l.text.length <= 90);
+  const hidden = new Set(input.hidden);
+  const mixPool = LINES.filter(l => mix.has(l.chapter) && isClean(l) && !l.attribution && l.text.length <= 90 && !hidden.has(l.no));
   return plan.map(p => {
     if (p.kind === 'night') return { ...p, body: COPY.notifications.night, lineNo: null };
     if (p.kind === 'today') {
-      const l = todayLine(LINES, SCHEDULE, p.day);
+      const t = todayLine(LINES, SCHEDULE, p.day);
+      // Today's line is the same for everyone, unless this user hid it.
+      const l = t && !hidden.has(t.no) ? t : pickFor(mixPool, `${input.seed}:${p.id}`);
       return { ...p, body: l?.text ?? '', lineNo: l?.no ?? null };
     }
     if (p.kind === 'mix') {

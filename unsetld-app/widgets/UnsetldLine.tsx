@@ -35,8 +35,14 @@ export type LineWidgetProps = {
   ink: string;
   secondary: string;
   bg: string;
+  /**
+   * The colorway plate per family, downscaled to stay under WidgetKit's image
+   * size limit for that family. file:// URLs in the App Group folder, or ''.
+   */
+  plateSmall: string;
+  plateMedium: string;
+  plateLarge: string;
   /** file:// URLs in the App Group folder, or '' when the folder isn't available. */
-  plate: string;
   walker: string;
   walkerTemplate: string;
 };
@@ -46,11 +52,18 @@ type LineEnvironment = WidgetEnvironment & { showsContainerBackground?: boolean 
 
 // Runs in the widget's isolated runtime: no imports from the app, no outer
 // constants, no React hooks. Everything comes in through props.
-const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
+// Props can be empty: WidgetKit's placeholder, and any snapshot taken before
+// the app has written a timeline, render with {}. Every prop has a fallback.
+//
+// The widget renderer applies a Text's modifiers twice (once in its UIBaseView
+// wrapper, once in TextView itself), so additive modifiers such as opacity and
+// padding go on a wrapping stack, never on the Text.
+const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironment) => {
   'widget';
   const family = environment.widgetFamily;
   const white = '#FFFFFF';
-  const walkerImage = (src: string, width: number, height: number) =>
+  const wordmark = props.wordmark || 'unsetld';
+  const walkerImage = (src: string | undefined, width: number, height: number) =>
     src ? (
       <Image
         uiImage={src}
@@ -67,23 +80,25 @@ const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
         modifiers={[
           frame({ maxWidth: 10000, maxHeight: 10000, alignment: 'topLeading' }),
           containerBackground('clear', 'widget'),
-          widgetURL('unsetld://line/' + props.lockNo),
+          widgetURL(props.lockNo ? 'unsetld://line/' + props.lockNo : 'unsetld://today'),
         ]}>
         <HStack spacing={4}>
           {walkerImage(props.walkerTemplate, 7, 15)}
-          <Text modifiers={[font({ size: 11, weight: 'semibold' }), foregroundStyle(white), opacity(0.6)]}>
-            {props.wordmark}
-          </Text>
+          <HStack spacing={0} modifiers={[opacity(0.6)]}>
+            <Text modifiers={[font({ size: 11, weight: 'semibold' }), foregroundStyle(white)]}>{wordmark}</Text>
+          </HStack>
         </HStack>
-        <Text
-          modifiers={[
-            font({ size: 15, design: 'serif', weight: 'semibold' }),
-            foregroundStyle(white),
-            lineLimit(3),
-            minimumScaleFactor(0.8),
-          ]}>
-          {props.lockText}
-        </Text>
+        {props.lockText ? (
+          <Text
+            modifiers={[
+              font({ size: 15, design: 'serif', weight: 'semibold' }),
+              foregroundStyle(white),
+              lineLimit(3),
+              minimumScaleFactor(0.8),
+            ]}>
+            {props.lockText}
+          </Text>
+        ) : null}
       </VStack>
     );
   }
@@ -91,9 +106,12 @@ const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
   // Tinted (accented), vibrant or StandBy: no plate, all text white, template walker.
   const mode = environment.widgetRenderingMode;
   const bare = (mode !== undefined && mode !== 'fullColor') || environment.showsContainerBackground === false;
-  const ink = bare ? white : props.ink;
-  const secondary = bare ? white : props.secondary;
+  const ink = bare ? white : props.ink || '#EDE9E3';
+  const secondary = bare ? white : props.secondary || '#8F8A83';
   const walker = bare ? props.walkerTemplate : props.walker;
+  const text = props.text || wordmark;
+  const plate =
+    family === 'systemMedium' ? props.plateMedium : family === 'systemLarge' ? props.plateLarge : props.plateSmall;
   const fill = frame({ maxWidth: 10000, maxHeight: 10000, alignment: 'topLeading' });
 
   const body =
@@ -101,11 +119,11 @@ const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
       <VStack alignment="leading" spacing={0} modifiers={[fill, padding({ all: 16 })]}>
         <HStack spacing={8}>
           <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1.5), foregroundStyle(secondary)]}>
-            {props.chapter}
+            {props.chapter || ''}
           </Text>
           <Spacer />
           <Text modifiers={[font({ size: 10, design: 'monospaced' }), foregroundStyle(secondary)]}>
-            {props.catalogue}
+            {props.catalogue || ''}
           </Text>
         </HStack>
         <Spacer />
@@ -116,7 +134,7 @@ const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
             lineLimit(3),
             minimumScaleFactor(0.8),
           ]}>
-          {props.text}
+          {text}
         </Text>
         <HStack spacing={0}>
           <Spacer />
@@ -127,11 +145,11 @@ const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
       <VStack alignment="leading" spacing={0} modifiers={[fill, padding({ all: 16 })]}>
         <HStack spacing={8}>
           <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1.5), foregroundStyle(secondary)]}>
-            {props.date}
+            {props.date || ''}
           </Text>
           <Spacer />
           <Text modifiers={[font({ size: 10, design: 'monospaced' }), foregroundStyle(secondary)]}>
-            {props.catalogue}
+            {props.catalogue || ''}
           </Text>
         </HStack>
         <Spacer />
@@ -142,12 +160,12 @@ const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
             lineLimit(6),
             minimumScaleFactor(0.8),
           ]}>
-          {props.text}
+          {text}
         </Text>
         <Spacer />
         <HStack spacing={6} alignment="bottom">
           {walkerImage(walker, 14, 31)}
-          <Text modifiers={[font({ size: 13, design: 'serif' }), foregroundStyle(ink)]}>{props.wordmark}</Text>
+          <Text modifiers={[font({ size: 13, design: 'serif' }), foregroundStyle(ink)]}>{wordmark}</Text>
         </HStack>
       </VStack>
     ) : (
@@ -159,7 +177,7 @@ const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
             lineLimit(5),
             minimumScaleFactor(0.75),
           ]}>
-          {props.text}
+          {text}
         </Text>
         <Spacer />
         {walkerImage(walker, 9, 20)}
@@ -167,10 +185,14 @@ const UnsetldLine = (props: LineWidgetProps, environment: LineEnvironment) => {
     );
 
   return (
-    <ZStack modifiers={[containerBackground(props.bg, 'widget'), widgetURL('unsetld://line/' + props.no)]}>
-      {!bare && props.plate ? (
+    <ZStack
+      modifiers={[
+        containerBackground(props.bg || '#0A0A0A', 'widget'),
+        widgetURL(props.no ? 'unsetld://line/' + props.no : 'unsetld://today'),
+      ]}>
+      {!bare && plate ? (
         <Image
-          uiImage={props.plate}
+          uiImage={plate}
           modifiers={[
             resizable(),
             aspectRatio({ contentMode: 'fill' }),

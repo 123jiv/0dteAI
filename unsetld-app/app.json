@@ -3,22 +3,23 @@
     "name": "UNSETLD",
     "slug": "unsetld",
     "scheme": "unsetld",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0a0a0a",
+    "backgroundColor": "#0A0A0A",
     "ios": {
       "bundleIdentifier": "com.unsetld.app",
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.unsetld.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0a0a0a",
+        "backgroundColor": "#0A0A0A",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -28,7 +29,7 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "name": "UNSETLD",
-      "backgroundColor": "#0a0a0a",
+      "backgroundColor": "#0A0A0A",
       "output": "single"
     },
     "plugins": [
@@ -86,12 +87,12 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "imageWidth": 160,
-          "backgroundColor": "#0a0a0a"
+          "imageWidth": 44,
+          "backgroundColor": "#0A0A0A"
         }
       ],
       "expo-image",
-      "expo-video"
+      "expo-apple-authentication"
     ]
   }
 }

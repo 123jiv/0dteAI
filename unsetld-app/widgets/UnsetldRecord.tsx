@@ -34,7 +34,10 @@ export type RecordWidgetProps = {
   ink: string;
   secondary: string;
   bg: string;
-  /** file:// URLs in the App Group folder, or '' when the folder isn't available. */
+  /**
+   * The colorway plate sized for systemSmall (under WidgetKit's image size
+   * limit). file:// URL in the App Group folder, or '' when the folder isn't available.
+   */
   plate: string;
   walkerTemplate: string;
   /** A 7x15 pt template walker drawn at its own size, for the inline family. */
@@ -44,11 +47,18 @@ export type RecordWidgetProps = {
 /** The runtime also reports whether the system draws the container background (off in StandBy). */
 type RecordEnvironment = WidgetEnvironment & { showsContainerBackground?: boolean };
 
-const UnsetldRecord = (props: RecordWidgetProps, environment: RecordEnvironment) => {
+// Props can be empty (WidgetKit's placeholder, or a snapshot before the app
+// has written a timeline), so every prop has a fallback. Additive modifiers
+// (padding, opacity) stay off Text: the widget renderer applies a Text's
+// modifiers twice.
+const UnsetldRecord = (props: Partial<RecordWidgetProps>, environment: RecordEnvironment) => {
   'widget';
   const family = environment.widgetFamily;
   const white = '#FFFFFF';
   const url = 'unsetld://record';
+  const count = typeof props.count === 'number' ? props.count : 0;
+  const week =
+    props.week && props.week.length === 7 ? props.week : [false, false, false, false, false, false, false];
 
   if (family === 'accessoryInline') {
     return (
@@ -56,29 +66,30 @@ const UnsetldRecord = (props: RecordWidgetProps, environment: RecordEnvironment)
         {props.walkerInline ? (
           <Image uiImage={props.walkerInline} modifiers={[widgetAccentedRenderingMode('accented')]} />
         ) : null}
-        <Text>{props.inline}</Text>
+        <Text>{props.inline || 'Day ' + count}</Text>
       </HStack>
     );
   }
 
   if (family === 'accessoryCircular') {
-    const on = props.week.filter(d => d).length;
+    const on = week.filter(d => d).length;
     // The widget renderer draws a Gauge without its label slots, so the count and
     // the walker sit over the gauge instead of in currentValueLabel / label.
     return (
       <ZStack modifiers={[containerBackground('clear', 'widget'), widgetURL(url)]}>
         <Gauge value={on / 7} modifiers={[gaugeStyle('circular')]} />
-        <Text
-          modifiers={[
-            font({ size: 20, design: 'serif', weight: 'medium' }),
-            monospacedDigit(),
-            foregroundStyle(white),
-            lineLimit(1),
-            minimumScaleFactor(0.5),
-            padding({ horizontal: 10 }),
-          ]}>
-          {String(props.count)}
-        </Text>
+        <HStack spacing={0} modifiers={[padding({ horizontal: 10 })]}>
+          <Text
+            modifiers={[
+              font({ size: 20, design: 'serif', weight: 'medium' }),
+              monospacedDigit(),
+              foregroundStyle(white),
+              lineLimit(1),
+              minimumScaleFactor(0.5),
+            ]}>
+            {String(count)}
+          </Text>
+        </HStack>
         {props.walkerTemplate ? (
           <VStack spacing={0} modifiers={[frame({ maxWidth: 10000, maxHeight: 10000, alignment: 'bottom' })]}>
             <Image
@@ -94,13 +105,13 @@ const UnsetldRecord = (props: RecordWidgetProps, environment: RecordEnvironment)
   // systemSmall. Tinted (accented), vibrant or StandBy: no plate, all white, no red.
   const mode = environment.widgetRenderingMode;
   const bare = (mode !== undefined && mode !== 'fullColor') || environment.showsContainerBackground === false;
-  const ink = bare ? white : props.ink;
-  const secondary = bare ? white : props.secondary;
+  const ink = bare ? white : props.ink || '#EDE9E3';
+  const secondary = bare ? white : props.secondary || '#8F8A83';
   const signal = bare ? white : '#C41E1E';
-  const last = props.week.length - 1;
+  const last = week.length - 1;
 
   return (
-    <ZStack modifiers={[containerBackground(props.bg, 'widget'), widgetURL(url)]}>
+    <ZStack modifiers={[containerBackground(props.bg || '#0A0A0A', 'widget'), widgetURL(url)]}>
       {!bare && props.plate ? (
         <Image
           uiImage={props.plate}
@@ -117,7 +128,7 @@ const UnsetldRecord = (props: RecordWidgetProps, environment: RecordEnvironment)
         spacing={0}
         modifiers={[frame({ maxWidth: 10000, maxHeight: 10000, alignment: 'topLeading' }), padding({ all: 16 })]}>
         <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1.5), foregroundStyle(secondary)]}>
-          {props.label}
+          {props.label || 'RECORD'}
         </Text>
         <Spacer />
         <Text
@@ -128,13 +139,13 @@ const UnsetldRecord = (props: RecordWidgetProps, environment: RecordEnvironment)
             lineLimit(1),
             minimumScaleFactor(0.5),
           ]}>
-          {String(props.count)}
+          {String(count)}
         </Text>
         <Text modifiers={[font({ size: 13, design: 'serif' }), italic(), foregroundStyle(secondary), lineLimit(1)]}>
-          {props.unit}
+          {props.unit || (count === 1 ? 'day on record' : 'days on record')}
         </Text>
         <HStack spacing={4} modifiers={[padding({ top: 10 })]}>
-          {props.week.map((onRecord, i) => (
+          {week.map((onRecord, i) => (
             <Rectangle
               key={String(i)}
               modifiers={

@@ -22,10 +22,12 @@ export type StandardWidgetProps = {
 };
 
 // Lock Screen only: no background, white text the system renders vibrant.
-const UnsetldStandard = (props: StandardWidgetProps) => {
+// Props can be empty (WidgetKit's placeholder, or a snapshot before the app
+// has written a timeline), so every prop has a fallback.
+const UnsetldStandard = (props: Partial<StandardWidgetProps>) => {
   'widget';
   const white = '#FFFFFF';
-  const rules = props.rules.slice(0, 3);
+  const rules = (props.rules || []).slice(0, 3);
   const modifiers = [
     frame({ maxWidth: 10000, maxHeight: 10000, alignment: 'leading' }),
     containerBackground('clear', 'widget'),
@@ -48,7 +50,7 @@ const UnsetldStandard = (props: StandardWidgetProps) => {
             lineLimit(1),
             minimumScaleFactor(0.8),
           ]}>
-          {props.empty}
+          {props.empty || 'Set your standard.'}
         </Text>
       </HStack>
     );
