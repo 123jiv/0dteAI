@@ -134,3 +134,14 @@ Prefer no numbers at all to an invented one.
 - "It's not X, it's Y" in more than a few lines.
 - Abstract nouns doing the work (discipline, consistency, greatness) instead of a thing you can see.
 - Anything that sounds like it's selling something.
+
+## The founder's own habits (added 8 Oct, in their words)
+
+> "you can talk about how I stay up late and stuff to work and i dont go to plans and stuff when i have work to do and I stay focused and block out the noise and even if something I feel like wont workout I still give it a shot and stuff like you can talk about those things cus those are very common like things that a bunch of other people could relate to yk"
+
+These four are the heart of the brand. Write about them as things a lot of 14–22-year-olds already do or want to do, in second person, never as the founder's biography and never with invented details about the founder.
+
+1. **Late nights on your own thing.** The quiet hours after everyone's asleep or done for the day, spent on the thing you're building instead of the feed. GUARDRAIL: the audience starts at 14 and needs 8–10 hours of sleep (18+: at least 7). Never tell anyone to skip sleep, pull an all-nighter or trade sleep for work. The honest version: the late hour that would have gone to scrolling goes to your thing, and then you sleep; or protect one evening block for it. A late session still ends at a set time.
+2. **Saying no to plans when there's work to do.** Missing the hangout, the party, the game night, because the work is due or the thing you're building needs the hours. GUARDRAIL: it's a trade you choose for a reason, not cutting everyone off. Never skip family obligations, work shifts, school or anything you promised; never be rude about it; keep one person in the loop; and make plans again when the work is done. Friends who matter will still be there.
+3. **Staying focused and blocking out the noise.** Headphones in, notifications off, not checking what everyone else is doing, not letting opinions, group chats, haters or doubters change what you're working on. GUARDRAIL: "noise" means distractions and opinions that don't help, never parents, teachers, coaches or anyone warning you about something real. Feedback from people who know the work is not noise.
+4. **Giving it a shot even when you think it won't work.** Applying, sending it, posting it, trying out, launching the first version, pitching it, even when you're pretty sure it's a no. You learn something either way and you'll never know otherwise. GUARDRAIL: safe, legal shots only: no risky stunts, no spending money you don't have, no giving out personal info to strangers.
