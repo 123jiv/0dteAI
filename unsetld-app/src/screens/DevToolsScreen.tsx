@@ -65,12 +65,14 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
       <View style={{ gap: 12 }}>
         <Button
           kind="outline"
-          title="Add 30 days of test proof"
+          title="Add 20 days of proven work (800 points)"
           onPress={() => {
             let r = st().record;
-            for (let i = 1; i <= 30; i++) {
+            for (let i = 1; i <= 20; i++) {
               const d = addDays(today(), -i);
-              if (!r.proofs[d]) r = { ...r, proofs: { ...r.proofs, [d]: { uri: '', rule: null, takenAt: Date.now(), lineNo: null } } };
+              const proof = { uri: '', takenAt: Date.now(), lineNo: null };
+              const done = Object.fromEntries(['r0', 'r1', 'r2', 'd'].map(k => [k, { text: 'Test task.', doneAt: Date.now(), proof }]));
+              r = { ...r, work: { ...r.work, [d]: { ...done, ...r.work[d] } } };
             }
             st().setRecord(r);
           }}

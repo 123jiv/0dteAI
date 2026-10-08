@@ -1,8 +1,9 @@
 {
   "perProof": 10,
+  "maxPerDay": 4,
   "tiers": [
-    { "points": 300, "percent": 10 },
-    { "points": 500, "percent": 15 }
+    { "points": 600, "percent": 10 },
+    { "points": 1000, "percent": 15 }
   ],
   "maxOff": 25,
   "codeValidDays": 30

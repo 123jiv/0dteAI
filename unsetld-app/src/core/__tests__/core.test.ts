@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import milestonesJson from '../../content/milestones.json';
 import linesJson from '../../content/lines.json';
 import promptsJson from '../../content/reminders.json';
-import { buildMix, buildPages, FREE_DAILY_LINES, isLockEligible, todayLine, type FeedOptions } from '../feed';
+import { isLockEligible, lineForTask, todayLine } from '../feed';
 import { perMonth, savingsPercent } from '../pricing';
 import {
   accessState,
@@ -19,12 +19,12 @@ import {
   stats,
   week,
 } from '../record';
-import { addProof, claimCode, pointsBalance, readyTier, tierStatus } from '../points';
+import { allProofs, claimCode, completeTask, dailyTask, dayWork, pointsBalance, provenCounts, readyTier, tierStatus, uncompleteTask } from '../points';
 import pointsJson from '../../content/points.json';
 import { dayReminderTimes, MAX_PENDING, planNotifications, slotOf } from '../reminders';
 import { addDays, atMinutes, dayKeyOf, diffDays, formatTime, nextDayStart } from '../time';
 import { breakBeats, lineSize, typo } from '../typography';
-import type { ChapterId, Line, Milestone, PointsConfig, RecordState, ReminderPrompt } from '../types';
+import type { Line, Milestone, PointsConfig, RecordState, ReminderPrompt, Task } from '../types';
 
 const MILESTONES = milestonesJson as Milestone[];
 const LIB = linesJson as Line[];
@@ -159,56 +159,81 @@ describe('record', () => {
   });
 });
 
-describe('proof and points', () => {
-  const proof = { uri: '', rule: 0, takenAt: 0, lineNo: 1 };
-  const withProofs = (n: number) => {
-    let r = emptyRecord();
-    for (let i = 0; i < n; i++) r = addProof(r, addDays('2026-09-01', i), proof);
-    return r;
-  };
+const TASKS: Task[] = [
+  { id: 'disc-001', chapter: 'discipline', text: 'Make your bed.', proof: 'The made bed.', when: 'morning' },
+  { id: 'disc-002', chapter: 'discipline', text: 'Clear the sink.', proof: 'The empty sink.', when: 'evening' },
+  { id: 'focu-001', chapter: 'focus', text: 'One hour, phone away.', proof: 'Your phone, away.', when: 'day' },
+  { id: 'mone-001', chapter: 'money', text: 'Write down every payment.', proof: 'The list.', when: 'any' },
+];
+const proof = { uri: '', takenAt: 0, lineNo: 1 };
 
-  it('earns points once per day of proof', () => {
-    let r = withProofs(3);
-    expect(pointsBalance(r, POINTS)).toBe(3 * POINTS.perProof);
-    r = addProof(r, '2026-09-01', { ...proof, rule: 1 }); // replacing a photo earns nothing more
-    expect(pointsBalance(r, POINTS)).toBe(3 * POINTS.perProof);
+describe("today's work", () => {
+  it('picks one daily task from the chosen chapters, stable per day, no repeats until all have run', () => {
+    const a = dailyTask(TASKS, ['discipline', 'focus'], 'salt', '2026-10-07')!;
+    expect(['discipline', 'focus']).toContain(a.chapter);
+    expect(dailyTask(TASKS, ['discipline', 'focus'], 'salt', '2026-10-07')!.id).toBe(a.id);
+    const three = [0, 1, 2].map(i => dailyTask(TASKS, ['discipline', 'focus'], 'salt', addDays('2026-10-07', i))!.id);
+    expect(new Set(three).size).toBe(3);
+    expect(dailyTask(TASKS, ['stoic'], 'salt', '2026-10-07')).toBeNull();
+  });
+
+  it('lists the rules, the daily task, then your own tasks', () => {
+    const work = dayWork(['Up before 7.', 'Train every day.', 'Finish what I start.'], TASKS[0], [{ id: 'x', text: 'Call home.' }]);
+    expect(work.map(w => w.key)).toEqual(['r0', 'r1', 'r2', 'd', 'o:x']);
+    expect(work[3]).toMatchObject({ source: 'daily', chapter: 'discipline', proof: 'The made bed.' });
+  });
+
+  it('earns 10 points per proven task, up to 4 a day; no points without a photo', () => {
+    const work = dayWork(['A.', 'B.', 'C.'], TASKS[0], [{ id: 'x', text: 'D.' }]);
+    let r = emptyRecord();
+    r = completeTask(r, '2026-10-07', work[0], proof, 1);
+    r = completeTask(r, '2026-10-07', work[1], null, 2);
+    expect(pointsBalance(r, POINTS)).toBe(POINTS.perProof);
+    for (const w of work) r = completeTask(r, '2026-10-07', w, proof, 3);
+    expect(Object.keys(r.work['2026-10-07']).length).toBe(5);
+    expect(pointsBalance(r, POINTS)).toBe(POINTS.maxPerDay * POINTS.perProof);
+    // Retaking a photo keeps the first time and adds nothing.
+    expect(r.work['2026-10-07'].r0.doneAt).toBe(1);
+    r = uncompleteTask(r, '2026-10-07', 'r0');
+    expect(pointsBalance(r, POINTS)).toBe(POINTS.maxPerDay * POINTS.perProof);
+    r = uncompleteTask(r, '2026-10-07', 'r1');
+    expect(pointsBalance(r, POINTS)).toBe((POINTS.maxPerDay - 1) * POINTS.perProof);
+    expect(allProofs(r).length).toBe(3);
+    // The server gets each day's proven count, capped like the points.
+    r = completeTask(r, '2026-10-06', work[0], null, 4);
+    r = completeTask(r, '2026-10-05', work[0], proof, 5);
+    expect(provenCounts(r, POINTS)).toEqual([
+      { day: '2026-10-05', count: 1 },
+      { day: '2026-10-07', count: 3 },
+    ]);
   });
 
   it('trades points for one code each collection', () => {
     const [ten, fifteen] = POINTS.tiers;
-    let r = withProofs(29);
-    expect(tierStatus(r, POINTS, ten, '004')).toEqual({ kind: 'short', need: ten.points - 29 * POINTS.perProof });
+    const work = dayWork(['A.', 'B.', 'C.'], TASKS[0], []);
+    const provenDays = (n: number) => {
+      let r = emptyRecord();
+      for (let i = 0; i < n; i++) for (const w of work) r = completeTask(r, addDays('2026-09-01', i), w, proof, 0);
+      return r;
+    };
+    const perDay = POINTS.maxPerDay * POINTS.perProof;
+    const daysFor10 = Math.ceil(ten.points / perDay);
+    let r = provenDays(daysFor10 - 1);
+    expect(tierStatus(r, POINTS, ten, '004')).toEqual({ kind: 'short', need: ten.points - (daysFor10 - 1) * perDay });
     expect(readyTier(r, POINTS, '004')).toBeNull();
-    r = withProofs(30);
+    r = provenDays(daysFor10);
     expect(tierStatus(r, POINTS, ten, '004')).toEqual({ kind: 'ready' });
-    expect(readyTier(r, POINTS, '004')).toEqual(ten);
     r = claimCode(r, POINTS, ten, '004', '2026-10-01', { code: 'X', url: 'u' });
-    expect(pointsBalance(r, POINTS)).toBe(0);
+    expect(pointsBalance(r, POINTS)).toBe(daysFor10 * perDay - ten.points);
     expect(r.codes[0]).toMatchObject({ percent: 10, expires: '2026-10-31' });
-    // One code this collection, whatever the balance.
-    r = { ...r, proofs: withProofs(80).proofs };
+    r = { ...r, work: provenDays(60).work };
     expect(tierStatus(r, POINTS, fifteen, '004')).toEqual({ kind: 'used' });
     expect(claimCode(r, POINTS, fifteen, '004', '2026-10-02', { code: 'Y', url: 'u' }).codes.length).toBe(1);
-    // The next collection opens it again.
     expect(tierStatus(r, POINTS, fifteen, '005')).toEqual({ kind: 'ready' });
   });
 });
 
-function feedOpts(over: Partial<FeedOptions> = {}): FeedOptions {
-  return {
-    lines: LIB,
-    chapters: ['discipline', 'focus', 'vices'] as ChapterId[],
-    today: '2026-10-07',
-    salt: 'salt',
-    seen: {},
-    hidden: new Set(),
-    strongLanguage: true,
-    lifetimeSeen: 50,
-    ...over,
-  };
-}
-
-describe('feed', () => {
+describe('lines', () => {
   it('picks one global, clean line per day', () => {
     const a = todayLine(LIB, {}, '2026-10-07')!;
     expect(a.explicit).toBe(false);
@@ -217,58 +242,18 @@ describe('feed', () => {
     expect(todayLine(LIB, { '2026-10-07': 59 }, '2026-10-07')!.no).toBe(59);
     // A pinned explicit line is ignored.
     expect(todayLine(LIB, { '2026-10-07': 8 }, '2026-10-07')!.explicit).toBe(false);
-    const week = Array.from({ length: 30 }, (_, i) => todayLine(LIB, {}, addDays('2026-10-01', i))!.no);
-    expect(new Set(week).size).toBe(30);
+    const month = Array.from({ length: 30 }, (_, i) => todayLine(LIB, {}, addDays('2026-10-01', i))!.no);
+    expect(new Set(month).size).toBe(30);
   });
 
-  it('keeps explicit lines 4 apart and avoids the same chapter twice in a row', () => {
-    const mix = buildMix(feedOpts());
-    expect(mix.length).toBeGreaterThan(20);
-    const ex = mix.map((l, i) => (l.explicit ? i : -1)).filter(i => i >= 0);
-    for (let i = 1; i < ex.length; i++) expect(ex[i] - ex[i - 1]).toBeGreaterThanOrEqual(4);
-    let repeats = 0;
-    for (let i = 1; i < mix.length; i++) if (mix[i].chapter === mix[i - 1].chapter) repeats++;
-    expect(repeats).toBeLessThanOrEqual(2);
-  });
-
-  it('holds explicit lines back without strong language or for new readers', () => {
-    expect(buildMix(feedOpts({ strongLanguage: false })).some(l => l.explicit)).toBe(false);
-    expect(buildMix(feedOpts({ lifetimeSeen: 3 })).some(l => l.explicit)).toBe(false);
-  });
-
-  it('skips lines seen in the last 30 days, but not ones seen today', () => {
-    const seen: Record<number, string> = { 1: '2026-10-01', 2: '2026-10-07', 3: '2026-08-01' };
-    const mix = buildMix(feedOpts({ chapters: ['discipline', 'focus', 'training'], seen }));
-    const nos = mix.map(l => l.no);
-    expect(nos).not.toContain(1);
-    expect(nos).toContain(2);
-    expect(nos).toContain(3);
-    expect(buildMix(feedOpts({ hidden: new Set([4]) })).map(l => l.no)).not.toContain(4);
-  });
-
-  it('is stable for a day and different the next', () => {
-    const a = buildMix(feedOpts()).map(l => l.no);
-    expect(buildMix(feedOpts()).map(l => l.no)).toEqual(a);
-    expect(buildMix(feedOpts({ today: '2026-10-08' })).map(l => l.no)).not.toEqual(a);
-  });
-
-  it('caps the free tier at 10 counted lines and keeps the list stable while reading', () => {
-    const today = todayLine(LIB, {}, '2026-10-07');
-    const mix = buildMix(feedOpts({ exclude: new Set([today!.no]) }));
-    const base = { today, mix, yourLines: [], premium: false, night: true, oneTime: 'access-intro' as const, salt: 's', day: '2026-10-07' };
-    const pages = buildPages({ ...base, countedToday: new Set() });
-    expect(pages[0].kind).toBe('night');
-    expect(pages[1]).toMatchObject({ kind: 'line', today: true });
-    expect(pages[2].kind).toBe('access-intro');
-    expect(pages.filter(p => p.kind === 'line').length).toBe(FREE_DAILY_LINES);
-    expect(pages[pages.length - 1].kind).toBe('end');
-    const firstThree = pages.filter(p => p.kind === 'line').slice(0, 3).map(p => (p.kind === 'line' ? p.line.no : 0));
-    const after = buildPages({ ...base, countedToday: new Set(firstThree) });
-    expect(after.map(p => p.key)).toEqual(pages.map(p => p.key));
-    const full = buildPages({ ...base, premium: true, countedToday: new Set(), yourLines: [{ id: 'a', text: 'Mine.', createdAt: 0 }] });
-    expect(full.filter(p => p.kind === 'line').length).toBe(mix.length + 1);
-    expect(full.some(p => p.kind === 'yours')).toBe(true);
-    expect(full[full.length - 1].kind).toBe('exhausted');
+  it('finds a line about a task, clean unless allowed', () => {
+    for (let i = 0; i < 40; i++) {
+      const l = lineForTask(LIB, ['training'], `s${i}`)!;
+      expect(l.chapter).toBe('training');
+      expect(l.explicit).toBe(false);
+    }
+    const any = Array.from({ length: 200 }, (_, i) => lineForTask(LIB, ['vices'], `x${i}`, true)!);
+    expect(any.every(l => l.chapter === 'vices')).toBe(true);
   });
 
   it('marks lock-screen lines', () => {
@@ -283,7 +268,7 @@ describe('reminders', () => {
 
   it('puts the first reminder exactly at First and spreads the rest to Last', () => {
     const t = dayReminderTimes({ ...base, count: 3 });
-    expect(t.map(x => x.kind)).toEqual(['today', 'prompt', 'prompt']);
+    expect(t.map(x => x.kind)).toEqual(['today', 'task', 'task']);
     expect(t[0].minutes).toBe(7 * 60);
     expect(Math.abs(t[1].minutes - (14 * 60 + 30))).toBeLessThanOrEqual(10);
     // The last one would land within 30 min of the 9:30 PM night check, so it moves 45 min earlier.
@@ -291,9 +276,9 @@ describe('reminders', () => {
     expect(t[2].minutes).toBeGreaterThanOrEqual(21 * 60 - 10 - 45);
   });
 
-  it('alternates mix lines when there are five or more', () => {
+  it('nudges the work after the first reminder, in order through the day', () => {
     const t = dayReminderTimes({ ...base, count: 5, night: { enabled: false, time: 0 } });
-    expect(t.map(x => x.kind)).toEqual(['today', 'prompt', 'mix', 'prompt', 'mix']);
+    expect(t.map(x => x.kind)).toEqual(['today', 'task', 'task', 'task', 'task']);
     for (let i = 1; i < t.length; i++) expect(t[i].minutes).toBeGreaterThan(t[i - 1].minutes);
   });
 
@@ -320,7 +305,7 @@ describe('reminders', () => {
     expect(plan.some(p => p.id === 'night-2026-10-07')).toBe(false);
     expect(plan.some(p => p.id === 'night-2026-10-08')).toBe(true);
     expect(plan.every(p => p.date > now)).toBe(true);
-    for (const p of plan.filter(x => x.kind === 'prompt')) {
+    for (const p of plan.filter(x => x.kind === 'task')) {
       const slot = slotOf(p.date.getHours() * 60 + p.date.getMinutes());
       expect(PROMPTS.find(x => x.text === p.prompt)?.slot).toBe(slot);
     }

@@ -41,7 +41,7 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
   const standard = settings.standard.length ? `${settings.standard[0]}${settings.standard.length > 1 ? ` +${settings.standard.length - 1}` : ''}` : '';
   const chapters = ent.mix.map(c => CHAPTER_BY_ID[c].name).join(', ');
   const openInReader = (sheet: 'chapters' | 'colorway') =>
-    navigation.dispatch(StackActions.popTo('Reader', { sheet, nonce: newNonce() }));
+    navigation.dispatch(StackActions.popTo('Today', { sheet, nonce: newNonce() }));
 
   const doRestore = async () => {
     try {

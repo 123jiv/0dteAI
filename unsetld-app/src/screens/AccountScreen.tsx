@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { IS_PREVIEW } from '../config/app';
+import { provenCounts } from '../core/points';
 import { sortedDays } from '../core/record';
+import { POINTS } from '../content';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { appleSignInAvailable, signInWithApple, signOutApple } from '../services/account';
@@ -54,7 +56,7 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
       useApp.getState().signIn({ userId: r.userId, email: r.email });
       // First sign-in: hold the user's place with the days already verified on this phone.
       const rec = useApp.getState().record;
-      syncRecord(sortedDays(rec).filter(d => rec.days[d].verified), Object.keys(rec.proofs).sort()).catch(() => {});
+      syncRecord(sortedDays(rec).filter(d => rec.days[d].verified), provenCounts(rec, POINTS)).catch(() => {});
       navigation.goBack();
     } catch {
       setError(true);

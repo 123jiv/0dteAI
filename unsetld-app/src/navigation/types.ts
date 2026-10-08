@@ -1,15 +1,8 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { Letter, MilestoneId } from '../core/record';
-import type { ChapterId } from '../core/types';
 import type { DocId } from '../content';
 
-export type ReaderMode =
-  | { kind: 'mix' }
-  | { kind: 'chapter'; id: ChapterId }
-  | { kind: 'saved'; no: number }
-  | { kind: 'volume'; volume: number };
-
-export type PaywallFrom = 'onboarding' | 'chapter' | 'colorway' | 'end' | 'yours' | 'settings' | 'reminders' | 'share';
+export type PaywallFrom = 'onboarding' | 'chapter' | 'colorway' | 'tasks' | 'yours' | 'settings' | 'reminders' | 'share';
 
 export type RootParams = {
   Name: undefined;
@@ -19,7 +12,7 @@ export type RootParams = {
   Day: { edit?: boolean } | undefined;
   Widget: { guide?: boolean } | undefined;
   Paywall: { from: PaywallFrom } | undefined;
-  Reader: { mode?: ReaderMode; startNo?: number; nonce?: number; sheet?: 'chapters' | 'colorway' } | undefined;
+  Today: { nonce?: number; sheet?: 'chapters' | 'colorway'; night?: boolean } | undefined;
   Record: undefined;
   Settings: undefined;
   Saved: undefined;
@@ -30,7 +23,7 @@ export type RootParams = {
   DocSheet: { id: DocId };
   Milestone: { id: MilestoneId };
   Letter: { letter: Letter };
-  ProofCapture: undefined;
+  Task: { key: string };
   ProofGallery: undefined;
   DevTools: undefined;
 };

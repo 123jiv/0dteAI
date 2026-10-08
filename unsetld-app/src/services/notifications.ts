@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { isClean, pickFor, todayLine } from '../core/feed';
+import { isClean, lineForTask, pickFor, todayLine } from '../core/feed';
 import { planNotifications, type PlannedNotification } from '../core/reminders';
 import { dayKeyOf, type DayKey } from '../core/time';
 import type { ChapterId } from '../core/types';
@@ -55,13 +55,22 @@ export interface ScheduleInput {
   night: { on: boolean; time: number };
   answered: Set<DayKey>;
   mix: ChapterId[];
-  /** "Don't show this line again": never sent. */
+  /** Lines never to send. */
   hidden: number[];
+  /** Open work per scheduled day (today: what's still not done). Task reminders name it. */
+  work: { day: DayKey; open: { text: string; chapter: ChapterId | null }[] }[];
   seed: string;
 }
 
+export type ComposedNotification = PlannedNotification & {
+  body: string;
+  /** "Still open: Train every day." on task reminders. */
+  subtitle?: string;
+  lineNo: number | null;
+};
+
 /** The reminder plan with each notification's body and line. Shared with the widget timeline. */
-export function composePlan(input: ScheduleInput, now: Date): (PlannedNotification & { body: string; lineNo: number | null })[] {
+export function composePlan(input: ScheduleInput, now: Date): ComposedNotification[] {
   const plan = planNotifications({
     now,
     today: dayKeyOf(now),
@@ -76,20 +85,34 @@ export function composePlan(input: ScheduleInput, now: Date): (PlannedNotificati
   const mix = new Set(input.mix);
   const hidden = new Set(input.hidden);
   const mixPool = LINES.filter(l => mix.has(l.chapter) && isClean(l) && !l.attribution && l.text.length <= 90 && !hidden.has(l.no));
-  return plan.map(p => {
-    if (p.kind === 'night') return { ...p, body: COPY.notifications.night, lineNo: null };
+  const workByDay = new Map(input.work.map(w => [w.day, w.open]));
+  const out: ComposedNotification[] = [];
+  for (const p of plan) {
+    if (p.kind === 'night') {
+      out.push({ ...p, body: COPY.notifications.night, lineNo: null });
+      continue;
+    }
     if (p.kind === 'today') {
       const t = todayLine(LINES, SCHEDULE, p.day);
       // Today's line is the same for everyone, unless this user hid it.
       const l = t && !hidden.has(t.no) ? t : pickFor(mixPool, `${input.seed}:${p.id}`);
-      return { ...p, body: l?.text ?? '', lineNo: l?.no ?? null };
+      out.push({ ...p, body: l?.text ?? '', lineNo: l?.no ?? null });
+      continue;
     }
-    if (p.kind === 'mix') {
-      const l = pickFor(mixPool, `${input.seed}:${p.id}`);
-      return { ...p, body: l?.text ?? '', lineNo: l?.no ?? null };
-    }
-    return { ...p, body: p.prompt ?? '', lineNo: null };
-  });
+    // Task reminder: name the next open task, with a line about it.
+    const open = workByDay.get(p.day);
+    if (open && !open.length) continue; // everything's done: no nudge
+    const task = open?.length ? open[(p.index - 1) % open.length] : null;
+    const chapters = task?.chapter ? [task.chapter] : input.mix;
+    const line = lineForTask(LINES.filter(l => !hidden.has(l.no)), chapters, `${input.seed}:${p.id}`) ?? pickFor(mixPool, `${input.seed}:${p.id}`);
+    out.push({
+      ...p,
+      subtitle: task ? COPY.notifications.stillOpen(task.text) : undefined,
+      body: line?.text ?? p.prompt ?? '',
+      lineNo: line?.no ?? null,
+    });
+  }
+  return out;
 }
 
 /** Rebuilds the rolling schedule. Call on every foreground and after settings change. */
@@ -110,6 +133,7 @@ export async function reschedule(input: ScheduleInput): Promise<number> {
       identifier: p.id,
       content: {
         title: COPY.notificationTitle,
+        subtitle: p.subtitle,
         body: p.body,
         sound: false,
         categoryIdentifier: p.kind === 'night' ? NIGHT_CATEGORY : undefined,

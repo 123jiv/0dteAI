@@ -10,21 +10,16 @@ import { Sheet } from '../../ui/Sheet';
 import { T } from '../../ui/text';
 import { color as C, hairline, MARGIN } from '../../ui/tokens';
 
+/** Chapters: where the daily task and lines come from. */
 export function ChaptersSheet({
   visible,
-  inMix,
   onClose,
-  onReadChapter,
-  onShowMix,
   onSaved,
   onYourLines,
   onFull,
 }: {
   visible: boolean;
-  inMix: boolean;
   onClose: () => void;
-  onReadChapter: (id: ChapterId) => void;
-  onShowMix: () => void;
   onSaved: () => void;
   onYourLines: () => void;
   onFull: () => void;
@@ -34,8 +29,6 @@ export function ChaptersSheet({
   const update = useApp(s => s.updateSettings);
   const saved = useApp(s => s.reading.saved.length);
   const yours = useApp(s => s.yourLines.length);
-
-  const mixNames = ent.mix.map(c => CHAPTER_BY_ID[c].name).join(', ');
 
   const locked = (id: ChapterId) => !ent.premium && id !== 'discipline' && id !== settings.freeChapter;
 
@@ -76,24 +69,9 @@ export function ChaptersSheet({
           <T v="mono">{COPY.chapters.sheetHeader(VOLUME, LINES.length)}</T>
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ selected: inMix }}
-          onPress={() => {
-            onShowMix();
-            onClose();
-          }}
-          style={{ marginTop: 16, marginHorizontal: MARGIN, minHeight: 52, flexDirection: 'row', alignItems: 'center', borderTopWidth: hairline, borderTopColor: C.rule }}>
-          <View style={{ flex: 1 }}>
-            <T v="row">{COPY.chapters.allMine}</T>
-            <T v="note" color={C.stone} numberOfLines={1}>
-              {mixNames}
-            </T>
-          </View>
-          <View style={{ width: 64, alignItems: 'flex-end' }}>
-            <Square on={inMix} />
-          </View>
-        </Pressable>
+        <T v="note" color={C.stone} style={{ marginHorizontal: MARGIN, marginTop: 8, marginBottom: 16 }}>
+          {COPY.chapters.sheetNote}
+        </T>
 
         <View style={{ marginHorizontal: MARGIN }}>
           {CHAPTERS.map((c, i) => {
@@ -113,12 +91,7 @@ export function ChaptersSheet({
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`${c.name}. ${c.scope}${isLocked ? ' Full Edition.' : ''}`}
-                  accessibilityHint={isLocked ? undefined : `Reads ${c.name} only`}
-                  onPress={() => {
-                    if (isLocked) return lockedMenu(c.id);
-                    onReadChapter(c.id);
-                    onClose();
-                  }}
+                  onPress={() => toggle(c.id)}
                   style={({ pressed }) => ({ flex: 1, flexDirection: 'row', alignItems: 'center', paddingVertical: 8, opacity: pressed ? 0.6 : 1 })}>
                   <T v="mono" style={{ width: 40 }}>
                     {String(c.no).padStart(2, '0')}

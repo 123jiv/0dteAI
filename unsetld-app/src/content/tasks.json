@@ -1,0 +1,16 @@
+[
+  { "id": "disc-001", "chapter": "discipline", "text": "Make your bed before you check your phone.", "proof": "The made bed.", "when": "morning" },
+  { "id": "disc-002", "chapter": "discipline", "text": "Clear the sink before you sit down tonight.", "proof": "The empty sink.", "when": "evening" },
+  { "id": "focu-001", "chapter": "focus", "text": "One hour on one thing, phone in another room.", "proof": "Your phone, away from your desk.", "when": "day" },
+  { "id": "focu-002", "chapter": "focus", "text": "Write tomorrow's first task on paper tonight.", "proof": "The note.", "when": "evening" },
+  { "id": "trai-001", "chapter": "training", "text": "Walk for thirty minutes without headphones.", "proof": "The street you walked.", "when": "any" },
+  { "id": "trai-002", "chapter": "training", "text": "Cook dinner at home tonight.", "proof": "The plate.", "when": "evening" },
+  { "id": "mone-001", "chapter": "money", "text": "Write down every payment you made this week.", "proof": "The list.", "when": "any" },
+  { "id": "mone-002", "chapter": "money", "text": "Cancel one subscription you didn't use last month.", "proof": "The cancellation screen.", "when": "any" },
+  { "id": "conf-001", "chapter": "confidence", "text": "Send the message you've been putting off.", "proof": "The sent message, names hidden.", "when": "day" },
+  { "id": "conf-002", "chapter": "confidence", "text": "Say your idea first in today's meeting.", "proof": "Your notes from the meeting.", "when": "day" },
+  { "id": "vice-001", "chapter": "vices", "text": "Phone charges outside the bedroom tonight.", "proof": "Your phone, charging outside.", "when": "evening" },
+  { "id": "vice-002", "chapter": "vices", "text": "No drinks tonight. Water with dinner.", "proof": "The glass of water.", "when": "evening" },
+  { "id": "stoi-001", "chapter": "stoic", "text": "Take a cold shower and finish it.", "proof": "The cold tap.", "when": "morning" },
+  { "id": "stoi-002", "chapter": "stoic", "text": "Write down what's in your control this week.", "proof": "The page.", "when": "any" }
+]

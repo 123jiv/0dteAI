@@ -2,7 +2,8 @@ import * as Linking from 'expo-linking';
 import { useEffect, useMemo, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import { dayCount, sortedDays } from '../core/record';
-import { nextDayStart } from '../core/time';
+import { daysAhead } from '../core/reminders';
+import { addDays, nextDayStart } from '../core/time';
 import { backupRecord, readBackup } from '../services/backup';
 import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
 import { now } from '../services/clock';
@@ -11,6 +12,9 @@ import { initPurchases, purchaseMode, refreshPremium } from '../services/purchas
 import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
 import { parseUrl, useIntent } from './intents';
 import { useApp, useEntitlements } from './store';
+import { workFor } from './work';
+
+const NO_HIDDEN: number[] = [];
 
 function applyPremium() {
   refreshPremium()
@@ -97,12 +101,12 @@ export function useSideEffects() {
   const salt = useApp(s => s.installSalt);
   const day = useApp(s => s.currentDay);
   const account = useApp(s => s.account.userId);
-  const hidden = useApp(s => s.reading.hidden);
   const yourLines = useApp(s => s.yourLines);
   const ent = useEntitlements();
   const mixKey = ent.mix.join(',');
   const nightsKey = Object.keys(record.nights).sort().slice(-3).join(',');
-  const hiddenKey = hidden.join(',');
+  const workKey = `${settings.standard.join('|')}#${settings.ownTasks.map(t => t.text).join('|')}#${ent.maxOwnTasks}`;
+  const doneTodayKey = Object.keys(record.work[day] ?? {}).sort().join(',');
 
   const schedule: ScheduleInput = useMemo(
     () => ({
@@ -113,11 +117,17 @@ export function useSideEffects() {
       night: settings.night,
       answered: new Set(Object.keys(record.nights)),
       mix: ent.mix,
-      hidden,
+      hidden: NO_HIDDEN,
+      // Open work for each day the plan covers; today's leaves out what's done.
+      work: Array.from({ length: daysAhead(settings.reminders.on ? Math.min(settings.reminders.count, ent.maxReminders) : 0, settings.night.on) }, (_, i) => {
+        const d = addDays(day, i);
+        const done = useApp.getState().record.work[d] ?? {};
+        return { day: d, open: workFor(d, settings, ent, salt).filter(w => !done[w.key]).map(w => ({ text: w.text, chapter: w.chapter })) };
+      }),
       seed: salt,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [settings.reminders, settings.night, ent.maxReminders, mixKey, nightsKey, hiddenKey, salt],
+    [settings.reminders, settings.night, ent.maxReminders, mixKey, nightsKey, salt, day, workKey, doneTodayKey],
   );
 
   // Notifications: after settings change, on a new day, and on every foreground
@@ -147,12 +157,12 @@ export function useSideEffects() {
       mix: ent.mix,
       record: useApp.getState().record,
       standard: settings.standard,
-      hidden,
+      hidden: NO_HIDDEN,
       yourLines: ent.yourLines ? yourLines.map(y => y.text) : [],
       schedule,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, onboarded, day, ent.premium, ent.colorway.id, mixKey, recordKey, standardKey, hiddenKey, yoursKey, schedule]);
+  }, [hydrated, onboarded, day, ent.premium, ent.colorway.id, mixKey, recordKey, standardKey, yoursKey, schedule]);
 
   // Keychain backup of the record.
   useEffect(() => {

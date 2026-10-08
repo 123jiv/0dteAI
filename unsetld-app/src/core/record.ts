@@ -11,7 +11,7 @@ export const REOPEN_AFTER = 7;
 export const ROAD = [7, 90, 365] as const;
 
 export function emptyRecord(): RecordState {
-  return { days: {}, nights: {}, lettersShown: [], patchClaimed: null, proofs: {}, codes: [] };
+  return { days: {}, nights: {}, lettersShown: [], patchClaimed: null, work: {}, codes: [] };
 }
 
 export function sortedDays(r: RecordState): DayKey[] {

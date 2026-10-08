@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Animated, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { codeForCollection, pointsBalance, proofDays, tierStatus, type TierStatus } from '../core/points';
+import { allProofs, codeForCollection, pointsBalance, provenOn, tierStatus, type TierStatus } from '../core/points';
 import {
   accessState,
   barcode,
@@ -12,7 +12,7 @@ import {
   stats,
   type MilestoneStatus,
 } from '../core/record';
-import { shortDate, type DayKey } from '../core/time';
+import { shortDate } from '../core/time';
 import { milestoneNo } from '../core/typography';
 import type { Milestone } from '../core/types';
 import { MILESTONES, POINTS } from '../content';
@@ -22,7 +22,7 @@ import { openStore, redeem } from '../services/access';
 import { light } from '../services/haptics';
 import { useAccessEnabled, useApp } from '../state/store';
 import { showDialog } from '../ui/actions';
-import { Button, InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
+import { InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
 import { ProofThumb } from './ProofGalleryScreen';
 import { T } from '../ui/text';
 import { color as C, ease, font, hairline, MARGIN } from '../ui/tokens';
@@ -205,7 +205,8 @@ export function RecordScreen({ navigation }: RootProps<'Record'>) {
   const access = accessState(record, day);
   const balance = pointsBalance(record, POINTS);
   const claimed = codeForCollection(record, collection);
-  const recent = proofDays(record).slice(0, 6);
+  const proofs = allProofs(record);
+  const recent = proofs.slice(0, 6);
   const thumb = Math.floor((w - 16) / 3);
   const [codeError, setCodeError] = useState<string | null>(null);
 
@@ -270,23 +271,19 @@ export function RecordScreen({ navigation }: RootProps<'Record'>) {
       </T>
       {recent.length ? (
         <View style={{ marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {recent.map((d: DayKey) => (
-            <View key={d} style={{ width: thumb, gap: 6 }}>
-              <ProofThumb uri={record.proofs[d].uri} size={thumb} label={COPY.proof.a11yPhoto(shortDate(d))} onPress={() => navigation.navigate('ProofGallery')} />
-              <T v="mono.s">{shortDate(d)}</T>
+          {recent.map(p => (
+            <View key={`${p.day}:${p.key}`} style={{ width: thumb, gap: 6 }}>
+              <ProofThumb uri={p.proof.uri} size={thumb} label={COPY.proof.a11yPhoto(shortDate(p.day))} onPress={() => navigation.navigate('ProofGallery')} />
+              <T v="mono.s">{shortDate(p.day)}</T>
             </View>
           ))}
         </View>
       ) : null}
-      <View style={{ marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-        {record.proofs[day] ? (
-          <T v="note" color={C.stone}>
-            {R.proofIn}
-          </T>
-        ) : (
-          <Button kind="outline" title={R.addToday} onPress={() => navigation.navigate('ProofCapture')} style={{ flex: 1 }} />
-        )}
-        {proofDays(record).length > recent.length ? <TextButton title={R.seeAll} onPress={() => navigation.navigate('ProofGallery')} /> : null}
+      <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <T v="note" color={C.stone}>
+          {R.provenToday(provenOn(record, day))}
+        </T>
+        {proofs.length > recent.length ? <TextButton title={R.seeAll} onPress={() => navigation.navigate('ProofGallery')} /> : null}
       </View>
 
       {accessEnabled ? (

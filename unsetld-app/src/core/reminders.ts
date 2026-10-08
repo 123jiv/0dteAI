@@ -22,7 +22,8 @@ export function slotOf(minutes: number): Slot {
   return 'night';
 }
 
-export type ReminderKind = 'today' | 'prompt' | 'mix';
+/** The first reminder delivers today's line; the rest nudge the work that's still open. */
+export type ReminderKind = 'today' | 'task';
 
 export interface ReminderTime {
   /** Minutes after midnight (may be past midnight for late windows, e.g. 1500 = 1:00 AM). */
@@ -59,7 +60,7 @@ export function dayReminderTimes(o: DayPlanOptions): ReminderTime[] {
     if (i > 0) t = Math.min(end, Math.max(start + 1, t + (rand() * 20 - 10)));
     t = Math.round(t);
     if (o.night.enabled && i > 0 && Math.abs(t - nightAt) < 30) t -= 45;
-    const kind: ReminderKind = i === 0 ? 'today' : count >= 5 && i % 2 === 0 ? 'mix' : 'prompt';
+    const kind: ReminderKind = i === 0 ? 'today' : 'task';
     out.push({ minutes: t + 4 * 60, kind });
   }
   return out;
@@ -70,7 +71,7 @@ export interface PlannedNotification {
   date: Date;
   day: DayKey;
   kind: ReminderKind | 'night';
-  /** Prompt text for 'prompt' reminders. */
+  /** Fallback text for a task reminder when there's no open work to name. */
   prompt?: string;
   /** Index into the day's reminders. */
   index: number;
@@ -115,7 +116,7 @@ export function planNotifications(o: PlanOptions): PlannedNotification[] {
       const date = atMinutes(day, t.minutes);
       if (date.getTime() <= soon) return;
       let prompt: string | undefined;
-      if (t.kind === 'prompt') {
+      if (t.kind === 'task') {
         const slot = slotOf(t.minutes);
         const list = bySlot[slot].length ? bySlot[slot] : o.prompts;
         if (list.length) prompt = list[cursor[slot]++ % list.length].text;

@@ -397,20 +397,19 @@ interface LineSlot {
 
 /**
  * The line an entry shows. Boundaries and the day's first reminder: today's
- * global line. Mix reminders: the line that notification delivered. Prompt
- * reminders (their notification is a question, not a line): a short clean
- * line from the user's chapters. Never an explicit or hidden line: a hidden
- * one is swapped for a stand-in.
+ * global line. Task reminders: the line that notification delivered (a line
+ * about the open task), or a short clean line from the user's chapters. Your
+ * lines (Full Edition) take every other task reminder's slot. Never an
+ * explicit or hidden line: a hidden one is swapped for a stand-in.
  */
 function lineFor(c: Ctx, p: Planned | null, day: DayKey): Line | null {
   const seed = c.input.schedule.seed;
-  // Your lines take every other prompt reminder's slot.
-  if (p?.kind === 'prompt' && c.input.yourLines.length && p.index % 2 === 1) {
+  if (p?.kind === 'task' && c.input.yourLines.length && p.index % 2 === 1) {
     const text = pickFor(c.input.yourLines, `${seed}:yours:${p.id}`);
     if (text) return { no: 0, chapter: 'discipline', text, explicit: false, volume: 1 };
   }
   const ok = (l: Line | null | undefined): l is Line => Boolean(l && isClean(l) && !c.hidden.has(l.no));
-  if (p?.kind === 'mix' && p.lineNo != null) {
+  if (p?.kind === 'task' && p.lineNo != null) {
     const l = LINE_BY_NO[p.lineNo];
     if (ok(l)) return l;
   }
@@ -618,6 +617,7 @@ async function writePreviews(w: Loaded) {
       answered: new Set(),
       mix: [],
       hidden: [],
+      work: [],
       seed: '',
     },
   };

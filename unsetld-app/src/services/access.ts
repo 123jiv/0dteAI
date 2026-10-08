@@ -61,13 +61,13 @@ export async function syncCheckIn(day: DayKey) {
 }
 
 /** First sign-in: send the locally verified days (and the days with proof) so the server can hold the user's place. */
-export async function syncRecord(days: DayKey[], proofDays: DayKey[]) {
-  await post('sync', { days, proofDays });
+export async function syncRecord(days: DayKey[], proofs: { day: DayKey; count: number }[]) {
+  await post('sync', { days, proofs });
 }
 
-/** One proof per account per server day. Only the date goes up, never the photo. */
-export async function syncProof(day: DayKey) {
-  await post('proof', { dayKey: day });
+/** Today's count of proven tasks (0 to the daily cap). Only the date and the count go up, never a photo. */
+export async function syncProof(day: DayKey, count: number) {
+  await post('proof', { dayKey: day, count });
 }
 
 export type Perk = 'patch' | 'early-access' | 'piece-365';

@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { proofDays } from '../core/points';
+import { allProofs, type ProofItem } from '../core/points';
 import { shortDate } from '../core/time';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
@@ -44,21 +44,19 @@ export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const record = useApp(s => s.record);
-  const rules = useApp(s => s.settings.standard);
-  const days = proofDays(record);
-  const [open, setOpen] = useState<string | null>(null);
+  const items = allProofs(record);
+  const [open, setOpen] = useState<ProofItem | null>(null);
   const gap = 8;
   const size = Math.floor((width - MARGIN * 2 - gap * 2) / 3);
-  const shown = open ? record.proofs[open] : null;
-  const shownSrc = shown ? proofImage(shown.uri) : null;
+  const shownSrc = open ? proofImage(open.proof.uri) : null;
   const w = width - MARGIN * 2;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
       <NavRow onBack={() => navigation.goBack()} />
       <FlatList
-        data={days}
-        keyExtractor={d => d}
+        data={items}
+        keyExtractor={p => `${p.day}:${p.key}`}
         numColumns={3}
         columnWrapperStyle={{ gap }}
         contentContainerStyle={{ paddingHorizontal: MARGIN, paddingBottom: insets.bottom + 40, gap: 16 }}
@@ -73,12 +71,12 @@ export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
         }
         renderItem={({ item }) => (
           <View style={{ width: size, gap: 6 }}>
-            <ProofThumb uri={record.proofs[item].uri} size={size} label={P.a11yPhoto(shortDate(item))} onPress={() => setOpen(item)} />
-            <T v="mono.s">{shortDate(item)}</T>
+            <ProofThumb uri={item.proof.uri} size={size} label={`${item.text} ${P.a11yPhoto(shortDate(item.day))}`} onPress={() => setOpen(item)} />
+            <T v="mono.s">{shortDate(item.day)}</T>
           </View>
         )}
       />
-      {open && shown ? (
+      {open ? (
         <View style={[StyleSheet.absoluteFill, { backgroundColor: C.ink }]} accessibilityViewIsModal>
           <View style={{ marginTop: insets.top + 8, height: 44, paddingHorizontal: MARGIN - 10, justifyContent: 'center' }}>
             <Pressable accessibilityRole="button" accessibilityLabel={COPY.reader.a11y.close} onPress={() => setOpen(null)} style={{ width: 44, height: 44, justifyContent: 'center', paddingLeft: 6 }}>
@@ -89,17 +87,12 @@ export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
             <View style={{ width: w, height: Math.min((w * 5) / 4, height * 0.62), borderWidth: hairline, borderColor: C.rule, backgroundColor: C.raise }}>
               {shownSrc ? <Image source={{ uri: shownSrc }} style={StyleSheet.absoluteFill} contentFit="cover" /> : null}
               <View style={{ position: 'absolute', left: 12, bottom: 12 }}>
-                <ProofStamp day={open} takenAt={shown.takenAt} lineNo={shown.lineNo} />
+                <ProofStamp day={open.day} takenAt={open.proof.takenAt} lineNo={open.proof.lineNo} />
               </View>
             </View>
-            {shown.rule !== null && rules[shown.rule] ? (
-              <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center' }}>
-                <T v="mono" style={{ width: 40 }}>
-                  {String(shown.rule + 1).padStart(2, '0')}
-                </T>
-                <T v="list">{rules[shown.rule]}</T>
-              </View>
-            ) : null}
+            <T v="list" style={{ marginTop: 16 }}>
+              {open.text}
+            </T>
           </View>
         </View>
       ) : null}

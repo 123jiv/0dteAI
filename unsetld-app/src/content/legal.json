@@ -4,7 +4,7 @@
     "sections": [
       {
         "h": "On record",
-        "p": "A day goes on record when you open that day's line, in the app, from a widget or from a reminder. One a day. A day runs from 4:00 AM to 3:59 AM, so late nights count."
+        "p": "A day goes on record when you open the app that day, or open it from a widget or a reminder. One a day. A day runs from 4:00 AM to 3:59 AM, so late nights count."
       },
       {
         "h": "It only goes up",
@@ -15,14 +15,14 @@
         "p": "It's between you and you. Saying Not today keeps the day on record."
       },
       {
-        "h": "Proof",
-        "p": "Once a day you can add proof: a photo of the work, taken in the app. It stays on this phone. Each day with proof is 10 points."
+        "h": "Today’s work",
+        "p": "Each day's work is your three rules and one task from UNSETLD. Prove a task with a photo taken in the app; the photo stays on this phone. Each proven task is 10 points, up to 40 a day."
       },
       {
         "h": "Points",
         "list": [
-          "300 points: 10% off one order at unsetld.com.",
-          "500 points: 15% off one order at unsetld.com.",
+          "600 points: 10% off one order at unsetld.com.",
+          "1,000 points: 15% off one order at unsetld.com.",
           "Up to $25 off, one code each collection. Codes work for 30 days."
         ]
       },
@@ -66,7 +66,7 @@
       },
       {
         "h": "Points and codes",
-        "p": "Each day with proof is 10 points. Proof must be your own photo of that day's work, taken in the app. 300 points can be traded for 10% off one order, 500 points for 15%, up to $25 off. One code each collection. Codes are single use, work for 30 days and are only valid at unsetld.com. We may remove points earned through misuse."
+        "p": "Each task proven with a photo is 10 points, up to 40 points a day. Proof must be your own photo of that day's work, taken in the app. 600 points can be traded for 10% off one order, 1,000 points for 15%, up to $25 off. One code each collection. Codes are single use, work for 30 days and are only valid at unsetld.com. We may remove points earned through misuse."
       },
       {
         "h": "Limits",
@@ -130,11 +130,11 @@
       },
       {
         "h": "Camera",
-        "p": "The camera is used only when you add proof. Photos are saved inside the app on this phone and are never uploaded."
+        "p": "The camera is used only when you prove a task. Photos are saved inside the app on this phone and are never uploaded."
       },
       {
         "h": "If you sign in for codes or access",
-        "p": "Signing in with Apple is optional and only needed to use codes and access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you put on record and the days you added proof (the date only, never the photo) so we can hold your place and issue single-use codes. Nothing else."
+        "p": "Signing in with Apple is optional and only needed to use codes and access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you put on record and the days you proved tasks (dates and counts only, never the photos) so we can hold your place and issue single-use codes. Nothing else."
       },
       {
         "h": "Notifications",

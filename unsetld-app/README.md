@@ -1,13 +1,14 @@
 # UNSETLD
 
-**One line every morning, and a record of the days you showed up.**
+**One line every morning, the day's work, and a record of the days you showed up.**
 
 UNSETLD is a daily line for the unsettled, built like the Motivation app and on the clothing brand of the same name ("unsettled" minus two letters; *never settle for less*).
 
-- **The line.** One raw, original line every morning, on the lock screen and in the notification. Swipe up for more from the chapters you chose: Discipline, Focus, Training, Money, Confidence, Vices, Stoic.
+- **The line.** One raw, original line a day, at the top of Today, on the lock screen and in the morning notification. No feed to scroll: you read it and get to work. Chapters: Discipline, Focus, Training, Money, Confidence, Vices, Stoic.
+- **Today's work.** Your three rules, plus one task from UNSETLD drawn from your chapters, plus up to three of your own (Full Edition). Each task opens with a line about it and the camera to prove it. Reminders through the day name what's still open.
 - **The standard.** You set three plain rules. Each night the app asks one question: did you hold it?
-- **The record.** Every day you open the line goes on record, drawn like a garment-tag barcode.
-- **Proof and points.** Once a day you can add proof: a photo of the work, taken live in the app and kept on the phone. Each day with proof is 10 points, and points trade for a discount code at unsetld.com (300 = 10% off, 500 = 15%, up to $25, one code each collection).
+- **The record.** Every day you open the app goes on record, drawn like a garment-tag barcode.
+- **Proof and points.** Prove a task with a photo taken in the app and kept on the phone: 10 points a task, up to 4 a day. Points trade for a discount code at unsetld.com (600 = 10% off, 1,000 = 15%, up to $25, one code each collection).
 - **Access.** Days on record open access to the brand: drops 24 hours early (Day 7), a numbered patch (Day 90) and a piece only year-one people can buy (Day 365). None of it is sold. See [docs/ACCESS.md](docs/ACCESS.md).
 
 The design is in [docs/DESIGN_SPEC.md](docs/DESIGN_SPEC.md) and every string is in [docs/COPY_DECK.md](docs/COPY_DECK.md). Built with **Expo SDK 57** (React Native, TypeScript), `expo-widgets` for the iOS widgets and RevenueCat for Full Edition.
@@ -29,7 +30,7 @@ The whole app runs in the browser. Widgets, notifications, Sign in with Apple an
 
 **Tester tools:** Record → Settings → Tester tools. You can:
 - jump days ahead, to see Day 7 and its letter;
-- add 30 days of test proof, to trade points for a code;
+- add 20 days of proven work (800 points), to trade points for a code;
 - disappear for 15 days, to see the pause and the comeback letter;
 - make the night check due now;
 - switch Full Edition on and off.
@@ -116,9 +117,9 @@ Access stays hidden until `https://www.unsetld.com/api/app/config.json` says `"a
 
 | Path | What |
 |---|---|
-| `src/screens/` | Onboarding O1–O6, Paywall, Record, Milestone, Letter, Settings and its sub-pages |
-| `src/screens/reader/` | The reader: line pages, night check, end card, the Chapters / Colorway / Share sheets |
-| `src/core/` | Pure, unit-tested rules: the 4:00 AM day, feed, record, Access pause, reminder plan, typography |
+| `src/screens/` | Onboarding O1–O6, Task (proof camera), Paywall, Record, Proof gallery, Milestone, Letter, Settings and its sub-pages |
+| `src/screens/today/` | Today: the day's line, night check, today's work, the Chapters / Colorway / Share sheets |
+| `src/core/` | Pure, unit-tested rules: the 4:00 AM day, today's line, daily task and points, record, Access pause, reminder plan, typography |
 | `src/state/` | Zustand store (persisted), app lifecycle (4:00 AM rollover, rescheduling, deep links) |
 | `src/services/` | Notifications, purchases, widgets, sharing, Access network calls, Sign in with Apple |
 | `src/ui/` | Design tokens, type, buttons/squares/segmented control, icons, the walker, sheets |

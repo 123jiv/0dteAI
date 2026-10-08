@@ -24,7 +24,7 @@ export function WidgetScreen({ navigation, route }: RootProps<'Widget'>) {
   const finish = () => {
     if (guide) return navigation.goBack();
     useApp.getState().completeOnboarding(false);
-    navigation.reset({ index: 1, routes: [{ name: 'Reader' }, { name: 'Paywall', params: { from: 'onboarding' } }] });
+    navigation.reset({ index: 1, routes: [{ name: 'Today' }, { name: 'Paywall', params: { from: 'onboarding' } }] });
   };
 
   return (

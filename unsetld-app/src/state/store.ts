@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { AppConfig } from '../config/app';
 import { randomSalt } from '../core/random';
-import { addProof, claimCode } from '../core/points';
+import { claimCode, completeTask, dayPoints, uncompleteTask } from '../core/points';
 import {
   answerNight,
   claimPatch,
@@ -13,7 +13,7 @@ import {
 } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
-import type { ChapterId, Colorway, PointsConfig, Proof, RecordState, YourLine } from '../core/types';
+import type { ChapterId, Colorway, PointsConfig, Proof, RecordState, WorkItem, YourLine } from '../core/types';
 import { COLORWAY_BY_ID, COLORWAYS, POINTS, STANDARD_RULES } from '../content';
 import { getDayOffset, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
@@ -34,23 +34,18 @@ export interface Settings {
   standard: string[];
   /** A rule the user wrote, kept so the standard page can show it again. */
   ownRule: string | null;
+  /** Full Edition: up to three more tasks of your own, every day. */
+  ownTasks: { id: string; text: string }[];
   /** The day-1 "Swipe up for the next line." hint has done its job. */
   hintDone: boolean;
 }
 
 export interface Reading {
-  /** Line no → last day seen. */
-  seen: Record<number, DayKey>;
-  lifetimeSeen: number;
-  hidden: number[];
   /** Saved line numbers, most recent first. */
   saved: number[];
-  /** Free tier: lines counted toward today's 10. */
-  counted: { day: DayKey; nos: number[] };
-  /** The running head showed "DAY N" for this day. */
+  /** Today has already greeted this day (haptic, walker nudge). */
   dayHeadShown: DayKey | null;
   accessIntroShown: boolean;
-  volumesSeen: number[];
 }
 
 export interface Premium {
@@ -93,11 +88,12 @@ interface State {
   completeOnboarding: (verified: boolean) => void;
   recordToday: (verified: boolean) => boolean;
   answerNight: (day: DayKey, held: boolean) => void;
-  markSeen: (no: number) => void;
-  countLine: (no: number) => void;
   toggleSave: (no: number) => boolean;
-  hideLine: (no: number) => void;
-  resetSeen: (nos: number[]) => void;
+  /** Marks a task of today's work done. Returns the points it earned. */
+  completeTask: (item: WorkItem, proof: Proof | null) => number;
+  uncompleteTask: (key: string) => void;
+  addOwnTask: (text: string) => void;
+  removeOwnTask: (id: string) => void;
   addYourLine: (text: string) => void;
   updateYourLine: (id: string, text: string) => void;
   removeYourLine: (id: string) => void;
@@ -107,12 +103,9 @@ interface State {
   setRemote: (r: Partial<Remote>) => void;
   letterShown: (l: Letter) => void;
   claimPatch: () => void;
-  /** Today's proof. Returns the points it earned (0 if today already had proof). */
-  addProof: (proof: Proof) => number;
   claimCode: (tier: PointsConfig['tiers'][number], minted: { code: string; url: string }) => void;
   markDayHead: (day: DayKey) => void;
   markAccessIntro: () => void;
-  markVolume: (v: number) => void;
   setPreviewColorway: (id: string | null) => void;
   setDayOffset: (days: number) => void;
   backToRealToday: () => void;
@@ -132,18 +125,14 @@ export const DEFAULT_SETTINGS: Settings = {
   dropAlerts: false,
   standard: STANDARD_RULES.slice(0, 3),
   ownRule: null,
+  ownTasks: [],
   hintDone: false,
 };
 
 const EMPTY_READING: Reading = {
-  seen: {},
-  lifetimeSeen: 0,
-  hidden: [],
   saved: [],
-  counted: { day: '', nos: [] },
   dayHeadShown: null,
   accessIntroShown: false,
-  volumesSeen: [1],
 };
 
 export const useApp = create<State>()(
@@ -184,21 +173,6 @@ export const useApp = create<State>()(
 
       answerNight: (day, held) => set(s => ({ record: answerNight(s.record, day, held) })),
 
-      markSeen: no =>
-        set(s => {
-          const d = today();
-          if (s.reading.seen[no] === d) return s;
-          return { reading: { ...s.reading, seen: { ...s.reading.seen, [no]: d }, lifetimeSeen: s.reading.lifetimeSeen + 1 } };
-        }),
-
-      countLine: no =>
-        set(s => {
-          const d = today();
-          const cur = s.reading.counted.day === d ? s.reading.counted.nos : [];
-          if (cur.includes(no)) return s;
-          return { reading: { ...s.reading, counted: { day: d, nos: [...cur, no] } } };
-        }),
-
       toggleSave: no => {
         const has = get().reading.saved.includes(no);
         set(s => ({
@@ -207,15 +181,21 @@ export const useApp = create<State>()(
         return !has;
       },
 
-      hideLine: no =>
-        set(s => ({ reading: { ...s.reading, hidden: s.reading.hidden.includes(no) ? s.reading.hidden : [...s.reading.hidden, no] } })),
-
-      resetSeen: nos =>
-        set(s => {
-          const seen = { ...s.reading.seen };
-          for (const n of nos) delete seen[n];
-          return { reading: { ...s.reading, seen } };
-        }),
+      completeTask: (item, proof) => {
+        const d = today();
+        const before = dayPoints(get().record, POINTS, d);
+        set(s => ({ record: completeTask(s.record, d, item, proof, Date.now()) }));
+        return dayPoints(get().record, POINTS, d) - before;
+      },
+      uncompleteTask: key => set(s => ({ record: uncompleteTask(s.record, today(), key) })),
+      addOwnTask: text =>
+        set(s => ({
+          settings: {
+            ...s.settings,
+            ownTasks: [...s.settings.ownTasks, { id: Date.now().toString(36), text: text.trim() }].slice(0, 3),
+          },
+        })),
+      removeOwnTask: id => set(s => ({ settings: { ...s.settings, ownTasks: s.settings.ownTasks.filter(t => t.id !== id) } })),
 
       addYourLine: text =>
         set(s => ({
@@ -232,19 +212,11 @@ export const useApp = create<State>()(
 
       letterShown: l => set(s => ({ record: markLetterShown(s.record, l) })),
       claimPatch: () => set(s => ({ record: claimPatch(s.record, today()) })),
-      addProof: proof => {
-        const d = today();
-        const had = Boolean(get().record.proofs[d]);
-        set(s => ({ record: addProof(s.record, d, proof) }));
-        return had ? 0 : POINTS.perProof;
-      },
       claimCode: (tier, minted) =>
         set(s => ({ record: claimCode(s.record, POINTS, tier, s.remote.collection, today(), minted) })),
 
       markDayHead: day => set(s => ({ reading: { ...s.reading, dayHeadShown: day } })),
       markAccessIntro: () => set(s => ({ reading: { ...s.reading, accessIntroShown: true } })),
-      markVolume: v =>
-        set(s => ({ reading: { ...s.reading, volumesSeen: [...new Set([...s.reading.volumesSeen, v])] } })),
       setPreviewColorway: id => set({ previewColorway: id }),
 
       setDayOffset: days => {
@@ -311,6 +283,8 @@ export interface Entitlements {
   colorway: Colorway;
   maxReminders: number;
   yourLines: boolean;
+  /** Extra tasks of your own (Full Edition). */
+  maxOwnTasks: number;
 }
 
 export function entitlementsOf(s: Pick<State, 'settings' | 'premium'>): Entitlements {
@@ -325,6 +299,7 @@ export function entitlementsOf(s: Pick<State, 'settings' | 'premium'>): Entitlem
     colorway: premium || chosen.free ? chosen : COLORWAYS[0],
     maxReminders: premium ? FULL_MAX_REMINDERS : FREE_MAX_REMINDERS,
     yourLines: premium,
+    maxOwnTasks: premium ? 3 : 0,
   };
 }
 

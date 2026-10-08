@@ -15,6 +15,8 @@ const prompts = read('reminders.json');
 const schedule = read('schedule.json');
 const standard = read('standard.json');
 const colorways = read('colorways.json');
+const tasks = read('tasks.json');
+const points = read('points.json');
 
 const SWEAR = /\b(damn\w*|hell|shit\w*|bullshit|piss\w*|fuck\w*)\b/i;
 const NEVER = /\b(bitch\w*|pussy|motherfuck\w*|fag\w*|retard\w*|nigg\w*|slut|whore|cunt|dick\w*|cock\w*)\b|\bass(es)?\b/i;
@@ -147,10 +149,40 @@ if (standard.length !== 8) warnings.push(`standard.json: ${standard.length} rule
 if (colorways.length !== 10) errors.push(`colorways.json: ${colorways.length} colorways (spec has 10)`);
 if (colorways.filter(c => c.free).map(c => c.id).join() !== 'black') errors.push('colorways.json: only Black is free');
 
-console.log('Chapter        lines  explicit  lock');
+// Daily tasks: short, doable today, provable with one photo.
+const taskIds = new Set();
+const taskTexts = new Set();
+const perChapterTasks = {};
+for (const t of tasks) {
+  const where = `task ${t.id}`;
+  if (!/^[a-z]{4}-\d{3}$/.test(t.id ?? '')) errors.push(`${where}: id must look like "disc-001"`);
+  if (taskIds.has(t.id)) errors.push(`${where}: duplicate id`);
+  taskIds.add(t.id);
+  if (!CHAPTER_IDS.includes(t.chapter)) errors.push(`${where}: unknown chapter "${t.chapter}"`);
+  if (!['morning', 'day', 'evening', 'any'].includes(t.when)) errors.push(`${where}: when must be morning, day, evening or any`);
+  const text = (t.text ?? '').trim();
+  const key = norm(text);
+  if (taskTexts.has(key)) errors.push(`${where}: duplicate text: ${text}`);
+  taskTexts.add(key);
+  const w = words(text);
+  if (w < 3 || w > 12) errors.push(`${where}: ${w} words (must be 3–12): ${text}`);
+  if (text.length > 60) errors.push(`${where}: ${text.length} characters (max 60): ${text}`);
+  if (!/[.]$/.test(text)) errors.push(`${where}: must end with a full stop: ${text}`);
+  if (/[!?…]/.test(text) || SWEAR.test(text) || NEVER.test(text) || bannedRe.test(text)) errors.push(`${where}: off-voice: ${text}`);
+  if (/\bbuy\b|\bshop\b|\bunsetld\b/i.test(text)) errors.push(`${where}: tasks never sell or send people shopping: ${text}`);
+  const proof = (t.proof ?? '').trim();
+  if (!proof || words(proof) > 8) errors.push(`${where}: proof must be a short photo description: ${proof}`);
+  perChapterTasks[t.chapter] = (perChapterTasks[t.chapter] ?? 0) + 1;
+}
+if (!(points.perProof > 0 && points.maxPerDay > 0 && points.maxOff > 0)) errors.push('points.json: perProof, maxPerDay and maxOff must be positive');
+const tierPoints = points.tiers.map(t => t.points);
+if (tierPoints.some((p, i) => i && p <= tierPoints[i - 1])) errors.push('points.json: tiers must go up');
+
+console.log('Chapter        lines  explicit  lock  tasks');
 for (const id of CHAPTER_IDS) {
   const c = perChapter[id] ?? { total: 0, explicit: 0, lock: 0 };
-  console.log(`  ${id.padEnd(12)} ${String(c.total).padStart(5)}  ${String(c.explicit).padStart(8)}  ${String(c.lock).padStart(4)}`);
+  console.log(`  ${id.padEnd(12)} ${String(c.total).padStart(5)}  ${String(c.explicit).padStart(8)}  ${String(c.lock).padStart(4)}  ${String(perChapterTasks[id] ?? 0).padStart(5)}`);
+  if ((perChapterTasks[id] ?? 0) < 30) warnings.push(`${id}: ${perChapterTasks[id] ?? 0} daily tasks (aim for 30 or more)`);
   if (c.total < 40) warnings.push(`${id}: ${c.total} lines (Volume 001 needs at least 40 per chapter before launch)`);
 }
 console.log(`Total: ${lines.length} lines (${originals} original), ${explicitTotal} explicit (${(share * 100).toFixed(1)}%)`);

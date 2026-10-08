@@ -1,15 +1,16 @@
-import { StackActions } from '@react-navigation/native';
+import { useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { catalogueNo } from '../core/typography';
 import type { Line } from '../core/types';
 import { chapterLabel, LINE_BY_NO } from '../content';
 import { COPY } from '../content/copy';
-import { newNonce } from '../navigation/nonce';
 import type { RootProps } from '../navigation/types';
-import { useApp } from '../state/store';
+import { useApp, useEntitlements } from '../state/store';
 import { showActions } from '../ui/actions';
 import { NavRow, PageTitle } from '../ui/kit';
+import type { ShareLine } from '../ui/ShareCard';
+import { ShareSheet } from './today/ShareSheet';
 import { T } from '../ui/text';
 import { color as C, hairline, MARGIN } from '../ui/tokens';
 
@@ -18,8 +19,9 @@ export function SavedScreen({ navigation }: RootProps<'Saved'>) {
   const saved = useApp(s => s.reading.saved);
   const lines = saved.map(n => LINE_BY_NO[n]).filter((l): l is Line => Boolean(l));
 
-  const open = (no: number) =>
-    navigation.dispatch(StackActions.popTo('Reader', { mode: { kind: 'saved', no }, nonce: newNonce() }));
+  const ent = useEntitlements();
+  const [share, setShare] = useState<ShareLine | null>(null);
+  const open = (l: Line) => setShare({ text: l.text, no: l.no, attribution: l.attribution });
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
@@ -41,8 +43,8 @@ export function SavedScreen({ navigation }: RootProps<'Saved'>) {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${item.text}. ${catalogueNo(item.no)}`}
-            accessibilityHint="Opens it in the reader"
-            onPress={() => open(item.no)}
+            accessibilityHint="Opens it to share"
+            onPress={() => open(item)}
             onLongPress={() =>
               showActions({
                 options: [
@@ -66,6 +68,16 @@ export function SavedScreen({ navigation }: RootProps<'Saved'>) {
             </T>
           </Pressable>
         )}
+      />
+      <ShareSheet
+        line={share}
+        colorway={ent.colorway}
+        premium={ent.premium}
+        onClose={() => setShare(null)}
+        onLocked={() => {
+          setShare(null);
+          navigation.navigate('Paywall', { from: 'share' });
+        }}
       />
     </View>
   );

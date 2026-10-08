@@ -1,119 +1,68 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, View, type ViewToken } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Animated, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { catalogueNo } from '../../core/typography';
-import type { Line } from '../../core/types';
+import { breakBeats, catalogueNo, lineSize, typo } from '../../core/typography';
 import { chapterLabel, COLORWAY_BY_ID, LINE_BY_NO } from '../../content';
 import { COPY } from '../../content/copy';
 import type { RootProps } from '../../navigation/types';
-import { useApp } from '../../state/store';
-import { Icon } from '../../ui/icons';
-import { Button, TextButton } from '../../ui/kit';
-import type { ShareLine } from '../../ui/ShareCard';
-import { T } from '../../ui/text';
-import { color as C, ease, MARGIN } from '../../ui/tokens';
-import { LinePage } from '../reader/pages';
-import { RunningHead } from '../reader/RunningHead';
-import { ShareSheet } from '../reader/ShareSheet';
+import { Button } from '../../ui/kit';
+import { T, useSerifScale } from '../../ui/text';
+import { color as C, ease, font, MARGIN } from '../../ui/tokens';
 
 const BLACK = COLORWAY_BY_ID.black;
 
-/** O2: the real reader, on line 0001 then 0002. A real line within two taps of launch. */
+/** O2: line 0001, set like the page it is. A real line within one tap of launch. */
 export function FirstLineScreen({ navigation }: RootProps<'FirstLine'>) {
   const insets = useSafeAreaInsets();
-  const saved = useApp(s => s.reading.saved);
-  const toggleSave = useApp(s => s.toggleSave);
-  const [height, setHeight] = useState(0);
-  const [active, setActive] = useState(0);
-  const [share, setShare] = useState<ShareLine | null>(null);
-  const [timedOut, setTimedOut] = useState(false);
-  const [fade] = useState(() => new Animated.Value(0));
-  const listRef = useRef<FlatList<Line>>(null);
-  const lines = [LINE_BY_NO[1], LINE_BY_NO[2]].filter(Boolean);
+  const { height } = useWindowDimensions();
+  const scale = useSerifScale();
+  const line = LINE_BY_NO[1];
+  const [lineIn] = useState(() => new Animated.Value(0));
+  const [buttonIn] = useState(() => new Animated.Value(0));
+  const [ready, setReady] = useState(false);
 
-  // Continue appears once line 0002 has settled, or after 4 s.
-  const ready = timedOut || active === 1;
   useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 4000);
+    Animated.timing(lineIn, { toValue: 1, duration: 500, easing: ease.out, useNativeDriver: true }).start();
+    const t = setTimeout(() => {
+      setReady(true);
+      Animated.timing(buttonIn, { toValue: 1, duration: 300, easing: ease.out, useNativeDriver: true }).start();
+    }, 2500);
     return () => clearTimeout(t);
-  }, []);
-  useEffect(() => {
-    if (ready) Animated.timing(fade, { toValue: 1, duration: 300, easing: ease.out, useNativeDriver: true }).start();
-  }, [ready, fade]);
+  }, [lineIn, buttonIn]);
 
-  // FlatList needs these to stay the same object for its whole life.
-  const [onViewable] = useState(() => ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    const first = viewableItems.find(v => v.isViewable);
-    if (first?.index != null) setActive(first.index);
-  });
-  const [viewability] = useState({ itemVisiblePercentThreshold: 60 });
-
-  const line = lines[active] ?? lines[0];
+  if (!line) return null;
+  const size = lineSize(line.text, scale);
   return (
-    <View style={{ flex: 1, backgroundColor: BLACK.bg }} onLayout={e => setHeight(e.nativeEvent.layout.height)}>
-      {height > 0 ? (
-        <FlatList
-          ref={listRef}
-          data={lines}
-          keyExtractor={l => String(l.no)}
-          pagingEnabled
-          decelerationRate="fast"
-          showsVerticalScrollIndicator={false}
-          getItemLayout={(_, index) => ({ length: height, offset: height * index, index })}
-          onViewableItemsChanged={onViewable}
-          viewabilityConfig={viewability}
-          extraData={[active, saved]}
-          renderItem={({ item, index }) => (
-            <LinePage
-              line={item}
-              height={height}
-              colorway={BLACK}
-              active={index === active}
-              saved={saved.includes(item.no)}
-              onToggleSave={() => toggleSave(item.no)}
-              onShare={() => setShare({ text: item.text, no: item.no })}
-              onLongPress={() => setShare({ text: item.text, no: item.no })}
-            />
-          )}
-        />
-      ) : null}
-
-      <RunningHead left={chapterLabel(line.chapter)} right={catalogueNo(line.no)} color={BLACK.secondary} />
-
+    <View style={{ flex: 1, backgroundColor: BLACK.bg }}>
+      <View style={{ position: 'absolute', top: insets.top + 5, left: MARGIN, right: MARGIN, height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <T v="label" color={BLACK.secondary}>
+          {chapterLabel(line.chapter)}
+        </T>
+        <T v="mono" color={BLACK.secondary}>
+          {catalogueNo(line.no)}
+        </T>
+      </View>
       <Animated.View
-        pointerEvents={ready ? 'none' : 'auto'}
         style={{
           position: 'absolute',
+          top: Math.round(height * 0.32),
           left: MARGIN,
-          right: MARGIN - 12,
-          bottom: insets.bottom + 30 - 22,
-          height: 44,
-          flexDirection: 'row',
-          alignItems: 'center',
-          opacity: fade.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
+          right: MARGIN,
+          opacity: lineIn,
+          transform: [{ translateY: lineIn.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
         }}>
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-          <T v="body" color={C.stone} style={{ flexShrink: 1 }}>
-            {COPY.o2.caption}
-          </T>
-          <View style={{ marginLeft: 8 }}>
-            <Icon name="chevron-up" size={12} color={C.stone} />
-          </View>
-        </View>
-        <TextButton
-          title={COPY.o2.next}
-          onPress={() => listRef.current?.scrollToOffset({ offset: height, animated: true })}
-          style={{ paddingHorizontal: 12 }}
-        />
+        <Text allowFontScaling={false} lineBreakStrategyIOS="push-out" accessibilityRole="header" style={{ fontFamily: font.serif, color: BLACK.ink, ...size }}>
+          {breakBeats(typo(line.text))}
+        </Text>
+        <T v="body" color={C.stone} style={{ marginTop: 24 }}>
+          {COPY.o2.caption}
+        </T>
       </Animated.View>
-
       <Animated.View
         pointerEvents={ready ? 'auto' : 'none'}
-        style={{ position: 'absolute', left: MARGIN, right: MARGIN, bottom: insets.bottom + 16, opacity: fade }}>
+        style={{ position: 'absolute', left: MARGIN, right: MARGIN, bottom: insets.bottom + 16, opacity: buttonIn }}>
         <Button title={COPY.o2.continue} onPress={() => navigation.navigate('Standard')} />
       </Animated.View>
-
-      <ShareSheet line={share} colorway={BLACK} premium={false} onClose={() => setShare(null)} onLocked={() => setShare(null)} />
     </View>
   );
 }

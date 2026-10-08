@@ -37,8 +37,7 @@ function useIntents(ready: boolean) {
     useIntent.getState().clear();
     if (!useApp.getState().settings.onboarded) return;
     const stamp = newNonce();
-    if (intent.kind === 'line') navigationRef.dispatch(StackActions.popTo('Reader', { startNo: intent.no, nonce: stamp }));
-    else navigationRef.dispatch(StackActions.popTo('Reader', { nonce: stamp }));
+    navigationRef.dispatch(StackActions.popTo('Today', { nonce: stamp, night: intent.kind === 'night' }));
     if (intent.kind === 'record') navigationRef.navigate('Record');
   }, [intent, nonce, ready]);
 }
