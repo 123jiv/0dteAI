@@ -372,23 +372,24 @@ Sub-pages
   - Body: Set it as your lock screen, then add the Line widget under the clock.
 
 NOTIFICATIONS (title always: unsetld)
-- Morning: today's line, e.g. Every night you give it is a morning it takes.
-- Slot prompts:
+- Morning: the day's line (from the day's task) as the body, and the task as the subtitle, e.g. A bad day is enough. Don't add a bad night to it. / Today: Read one chapter of a book about what you want to do.
+- Later reminders: subtitle Still open: {task}, body a line from that task's chapter.
+- Slot prompts (fallback body when no line fits):
   - Morning:
-    - Up. Do one thing before you look at anyone else's life.
-    - Today gets one priority. Write it down before you open anything.
-    - Whatever you're avoiding today, give it the next thirty minutes.
+    - Alarm off. Feet on the floor before you open a single app.
+    - Before school or your shift, write down the one thing that has to get done today.
+    - Pick the thing you're dreading today and the time you'll do it. Write both down.
   - Midday:
-    - Half the day is gone. The hard thing hasn't moved.
-    - Eat something real. Drink some water. Then back to it.
-    - Phone face down. Look at your list. Do the next thing on it.
+    - Eat real food at lunch and drink a full glass of water before you open your phone.
+    - Half the day is gone. Look at your list and start the next thing on it.
+    - Free period or break coming up. Give ten minutes of it to the thing you keep putting off.
   - Evening:
-    - Pick one thing you can finish before dinner. Finish it.
-    - There's still enough day left to keep your word.
-    - Whatever you skipped this morning, tonight still counts.
+    - When you get home, put your phone in another room until the hard thing is done.
+    - If you haven't moved today, get a 20-minute walk or run in before it gets dark.
+    - Look at what's still open today. Finish the smallest one before dinner.
   - Night:
-    - Write tomorrow's first task down before you sleep. One line.
-    - Phone charges in another room tonight. Lights off by midnight.
+    - Write tomorrow's first task on paper before bed. One line is enough.
+    - Count back nine hours from your alarm. Be in bed by then, phone across the room.
 - Night check:
   - Did you hold your standard today?
   - Actions: Held · Not today

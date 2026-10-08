@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { isClean, lineForTask, pickFor } from '../core/feed';
+import { dailyTask } from '../core/points';
 import { lineOfDay } from '../core/today';
 import { planNotifications, type PlannedNotification } from '../core/reminders';
 import { dayKeyOf, type DayKey } from '../core/time';
@@ -97,7 +98,11 @@ export function composePlan(input: ScheduleInput, now: Date): ComposedNotificati
       const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: input.mix, salt: input.seed, day: p.day });
       // The day's line goes with the day's task, unless this user hid it.
       const l = t && !hidden.has(t.no) ? t : pickFor(mixPool, `${input.seed}:${p.id}`);
-      out.push({ ...p, body: l?.text ?? '', lineNo: l?.no ?? null });
+      // Under the line, what today's task is, unless it's already done.
+      const daily = dailyTask(TASKS, input.mix, input.seed, p.day);
+      const open = workByDay.get(p.day);
+      const subtitle = daily && (!open || open.some(o => o.text === daily.text)) ? COPY.notifications.todayTask(daily.text) : undefined;
+      out.push({ ...p, body: l?.text ?? '', subtitle, lineNo: l?.no ?? null });
       continue;
     }
     // Task reminder: name the next open task, with a line about it.

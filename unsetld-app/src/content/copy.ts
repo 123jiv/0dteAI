@@ -365,6 +365,7 @@ export const COPY = {
   notifications: {
     night: 'Did you hold your standard today?',
     stillOpen: (task: string) => `Still open: ${task}`,
+    todayTask: (task: string) => `Today: ${task}`,
     held: 'Held',
     notToday: 'Not today',
     trial: (p: string) => `Your free trial ends tomorrow. ${p} for the year starts then. Cancel any time in Settings.`,

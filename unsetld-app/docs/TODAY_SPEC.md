@@ -152,6 +152,7 @@ Description: `Every chapter, every colorway, more of your own work.`
 
 - The day's line is one of the daily task's paired lines (alternating by day when there are two). A day pinned in `schedule.json` still wins. If the task has no usable pair, the global rotation is the fallback.
 - Because the daily task depends on the install and the user's chapters, the line is no longer the same for everyone on a given day. The morning notification, the Line widget and the proof stamp all use this line.
+- The morning notification carries the day's task as its subtitle: `Today: Read one chapter of a book about what you want to do.` (dropped if the task is already done).
 - Onboarding O2 shows a fixed opening line (`ONBOARDING_LINE` in `src/content/index.ts`).
 
 ## Today rows (replaces the second-line labels in 2)
