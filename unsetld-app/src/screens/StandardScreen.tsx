@@ -14,14 +14,18 @@ export function StandardScreen({ navigation, route }: RootProps<'Standard'>) {
   const edit = Boolean(route.params?.edit);
   const settings = useApp(s => s.settings);
   const update = useApp(s => s.updateSettings);
-  const [own, setOwn] = useState<string | null>(edit ? settings.ownRule : null);
-  const [chosen, setChosen] = useState<string[]>(edit ? settings.standard : []);
+  // A written rule never repeats a preset (older saves may have one).
+  const saved = edit && settings.ownRule && !STANDARD_RULES.includes(settings.ownRule) ? settings.ownRule : null;
+  const [own, setOwn] = useState<string | null>(saved);
+  const [chosen, setChosen] = useState<string[]>(edit ? [...new Set(settings.standard)] : []);
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState('');
   const [flash] = useState(() => new Animated.Value(1));
   const inputRef = useRef<TextInput>(null);
 
   const rules = own ? [...STANDARD_RULES, own] : STANDARD_RULES;
+  // While rewriting, the input takes the written rule's place as row 09.
+  const shown = writing ? STANDARD_RULES : rules;
 
   const blocked = () => {
     warning();
@@ -46,10 +50,14 @@ export function StandardScreen({ navigation, route }: RootProps<'Standard'>) {
     const text = draft.trim().replace(/\s+/g, ' ');
     setWriting(false);
     if (!text) return;
-    const rule = /[.?]$/.test(text) ? text : `${text}.`;
+    const typed = /[.?]$/.test(text) ? text : `${text}.`;
+    // A preset's own words pick that preset, so a rule never appears twice.
+    const preset = STANDARD_RULES.find(r => r.toLowerCase() === typed.toLowerCase());
+    const rule = preset ?? typed;
     const without = chosen.filter(r => r !== own);
-    setOwn(rule);
-    if (without.length >= 3) {
+    setOwn(preset ? null : rule);
+    if (without.includes(rule)) setChosen(without);
+    else if (without.length >= 3) {
       setChosen(without);
       blocked();
     } else setChosen([...without, rule]);
@@ -78,7 +86,7 @@ export function StandardScreen({ navigation, route }: RootProps<'Standard'>) {
       }>
       <PageTitle title={COPY.standard.title} body={COPY.standard.body} />
       <View style={{ marginTop: 28, borderBottomWidth: hairline, borderBottomColor: C.rule }}>
-        {rules.map((rule, i) => {
+        {shown.map((rule, i) => {
           const on = chosen.includes(rule);
           return (
             <ListRow
@@ -86,11 +94,12 @@ export function StandardScreen({ navigation, route }: RootProps<'Standard'>) {
               onPress={() => toggle(rule)}
               accessibilityRole="checkbox"
               accessibilityLabel={rule}
-              accessibilityState={{ checked: on }}>
+              accessibilityState={{ checked: on }}
+              style={{ paddingVertical: 10 }}>
               <T v="mono" style={{ width: 40 }}>
                 {String(i + 1).padStart(2, '0')}
               </T>
-              <T v="list" color={on ? C.bone : C.muted} style={{ flex: 1 }} numberOfLines={1}>
+              <T v="list" color={on ? C.bone : C.muted} style={{ flex: 1 }} numberOfLines={2}>
                 {rule}
               </T>
               <Square on={on} />
@@ -100,7 +109,7 @@ export function StandardScreen({ navigation, route }: RootProps<'Standard'>) {
         {writing ? (
           <View style={{ minHeight: 48, borderTopWidth: hairline, borderTopColor: C.rule, flexDirection: 'row', alignItems: 'center' }}>
             <T v="mono" style={{ width: 40 }}>
-              {String(rules.length + 1).padStart(2, '0')}
+              {String(STANDARD_RULES.length + 1).padStart(2, '0')}
             </T>
             <TextInput
               ref={inputRef}
@@ -112,6 +121,7 @@ export function StandardScreen({ navigation, route }: RootProps<'Standard'>) {
               placeholder={COPY.standard.placeholder}
               placeholderTextColor={C.ash}
               maxLength={32}
+              maxFontSizeMultiplier={1.3}
               returnKeyType="done"
               accessibilityLabel={COPY.standard.writeOwn}
               style={{ flex: 1, fontFamily: font.serif, fontSize: 23, color: C.bone, paddingVertical: 10 }}

@@ -13,6 +13,7 @@ import {
   emptyRecord,
   markLetterShown,
   milestoneStatus,
+  PAUSABLE_DAYS,
   pendingLetter,
   recordDay,
   roadPosition,
@@ -21,7 +22,7 @@ import {
 } from '../record';
 import { allProofs, claimCode, completeTask, dailyTask, dayWork, pointsBalance, provenCounts, readyTier, tierStatus, uncompleteTask } from '../points';
 import pointsJson from '../../content/points.json';
-import { dayReminderTimes, MAX_PENDING, planNotifications, slotOf } from '../reminders';
+import { dayReminderTimes, daysAhead, MAX_PENDING, planNotifications, slotOf } from '../reminders';
 import { addDays, atMinutes, dayKeyOf, diffDays, formatTime, nextDayStart } from '../time';
 import { breakBeats, lineSize, typo } from '../typography';
 import type { Line, Milestone, PointsConfig, RecordState, ReminderPrompt, Task } from '../types';
@@ -141,6 +142,47 @@ describe('record', () => {
     r = onRecord(r, '2026-02-01', 7);
     const back = pendingLetter(r, '2026-02-07')!;
     expect(back).toMatchObject({ kind: 'comeback', day: '2026-02-07' });
+    // Not lost if it isn't shown that day; gone once shown, or if access pauses again.
+    expect(pendingLetter(r, '2026-02-09')).toMatchObject({ kind: 'comeback', day: '2026-02-07' });
+    expect(pendingLetter(r, '2026-03-01')).toBeNull();
+    expect(pendingLetter(markLetterShown(r, back), '2026-02-09')).toBeNull();
+  });
+
+  it('only pauses once early access has opened', () => {
+    expect(MILESTONES.filter(x => x.pausable).map(x => x.day)).toEqual([...PAUSABLE_DAYS]);
+    // 2 days, 22 missed, then back every day: nothing was open, so nothing pauses.
+    let r = onRecord(emptyRecord(), '2026-01-01', 2);
+    expect(accessState(r, '2026-01-24').paused).toBe(false);
+    for (let i = 0; i < 9; i++) {
+      const day = addDays('2026-01-25', i);
+      r = recordDay(r, day, true);
+      expect(accessState(r, day)).toEqual({ paused: false, reopenProgress: 0, lastComeback: null });
+      const letter = pendingLetter(r, day);
+      if (dayCount(r) === 7) {
+        expect(letter).toMatchObject({ kind: 'milestone', day: 7 });
+        expect(milestoneStatus(r, m('early-access'), day)).toEqual({ kind: 'open' });
+        r = markLetterShown(r, letter!);
+      } else expect(letter).toBeNull();
+    }
+  });
+
+  it('holds back the early-access letter while paused, and sends one letter when access reopens', () => {
+    // 7 days on record, letter never shown, then 17 missed days: paused.
+    let r = onRecord(emptyRecord(), '2026-01-01', 7);
+    expect(pendingLetter(r, '2026-01-25')).toBeNull();
+    for (let i = 0; i < 6; i++) {
+      const day = addDays('2026-01-25', i);
+      r = recordDay(r, day, true);
+      expect(accessState(r, day).paused).toBe(true);
+      expect(pendingLetter(r, day)).toBeNull();
+    }
+    r = recordDay(r, '2026-01-31', true);
+    expect(accessState(r, '2026-01-31')).toMatchObject({ paused: false, lastComeback: '2026-01-31' });
+    const seven = pendingLetter(r, '2026-01-31')!;
+    expect(seven).toMatchObject({ kind: 'milestone', day: 7 });
+    r = markLetterShown(r, seven);
+    expect(r.lettersShown).toEqual(expect.arrayContaining(['7', 'comeback:2026-01-31']));
+    expect(pendingLetter(r, '2026-01-31')).toBeNull();
   });
 
   it('draws the barcode, week and road', () => {
@@ -267,13 +309,41 @@ describe('reminders', () => {
   const base = { day: '2026-10-07', first: 7 * 60, last: 22 * 60, night: { enabled: true, time: 21 * 60 + 30 }, seed: 's' };
 
   it('puts the first reminder exactly at First and spreads the rest to Last', () => {
-    const t = dayReminderTimes({ ...base, count: 3 });
-    expect(t.map(x => x.kind)).toEqual(['today', 'task', 'task']);
-    expect(t[0].minutes).toBe(7 * 60);
-    expect(Math.abs(t[1].minutes - (14 * 60 + 30))).toBeLessThanOrEqual(10);
-    // The last one would land within 30 min of the 9:30 PM night check, so it moves 45 min earlier.
-    expect(t[2].minutes).toBeLessThanOrEqual(22 * 60 - 45);
-    expect(t[2].minutes).toBeGreaterThanOrEqual(21 * 60 - 10 - 45);
+    for (const seed of ['s', 'a', 'b', 'c', 'd']) {
+      for (let i = 0; i < 20; i++) {
+        const t = dayReminderTimes({ ...base, seed, day: addDays('2026-10-07', i), count: 3 });
+        expect(t.map(x => x.kind)).toEqual(['today', 'task', 'task']);
+        expect(t[0].minutes).toBe(7 * 60);
+        expect(Math.abs(t[1].minutes - (14 * 60 + 30))).toBeLessThanOrEqual(10);
+        // The last one lands within 30 min of the 9:30 PM night check (10:00 PM counts), so it moves 45 min earlier.
+        expect(t[2].minutes).toBeLessThanOrEqual(22 * 60 - 45);
+        expect(t[2].minutes).toBeGreaterThanOrEqual(22 * 60 - 10 - 45);
+      }
+    }
+  });
+
+  it('never stacks reminders on one minute when Last is at or before First', () => {
+    const off = { enabled: false, time: 0 };
+    const cases = [
+      { first: 23 * 60, last: 22 * 60, count: 3, night: off }, // reversed
+      { first: 22 * 60 + 30, last: 22 * 60, count: 3, night: base.night }, // First moved past the default Last
+      { first: 8 * 60, last: 8 * 60, count: 5, night: off }, // equal
+      { first: 20 * 60, last: 4 * 60 + 30, count: 3, night: off }, // ends after 4:00 AM
+    ];
+    for (const c of cases) {
+      const t = dayReminderTimes({ ...base, ...c });
+      expect(t.length).toBe(c.count);
+      expect(t[0].minutes).toBe(c.first);
+      for (let i = 1; i < t.length; i++) expect(t[i].minutes).toBeGreaterThan(t[i - 1].minutes);
+      // Never past the end of the day (3:59 AM).
+      expect(t[t.length - 1].minutes).toBeLessThanOrEqual(28 * 60 - 1);
+    }
+    // A window too narrow for the count gets fewer reminders, never two in one minute.
+    const narrow = dayReminderTimes({ ...base, first: 8 * 60, last: 8 * 60 + 3, count: 10, night: off });
+    const mins = narrow.map(x => x.minutes);
+    expect(mins[0]).toBe(480);
+    expect(new Set(mins).size).toBe(mins.length);
+    expect(mins.every(x => x <= 483)).toBe(true);
   });
 
   it('nudges the work after the first reminder, in order through the day', () => {
@@ -287,6 +357,17 @@ describe('reminders', () => {
     expect(t[2].minutes).toBeLessThanOrEqual(25 * 60);
     expect(t[2].minutes).toBeGreaterThan(t[1].minutes);
   });
+
+  const opts = {
+    today: '2026-10-07',
+    count: 3,
+    first: 7 * 60,
+    last: 22 * 60,
+    night: { enabled: true, time: 21 * 60 + 30 },
+    answered: new Set<string>(),
+    prompts: PROMPTS,
+    seed: 's',
+  };
 
   it('stays under the pending limit and skips answered nights', () => {
     const now = new Date(2026, 9, 7, 6, 0);
@@ -309,6 +390,28 @@ describe('reminders', () => {
       const slot = slotOf(p.date.getHours() * 60 + p.date.getMinutes());
       expect(PROMPTS.find(x => x.text === p.prompt)?.slot).toBe(slot);
     }
+  });
+
+  it('schedules floor(60 / (count + 1)) days ahead', () => {
+    expect([1, 3, 5, 10].map(c => daysAhead(c, true))).toEqual([30, 15, 10, 5]);
+    const plan = planNotifications({ ...opts, now: new Date(2026, 9, 7, 6, 0), count: 1 });
+    expect(plan.length).toBeLessThanOrEqual(MAX_PENDING);
+    expect(plan.some(p => p.id === `rem-${addDays('2026-10-07', 29)}-0`)).toBe(true);
+  });
+
+  it('keeps each prompt when the plan is rebuilt, and rotates them day to day', () => {
+    for (const count of [3, 10]) {
+      const early = new Map(planNotifications({ ...opts, count, now: new Date(2026, 9, 7, 6, 0) }).map(p => [p.id, p.prompt]));
+      const later = planNotifications({ ...opts, count, now: new Date(2026, 9, 7, 16, 0) });
+      expect(later.some(p => p.day === '2026-10-07' && p.prompt)).toBe(true);
+      for (const p of later) expect(p.prompt).toBe(early.get(p.id));
+    }
+    // Opening the app each morning: the midday nudge isn't the same text every day.
+    const midday = [0, 1, 2, 3].map(i => {
+      const day = addDays('2026-10-07', i);
+      return planNotifications({ ...opts, today: day, now: atMinutes(day, 9 * 60) }).find(p => p.id === `rem-${day}-1`)!.prompt;
+    });
+    for (let i = 1; i < midday.length; i++) expect(midday[i]).not.toBe(midday[i - 1]);
   });
 });
 

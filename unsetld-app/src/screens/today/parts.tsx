@@ -1,3 +1,4 @@
+import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, Text, View } from 'react-native';
@@ -37,14 +38,31 @@ export function TodayLine({
   useEffect(() => {
     Animated.timing(a, { toValue: 1, duration: 400, easing: ease.out, useNativeDriver: true }).start();
   }, [a, line.no]);
+  // Save: the bookmark fill crossfades in over 150ms (a crossfade, so fine under Reduce Motion).
+  const [fill] = useState(() => new Animated.Value(saved ? 1 : 0));
+  useEffect(() => {
+    Animated.timing(fill, { toValue: saved ? 1 : 0, duration: 150, easing: ease.out, useNativeDriver: true }).start();
+  }, [fill, saved]);
   const attribution = line.attribution ? `${line.attribution.author} · ${line.attribution.source}`.toUpperCase() : null;
+  const save = () => {
+    light();
+    onToggleSave();
+  };
   const onPress = () => {
     const t = Date.now();
     if (t - lastTap.current < 300) {
       lastTap.current = 0;
-      light();
-      onToggleSave();
+      save();
     } else lastTap.current = t;
+  };
+  // VoiceOver can't double-tap twice or long-press, so the line's menu is also its actions.
+  const onAction = (name: string) => {
+    if (name === 'save') save();
+    else if (name === 'share') onShare();
+    else if (name === 'copy') {
+      Clipboard.setStringAsync(typo(line.text)).catch(() => {});
+      light();
+    }
   };
   return (
     <Animated.View style={{ opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }}>
@@ -62,6 +80,12 @@ export function TodayLine({
         delayLongPress={450}
         accessibilityRole="text"
         accessibilityLabel={`Today's line. ${line.text}${line.attribution ? `. ${line.attribution.author}` : ''}`}
+        accessibilityActions={[
+          { name: 'save', label: saved ? COPY.reader.menu.unsave : COPY.reader.menu.save },
+          { name: 'share', label: COPY.reader.menu.share },
+          { name: 'copy', label: COPY.reader.menu.copy },
+        ]}
+        onAccessibilityAction={e => onAction(e.nativeEvent.actionName)}
         style={{ marginTop: 16 }}>
         <Text allowFontScaling={false} lineBreakStrategyIOS="push-out" numberOfLines={5} style={{ fontFamily: font.serif, color: colorway.ink, ...size }}>
           {breakBeats(typo(line.text))}
@@ -77,12 +101,16 @@ export function TodayLine({
           accessibilityRole="button"
           accessibilityLabel={saved ? COPY.reader.a11y.unsave : COPY.reader.a11y.save}
           accessibilityState={{ selected: saved }}
-          onPress={() => {
-            light();
-            onToggleSave();
-          }}
+          onPress={save}
           style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
-          <Icon name={saved ? 'bookmark-filled' : 'bookmark'} size={22} color={saved ? colorway.ink : colorway.secondary} />
+          <View style={{ width: 22, height: 22 }}>
+            <Animated.View style={{ position: 'absolute', opacity: fill.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }}>
+              <Icon name="bookmark" size={22} color={colorway.secondary} />
+            </Animated.View>
+            <Animated.View style={{ position: 'absolute', opacity: fill }}>
+              <Icon name="bookmark-filled" size={22} color={colorway.ink} />
+            </Animated.View>
+          </View>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -178,6 +206,11 @@ export function WorkRow({
       accessibilityLabel={`${item.text} ${sub}`}
       accessibilityHint={done ? undefined : COPY.today.proveHint}
       accessibilityState={{ checked: Boolean(done) }}
+      // The only long-press on a row is Remove, on your own tasks; VoiceOver gets it as an action.
+      accessibilityActions={onLongPress ? [{ name: 'remove', label: COPY.today.removeTask }] : undefined}
+      onAccessibilityAction={e => {
+        if (e.nativeEvent.actionName === 'remove') onLongPress?.();
+      }}
       onPress={onPress}
       onLongPress={onLongPress}
       style={({ pressed }) => ({

@@ -289,6 +289,10 @@ ACCOUNT
 - Legal line: By signing in you confirm you're 18 or over and live in the US.
 - Button: Sign in with Apple (system button)
 - Signed in: Signed in as {relay email} · Sign out
+- Signed in, no email from Apple: Signed in with Apple
+- Under Sign out: Delete account
+- Delete confirm: Delete your account? / This removes your account and what unsetld.com holds for it: your days and proof counts. Your record and proof photos stay on this phone. / Cancel · Delete
+- Delete error: Couldn't delete your account. Try again in a moment.
 - Error: Couldn't sign in. Try again in a moment.
 
 PAYWALL

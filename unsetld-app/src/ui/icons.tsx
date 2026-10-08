@@ -19,11 +19,12 @@ interface Props {
   color?: string;
 }
 
-// Custom stroke icons on a 24 grid: 1.5pt stroke, round caps and joins.
+// Custom stroke icons on a 24 grid: 1.5pt stroke, round caps and joins. The
+// stroke is in viewBox units, so it's scaled by 24/size to stay 1.5pt at any size.
 export function Icon({ name, size = 24, color = C.stone }: Props) {
   const p = {
     stroke: color,
-    strokeWidth: 1.5 * (24 / size) * (size / 24),
+    strokeWidth: (1.5 * 24) / size,
     fill: 'none',
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,

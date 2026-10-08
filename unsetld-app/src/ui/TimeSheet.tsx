@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COPY } from '../content/copy';
 import { Button } from './kit';
 import { Sheet } from './Sheet';
@@ -7,7 +8,12 @@ import { T } from './text';
 import { TimeWheel } from './TimeWheel';
 import { MARGIN } from './tokens';
 
-/** Time picker sheet (detent 0.42): title, wheel, Done. */
+// The native wheel is about 216pt tall. Grabber 22, top padding 4, title 22,
+// two 12 gaps and the 54 button sit around it.
+const WHEEL = 216;
+const CHROME = 22 + 4 + 22 + 12 + 12 + 54;
+
+/** Time picker sheet (detent 0.42, taller when the wheel needs it): title, wheel, Done. */
 export function TimeSheet({
   title,
   value,
@@ -21,14 +27,19 @@ export function TimeSheet({
   onDone: (minutes: number) => void;
   onClose: () => void;
 }) {
+  const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState(value);
   const [wasVisible, setWasVisible] = useState(visible);
   if (visible !== wasVisible) {
     setWasVisible(visible);
     if (visible) setDraft(value);
   }
+  // Done's bottom edge at safeBottom + 16, like every primary button.
+  const bottom = insets.bottom + 16;
+  const detent = Math.max(0.42, (CHROME + WHEEL + bottom) / height);
   return (
-    <Sheet visible={visible} onClose={onClose} detent={0.42} accessibilityLabel={title}>
+    <Sheet visible={visible} onClose={onClose} detent={detent} accessibilityLabel={title}>
       <View style={{ flex: 1, paddingHorizontal: MARGIN, paddingTop: 4, gap: 12 }}>
         <T v="row" align="center">
           {title}
@@ -36,7 +47,7 @@ export function TimeSheet({
         <View style={{ flex: 1, justifyContent: 'center' }}>
           <TimeWheel value={draft} onChange={setDraft} />
         </View>
-        <Button title={COPY.day.done} onPress={() => onDone(draft)} style={{ marginBottom: 24 }} />
+        <Button title={COPY.day.done} onPress={() => onDone(draft)} style={{ marginBottom: bottom }} />
       </View>
     </Sheet>
   );

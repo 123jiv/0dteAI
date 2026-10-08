@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Animated, Text, useWindowDimensions, View } from 'react-native';
+import { AccessibilityInfo, Animated, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { breakBeats, catalogueNo, lineSize, typo } from '../../core/typography';
 import { chapterLabel, COLORWAY_BY_ID, LINE_BY_NO } from '../../content';
@@ -20,9 +20,14 @@ export function FirstLineScreen({ navigation }: RootProps<'FirstLine'>) {
   const [lineIn] = useState(() => new Animated.Value(0));
   const [buttonIn] = useState(() => new Animated.Value(0));
   const [ready, setReady] = useState(false);
+  // Reduce Motion: the line fades in without the rise.
+  const [reduce, setReduce] = useState(false);
 
   useEffect(() => {
-    Animated.timing(lineIn, { toValue: 1, duration: 500, easing: ease.out, useNativeDriver: true }).start();
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(setReduce)
+      .catch(() => {})
+      .finally(() => Animated.timing(lineIn, { toValue: 1, duration: 500, easing: ease.out, useNativeDriver: true }).start());
     const t = setTimeout(() => {
       setReady(true);
       Animated.timing(buttonIn, { toValue: 1, duration: 300, easing: ease.out, useNativeDriver: true }).start();
@@ -49,7 +54,7 @@ export function FirstLineScreen({ navigation }: RootProps<'FirstLine'>) {
           left: MARGIN,
           right: MARGIN,
           opacity: lineIn,
-          transform: [{ translateY: lineIn.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
+          transform: reduce ? [] : [{ translateY: lineIn.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
         }}>
         <Text allowFontScaling={false} lineBreakStrategyIOS="push-out" accessibilityRole="header" style={{ fontFamily: font.serif, color: BLACK.ink, ...size }}>
           {breakBeats(typo(line.text))}

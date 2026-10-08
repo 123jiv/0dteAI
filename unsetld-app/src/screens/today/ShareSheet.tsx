@@ -2,6 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { useRef, useState } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { typo } from '../../core/typography';
 import type { Colorway } from '../../core/types';
 import { COLORWAYS } from '../../content';
@@ -16,6 +17,10 @@ import { T } from '../../ui/text';
 import { color as C, MARGIN } from '../../ui/tokens';
 
 const FORMATS: ShareFormat[] = ['story', 'post'];
+const DETENT = 0.92;
+// Everything in the sheet but the preview: grabber 22, top padding 8, segmented 34,
+// 24, squares 20 + 28, 24, Share 54, 8, Copy line 44.
+const CHROME = 22 + 8 + 34 + 24 + 20 + 28 + 24 + 54 + 8 + 44;
 
 export function ShareSheet({
   line,
@@ -30,7 +35,8 @@ export function ShareSheet({
   onClose: () => void;
   onLocked: () => void;
 }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [format, setFormat] = useState<ShareFormat>('story');
   const [cw, setCw] = useState<Colorway>(colorway);
   const [copied, setCopied] = useState(false);
@@ -47,6 +53,8 @@ export function ShareSheet({
   const shown = line ?? last;
   // Ten 28pt squares on one row: 8pt gaps where they fit, tighter on narrow phones.
   const squareGap = Math.min(8, Math.floor((width - MARGIN * 2 - 280) / 9));
+  // The preview is 391 tall (Story at 220x391), less on short phones so Copy line still fits.
+  const previewH = Math.max(200, Math.min(391, Math.round(height * DETENT) - CHROME - insets.bottom));
   const share = async () => {
     const r = await shareCard(captureRef, format);
     if (r === 'preview') setNote(true);
@@ -60,13 +68,13 @@ export function ShareSheet({
   };
 
   return (
-    <Sheet visible={Boolean(line)} onClose={onClose} detent={0.92} accessibilityLabel={COPY.reader.menu.share}>
+    <Sheet visible={Boolean(line)} onClose={onClose} detent={DETENT} accessibilityLabel={COPY.reader.menu.share}>
       {shown ? (
         <View style={{ flex: 1, paddingHorizontal: MARGIN, paddingTop: 8 }}>
           <Segmented options={FORMATS} value={format} onChange={setFormat} labels={{ story: COPY.share.tabs[0], post: COPY.share.tabs[1] }} />
-          <View style={{ marginTop: 24, alignItems: 'center', height: 391, justifyContent: 'center' }}>
+          <View style={{ marginTop: 24, alignItems: 'center', height: previewH, justifyContent: 'center' }}>
             <View style={{ borderWidth: 1, borderColor: C.rule }}>
-              <ShareCard line={shown} colorway={cw} format={format} width={format === 'story' ? 220 : 300} />
+              <ShareCard line={shown} colorway={cw} format={format} width={format === 'story' ? Math.round((previewH * 1080) / 1920) : Math.min(300, previewH)} />
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: squareGap, marginTop: 20, justifyContent: 'center' }}>
@@ -80,7 +88,8 @@ export function ShareSheet({
                   accessibilityLabel={`${c.name}${locked ? ', Full Edition' : ''}`}
                   accessibilityState={{ selected: on }}
                   onPress={() => (locked ? onLocked() : setCw(c))}
-                  hitSlop={6}
+                  // 44 tall; sideways only into half the gap, so neighbours don't overlap.
+                  hitSlop={{ top: 8, bottom: 8, left: squareGap / 2, right: squareGap / 2 }}
                   style={{ width: 28, height: 28, opacity: locked ? 0.4 : 1 }}>
                   <Image source={SWATCHES[c.id]} style={{ width: 28, height: 28 }} contentFit="cover" />
                   {on ? <View style={{ position: 'absolute', top: -3, left: -3, right: -3, bottom: -3, borderWidth: 1, borderColor: C.bone }} /> : null}

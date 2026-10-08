@@ -110,13 +110,15 @@ export function ChaptersSheet({
                   accessibilityLabel={`${c.name} in the mix`}
                   accessibilityState={{ checked: on, disabled: c.id === 'discipline' }}
                   onPress={() => toggle(c.id)}
-                  style={{ minWidth: 64, height: 60, paddingLeft: 12, alignItems: 'flex-end', justifyContent: 'center' }}>
+                  // A fixed 64 column, so the scope keeps its width on every row. 'FULL EDITION'
+                  // sits on two lines in it; each word fits 64.
+                  style={{ width: 64, height: 60, alignItems: 'flex-end', justifyContent: 'center' }}>
                   {c.id === 'discipline' ? (
-                    <T v="label" numberOfLines={1}>
+                    <T v="label" align="right" numberOfLines={1} adjustsFontSizeToFit>
                       {COPY.chapters.always}
                     </T>
                   ) : isLocked ? (
-                    <T v="label" numberOfLines={1}>
+                    <T v="label" align="right" numberOfLines={2} adjustsFontSizeToFit>
                       {COPY.chapters.locked}
                     </T>
                   ) : (

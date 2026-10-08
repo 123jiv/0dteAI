@@ -9,6 +9,8 @@ export const PAUSE_AFTER_MISSED = 14;
 export const REOPEN_AFTER = 7;
 /** Road milestones, in order. */
 export const ROAD = [7, 90, 365] as const;
+/** Milestones that pause (early access). Matches `pausable` in milestones.json. */
+export const PAUSABLE_DAYS: readonly number[] = [7];
 
 export function emptyRecord(): RecordState {
   return { days: {}, nights: {}, lettersShown: [], patchClaimed: null, work: {}, codes: [] };
@@ -86,15 +88,19 @@ export interface AccessState {
 /**
  * Walks the record: a gap of PAUSE_AFTER_MISSED or more missed days pauses
  * access; REOPEN_AFTER more days on record reopens it. The count never drops.
+ * Nothing pauses before early access has opened, since nothing is open yet.
  */
 export function accessState(r: RecordState, today: DayKey): AccessState {
   const days = sortedDays(r);
+  const opensAt = Math.min(...PAUSABLE_DAYS);
   let paused = false;
   let progress = 0;
   let lastComeback: DayKey | null = null;
   let prev: DayKey | null = null;
-  for (const d of days) {
-    if (prev && diffDays(prev, d) - 1 >= PAUSE_AFTER_MISSED) {
+  for (let i = 0; i < days.length; i++) {
+    const d = days[i];
+    // `i` days were on record when this gap began.
+    if (prev && i >= opensAt && diffDays(prev, d) - 1 >= PAUSE_AFTER_MISSED) {
       paused = true;
       progress = 0;
     }
@@ -108,7 +114,7 @@ export function accessState(r: RecordState, today: DayKey): AccessState {
     }
     prev = d;
   }
-  if (prev && prev < today && diffDays(prev, today) - 1 >= PAUSE_AFTER_MISSED) {
+  if (prev && days.length >= opensAt && prev < today && diffDays(prev, today) - 1 >= PAUSE_AFTER_MISSED) {
     paused = true;
     progress = 0;
   }
@@ -135,23 +141,34 @@ export type Letter = { kind: 'milestone'; day: number; key: string } | { kind: '
 /** The letter to show on this open, if any. Milestones first; one at a time. */
 export function pendingLetter(r: RecordState, today: DayKey): Letter | null {
   const n = dayCount(r);
+  const a = accessState(r, today);
   // Only the highest reached, unseen milestone: someone restoring a long record gets one letter, not five.
   const reached = ROAD.filter(d => n >= d);
   const top = reached[reached.length - 1];
-  if (top && !r.lettersShown.includes(String(top))) return { kind: 'milestone', day: top, key: String(top) };
-  const a = accessState(r, today);
-  if (a.lastComeback && a.lastComeback === today) {
+  // A paused perk's letter waits for access to reopen, so it never says "open" next to PAUSED.
+  const held = a.paused && top !== undefined && PAUSABLE_DAYS.includes(top);
+  if (top && !held && !r.lettersShown.includes(String(top))) return { kind: 'milestone', day: top, key: String(top) };
+  // Pending until shown, not just on the day access reopened; never while paused again.
+  if (a.lastComeback && !a.paused) {
     const key = `comeback:${a.lastComeback}`;
     if (!r.lettersShown.includes(key)) return { kind: 'comeback', day: a.lastComeback, key };
   }
   return null;
 }
 
-/** Marks a letter shown, and every lower milestone with it. */
+/**
+ * Marks a letter shown, and every lower milestone with it. A pausable
+ * milestone's letter also covers the latest comeback: it already says access is open.
+ */
 export function markLetterShown(r: RecordState, letter: Letter): RecordState {
   const keys = new Set(r.lettersShown);
   keys.add(letter.key);
-  if (letter.kind === 'milestone') for (const d of ROAD) if (d <= letter.day) keys.add(String(d));
+  if (letter.kind === 'milestone') {
+    for (const d of ROAD) if (d <= letter.day) keys.add(String(d));
+    const days = sortedDays(r);
+    const back = days.length ? accessState(r, days[days.length - 1]).lastComeback : null;
+    if (back && PAUSABLE_DAYS.includes(letter.day)) keys.add(`comeback:${back}`);
+  }
   return { ...r, lettersShown: [...keys] };
 }
 

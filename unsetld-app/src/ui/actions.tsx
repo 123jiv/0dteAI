@@ -10,6 +10,7 @@ import { color as C, font, hairline, MARGIN } from './tokens';
 export interface ActionOption {
   label: string;
   onPress?: () => void;
+  /** Kept for callers, but never drawn red: red means today on the record and nowhere else. */
   destructive?: boolean;
   cancel?: boolean;
 }
@@ -35,7 +36,6 @@ export function showActions(opts: { title?: string; message?: string; options: A
         message: opts.message,
         options: opts.options.map(o => o.label),
         cancelButtonIndex: opts.options.findIndex(o => o.cancel),
-        destructiveButtonIndex: opts.options.map((o, i) => (o.destructive ? i : -1)).filter(i => i >= 0),
         userInterfaceStyle: 'dark',
       },
       i => opts.options[i]?.onPress?.(),
@@ -51,7 +51,7 @@ export function showDialog(title: string, message?: string, options: ActionOptio
     Alert.alert(
       title,
       message,
-      options.map(o => ({ text: o.label, onPress: o.onPress, style: o.cancel ? 'cancel' : o.destructive ? 'destructive' : 'default' })),
+      options.map(o => ({ text: o.label, onPress: o.onPress, style: o.cancel ? 'cancel' : 'default' })),
       { userInterfaceStyle: 'dark' },
     );
     return;
@@ -137,7 +137,7 @@ export function ActionHost() {
                 borderTopColor: C.ruleStrong,
                 backgroundColor: pressed ? '#262522' : 'transparent',
               })}>
-              <T v="row" color={o.destructive ? '#E5484D' : C.bone} style={{ fontFamily: font.sans, fontSize: 18 }}>
+              <T v="row" color={C.bone} style={{ fontFamily: font.sans, fontSize: 18 }}>
                 {o.label}
               </T>
             </Pressable>

@@ -57,6 +57,7 @@ export function Button({
       style={({ pressed }) => [
         {
           height: 54,
+          paddingHorizontal: 16,
           borderRadius: radius.button,
           alignItems: 'center',
           justifyContent: 'center',
@@ -67,7 +68,7 @@ export function Button({
         },
         style,
       ]}>
-      <T v="button" color={disabled ? C.ash : outline ? ink : ground}>
+      <T v="button" align="center" color={disabled ? C.ash : outline ? ink : ground}>
         {title}
       </T>
     </Pressable>
@@ -262,11 +263,14 @@ export function Segmented<V extends string | number>({
             key={String(o)}
             accessibilityRole="tab"
             accessibilityState={{ selected: on, disabled: off }}
+            disabled={off}
             onPress={() => {
-              if (on) return;
+              if (on || off) return;
               selection();
               onChange(o);
             }}
+            // 32pt cells; the slop makes the hit area 44 tall.
+            hitSlop={{ top: 6, bottom: 6 }}
             style={{
               flex: 1,
               height: 32,
@@ -316,7 +320,11 @@ export function SectionHeader({ children, first }: { children: string; first?: b
   );
 }
 
-/** Settings row: 52 tall, hairline inset 28 left. */
+/**
+ * Settings row: 52 tall, hairline inset 28 left. A `right` control (a Toggle)
+ * sits beside the pressable part, not inside it: an accessible Pressable hides
+ * its children from VoiceOver, so the switch could not be reached.
+ */
 export function SettingsRow({
   title,
   value,
@@ -334,34 +342,43 @@ export function SettingsRow({
   first?: boolean;
   accessibilityLabel?: string;
 }) {
+  // A switch-only row: the switch carries the label, so the title is not read twice.
+  const switchOnly = Boolean(right) && !onPress;
   return (
     <View>
       {first ? <Rule inset={MARGIN} /> : null}
-      <Pressable
-        accessibilityRole={onPress ? 'button' : undefined}
-        accessibilityLabel={accessibilityLabel ?? (value ? `${title}, ${value}` : title)}
-        disabled={!onPress}
-        onPress={onPress}
-        style={({ pressed }) => ({
-          minHeight: 52,
-          paddingLeft: MARGIN,
-          paddingRight: MARGIN - (chevron && onPress ? 6 : 0),
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 12,
-          backgroundColor: pressed && onPress ? '#121211' : 'transparent',
-        })}>
-        <T v="row" style={{ flex: 1, fontFamily: font.sans }} numberOfLines={1}>
-          {title}
-        </T>
-        {value ? (
-          <T v="small" color={C.stone} numberOfLines={1} style={{ maxWidth: '58%', textAlign: 'right' }}>
-            {value}
+      <View style={{ minHeight: 52, flexDirection: 'row', alignItems: 'center' }}>
+        <Pressable
+          accessible={!switchOnly}
+          accessibilityElementsHidden={switchOnly}
+          importantForAccessibility={switchOnly ? 'no-hide-descendants' : 'auto'}
+          accessibilityRole={onPress ? 'button' : undefined}
+          accessibilityLabel={accessibilityLabel ?? (value ? `${title}, ${value}` : title)}
+          disabled={!onPress}
+          onPress={onPress}
+          style={({ pressed }) => ({
+            flex: 1,
+            minHeight: 52,
+            paddingLeft: MARGIN,
+            paddingRight: right ? 12 : MARGIN - (chevron && onPress ? 8 : 0),
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            backgroundColor: pressed && onPress ? '#121211' : 'transparent',
+          })}>
+          <T v="row" style={{ flex: 1, fontFamily: font.sans }} numberOfLines={1}>
+            {title}
           </T>
-        ) : null}
-        {right}
-        {chevron && onPress ? <Icon name="chevron-right" size={16} color={C.ash} /> : null}
-      </Pressable>
+          {value ? (
+            <T v="small" color={C.stone} numberOfLines={1} style={{ maxWidth: '58%', textAlign: 'right' }}>
+              {value}
+            </T>
+          ) : null}
+          {/* 24 box: the 6x12 glyph's right edge lands on the 28 margin. */}
+          {chevron && onPress ? <Icon name="chevron-right" size={24} color={C.stone} /> : null}
+        </Pressable>
+        {right ? <View style={{ paddingRight: MARGIN }}>{right}</View> : null}
+      </View>
       <Rule inset={MARGIN} />
     </View>
   );

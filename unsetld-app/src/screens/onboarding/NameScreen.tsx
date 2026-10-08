@@ -39,17 +39,20 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
   const [widths, setWidths] = useState<[number, number]>([0, 0]);
   const measured = widths[0] > 0 && widths[1] > 0;
   const [busy, setBusy] = useState(false);
+  // Reduce Motion: no translate, crossfades only.
+  const [reduce, setReduce] = useState(false);
 
   useEffect(() => {
-    let reduce = false;
+    let reduced = false;
     AccessibilityInfo.isReduceMotionEnabled()
-      .then(r => {
-        reduce = r;
+      .then(on => {
+        reduced = on;
+        setReduce(on);
       })
       .catch(() => {})
       .finally(() => {
         Animated.sequence([
-          Animated.timing(fig, { toValue: 1, duration: reduce ? 300 : 600, easing: ease.out, useNativeDriver: true }),
+          Animated.timing(fig, { toValue: 1, duration: reduced ? 300 : 600, easing: ease.out, useNativeDriver: true }),
           Animated.stagger(
             80,
             rows.map(r => Animated.timing(r, { toValue: 1, duration: 300, easing: ease.out, useNativeDriver: true })),
@@ -63,7 +66,7 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
     setBusy(true);
     Animated.sequence([
       Animated.timing(drop, { toValue: 1, duration: 300, easing: ease.in, useNativeDriver: false }),
-      Animated.timing(close, { toValue: 0, duration: 200, easing: ease.out, useNativeDriver: false }),
+      Animated.timing(close, { toValue: 0, duration: reduce ? 0 : 200, easing: ease.out, useNativeDriver: false }),
       Animated.delay(250),
       Animated.timing(page, { toValue: 0, duration: 250, easing: ease.in, useNativeDriver: false }),
     ]).start(() => navigation.replace('FirstLine'));
@@ -84,7 +87,7 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-        <Text style={{ fontFamily: font.serif, fontSize: 22, color: C.bone }} accessibilityRole="header">
+        <Text maxFontSizeMultiplier={1.3} style={{ fontFamily: font.serif, fontSize: 22, color: C.bone }} accessibilityRole="header">
           {COPY.wordmark}
         </Text>
         <T v="mono">{COPY.volumeLabel(VOLUME)}</T>
@@ -98,7 +101,7 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
           right: 0,
           alignItems: 'center',
           opacity: fig,
-          transform: [{ translateY: fig.interpolate({ inputRange: [0, 1], outputRange: [6, 0] }) }],
+          transform: reduce ? [] : [{ translateY: fig.interpolate({ inputRange: [0, 1], outputRange: [6, 0] }) }],
         }}>
         <Walker height={figH} />
       </Animated.View>
@@ -117,6 +120,7 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
             const glyph = (
               <Text
                 key={i}
+                allowFontScaling={false}
                 style={{
                   fontFamily: font.serif,
                   fontSize: headSize,
@@ -141,13 +145,15 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
                   overflow: 'visible',
                   width: measured ? close.interpolate({ inputRange: [0, 1], outputRange: [0, widths[di]] }) : undefined,
                   opacity: drop.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
-                  transform: [{ translateY: drop.interpolate({ inputRange: [0, 1], outputRange: [0, 12] }) }],
+                  transform: reduce ? [] : [{ translateY: drop.interpolate({ inputRange: [0, 1], outputRange: [0, 12] }) }],
                 }}>
                 {glyph}
               </Animated.View>
             );
           })}
-          <Text style={{ fontFamily: font.serifItalic, fontSize: 22, color: C.stone, marginLeft: 10 }}>adj.</Text>
+          <Text allowFontScaling={false} style={{ fontFamily: font.serifItalic, fontSize: 22, color: C.stone, marginLeft: 10 }}>
+            adj.
+          </Text>
         </Animated.View>
 
         <View style={{ marginTop: 20 }}>

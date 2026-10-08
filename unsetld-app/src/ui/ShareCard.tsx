@@ -38,7 +38,10 @@ export const ShareCard = forwardRef<View, { line: ShareLine; colorway: Colorway;
             top: post ? undefined : 653 * u,
             ...(post ? { top: 0, bottom: 0, justifyContent: 'center', paddingBottom: height * 0.1 } : null),
           }}>
-          <Text allowFontScaling={false} style={{ fontFamily: font.serif, color: colorway.ink, fontSize: size, lineHeight: size * 1.06, letterSpacing: -size * 0.012 }}>
+          <Text
+            allowFontScaling={false}
+            lineBreakStrategyIOS="push-out"
+            style={{ fontFamily: font.serif, color: colorway.ink, fontSize: size, lineHeight: size * 1.06, letterSpacing: -size * 0.012 }}>
             {text}
           </Text>
           {attribution ? (

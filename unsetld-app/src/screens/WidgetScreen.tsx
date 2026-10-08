@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
+import { checkTrustedTime } from '../services/trustedTime';
 import { useApp } from '../state/store';
 import { Button, NavRow, PageTitle, Screen, Segmented, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
@@ -24,6 +25,10 @@ export function WidgetScreen({ navigation, route }: RootProps<'Widget'>) {
   const finish = () => {
     if (guide) return navigation.goBack();
     useApp.getState().completeOnboarding(false);
+    // Day 1 is on record already, so Today won't check the clock for it: verify it here.
+    checkTrustedTime().then(t => {
+      if (t.verified) useApp.getState().recordToday(true);
+    });
     navigation.reset({ index: 1, routes: [{ name: 'Today' }, { name: 'Paywall', params: { from: 'onboarding' } }] });
   };
 

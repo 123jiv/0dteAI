@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { selection } from '../services/haptics';
 import { T } from './text';
@@ -21,11 +22,22 @@ function Column<V extends number | string>({
   label: string;
 }) {
   const index = Math.max(0, items.indexOf(value));
+  const ref = useRef<ScrollView>(null);
+  const placed = useRef(false);
+  // react-native-web ignores contentOffset, so scroll the picked row into the
+  // middle band ourselves: at once when the sheet opens, smoothly after a tap.
+  useEffect(() => {
+    ref.current?.scrollTo({ x: 0, y: index * ROW, animated: placed.current });
+    placed.current = true;
+  }, [index]);
   return (
     <ScrollView
+      ref={ref}
       accessibilityLabel={label}
       style={{ flex: 1, height: ROW * 5 }}
-      contentOffset={{ x: 0, y: Math.max(0, (index - 2) * ROW) }}
+      // Two empty rows above and below so the first and last values can centre.
+      contentContainerStyle={{ paddingVertical: ROW * 2 }}
+      contentOffset={{ x: 0, y: index * ROW }}
       showsVerticalScrollIndicator={false}>
       {items.map(v => {
         const on = v === value;

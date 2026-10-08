@@ -2,7 +2,7 @@
 // these into scheduled local notifications, and the widget timeline uses the
 // same plan so the lock screen shows the line the reminder just delivered.
 import { hash32, mulberry32 } from './random';
-import { addDays, atMinutes, minutesIntoDay, type DayKey } from './time';
+import { addDays, atMinutes, dayNumber, minutesIntoDay, type DayKey } from './time';
 import type { ReminderPrompt } from './types';
 
 /** iOS keeps at most 64 pending local notifications per app; stay under it. */
@@ -41,25 +41,34 @@ export interface DayPlanOptions {
   seed: string;
 }
 
+/** The day's last minute (3:59 AM), counted from 4:00 AM. */
+const DAY_END = 24 * 60 - 1;
+
 /**
  * The day's reminder times. The first is exact; the rest are evenly spaced
  * between First and Last inclusive with ±10 minutes of jitter. A reminder
- * within 30 minutes of the night check moves 45 minutes earlier.
+ * within 30 minutes of the night check moves 45 minutes earlier. A Last at or
+ * before First runs to the end of the day (3:59 AM). No two share a minute.
  */
 export function dayReminderTimes(o: DayPlanOptions): ReminderTime[] {
   const count = Math.max(0, Math.floor(o.count));
   if (!count) return [];
   const start = minutesIntoDay(o.first);
   let end = minutesIntoDay(o.last);
-  if (end < start) end = start;
+  if (end <= start) end = DAY_END;
   const rand = mulberry32(hash32(`${o.seed}:rem:${o.day}`));
   const nightAt = minutesIntoDay(o.night.time);
   const out: ReminderTime[] = [];
+  let prev = -1;
   for (let i = 0; i < count; i++) {
     let t = count === 1 ? start : start + ((end - start) * i) / (count - 1);
     if (i > 0) t = Math.min(end, Math.max(start + 1, t + (rand() * 20 - 10)));
     t = Math.round(t);
-    if (o.night.enabled && i > 0 && Math.abs(t - nightAt) < 30) t -= 45;
+    if (o.night.enabled && i > 0 && Math.abs(t - nightAt) <= 30) t -= 45;
+    // In order, one a minute, inside the window: a window too narrow for the count gets fewer.
+    t = Math.max(t, prev + 1);
+    if (t > end) break;
+    prev = t;
     const kind: ReminderKind = i === 0 ? 'today' : 'task';
     out.push({ minutes: t + 4 * 60, kind });
   }
@@ -90,10 +99,10 @@ export interface PlanOptions {
   seed: string;
 }
 
-/** How many days ahead fit under the pending limit. */
+/** How many days ahead fit under the pending limit: floor(60 / notifications a day). */
 export function daysAhead(count: number, nightEnabled: boolean): number {
   const perDay = Math.max(1, count + (nightEnabled ? 1 : 0));
-  return Math.max(1, Math.min(14, Math.floor(MAX_PENDING / perDay)));
+  return Math.max(1, Math.floor(MAX_PENDING / perDay));
 }
 
 export function planNotifications(o: PlanOptions): PlannedNotification[] {
@@ -101,26 +110,26 @@ export function planNotifications(o: PlanOptions): PlannedNotification[] {
   const out: PlannedNotification[] = [];
   const bySlot: Record<Slot, ReminderPrompt[]> = { morning: [], midday: [], evening: [], night: [] };
   for (const p of o.prompts) bySlot[p.slot].push(p);
-  // Round-robin per slot, starting at a seeded offset so installs don't all match.
-  const cursor: Record<Slot, number> = {
-    morning: hash32(`${o.seed}:morning`),
-    midday: hash32(`${o.seed}:midday`),
-    evening: hash32(`${o.seed}:evening`),
-    night: hash32(`${o.seed}:night`),
-  };
   const soon = o.now.getTime() + 60_000;
   for (let d = 0; d < days; d++) {
     const day = addDays(o.today, d);
     const times = dayReminderTimes({ day, count: o.count, first: o.first, last: o.last, night: o.night, seed: o.seed });
+    // Round-robin per slot, carried on from the day before, from a seeded offset
+    // so installs don't all match. Each prompt depends only on the day and its
+    // place in it, so rebuilding the plan mid-day never changes or repeats one.
+    const perDay: Record<Slot, number> = { morning: 0, midday: 0, evening: 0, night: 0 };
+    for (const t of times) if (t.kind === 'task') perDay[slotOf(t.minutes)]++;
+    const ord: Record<Slot, number> = { morning: 0, midday: 0, evening: 0, night: 0 };
     times.forEach((t, index) => {
-      const date = atMinutes(day, t.minutes);
-      if (date.getTime() <= soon) return;
       let prompt: string | undefined;
       if (t.kind === 'task') {
         const slot = slotOf(t.minutes);
         const list = bySlot[slot].length ? bySlot[slot] : o.prompts;
-        if (list.length) prompt = list[cursor[slot]++ % list.length].text;
+        const at = hash32(`${o.seed}:${slot}`) + dayNumber(day) * perDay[slot] + ord[slot]++;
+        if (list.length) prompt = list[((at % list.length) + list.length) % list.length].text;
       }
+      const date = atMinutes(day, t.minutes);
+      if (date.getTime() <= soon) return;
       out.push({ id: `rem-${day}-${index}`, date, day, kind: t.kind, prompt, index });
     });
     if (o.night.enabled && !o.answered.has(day)) {

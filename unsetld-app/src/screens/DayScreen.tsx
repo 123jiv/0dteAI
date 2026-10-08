@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Linking, Platform, Pressable, Text, View } from 'react-native';
+import { AppState, Linking, Platform, Pressable, Text, View } from 'react-native';
 import { REMINDER_COUNTS } from '../core/reminders';
-import { formatTime } from '../core/time';
+import { DAY_START_HOUR, formatTime, minutesIntoDay } from '../core/time';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { notificationStatus, requestNotifications, type Permission } from '../services/notifications';
@@ -11,6 +11,12 @@ import { T } from '../ui/text';
 import { TimeSheet } from '../ui/TimeSheet';
 import { color as C, hairline } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
+
+/** Last stays after First in the 4 AM day: one at or before First moves to an hour after it (3:55 AM at most). */
+function lastAfter(first: number, last: number): number {
+  if (minutesIntoDay(last) > minutesIntoDay(first)) return last;
+  return (Math.min(minutesIntoDay(first) + 60, 1435) + DAY_START_HOUR * 60) % 1440;
+}
 
 const SYSTEM = Platform.select({ ios: undefined, default: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Inter_400Regular, sans-serif" });
 
@@ -64,8 +70,14 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   const [picker, setPicker] = useState<'first' | 'last' | 'night' | null>(null);
   const [perm, setPerm] = useState<Permission>('undetermined');
 
+  // Checked again on return from iOS Settings, where Open Settings sends people.
   useEffect(() => {
-    notificationStatus().then(setPerm).catch(() => {});
+    const check = () => notificationStatus().then(setPerm).catch(() => {});
+    check();
+    const sub = AppState.addEventListener('change', s => {
+      if (s === 'active') check();
+    });
+    return () => sub.remove();
   }, []);
 
   const disabled = REMINDER_COUNTS.filter(n => n > ent.maxReminders);
@@ -80,8 +92,9 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   };
 
   const saveEdit = async () => {
-    let ok = perm === 'granted' || Platform.OS === 'web';
-    if (perm === 'undetermined') ok = await requestNotifications().catch(() => false);
+    const now = await notificationStatus().catch(() => perm);
+    let ok = now === 'granted' || Platform.OS === 'web';
+    if (now === 'undetermined') ok = await requestNotifications().catch(() => false);
     save(ok || settings.reminders.on);
     navigation.goBack();
   };
@@ -127,10 +140,14 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
           </View>
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <Text style={{ fontFamily: SYSTEM, fontSize: 15, fontWeight: '600', color: C.bone }}>{COPY.notificationTitle}</Text>
-              <Text style={{ fontFamily: SYSTEM, fontSize: 13, color: C.stone }}>{formatTime(first)}</Text>
+              <Text maxFontSizeMultiplier={1.3} style={{ fontFamily: SYSTEM, fontSize: 15, fontWeight: '600', color: C.bone }}>
+                {COPY.notificationTitle}
+              </Text>
+              <Text maxFontSizeMultiplier={1.3} style={{ fontFamily: SYSTEM, fontSize: 13, color: C.stone }}>
+                {formatTime(first)}
+              </Text>
             </View>
-            <Text style={{ fontFamily: SYSTEM, fontSize: 15, lineHeight: 20, color: C.bone, marginTop: 1 }}>
+            <Text maxFontSizeMultiplier={1.3} style={{ fontFamily: SYSTEM, fontSize: 15, lineHeight: 20, color: C.bone, marginTop: 1 }}>
               {COPY.day.previewBody.replace(/'/g, '’')}
             </Text>
           </View>
@@ -173,8 +190,11 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
         visible={picker !== null}
         onClose={() => setPicker(null)}
         onDone={m => {
-          if (picker === 'first') setFirst(m);
-          if (picker === 'last') setLast(m);
+          if (picker === 'first') {
+            setFirst(m);
+            setLast(lastAfter(m, last));
+          }
+          if (picker === 'last') setLast(lastAfter(first, m));
           if (picker === 'night') setNightTime(m);
           setPicker(null);
         }}
