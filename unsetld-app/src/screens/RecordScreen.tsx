@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Animated, Platform, Pressable, useWindowDimensions, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo, Animated, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { allProofs, codeForCollection, pointsBalance, provenOn, tierStatus, type TierStatus } from '../core/points';
 import {
@@ -20,7 +21,7 @@ import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { openStore, redeem } from '../services/access';
 import { light } from '../services/haptics';
-import { useAccessEnabled, useApp } from '../state/store';
+import { putDayOnRecord, useAccessEnabled, useApp, useAppActive } from '../state/store';
 import { showDialog } from '../ui/actions';
 import { InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
 import { ProofThumb } from './ProofGalleryScreen';
@@ -45,8 +46,11 @@ function Barcode({ width }: { width: number }) {
           return <Rect key={b.day} x={x} y={0} width={bar} height={60} fill={b.kind === 'today' ? C.signal : C.bone} />;
         })}
       </Svg>
-      <View style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
+      {/* The first date sits under the first bar, moving left only as far as it must to clear TODAY. */}
+      <View style={{ marginTop: 8, flexDirection: 'row' }}>
+        <View style={{ width: width - total + (pitch - bar) / 2, flexShrink: 1 }} />
         <T v="mono">{bars.length ? shortDate(bars[0].day) : ''}</T>
+        <View style={{ flexGrow: 1, minWidth: 12 }} />
         <T v="mono">{R.today}</T>
       </View>
     </View>
@@ -54,32 +58,49 @@ function Barcode({ width }: { width: number }) {
 }
 
 function Stat({ label, value, unit, divider }: { label: string; value: string; unit: string; divider?: boolean }) {
+  // Padding and borders count toward a flex basis, so they sit on an inner view: the three columns stay equal.
   return (
-    <View style={{ flex: 1, height: 76, justifyContent: 'center', paddingLeft: divider ? 14 : 0, borderLeftWidth: divider ? hairline : 0, borderLeftColor: C.rule }}>
-      <T v="label">{label}</T>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 6, gap: 6 }}>
-        <T v="mono.l" color={C.bone}>
-          {value}
-        </T>
-        <T v="mono" style={{ fontSize: 13 }}>
-          {unit}
-        </T>
+    <View style={{ flex: 1, height: 76 }}>
+      <View style={{ flex: 1, justifyContent: 'center', paddingLeft: divider ? 14 : 0, borderLeftWidth: divider ? hairline : 0, borderLeftColor: C.rule }}>
+        <T v="label">{label}</T>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 6, gap: 6 }}>
+          <T v="mono.l" color={C.bone}>
+            {value}
+          </T>
+          <T v="mono" style={{ fontSize: 13 }}>
+            {unit}
+          </T>
+        </View>
       </View>
     </View>
   );
 }
 
 function Road({ width, n }: { width: number; n: number }) {
-  const [x] = useState(() => new Animated.Value(0));
   const target = roadPosition(n) * width;
+  // Starts where the road last stood, so the walker only walks when the count has changed.
+  const [x] = useState(() => new Animated.Value(roadPosition(useApp.getState().reading.road) * width));
   useEffect(() => {
-    Animated.timing(x, { toValue: target, duration: 300, easing: ease.out, useNativeDriver: true }).start();
-  }, [target, x]);
+    let live = true;
+    // Reduce Motion: no translate; the walker and the walked line move without the walk.
+    AccessibilityInfo.isReduceMotionEnabled()
+      .catch(() => false)
+      .then(reduce => {
+        if (!live) return;
+        if (reduce) x.setValue(target);
+        else Animated.timing(x, { toValue: target, duration: 300, easing: ease.out, useNativeDriver: false }).start();
+      });
+    useApp.getState().markRoad(n);
+    return () => {
+      live = false;
+    };
+  }, [n, target, x]);
   const walkerW = 22;
   return (
     <View style={{ width, height: 56 }} accessible accessibilityLabel={`Day ${n} on the road to 365`}>
-      <View style={{ position: 'absolute', top: 36, left: 0, width: target, height: 1.5, backgroundColor: C.bone }} />
-      <View style={{ position: 'absolute', top: 36, left: target, right: 0, height: 1, backgroundColor: C.ruleStrong }} />
+      {/* The walked part follows the walker, over the rest of the road. */}
+      <View style={{ position: 'absolute', top: 36, left: 0, right: 0, height: 1, backgroundColor: C.ruleStrong }} />
+      <Animated.View style={{ position: 'absolute', top: 36, left: 0, width: x, height: 1.5, backgroundColor: C.bone }} />
       {ROAD.map((d, i) => {
         const tx = (width * (i + 1)) / ROAD.length;
         const passed = n >= d;
@@ -209,6 +230,14 @@ export function RecordScreen({ navigation }: RootProps<'Record'>) {
   const recent = proofs.slice(0, 6);
   const thumb = Math.floor((w - 16) / 3);
   const [codeError, setCodeError] = useState<string | null>(null);
+  const active = useAppActive();
+
+  // Record in the foreground counts as an open (a widget tap lands here): today is always on record while it shows.
+  useFocusEffect(
+    useCallback(() => {
+      if (active) putDayOnRecord(day);
+    }, [active, day]),
+  );
 
   const getCode = (tier: (typeof POINTS.tiers)[number]) => {
     if (!signedIn) return navigation.navigate('Account');

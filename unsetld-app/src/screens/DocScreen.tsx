@@ -1,14 +1,18 @@
 import { View } from 'react-native';
 import { parseDay } from '../core/time';
-import { DOCS } from '../content';
+import { DOCS, type DocId } from '../content';
 import type { RootProps } from '../navigation/types';
 import { useAccessEnabled } from '../state/store';
 import { NavRow, PageTitle, Screen } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, hairline } from '../ui/tokens';
 
-// Sections of "How the record works" that only make sense once access is live.
-const ACCESS_ONLY = new Set(['Access', 'Keeping it', 'Limits', "It can't be bought", 'Account']);
+// Sections that only make sense once access is live: most of "How the record
+// works", and the Terms of Use pointer to the Access terms row.
+const ACCESS_ONLY: Partial<Record<DocId, Set<string>>> = {
+  record: new Set(['Access', 'Keeping it', 'Limits', "It can't be bought", 'Account']),
+  terms: new Set(['Access']),
+};
 
 function updated(date?: string): string | null {
   if (!date) return null;
@@ -20,7 +24,7 @@ function updated(date?: string): string | null {
 export function DocScreen({ navigation, route }: RootProps<'Doc' | 'DocSheet'>) {
   const doc = DOCS[route.params.id];
   const accessEnabled = useAccessEnabled();
-  const sections = doc.sections.filter(s => route.params.id !== 'record' || accessEnabled || !ACCESS_ONLY.has(s.h));
+  const sections = doc.sections.filter(s => accessEnabled || !ACCESS_ONLY[route.params.id]?.has(s.h));
   const sheet = route.name === 'DocSheet';
   return (
     <Screen nav={sheet ? <NavRow onClose={() => navigation.goBack()} /> : <NavRow onBack={() => navigation.goBack()} />}>

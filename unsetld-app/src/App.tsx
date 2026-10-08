@@ -14,9 +14,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { newNonce } from './navigation/nonce';
 import { RootNavigator } from './navigation/RootNavigator';
 import type { RootParams } from './navigation/types';
+import { takeEarlyDropTap } from './services/notifications';
 import { useIntent } from './state/intents';
 import { useBootstrap, useSideEffects } from './state/lifecycle';
-import { useApp } from './state/store';
+import { useAccessEnabled, useApp } from './state/store';
 import { ActionHost } from './ui/actions';
 import { PhoneFrame } from './ui/PhoneFrame';
 import { color as C } from './ui/tokens';
@@ -32,14 +33,18 @@ const navTheme = {
 function useIntents(ready: boolean) {
   const intent = useIntent(s => s.intent);
   const nonce = useIntent(s => s.nonce);
+  const accessEnabled = useAccessEnabled();
   useEffect(() => {
     if (!intent || !ready || !navigationRef.isReady()) return;
     useIntent.getState().clear();
+    const earlyDrop = takeEarlyDropTap();
     if (!useApp.getState().settings.onboarded) return;
     const stamp = newNonce();
     navigationRef.dispatch(StackActions.popTo('Today', { nonce: stamp, night: intent.kind === 'night' }));
     if (intent.kind === 'record') navigationRef.navigate('Record');
-  }, [intent, nonce, ready]);
+    // An early drop alert opens the early-access page, where the drop opens.
+    else if (earlyDrop && accessEnabled) navigationRef.navigate('Milestone', { id: 'early-access' });
+  }, [intent, nonce, ready, accessEnabled]);
 }
 
 function Shell() {

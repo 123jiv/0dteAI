@@ -115,8 +115,27 @@ export function composePlan(input: ScheduleInput, now: Date): ComposedNotificati
   return out;
 }
 
+/**
+ * Runs one call at a time: a newer call waits for the one running, which stops
+ * as soon as it's out of date. The newer one then cancels and schedules it all
+ * again, so nothing from an older call survives.
+ */
+function oneAtATime<T, R>(job: (input: T, stale: () => boolean) => Promise<R>, skipped: R): (input: T) => Promise<R> {
+  let latest = 0;
+  let tail: Promise<unknown> = Promise.resolve();
+  return input => {
+    const id = ++latest;
+    const stale = () => id !== latest;
+    const run = tail.then(() => (stale() ? skipped : job(input, stale)));
+    tail = run.catch(() => {});
+    return run;
+  };
+}
+
 /** Rebuilds the rolling schedule. Call on every foreground and after settings change. */
-export async function reschedule(input: ScheduleInput): Promise<number> {
+export const reschedule = oneAtATime(rebuild, 0);
+
+async function rebuild(input: ScheduleInput, stale: () => boolean): Promise<number> {
   if (!supported) return 0;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
@@ -129,6 +148,7 @@ export async function reschedule(input: ScheduleInput): Promise<number> {
   // Real wall-clock time: notifications fire in the real world even while testing time travel.
   const plan = composePlan(input, new Date()).filter(p => p.body);
   for (const p of plan) {
+    if (stale()) return 0;
     await Notifications.scheduleNotificationAsync({
       identifier: p.id,
       content: {
@@ -155,6 +175,12 @@ export async function scheduleTrialReminder(price: string) {
   }).catch(() => {});
 }
 
+/** The trial was cancelled or has ended: its "ends tomorrow" reminder would be wrong. */
+export function cancelTrialReminder() {
+  if (!supported) return;
+  Notifications.cancelScheduledNotificationAsync('trial-day2').catch(() => {});
+}
+
 export interface Drop {
   id: string;
   collection: string;
@@ -170,8 +196,17 @@ function whenText(publicAt: Date, from: Date): string {
   return sameDay ? `today at ${t}` : tomorrow ? `tomorrow at ${t}` : `on ${publicAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${t}`;
 }
 
-/** Drop alerts: opt-in only. Day 7+ hears at early-access open; everyone else at public open. */
-export async function scheduleDropAlerts(drops: Drop[], optedIn: boolean, earlyAccess: boolean) {
+/**
+ * Drop alerts: opt-in only. Early access (Day 7+, not paused, access on) hears
+ * at early-access open; everyone else gets a heads-up 24 hours before public
+ * open. One run at a time.
+ */
+export const scheduleDropAlerts = oneAtATime(dropAlerts, undefined);
+
+async function dropAlerts(
+  { drops, optedIn, earlyAccess }: { drops: Drop[]; optedIn: boolean; earlyAccess: boolean },
+  stale: () => boolean,
+): Promise<void> {
   if (!supported) return;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
@@ -179,6 +214,7 @@ export async function scheduleDropAlerts(drops: Drop[], optedIn: boolean, earlyA
   );
   if (!optedIn) return;
   for (const d of drops) {
+    if (stale()) return;
     const publicAt = new Date(d.publicAt);
     const at = earlyAccess ? new Date(d.earlyAt) : new Date(publicAt.getTime() - 86_400_000);
     if (Number.isNaN(at.getTime()) || at.getTime() < Date.now()) continue;
@@ -187,7 +223,7 @@ export async function scheduleDropAlerts(drops: Drop[], optedIn: boolean, earlyA
       : COPY.notifications.dropPublic(d.collection, whenText(publicAt, at));
     await Notifications.scheduleNotificationAsync({
       identifier: `drop-${d.id}`,
-      content: { title: COPY.notificationTitle, body, sound: false, data: { drop: d.id } },
+      content: { title: COPY.notificationTitle, body, sound: false, data: { drop: d.id, early: earlyAccess } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
     });
   }
@@ -200,12 +236,27 @@ export type NotificationEvent =
   | { kind: 'open-today' };
 
 const handled = new Set<string>();
+let earlyDropTapped = false;
+
+/**
+ * True once after an early drop alert was tapped. That tap lands on Today like
+ * any other, and the navigator then opens the early-access page.
+ */
+export function takeEarlyDropTap(): boolean {
+  const t = earlyDropTapped;
+  earlyDropTapped = false;
+  return t;
+}
 
 function toEvent(r: Notifications.NotificationResponse): NotificationEvent | null {
   const key = `${r.notification.request.identifier}:${r.actionIdentifier}`;
   if (handled.has(key)) return null;
   handled.add(key);
-  const data = r.notification.request.content.data as { line?: number | null; night?: DayKey } | undefined;
+  const data = r.notification.request.content.data as { line?: number | null; night?: DayKey; drop?: string; early?: boolean } | undefined;
+  if (data?.drop) {
+    earlyDropTapped = data.early === true;
+    return { kind: 'open-today' };
+  }
   if (r.actionIdentifier === ACTION_HELD && data?.night) return { kind: 'night-answer', day: data.night, held: true };
   if (r.actionIdentifier === ACTION_NOT_TODAY && data?.night) return { kind: 'night-answer', day: data.night, held: false };
   if (data?.night) return { kind: 'open-night' };

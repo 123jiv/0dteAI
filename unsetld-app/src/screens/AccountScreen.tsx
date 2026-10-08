@@ -9,8 +9,9 @@ import { POINTS } from '../content';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { appleSignInAvailable, signInWithApple, signOutApple } from '../services/account';
-import { syncRecord } from '../services/access';
+import { deleteAccount, syncRecord } from '../services/access';
 import { useApp } from '../state/store';
+import { showDialog } from '../ui/actions';
 import { NavRow, PageTitle, Screen, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C } from '../ui/tokens';
@@ -42,25 +43,45 @@ function PreviewAppleButton({ onPress }: { onPress: () => void }) {
 export function AccountScreen({ navigation }: RootProps<'Account'>) {
   const account = useApp(s => s.account);
   const [available, setAvailable] = useState(Platform.OS !== 'ios');
-  const [error, setError] = useState(false);
+  // 'delete-sign-in': a delete found the session gone, so the phone signed out with the account maybe still there.
+  const [error, setError] = useState<'sign-in' | 'delete' | 'delete-sign-in' | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (Platform.OS === 'ios') appleSignInAvailable().then(setAvailable);
   }, []);
 
   const signIn = async () => {
-    setError(false);
-    try {
-      const r = await signInWithApple();
-      if (!r) return;
-      useApp.getState().signIn({ userId: r.userId, email: r.email });
-      // First sign-in: hold the user's place with the days already verified on this phone.
-      const rec = useApp.getState().record;
-      syncRecord(sortedDays(rec).filter(d => rec.days[d].verified), provenCounts(rec, POINTS)).catch(() => {});
-      navigation.goBack();
-    } catch {
-      setError(true);
-    }
+    if (busy) return;
+    const deleting = error === 'delete-sign-in'; // signing in to finish a delete: stay here
+    setError(null);
+    setBusy(true);
+    const r = await signInWithApple().catch(() => undefined); // null: cancelled; undefined: failed
+    // The server trades Apple's sign-in for its session and holds the user's place
+    // with the days already verified on this phone. Only then is the phone signed in.
+    const rec = useApp.getState().record;
+    const synced = r ? await syncRecord(r.apple, sortedDays(rec).filter(d => rec.days[d].verified), provenCounts(rec, POINTS)) : false;
+    setBusy(false);
+    if (r === null) return setError(deleting ? 'delete-sign-in' : null);
+    if (!r || !synced) return setError('sign-in');
+    useApp.getState().signIn({ userId: r.userId, email: r.email });
+    if (!deleting) navigation.goBack();
+  };
+
+  const removeAccount = async () => {
+    setError(null);
+    setBusy(true);
+    const r = await deleteAccount();
+    setBusy(false);
+    if (r !== 'deleted') setError(r === 'needs-account' ? 'delete-sign-in' : 'delete');
+  };
+
+  const confirmDelete = () => {
+    if (busy) return;
+    showDialog(A.deleteTitle, A.deleteBody, [
+      { label: A.deleteNo, cancel: true },
+      { label: A.deleteYes, destructive: true, onPress: removeAccount },
+    ]);
   };
 
   return (
@@ -69,7 +90,7 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
       {account.userId ? (
         <View style={{ marginTop: 32, gap: 4 }}>
           <T v="body" color={C.stone}>
-            {A.signedIn(account.email ?? 'Apple ID')}
+            {account.email ? A.signedIn(account.email) : A.signedInApple}
           </T>
           <TextButton
             title={A.signOut}
@@ -79,6 +100,12 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
               useApp.getState().signOut();
             }}
           />
+          <TextButton title={A.deleteAccount} align="left" onPress={confirmDelete} style={{ marginTop: 24 }} />
+          {error === 'delete' ? (
+            <T v="note" color={C.stone}>
+              {A.deleteError}
+            </T>
+          ) : null}
         </View>
       ) : (
         <View style={{ marginTop: 32, gap: 12 }}>
@@ -101,9 +128,9 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
               </T>
             </>
           ) : null}
-          {error ? (
+          {error === 'sign-in' || error === 'delete-sign-in' ? (
             <T v="note" color={C.stone}>
-              {A.error}
+              {error === 'sign-in' ? A.error : A.deleteSignIn}
             </T>
           ) : null}
         </View>

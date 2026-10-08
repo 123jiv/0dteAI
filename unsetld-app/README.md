@@ -81,7 +81,7 @@ Free gets:
 
 ### 2. Access (optional at launch)
 
-Access stays hidden until `https://www.unsetld.com/api/app/config.json` says `"accessEnabled": true`. Build the small routes in [docs/ACCESS.md](docs/ACCESS.md) first (check-in, sync, proof, redeem, claim), then upload `Web/api/app/config.json` and `Web/api/app/drops.json` to the site.
+Access stays hidden until `https://www.unsetld.com/api/app/config.json` says `"accessEnabled": true`. Build the small routes in [docs/ACCESS.md](docs/ACCESS.md) first (sync, check-in, proof, redeem, claim, account delete), then upload `Web/api/app/config.json` and `Web/api/app/drops.json` to the site.
 
 ### 3. Content
 

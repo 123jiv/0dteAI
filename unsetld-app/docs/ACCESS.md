@@ -67,21 +67,35 @@ The app also reads `https://www.unsetld.com/api/app/drops.json`; see [`Web/api/a
 - Day 7 and up: a notification at `earlyAt` ("Collection 004 is open to you now. Everyone else gets it tomorrow at 9:00 PM.").
 - Everyone else: a heads-up at the same time ("Collection 004 opens tomorrow at 9:00 PM.").
 
+If the file can't be read, the alerts already scheduled stay as they are.
+
 ## Accounts
 
 Claiming anything needs a free account made with **Sign in with Apple** (`expo-apple-authentication`; the entitlement is added by the config plugin). Nothing else needs an account: the record, saved lines and your lines stay on the phone, with a Keychain backup of the record so a reinstall keeps it.
 
+The phone counts as signed in only once the server has returned a session token at sign-in (below). The signed-in Account page has **Sign out** and, under it, **Delete account** (App Store Guideline 5.1.1(v)): it asks to confirm, calls `account/delete` and then signs out on the phone. The record and proof photos stay on the phone. The browser preview simulates sign-in and deletion.
+
 ## Backend (to build before turning `accessEnabled` on)
 
-Build these as a few routes on the existing site (Vercel/Next.js), or on Supabase. Each request carries the Apple identity token (`appleIdToken`). Verify it against Apple's public keys (issuer `https://appleid.apple.com`, audience `com.unsetld.app`), then use its `sub` as the user ID.
+Build these as a few routes on the existing site (Vercel/Next.js), or on Supabase.
 
-| Route | Body | Does |
-|---|---|---|
-| `POST /api/app/checkin` | `{ appleIdToken, dayKey }` | Stores one check-in per account per **server** day. Rejects a `dayKey` more than a day from server time. |
-| `POST /api/app/sync` | `{ appleIdToken, days: string[], proofs: { day, count }[] }` | Runs on first sign-in. Accepts the phone's clock-verified days and each day's proven-task count, none in the future, at most one entry per server day since install, each count clamped to 0–4. |
-| `POST /api/app/proof` | `{ appleIdToken, dayKey, count }` | Sets the proven-task count (clamped to 0–4) for the current **server** day; past days are frozen. Sent after each proof and when a proven task is unmarked. The photo never leaves the phone. |
-| `POST /api/app/redeem` | `{ appleIdToken, points, percent }` | Recounts points **from the server's counts** (10 per proven task, at most 40 a day, minus points already spent). If the user has the points and no code this collection, it mints a single-use Shopify discount and returns `{ code, url }`; otherwise `{ error: "short" \| "used" }`. |
-| `POST /api/app/claim` | `{ appleIdToken, perk }` | Recomputes days on record and the pause rule **from the server's check-ins** (never trust the phone's count). Returns `{ url }`, or `{ error: "paused" \| "used" }`. |
+**Sign-in.** Apple's identity token expires within a day, so the app sends it only once: with `sync`, at sign-in, together with the one-time `authorizationCode`. The server:
+1. Verifies `appleIdToken` against Apple's public keys (issuer `https://appleid.apple.com`, audience `com.unsetld.app`) and uses its `sub` as the user ID.
+2. Exchanges `authorizationCode` at `POST https://appleid.apple.com/auth/token` (`grant_type=authorization_code`, with the app's client-secret JWT) and keeps the **refresh token** with the account. Deleting the account needs it to revoke the Sign in with Apple link. The code works once and expires after 5 minutes, so exchange it straight away.
+3. Returns `{ sessionToken }`: its own long-lived random token, stored hashed against the user. The app keeps it in the Keychain and sends it as `Authorization: Bearer <sessionToken>` on every later request.
+
+If any step fails, don't return a `sessionToken`. The phone then stays signed out and shows "Couldn't sign in. Try again in a moment."
+
+**401.** Answer `401` when the session token is missing, unknown or revoked. The app then signs out on the phone (deletes its session token and clears the account), so the next claim or code asks the user to sign in again. A phone with an account but no session token (for example from an older build that kept Apple's identity token) does the same without calling the server. Use `401` only for this; business errors like `used` come back as `200` with `{ error }`.
+
+| Route | Auth | Body | Does |
+|---|---|---|---|
+| `POST /api/app/sync` | Apple tokens in the body | `{ appleIdToken, authorizationCode, days: string[], proofs: { day, count }[] }` | Runs at each sign-in. Signs in as above and returns `{ sessionToken }`. Accepts the phone's clock-verified days and each day's proven-task count, none in the future, at most one entry per server day since install, each count clamped to 0–4. |
+| `POST /api/app/checkin` | session | `{ dayKey }` | Stores one check-in per account per **server** day. Rejects a `dayKey` more than a day from server time. |
+| `POST /api/app/proof` | session | `{ dayKey, count }` | Sets the proven-task count (clamped to 0–4) for the current **server** day; past days are frozen. Sent after each proof and when a proven task is unmarked. The photo never leaves the phone. |
+| `POST /api/app/redeem` | session | `{ points, percent }` | Recounts points **from the server's counts** (10 per proven task, at most 40 a day, minus points already spent). If the user has the points and no code this collection, it mints a single-use Shopify discount and returns `{ code, url }`; otherwise `{ error: "short" \| "used" }`. |
+| `POST /api/app/claim` | session | `{ perk }` | Recomputes days on record and the pause rule **from the server's check-ins** (never trust the phone's count). Returns `{ url }`, or `{ error: "paused" \| "used" }`. |
+| `POST /api/app/account/delete` | session | `{}` | Deletes the account: the Apple user ID, the email, check-ins, proof counts and every session token. Revokes the stored refresh token at `POST https://appleid.apple.com/auth/revoke` (`token_type_hint=refresh_token`). Returns `{ deleted: true }`. On a `401` the phone signs out and the Account page shows "Sign in again to delete your account." Anything else leaves the phone signed in with "Couldn't delete your account. Try again in a moment." |
 
 The redeem code is minted with the Admin API: once per customer, `combinesWith` nothing, usage limit 1, valid for 30 days. Return `https://www.unsetld.com/discount/{CODE}`, which applies it at checkout.
 - Shopify percentage codes can't cap at $25 by themselves. Either enforce the cap with a small **Shopify Discount Function** that applies `min(percent × subtotal, $25)`, or mint a fixed-amount code worth `min(percent × the cart, $25)` at redeem time.

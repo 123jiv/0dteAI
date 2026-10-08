@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
+import { today } from '../services/clock';
 import { checkTrustedTime } from '../services/trustedTime';
 import { useApp } from '../state/store';
 import { Button, NavRow, PageTitle, Screen, Segmented, TextButton } from '../ui/kit';
@@ -25,9 +26,11 @@ export function WidgetScreen({ navigation, route }: RootProps<'Widget'>) {
   const finish = () => {
     if (guide) return navigation.goBack();
     useApp.getState().completeOnboarding(false);
-    // Day 1 is on record already, so Today won't check the clock for it: verify it here.
+    // Day 1 goes on record unverified: check the clock now, while Today still sits under the paywall.
+    // Only while it's still that day: a check that lands after 4 AM must not record the next one.
+    const day = today();
     checkTrustedTime().then(t => {
-      if (t.verified) useApp.getState().recordToday(true);
+      if (t.verified && today() === day) useApp.getState().recordToday(true);
     });
     navigation.reset({ index: 1, routes: [{ name: 'Today' }, { name: 'Paywall', params: { from: 'onboarding' } }] });
   };

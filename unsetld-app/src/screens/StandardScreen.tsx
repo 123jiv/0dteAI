@@ -17,7 +17,10 @@ export function StandardScreen({ navigation, route }: RootProps<'Standard'>) {
   // A written rule never repeats a preset (older saves may have one).
   const saved = edit && settings.ownRule && !STANDARD_RULES.includes(settings.ownRule) ? settings.ownRule : null;
   const [own, setOwn] = useState<string | null>(saved);
-  const [chosen, setChosen] = useState<string[]>(edit ? [...new Set(settings.standard)] : []);
+  // Only rules this page can show count as chosen (no repeats, no preset since retired), so the counter matches what Save keeps.
+  const [chosen, setChosen] = useState<string[]>(
+    edit ? [...new Set(settings.standard)].filter(r => STANDARD_RULES.includes(r) || r === saved) : [],
+  );
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState('');
   const [flash] = useState(() => new Animated.Value(1));

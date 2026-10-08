@@ -1,25 +1,40 @@
 import * as Linking from 'expo-linking';
 import { useEffect, useMemo, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
-import { dayCount, sortedDays } from '../core/record';
+import { create } from 'zustand';
+import { accessState, dayCount, sortedDays } from '../core/record';
 import { daysAhead } from '../core/reminders';
 import { addDays, nextDayStart } from '../core/time';
 import { backupRecord, readBackup } from '../services/backup';
 import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
 import { now } from '../services/clock';
-import { reschedule, scheduleDropAlerts, type ScheduleInput } from '../services/notifications';
-import { initPurchases, purchaseMode, refreshPremium } from '../services/purchases';
+import { cancelTrialReminder, reschedule, scheduleDropAlerts, type Drop, type ScheduleInput } from '../services/notifications';
+import { initPurchases, purchaseMode, refreshPremium, type EntitlementInfo } from '../services/purchases';
 import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
 import { parseUrl, useIntent } from './intents';
-import { useApp, useEntitlements } from './store';
+import { useAccessEnabled, useApp, useEntitlements } from './store';
 import { workFor } from './work';
 
 const NO_HIDDEN: number[] = [];
 
+/** The last drops.json that loaded, for the early-access page. Fetched on launch and every foreground. */
+export const useDrops = create<{ drops: Drop[] }>(() => ({ drops: [] }));
+
+/**
+ * RevenueCat's answer. Active but not renewing means the trial was cancelled
+ * (or it's Lifetime), so the "trial ends tomorrow" reminder goes. Not on
+ * inactive: a stale answer right after buying would drop the reminder the
+ * paywall promised.
+ */
+function setPremiumFrom(active: boolean, info: EntitlementInfo) {
+  useApp.getState().setPremium({ active, plan: info.plan, renews: info.renews });
+  if (active && !info.renews) cancelTrialReminder();
+}
+
 function applyPremium() {
   refreshPremium()
     .then(r => {
-      if (r) useApp.getState().setPremium({ active: r.active, plan: r.info.plan, renews: r.info.renews });
+      if (r) setPremiumFrom(r.active, r.info);
     })
     .catch(() => {});
 }
@@ -47,7 +62,7 @@ export function useBootstrap() {
     }
 
     useApp.getState().setPremium({ mode: purchaseMode });
-    initPurchases((active, info) => useApp.getState().setPremium({ active, plan: info.plan, renews: info.renews }))
+    initPurchases(setPremiumFrom)
       .then(applyPremium)
       .catch(() => {});
     applyConfig();
@@ -175,12 +190,32 @@ export function useSideEffects() {
     if (hydrated && account && recordedToday) syncCheckIn(day).catch(() => {});
   }, [hydrated, account, recordedToday, day]);
 
-  // Drop alerts (opt-in).
-  const early = dayCount(record) >= 7;
+  // Drops: fetched on launch and every foreground, for the early-access page
+  // and the opt-in alerts. Early access needs Day 7, access on and no pause.
+  // A failed fetch keeps the alerts already scheduled.
+  const accessEnabled = useAccessEnabled();
+  const paused = useMemo(() => accessState(record, day).paused, [record, day]);
+  const early = accessEnabled && dayCount(record) >= 7 && !paused;
+  const dropAlerts = settings.dropAlerts;
   useEffect(() => {
     if (!hydrated) return;
-    fetchDrops()
-      .then(drops => scheduleDropAlerts(drops, settings.dropAlerts, early))
-      .catch(() => {});
-  }, [hydrated, settings.dropAlerts, early]);
+    let live = true;
+    if (!dropAlerts) scheduleDropAlerts({ drops: [], optedIn: false, earlyAccess: early }).catch(() => {});
+    const run = () =>
+      fetchDrops()
+        .then(drops => {
+          if (!drops) return;
+          useDrops.setState({ drops });
+          if (live && dropAlerts) return scheduleDropAlerts({ drops, optedIn: true, earlyAccess: early });
+        })
+        .catch(() => {});
+    run();
+    const sub = AppState.addEventListener('change', st => {
+      if (st === 'active') run();
+    });
+    return () => {
+      live = false;
+      sub.remove();
+    };
+  }, [hydrated, dropAlerts, early]);
 }

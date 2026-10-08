@@ -29,7 +29,12 @@ type Stage = { kind: 'task' } | { kind: 'review'; uri: string; takenAt: number }
 export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const day = useApp(s => s.currentDay);
+  const current = useApp(s => s.currentDay);
+  // The day this task belongs to. If 4:00 AM comes while it's open, that day is over: back to the new Today.
+  const [day] = useState(current);
+  useEffect(() => {
+    if (current !== day) navigation.goBack();
+  }, [current, day, navigation]);
   const salt = useApp(s => s.installSalt);
   const strong = useApp(s => s.settings.strongLanguage);
   const record = useApp(s => s.record);

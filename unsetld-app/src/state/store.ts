@@ -1,5 +1,7 @@
+import { useSyncExternalStore } from 'react';
+import { AppState } from 'react-native';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { createJSONStorage, persist, type PersistStorage } from 'zustand/middleware';
 import { AppConfig } from '../config/app';
 import { randomSalt } from '../core/random';
 import { claimCode, completeTask, dayPoints, uncompleteTask } from '../core/points';
@@ -17,6 +19,7 @@ import type { ChapterId, Colorway, PointsConfig, Proof, RecordState, WorkItem, Y
 import { COLORWAY_BY_ID, COLORWAYS, POINTS, STANDARD_RULES } from '../content';
 import { getDayOffset, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
+import { checkTrustedTime } from '../services/trustedTime';
 import { appStorage } from './storage';
 
 export interface Settings {
@@ -46,6 +49,8 @@ export interface Reading {
   /** Today has already greeted this day (haptic, walker nudge). */
   dayHeadShown: DayKey | null;
   accessIntroShown: boolean;
+  /** Days on record when the Record road last showed; the walker walks only when it changes. */
+  road: number;
 }
 
 export interface Premium {
@@ -106,6 +111,7 @@ interface State {
   claimCode: (tier: PointsConfig['tiers'][number], minted: { code: string; url: string }) => void;
   markDayHead: (day: DayKey) => void;
   markAccessIntro: () => void;
+  markRoad: (n: number) => void;
   setPreviewColorway: (id: string | null) => void;
   setDayOffset: (days: number) => void;
   backToRealToday: () => void;
@@ -133,6 +139,7 @@ const EMPTY_READING: Reading = {
   saved: [],
   dayHeadShown: null,
   accessIntroShown: false,
+  road: 0,
 };
 
 export const useApp = create<State>()(
@@ -217,6 +224,9 @@ export const useApp = create<State>()(
 
       markDayHead: day => set(s => ({ reading: { ...s.reading, dayHeadShown: day } })),
       markAccessIntro: () => set(s => ({ reading: { ...s.reading, accessIntroShown: true } })),
+      markRoad: n => {
+        if (get().reading.road !== n) set(s => ({ reading: { ...s.reading, road: n } }));
+      },
       setPreviewColorway: id => set({ previewColorway: id }),
 
       setDayOffset: days => {
@@ -239,7 +249,7 @@ export const useApp = create<State>()(
     }),
     {
       name: 'unsetld-v2',
-      storage: createJSONStorage(() => appStorage),
+      storage: readable(createJSONStorage(() => appStorage)),
       partialize: s => ({
         installSalt: s.installSalt,
         settings: s.settings,
@@ -263,18 +273,101 @@ export const useApp = create<State>()(
           record: { ...emptyRecord(), ...p.record },
         };
       },
-      onRehydrateStorage: () => state => {
-        if (state) setDayOffset(state.dayOffset ?? 0);
+      onRehydrateStorage: () => (state, error) => {
+        // Hydration that fails never finishes, which would leave a blank screen: see readFailed.
+        // Deferred, since with synchronous storage this runs while the store is still being created.
+        if (error) Promise.resolve().then(readFailed);
+        else if (state) setDayOffset(state.dayOffset ?? 0);
       },
     },
   ),
 );
+
+/**
+ * An entry that won't parse is treated as empty, so hydration still finishes
+ * (and its listeners run) on defaults. useBootstrap brings the record back
+ * from the Keychain. A read that fails is different: see readFailed.
+ */
+function readable<S>(json: PersistStorage<S> | undefined): PersistStorage<S> | undefined {
+  if (!json) return json;
+  const corrupt = (e: unknown) => {
+    if (e instanceof SyntaxError) return null;
+    throw e;
+  };
+  return {
+    ...json,
+    getItem: name => {
+      try {
+        const v = json.getItem(name);
+        return v instanceof Promise ? v.catch(corrupt) : v;
+      } catch (e) {
+        return corrupt(e);
+      }
+    },
+  };
+}
 
 // Storage can be synchronous (web), in which case hydration finishes while the
 // store is still being created; mark it afterwards either way.
 const markHydrated = () => useApp.setState({ hydrated: true, currentDay: today() });
 if (useApp.persist.hasHydrated()) markHydrated();
 else useApp.persist.onFinishHydration(markHydrated);
+
+let readFails = 0;
+
+/**
+ * Storage couldn't be read. A night-check action can launch the app in the
+ * background while the phone is still locked after a restart, when its files
+ * can't be read yet. Defaults then would stay in memory, show onboarding on the
+ * next open and be saved over the real record. So it reads again in the
+ * foreground, and only if that fails too does it open on defaults rather than a
+ * blank screen (useBootstrap brings the record back from the Keychain).
+ */
+function readFailed() {
+  readFails += 1;
+  if (AppState.currentState === 'active') {
+    if (readFails < 2) useApp.persist.rehydrate();
+    else markHydrated();
+    return;
+  }
+  const sub = AppState.addEventListener('change', st => {
+    if (st !== 'active') return;
+    sub.remove();
+    useApp.persist.rehydrate();
+  });
+}
+
+let checking: DayKey | null = null;
+
+/**
+ * Opening Today or Record in the foreground puts the day on record. A day that
+ * isn't verified yet (Day 1 from onboarding, or a first open while offline)
+ * retries the clock check on each open until it is.
+ */
+export function putDayOnRecord(day: DayKey): void {
+  const st = useApp.getState();
+  if (!st.settings.onboarded) return;
+  const entry = st.record.days[day];
+  if (!entry) st.recordToday(false);
+  // One check per day at a time: Today and Record can both ask while it's offline.
+  if (entry?.verified || checking === day) return;
+  checking = day;
+  checkTrustedTime().then(t => {
+    if (checking === day) checking = null;
+    if (t.verified && today() === day) useApp.getState().recordToday(true);
+  });
+}
+
+const onAppState = (cb: () => void) => {
+  const sub = AppState.addEventListener('change', cb);
+  return () => sub.remove();
+};
+const isActive = () => AppState.currentState === 'active';
+
+/** The app is in the foreground. A notification action can launch it in the background, where nothing should count. */
+export function useAppActive(): boolean {
+  return useSyncExternalStore(onAppState, isActive);
+}
 
 export interface Entitlements {
   premium: boolean;

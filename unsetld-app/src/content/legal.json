@@ -118,7 +118,7 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "updated": "2026-10-07",
+    "updated": "2026-10-08",
     "sections": [
       {
         "h": "The short version",
@@ -134,7 +134,7 @@
       },
       {
         "h": "If you sign in for codes or access",
-        "p": "Signing in with Apple is optional and only needed to use codes and access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you put on record and the days you proved tasks (dates and counts only, never the photos) so we can hold your place and issue single-use codes. Nothing else."
+        "p": "Signing in with Apple is optional and only needed to use codes and access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you put on record and the days you proved tasks (dates and counts only, never the photos) so we can hold your place and issue single-use codes. We also keep a token from Apple so we can end the Sign in with Apple link when you delete your account. Nothing else."
       },
       {
         "h": "Notifications",
@@ -146,7 +146,7 @@
       },
       {
         "h": "Deleting your data",
-        "p": "Delete the app to remove what's stored on your phone. To delete an access account, email unsetldclothing@gmail.com from the address on the account or sign out and ask us to remove it."
+        "p": "Delete the app to remove what's stored on your phone. To delete an access account, open Settings in the app, then Account, then Delete account. We remove the account and what we hold for it, and end the Sign in with Apple link. You can also email unsetldclothing@gmail.com from the address on the account."
       },
       {
         "h": "Contact",

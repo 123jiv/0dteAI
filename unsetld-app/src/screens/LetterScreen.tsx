@@ -11,8 +11,8 @@ import { Button, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, MARGIN } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
-import { runMilestoneAction } from './access';
-import { errorText } from './MilestoneScreen';
+import { enableDropAlerts, runMilestoneAction, type ActionResult } from './access';
+import { ActionError } from './MilestoneScreen';
 
 /** A milestone or comeback letter. Shown once; opaque ink, fades in from black. */
 export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
@@ -20,7 +20,7 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const n = useApp(s => dayCount(s.record));
-  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ActionResult | null>(null);
 
   useEffect(() => {
     useApp.getState().letterShown(letter);
@@ -30,14 +30,15 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
   const day = letter.kind === 'milestone' ? letter.day : n;
   const close = () => navigation.goBack();
 
+  // Day 7's button turns on drop alerts; the others claim, which needs an account.
   const primary = async () => {
     if (!m) return close();
-    const needsAccount = m.id !== 'early-access' && !useApp.getState().account.userId;
-    if (needsAccount) return navigation.replace('Milestone', { id: m.id as MilestoneId });
-    const r = await runMilestoneAction(m.id as MilestoneId);
+    const id = m.id as MilestoneId;
+    if (id !== 'early-access' && !useApp.getState().account.userId) return navigation.replace('Milestone', { id });
+    const r = id === 'early-access' ? await enableDropAlerts() : await runMilestoneAction(id);
     if (r === 'done') close();
-    else if (r === 'needs-account') navigation.replace('Milestone', { id: m.id as MilestoneId });
-    else setError(errorText(r));
+    else if (r === 'needs-account' || r === 'used') navigation.replace('Milestone', { id });
+    else setResult(r);
   };
   const secondary = () => {
     if (!m) return close();
@@ -68,11 +69,7 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
         <View style={{ marginTop: 32 }}>
           <Button title={m ? m.letter.primary : COPY.letter.close} onPress={primary} />
           {m ? <TextButton title={m.letter.secondary} onPress={secondary} style={{ marginTop: 8 }} /> : null}
-          {error ? (
-            <T v="note" color={C.stone} style={{ marginTop: 8 }}>
-              {error}
-            </T>
-          ) : null}
+          <ActionError result={result} style={{ marginTop: 8 }} />
         </View>
       </View>
       <View style={{ position: 'absolute', bottom: insets.bottom + 40, left: 0, right: 0, alignItems: 'center' }}>

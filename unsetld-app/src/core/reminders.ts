@@ -58,19 +58,22 @@ export function dayReminderTimes(o: DayPlanOptions): ReminderTime[] {
   if (end <= start) end = DAY_END;
   const rand = mulberry32(hash32(`${o.seed}:rem:${o.day}`));
   const nightAt = minutesIntoDay(o.night.time);
-  const out: ReminderTime[] = [];
-  let prev = -1;
-  for (let i = 0; i < count; i++) {
-    let t = count === 1 ? start : start + ((end - start) * i) / (count - 1);
-    if (i > 0) t = Math.min(end, Math.max(start + 1, t + (rand() * 20 - 10)));
-    t = Math.round(t);
-    if (o.night.enabled && i > 0 && Math.abs(t - nightAt) <= 30) t -= 45;
-    // In order, one a minute, inside the window: a window too narrow for the count gets fewer.
-    t = Math.max(t, prev + 1);
+  const later: number[] = [];
+  for (let i = 1; i < count; i++) {
+    let t = start + ((end - start) * i) / (count - 1);
+    t = Math.round(Math.min(end, Math.max(start + 1, t + (rand() * 20 - 10))));
+    if (o.night.enabled && Math.abs(t - nightAt) <= 30) t -= 45;
+    later.push(t);
+  }
+  // After the first, in time order (a moved one keeps its own time), one a
+  // minute, inside the window: a window too narrow for the count gets fewer.
+  const out: ReminderTime[] = [{ minutes: start + 4 * 60, kind: 'today' }];
+  let prev = start;
+  for (const x of later.sort((a, b) => a - b)) {
+    const t = Math.max(x, prev + 1);
     if (t > end) break;
     prev = t;
-    const kind: ReminderKind = i === 0 ? 'today' : 'task';
-    out.push({ minutes: t + 4 * 60, kind });
+    out.push({ minutes: t + 4 * 60, kind: 'task' });
   }
   return out;
 }

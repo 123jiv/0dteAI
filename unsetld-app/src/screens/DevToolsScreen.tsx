@@ -6,7 +6,7 @@ import { addDays, formatTime, minutesOf } from '../core/time';
 import type { RootProps } from '../navigation/types';
 import { now, today } from '../services/clock';
 import { purchaseMode } from '../services/purchases';
-import { useApp } from '../state/store';
+import { useAccessEnabled, useApp } from '../state/store';
 import { Button, NavRow, PageTitle, Screen, SettingsRow, Toggle } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, MARGIN } from '../ui/tokens';
@@ -27,7 +27,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
   const offset = useApp(s => s.dayOffset);
   const record = useApp(s => s.record);
   const premium = useApp(s => s.premium.active);
-  const remote = useApp(s => s.remote);
+  const accessEnabled = useAccessEnabled();
   const settings = useApp(s => s.settings);
   const st = useApp.getState;
 
@@ -92,7 +92,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
         <SettingsRow
           title="Access enabled"
           chevron={false}
-          right={<Toggle label="Access enabled" value={remote.accessEnabled ?? true} onChange={v => st().setRemote({ accessEnabled: v })} />}
+          right={<Toggle label="Access enabled" value={accessEnabled} onChange={v => st().setRemote({ accessEnabled: v })} />}
         />
         <SettingsRow
           title="Night check due now"

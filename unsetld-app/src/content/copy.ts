@@ -242,6 +242,7 @@ export const COPY = {
     networkError: "Couldn't reach unsetld.com. Try again in a moment.",
     pausedError: 'Access is paused. Put 7 days on record to open it again.',
     claimedPatch: 'Added. It ships free with your next order.',
+    openDrop: (c: string) => `Open Collection ${c}`,
   },
   letter: {
     dayLabel: (d: number) => `DAY ${String(d).padStart(3, '0')}`,
@@ -303,6 +304,7 @@ export const COPY = {
     restored: 'Full Edition restored.',
     noneTitle: 'Nothing to restore.',
     noneBody: "We couldn't find Full Edition on this Apple ID.",
+    restoreFailed: "Couldn't reach the App Store. Try again in a moment.",
     preview: 'Preview build. No charge.',
   },
   settings: {
@@ -356,6 +358,7 @@ export const COPY = {
     deleteYes: 'Delete',
     deleteNo: 'Cancel',
     deleteError: "Couldn't delete your account. Try again in a moment.",
+    deleteSignIn: 'Sign in again to delete your account.',
     error: "Couldn't sign in. Try again in a moment.",
     previewButton: 'Sign in with Apple',
     previewNote: 'Preview build: sign-in is simulated.',

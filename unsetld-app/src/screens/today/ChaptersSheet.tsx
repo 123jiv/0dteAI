@@ -96,7 +96,8 @@ export function ChaptersSheet({
                   <T v="mono" style={{ width: 40 }}>
                     {String(c.no).padStart(2, '0')}
                   </T>
-                  <View style={{ flex: 1 }}>
+                  {/* A 12 gutter, so a wrapped scope never runs into the right column's label. */}
+                  <View style={{ flex: 1, paddingRight: 12 }}>
                     <T v="list" color={isLocked ? C.muted : C.bone}>
                       {c.name}
                     </T>

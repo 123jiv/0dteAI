@@ -1,4 +1,5 @@
 import { StackActions } from '@react-navigation/native';
+import { useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppConfig, IS_PREVIEW } from '../config/app';
@@ -10,9 +11,10 @@ import type { RootProps } from '../navigation/types';
 import { restore } from '../services/purchases';
 import { useAccessEnabled, useApp, useEntitlements } from '../state/store';
 import { showDialog } from '../ui/actions';
-import { Footnote, NavRow, PageTitle, SectionHeader, SettingsRow, Toggle } from '../ui/kit';
+import { Footnote, InlineLink, NavRow, PageTitle, SectionHeader, SettingsRow, Toggle } from '../ui/kit';
 import { T } from '../ui/text';
-import { MARGIN } from '../ui/tokens';
+import { color as C, hairline, MARGIN } from '../ui/tokens';
+import { enableDropAlerts } from './access';
 
 const S = COPY.settings;
 
@@ -35,6 +37,7 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
   const premium = useApp(s => s.premium);
   const ent = useEntitlements();
   const accessEnabled = useAccessEnabled();
+  const [dropPermOff, setDropPermOff] = useState(false);
 
   const r = settings.reminders;
   const reminders = r.on ? S.remindersValue(Math.min(r.count, ent.maxReminders), formatTime(r.first), formatTime(r.last)) : 'Off';
@@ -51,9 +54,25 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
         showDialog(COPY.paywall.restored);
       } else showDialog(COPY.paywall.noneTitle, COPY.paywall.noneBody);
     } catch {
-      showDialog(COPY.paywall.noneTitle, COPY.paywall.noneBody);
+      showDialog(COPY.paywall.restoreFailed);
     }
   };
+
+  // Turning drop alerts on asks for notification permission first; when it's off, the switch stays off.
+  const setDropAlerts = async (on: boolean) => {
+    setDropPermOff(false);
+    if (!on) return update({ dropAlerts: false });
+    setDropPermOff((await enableDropAlerts()) === 'notifications-off');
+  };
+
+  const planAction =
+    premium.active && premium.plan !== 'lifetime' && premium.mode === 'revenuecat'
+      ? () => {
+          Linking.openURL(AppConfig.manageSubscriptionsUrl).catch(() => {});
+        }
+      : !premium.active
+        ? () => navigation.navigate('Paywall', { from: 'settings' })
+        : undefined;
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0A0A0A' }}>
@@ -95,8 +114,14 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
           first
           title={S.dropAlerts}
           chevron={false}
-          right={<Toggle value={settings.dropAlerts} onChange={v => update({ dropAlerts: v })} label={S.dropAlerts} />}
+          right={<Toggle value={settings.dropAlerts} onChange={setDropAlerts} label={S.dropAlerts} />}
         />
+        {dropPermOff ? (
+          <View style={{ marginHorizontal: MARGIN, paddingVertical: 12, borderBottomWidth: hairline, borderColor: C.rule, gap: 4 }}>
+            <T v="small">{COPY.day.permOff}</T>
+            <InlineLink title={COPY.day.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
+          </View>
+        ) : null}
         <Footnote>{S.dropNote}</Footnote>
         {accessEnabled ? (
           <>
@@ -110,13 +135,7 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
           first
           title={S.plan}
           value={premium.active ? renewText(premium.plan, premium.renews) : S.free}
-          onPress={() =>
-            premium.active && premium.plan !== 'lifetime' && premium.mode === 'revenuecat'
-              ? Linking.openURL(AppConfig.manageSubscriptionsUrl).catch(() => {})
-              : !premium.active
-                ? navigation.navigate('Paywall', { from: 'settings' })
-                : undefined
-          }
+          onPress={planAction}
         />
         <SettingsRow title={S.restore} chevron={false} onPress={doRestore} />
 

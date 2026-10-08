@@ -161,7 +161,8 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
             <Animated.View
               key={d}
               style={{
-                height: 52,
+                minHeight: 52,
+                paddingVertical: 8,
                 flexDirection: 'row',
                 alignItems: 'center',
                 borderTopWidth: hairline,
@@ -172,7 +173,10 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
               <T v="mono" style={{ width: 32 }}>
                 {String(i + 1)}
               </T>
-              <T v="list">{d}</T>
+              {/* Wraps at larger text sizes instead of running past the margin. */}
+              <T v="list" style={{ flex: 1 }}>
+                {d}
+              </T>
             </Animated.View>
           ))}
         </View>

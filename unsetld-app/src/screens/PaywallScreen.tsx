@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IS_PREVIEW } from '../config/app';
 import { formatMoney, perMonth, savingsPercent } from '../core/pricing';
@@ -58,7 +58,10 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
       if (r.premium) {
         setPremium({ active: true, plan: r.plan });
         if (trial) scheduleTrialReminder(plan.priceString);
-        setTimeout(close, 400);
+        // Leave with a 400ms fade, not the modal's slide down. UIKit reads the
+        // transition when it dismisses, so the option lands first.
+        if (Platform.OS !== 'web') navigation.setOptions({ animation: 'fade', animationDuration: 400 });
+        setTimeout(close, 50);
       }
     } catch {
       showDialog(P.failedTitle, P.failedBody);
@@ -75,7 +78,7 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
         showDialog(P.restored, undefined, [{ label: 'OK', cancel: true, onPress: close }]);
       } else showDialog(P.noneTitle, P.noneBody);
     } catch {
-      showDialog(P.noneTitle, P.noneBody);
+      showDialog(P.restoreFailed);
     }
   };
 
@@ -129,7 +132,7 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
 
         <View style={{ marginTop: 28, borderBottomWidth: hairline, borderBottomColor: C.rule }}>
           {P.spec.map(([k, v]) => (
-            <View key={k} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', borderTopWidth: hairline, borderTopColor: C.rule }}>
+            <View key={k} style={{ minHeight: 40, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', borderTopWidth: hairline, borderTopColor: C.rule }}>
               <T v="label" style={{ width: 104 }}>
                 {k}
               </T>

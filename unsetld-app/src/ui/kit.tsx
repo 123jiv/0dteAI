@@ -344,10 +344,12 @@ export function SettingsRow({
 }) {
   // A switch-only row: the switch carries the label, so the title is not read twice.
   const switchOnly = Boolean(right) && !onPress;
+  // The pressed shade covers the whole row, the switch's part included.
+  const [pressed, setPressed] = useState(false);
   return (
     <View>
       {first ? <Rule inset={MARGIN} /> : null}
-      <View style={{ minHeight: 52, flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ minHeight: 52, flexDirection: 'row', alignItems: 'center', backgroundColor: pressed && onPress ? '#121211' : 'transparent' }}>
         <Pressable
           accessible={!switchOnly}
           accessibilityElementsHidden={switchOnly}
@@ -356,7 +358,9 @@ export function SettingsRow({
           accessibilityLabel={accessibilityLabel ?? (value ? `${title}, ${value}` : title)}
           disabled={!onPress}
           onPress={onPress}
-          style={({ pressed }) => ({
+          onPressIn={() => setPressed(true)}
+          onPressOut={() => setPressed(false)}
+          style={{
             flex: 1,
             minHeight: 52,
             paddingLeft: MARGIN,
@@ -364,8 +368,7 @@ export function SettingsRow({
             flexDirection: 'row',
             alignItems: 'center',
             gap: 12,
-            backgroundColor: pressed && onPress ? '#121211' : 'transparent',
-          })}>
+          }}>
           <T v="row" style={{ flex: 1, fontFamily: font.sans }} numberOfLines={1}>
             {title}
           </T>

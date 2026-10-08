@@ -218,6 +218,8 @@ MILESTONE DETAIL
 - 007 Early access:
   - Every UNSETLD drop opens to you 24 hours before the public. When a drop is announced, open it from here.
   - Button: Turn on drop alerts
+  - While a drop is open early (button, needs an account): Open Collection 004
+  - Notifications off (under the button): Notifications are off for unsetld. · Open Settings
 - 030 Member price:
   - 10% off one order each collection at unsetld.com. The code is applied for you.
   - Button: Use it at unsetld.com
@@ -238,6 +240,7 @@ MILESTONE LETTERS
   - A week of mornings. You came back every time.
   - Early access is open. Every UNSETLD drop opens to you 24 hours before the public.
   - [Turn on drop alerts] · Not now
+  - Notifications off (under the buttons): Notifications are off for unsetld. · Open Settings
 - DAY 030 · Day 30.
   - A month on record. You kept your word.
   - Member price is open: 10% off one order each collection at unsetld.com.
@@ -293,6 +296,7 @@ ACCOUNT
 - Under Sign out: Delete account
 - Delete confirm: Delete your account? / This removes your account and what unsetld.com holds for it: your days and proof counts. Your record and proof photos stay on this phone. / Cancel · Delete
 - Delete error: Couldn't delete your account. Try again in a moment.
+- Delete, but the server signed the phone out (under the sign-in button): Sign in again to delete your account.
 - Error: Couldn't sign in. Try again in a moment.
 
 PAYWALL
@@ -331,6 +335,7 @@ PAYWALL
 - Restore:
   - success: Full Edition restored.
   - none: Nothing to restore. / We couldn't find Full Edition on this Apple ID.
+  - error: Couldn't reach the App Store. Try again in a moment.
 - Preview builds only: Preview build. No charge.
 - All prices are localized from StoreKit.
 
@@ -353,6 +358,7 @@ SETTINGS
 - UNSETLD
   - Drop alerts (switch, off)
     - Footnote: Tells you when a collection opens. Separate from your daily reminders. Off unless you turn it on.
+    - Notifications off (the switch stays off): Notifications are off for unsetld. · Open Settings
   - Account · Not signed in
 - FULL EDITION
   - Plan · Free (or: Annual, renews 10 Oct 2027 / Monthly, renews 7 Nov 2026 / Lifetime)

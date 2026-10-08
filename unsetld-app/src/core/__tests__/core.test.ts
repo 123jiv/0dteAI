@@ -346,6 +346,18 @@ describe('reminders', () => {
     expect(mins.every(x => x <= 483)).toBe(true);
   });
 
+  it('keeps a reminder moved for the night check at its own time, not stacked on the one before', () => {
+    // 10 a day, 7 to 10 PM: the moved ones land among the others, so they're sorted, not pushed a minute apart.
+    for (const seed of ['s', 'a', 'b', 'c', 'd']) {
+      for (let i = 0; i < 20; i++) {
+        const t = dayReminderTimes({ ...base, seed, day: addDays('2026-10-07', i), count: 10, first: 19 * 60 });
+        expect(t[0]).toEqual({ minutes: 19 * 60, kind: 'today' });
+        for (let k = 1; k < t.length; k++) expect(t[k].minutes).toBeGreaterThan(t[k - 1].minutes);
+        for (let k = 2; k < t.length; k++) expect(t[k].minutes - t[k - 2].minutes).toBeGreaterThan(2);
+      }
+    }
+  });
+
   it('nudges the work after the first reminder, in order through the day', () => {
     const t = dayReminderTimes({ ...base, count: 5, night: { enabled: false, time: 0 } });
     expect(t.map(x => x.kind)).toEqual(['today', 'task', 'task', 'task', 'task']);

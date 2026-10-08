@@ -3,7 +3,7 @@ import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, AppState, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { AccessibilityInfo, Animated, AppState, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { todayLine } from '../../core/feed';
 import { dayCount, pendingLetter } from '../../core/record';
@@ -14,8 +14,7 @@ import { COPY } from '../../content/copy';
 import type { RootProps } from '../../navigation/types';
 import { now } from '../../services/clock';
 import { light, soft } from '../../services/haptics';
-import { checkTrustedTime } from '../../services/trustedTime';
-import { useAccessEnabled, useApp, useEntitlements, useReaderColorway } from '../../state/store';
+import { putDayOnRecord, useAccessEnabled, useApp, useAppActive, useEntitlements, useReaderColorway } from '../../state/store';
 import { useWork } from '../../state/work';
 import { showActions } from '../../ui/actions';
 import { ColorwayBackground } from '../../ui/ColorwayBackground';
@@ -38,6 +37,7 @@ function nightDue(on: boolean, time: number): boolean {
 export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
+  const active = useAppActive();
   const colorway = useReaderColorway();
   const ent = useEntitlements();
   const accessEnabled = useAccessEnabled();
@@ -59,15 +59,37 @@ export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
   const scrollRef = useRef<ScrollView>(null);
   const [clock, setClock] = useState(0);
 
-  // New params from Settings (open a sheet) or a deep link (show the night check).
+  // 4:00 AM with Today open: the new day starts at the top, with nothing left over from the last.
+  const [seenDay, setSeenDay] = useState(day);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [scrollToNight, setScrollToNight] = useState(0);
+  if (day !== seenDay) {
+    setSeenDay(day);
+    setAdding(null);
+    setNightY(0);
+    setScrollToNight(0);
+    setScrollTop(t => t + 1);
+  }
+
+  // Worked out again on each clock tick (below): the night check is due after its time, until 4:00 AM.
+  void clock;
+  const answer = record.nights[day];
+  const showNight = nightDue(settings.night.on, settings.night.time) || answer !== undefined;
+
+  // New params from Settings (open a sheet) or a deep link (the night check, or the top for the line).
+  // A night link with no night check showing (last night's, tapped after 4:00 AM) opens at the top,
+  // so it can't scroll the screen later when tonight's check appears.
   const nonce = route.params?.nonce;
   const [seenNonce, setSeenNonce] = useState(nonce);
-  const [scrollToNight, setScrollToNight] = useState(0);
   if (nonce !== seenNonce) {
     setSeenNonce(nonce);
     if (route.params?.sheet) setSheet(route.params.sheet);
-    if (route.params?.night) setScrollToNight(t => t + 1);
+    else if (route.params?.night && showNight) setScrollToNight(t => t + 1);
+    else setScrollTop(t => t + 1);
   }
+  useEffect(() => {
+    if (scrollTop) scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [scrollTop]);
   useEffect(() => {
     if (scrollToNight && nightY) scrollRef.current?.scrollTo({ y: Math.max(0, nightY - 80), animated: true });
   }, [scrollToNight, nightY]);
@@ -83,50 +105,52 @@ export function TodayScreen({ navigation, route }: RootProps<'Today'>) {
       sub.remove();
     };
   }, []);
-  void clock;
-  const answer = record.nights[day];
-  const showNight = nightDue(settings.night.on, settings.night.time) || answer !== undefined;
 
   // The first open of each day puts it on record: one soft haptic and a nudge of the walker.
+  // Only in the foreground: a night-check action can launch the app in the background.
+  // The greeting waits a beat, so a widget tap that goes straight on to Record leaves it for Today.
   useFocusEffect(
     useCallback(() => {
-      const st = useApp.getState();
-      if (!st.settings.onboarded) return;
-      if (!st.record.days[day]) {
-        st.recordToday(false);
-        checkTrustedTime().then(t => {
-          if (t.verified) useApp.getState().recordToday(true);
-        });
-      }
-      const after = useApp.getState();
-      if (!after.record.days[day] || after.reading.dayHeadShown === day) return;
-      after.markDayHead(day);
-      soft();
-      Animated.sequence([
-        Animated.timing(nudge, { toValue: 3, duration: 200, easing: ease.out, useNativeDriver: true }),
-        Animated.timing(nudge, { toValue: 0, duration: 200, easing: ease.in, useNativeDriver: true }),
-      ]).start();
-    }, [day, nudge]),
+      if (!active) return;
+      putDayOnRecord(day);
+      const t = setTimeout(() => {
+        const st = useApp.getState();
+        if (!st.settings.onboarded || !st.record.days[day] || st.reading.dayHeadShown === day) return;
+        st.markDayHead(day);
+        soft();
+        // Reduce Motion: no translate, so the walker stays put.
+        AccessibilityInfo.isReduceMotionEnabled()
+          .catch(() => false)
+          .then(reduce => {
+            if (reduce) return;
+            Animated.sequence([
+              Animated.timing(nudge, { toValue: 3, duration: 200, easing: ease.out, useNativeDriver: true }),
+              Animated.timing(nudge, { toValue: 0, duration: 200, easing: ease.in, useNativeDriver: true }),
+            ]).start();
+          });
+      }, 400);
+      return () => clearTimeout(t);
+    }, [active, day, nudge]),
   );
 
-  // Milestone and comeback letters, a few seconds after Today settles.
+  // Milestone and comeback letters, a few seconds after Today settles in the foreground.
   const recordedToday = Boolean(record.days[day]);
   useEffect(() => {
-    if (!isFocused || !accessEnabled || !recordedToday || sheet || share) return;
+    if (!isFocused || !active || !accessEnabled || !recordedToday || sheet || share) return;
     const letter = pendingLetter(useApp.getState().record, day);
     if (!letter) return;
     const timer = setTimeout(() => navigation.navigate('Letter', { letter }), 2500);
     return () => clearTimeout(timer);
-  }, [isFocused, accessEnabled, recordedToday, day, record.lettersShown, navigation, sheet, share]);
+  }, [isFocused, active, accessEnabled, recordedToday, day, record.lettersShown, navigation, sheet, share]);
 
   // Day 3: one quiet note about what the record opens.
   const showAccessNote = accessEnabled && n >= 3 && !accessIntroShown;
   useEffect(() => {
-    if (showAccessNote && isFocused) {
+    if (showAccessNote && isFocused && active) {
       const t = setTimeout(() => useApp.getState().markAccessIntro(), 4000);
       return () => clearTimeout(t);
     }
-  }, [showAccessNote, isFocused]);
+  }, [showAccessNote, isFocused, active]);
 
   const lineMenu = () => {
     if (!line) return;
