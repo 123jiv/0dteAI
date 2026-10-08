@@ -564,5 +564,4114 @@
    "translator": "Richard M. Gummere"
   },
   "verified": true
+ },
+ {
+  "no": 82,
+  "chapter": "stoic",
+  "text": "In the morning when thou risest unwillingly, let this thought be present,—I am rising to the work of a human being.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations V.1",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 84,
+  "chapter": "discipline",
+  "text": "Before you leave work, write down tomorrow's first task.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 85,
+  "chapter": "discipline",
+  "text": "You said you'd do it this week. It's Thursday.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 86,
+  "chapter": "discipline",
+  "text": "The email you keep avoiding takes four minutes. Answer it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 87,
+  "chapter": "discipline",
+  "text": "Do tonight's dishes tonight. Wake up owing nothing.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 88,
+  "chapter": "discipline",
+  "text": "Everyone starts in January. Plan for March.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 89,
+  "chapter": "discipline",
+  "text": "Every item on your to-do list is a promise. Write fewer.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 90,
+  "chapter": "discipline",
+  "text": "Being tired is real. It's also not new information.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 91,
+  "chapter": "discipline",
+  "text": "Ask your manager what to fix. Fix it before you ask again.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 92,
+  "chapter": "discipline",
+  "text": "Clear the pile you've been stepping around for a month.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 93,
+  "chapter": "discipline",
+  "text": "Corners get cut in the last ten minutes. Finish it properly.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 94,
+  "chapter": "discipline",
+  "text": "Set a bedtime before you set another goal.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 95,
+  "chapter": "discipline",
+  "text": "Pay the fine today. It only grows while you ignore it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 96,
+  "chapter": "discipline",
+  "text": "The work trip still has mornings. Use one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 97,
+  "chapter": "discipline",
+  "text": "Close the laptop when you finish, not when you get bored.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 98,
+  "chapter": "discipline",
+  "text": "Keep your weekday alarm on Saturday. Lie-ins undo the week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 99,
+  "chapter": "discipline",
+  "text": "You said yes months ago. Turn up like you meant it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 100,
+  "chapter": "discipline",
+  "text": "People have stopped asking how it's going. Give them an answer.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 101,
+  "chapter": "discipline",
+  "text": "Be the person at work nobody has to chase.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 102,
+  "chapter": "discipline",
+  "text": "A busy month that's lasted a year is just your life. Change it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 103,
+  "chapter": "discipline",
+  "text": "Do it the hundredth time the way you did it the first.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 104,
+  "chapter": "discipline",
+  "text": "Write down what done looks like before you start.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 105,
+  "chapter": "discipline",
+  "text": "Don't call a skipped day a rest day. You know which it was.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 106,
+  "chapter": "discipline",
+  "text": "Fill the tank before the light comes on.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 107,
+  "chapter": "discipline",
+  "text": "A month on the list. Do it today or cross it off.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 108,
+  "chapter": "discipline",
+  "text": "Decide your limit before the night out, not at the bar.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 109,
+  "chapter": "discipline",
+  "text": "Stop saying you'll get to it. Say the date and the time.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 110,
+  "chapter": "discipline",
+  "text": "One good day proves nothing. Do it again tomorrow, tired.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 111,
+  "chapter": "discipline",
+  "text": "List your excuses for a month. It'll be the same three.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 112,
+  "chapter": "discipline",
+  "text": "Learn the spreadsheet everyone at work is scared of.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 113,
+  "chapter": "discipline",
+  "text": "Copy your best week, down to the wake-up time and the meals.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 114,
+  "chapter": "discipline",
+  "text": "Hit one deadline this month a day early. Then make it normal.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 115,
+  "chapter": "discipline",
+  "text": "Standards slip in small places first. Look inside your car.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 116,
+  "chapter": "discipline",
+  "text": "If your friend cancels, go on your own.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 117,
+  "chapter": "discipline",
+  "text": "Five minutes of snooze a day is thirty hours a year. Get up.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 118,
+  "chapter": "discipline",
+  "text": "Do the job you've outgrown well, right up to your last day.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 119,
+  "chapter": "discipline",
+  "text": "In a hard month, keep one habit going and let the rest wait.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 120,
+  "chapter": "discipline",
+  "text": "Read the document before the meeting. Almost nobody does.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 121,
+  "chapter": "discipline",
+  "text": "Decide what the commute is for before you set off.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 122,
+  "chapter": "discipline",
+  "text": "Two minutes late is still late. Leave earlier.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 123,
+  "chapter": "discipline",
+  "text": "Every skip teaches you that skipping is allowed.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 124,
+  "chapter": "discipline",
+  "text": "Pay back the twenty you borrowed. People remember small debts.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 125,
+  "chapter": "discipline",
+  "text": "Most evenings die on the sofa after work. Don't sit down.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 126,
+  "chapter": "discipline",
+  "text": "Go with the plan you made rested, not the excuse you make tired.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 127,
+  "chapter": "discipline",
+  "text": "Sunday night is for laying out the week, not dreading it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 128,
+  "chapter": "discipline",
+  "text": "Put every yes in the calendar the moment you say it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 129,
+  "chapter": "discipline",
+  "text": "What you want probably needs forty minutes a day, not a new life.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 130,
+  "chapter": "discipline",
+  "text": "Don't go back to page one. Pick it up where you stopped.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 131,
+  "chapter": "discipline",
+  "text": "Leave work on time for the dinner you said you'd be at.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 132,
+  "chapter": "discipline",
+  "text": "Book rest into the week too. Then actually take it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 133,
+  "chapter": "discipline",
+  "text": "Don't buy the gear until you've kept the habit for a month.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 134,
+  "chapter": "discipline",
+  "text": "Your first month in a new job sets what people expect. Set it high.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 135,
+  "chapter": "discipline",
+  "text": "Turn off autoplay. Let the end of the episode be the end.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 136,
+  "chapter": "discipline",
+  "text": "Most people never send the follow-up. Yours goes out today.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 137,
+  "chapter": "discipline",
+  "text": "If mornings keep failing, move the habit. Don't drop it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 138,
+  "chapter": "discipline",
+  "text": "Reread it once before it goes out. The fifth read is stalling.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 139,
+  "chapter": "discipline",
+  "text": "Judge the habit by the year. Judge today by whether you did it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 140,
+  "chapter": "discipline",
+  "text": "Tell one friend what time you'll be at the gym. Then be there.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 141,
+  "chapter": "discipline",
+  "text": "Stop chasing a perfect week. Four decent days will do.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 142,
+  "chapter": "discipline",
+  "text": "Unpack the suitcase the night you get home.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 143,
+  "chapter": "discipline",
+  "text": "Cook tonight for the night you'll be too tired to.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 144,
+  "chapter": "discipline",
+  "text": "When a colleague drops something, pick it up without the speech.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 145,
+  "chapter": "discipline",
+  "text": "Turn down one night out this week and give it to the work.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 146,
+  "chapter": "discipline",
+  "text": "Stop paying yourself in treats for doing the minimum.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 147,
+  "chapter": "discipline",
+  "text": "Watch what you do when you're bored. That's your real routine.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 148,
+  "chapter": "discipline",
+  "text": "Start on time and you get to stop on time.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 149,
+  "chapter": "discipline",
+  "text": "Practise between the lessons, or stop paying for them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 150,
+  "chapter": "discipline",
+  "text": "You've given friends this advice for years. Take it yourself.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 151,
+  "chapter": "discipline",
+  "text": "Whatever kept you up last night goes first on today's list.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 152,
+  "chapter": "discipline",
+  "text": "Ask the most reliable person you know what they do on bad days.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 153,
+  "chapter": "discipline",
+  "text": "Give Friday afternoon the same effort as Tuesday morning.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 154,
+  "chapter": "discipline",
+  "text": "Get dressed properly on the days you work from home.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 155,
+  "chapter": "discipline",
+  "text": "Getting your shit together is mostly bills, laundry and a bedtime.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 156,
+  "chapter": "focus",
+  "text": "A phone face down on the desk is still on the desk.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 157,
+  "chapter": "focus",
+  "text": "Before you shut the laptop, write tomorrow's first task.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 158,
+  "chapter": "focus",
+  "text": "Sitting in the parked car on your phone again. Go inside.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 159,
+  "chapter": "focus",
+  "text": "Unsubscribe from five newsletters you haven't opened since spring.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 160,
+  "chapter": "focus",
+  "text": "If a notification has never been urgent, switch it off.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 161,
+  "chapter": "focus",
+  "text": "The plan in your head has no mistakes because it has no details.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 162,
+  "chapter": "focus",
+  "text": "Charge your phone outside the bedroom. Buy an alarm clock.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 163,
+  "chapter": "focus",
+  "text": "Ask what the meeting is for. If nobody can say, decline it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 164,
+  "chapter": "focus",
+  "text": "Give yourself five minutes after each call to write what was agreed.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 165,
+  "chapter": "focus",
+  "text": "Busy for nine hours. Name one thing that's finished.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 166,
+  "chapter": "focus",
+  "text": "Before you blame your focus, check how long you slept.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 167,
+  "chapter": "focus",
+  "text": "Both options are fine. The week you spend choosing isn't.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 168,
+  "chapter": "focus",
+  "text": "\"Taxes\" is a worry. \"Find last year's return\" is a task.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 169,
+  "chapter": "focus",
+  "text": "A phone at the dinner table tells everyone where they rank.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 170,
+  "chapter": "focus",
+  "text": "Guess how often you'll unlock your phone today. Then check.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 171,
+  "chapter": "focus",
+  "text": "Set your phone to grayscale for a week. See what you stop opening.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 172,
+  "chapter": "focus",
+  "text": "Podcast on, video in the corner, work open. Pick one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 173,
+  "chapter": "focus",
+  "text": "Read one long thing this week without checking how much is left.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 174,
+  "chapter": "focus",
+  "text": "Take a walk without headphones. Let the thoughts finish.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 175,
+  "chapter": "focus",
+  "text": "Three side projects means none of them gets your best hour.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 176,
+  "chapter": "focus",
+  "text": "Put a bet on and you'll check the score all afternoon.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 177,
+  "chapter": "focus",
+  "text": "Cut today's list to three. You weren't doing the other nine.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 178,
+  "chapter": "focus",
+  "text": "Lost the thread. Reread your last paragraph and keep going.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 179,
+  "chapter": "focus",
+  "text": "Some days you'll get forty good minutes. Take them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 180,
+  "chapter": "focus",
+  "text": "It's never just checking the time. Wear a watch.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 181,
+  "chapter": "focus",
+  "text": "Turn the worry about Monday's meeting into a page of notes.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 182,
+  "chapter": "focus",
+  "text": "The news can wait until this section is done. It always could.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 183,
+  "chapter": "focus",
+  "text": "Stuck on it. Write down the exact part you don't understand.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 184,
+  "chapter": "focus",
+  "text": "One beer at lunch and the afternoon goes soft. Order water.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 185,
+  "chapter": "focus",
+  "text": "Some work needs four straight hours, not eight scraps.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 186,
+  "chapter": "focus",
+  "text": "Check email at ten, one and four. Keep it closed in between.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 187,
+  "chapter": "focus",
+  "text": "Work to music you've heard a hundred times, or none at all.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 188,
+  "chapter": "focus",
+  "text": "Ten minutes on the blank page before you look at anyone else's.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 189,
+  "chapter": "focus",
+  "text": "Tell people when you're unreachable. Then be unreachable.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 190,
+  "chapter": "focus",
+  "text": "Video call starting. Close everything that isn't the call.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 191,
+  "chapter": "focus",
+  "text": "Stop waiting for a clear week. Use the two hours on Tuesday.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 192,
+  "chapter": "focus",
+  "text": "Keep a notepad by the keyboard. Urges to check go on it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 193,
+  "chapter": "focus",
+  "text": "Opened the document four times today. Type one sentence this time.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 194,
+  "chapter": "focus",
+  "text": "Every app you deleted, you reinstalled within a week. Delete the account.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 195,
+  "chapter": "focus",
+  "text": "Open-plan office, no door. Wear headphones, even with nothing playing.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 196,
+  "chapter": "focus",
+  "text": "Read the email out loud once. You'll hear the mistake.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 197,
+  "chapter": "focus",
+  "text": "Pause the course and do the exercise before the next video.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 198,
+  "chapter": "focus",
+  "text": "A third coffee won't fix a day you spent on your phone.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 199,
+  "chapter": "focus",
+  "text": "The kitchen was clean enough. Go back to the report.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 200,
+  "chapter": "focus",
+  "text": "Write the decision down with the date. Stop reopening it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 201,
+  "chapter": "focus",
+  "text": "Put a number on today's session: pages, calls or lines.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 202,
+  "chapter": "focus",
+  "text": "Find the hour you always drift. Put your easiest work there.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 203,
+  "chapter": "focus",
+  "text": "Tired work gets redone. Stop at eleven and finish it at eight.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 204,
+  "chapter": "focus",
+  "text": "Clear the desk of everything this hour doesn't need.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 205,
+  "chapter": "focus",
+  "text": "Phone in the glovebox before you drive. Nothing on it is worth that.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 206,
+  "chapter": "focus",
+  "text": "Shrink the first step to ten minutes. Then take it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 207,
+  "chapter": "focus",
+  "text": "Name three things you saw on your phone last night. You can't.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 208,
+  "chapter": "focus",
+  "text": "Download what you need, then switch the wifi off for an hour.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 209,
+  "chapter": "focus",
+  "text": "Plan on paper. Every screen you plan on has a feed one tap away.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 210,
+  "chapter": "focus",
+  "text": "Arguing in the comments costs you the evening and changes nothing.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 211,
+  "chapter": "focus",
+  "text": "Turn off the autoplay. Decide on the next episode yourself.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 212,
+  "chapter": "focus",
+  "text": "You sent the application. Refreshing won't speed them up.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 213,
+  "chapter": "focus",
+  "text": "If the idea won't leave you alone, give it Saturday morning.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 214,
+  "chapter": "focus",
+  "text": "Find out which part of your job you're judged on. Do that first.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 215,
+  "chapter": "focus",
+  "text": "When the work finally starts moving, push the next thing back an hour.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 216,
+  "chapter": "focus",
+  "text": "Set a limit before you research: three sources, then decide.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 217,
+  "chapter": "focus",
+  "text": "Work before the house wakes if that's your only quiet hour.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 218,
+  "chapter": "focus",
+  "text": "Set a screen-time limit and give someone else the passcode.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 219,
+  "chapter": "focus",
+  "text": "When someone sits down to talk, close the laptop lid.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 220,
+  "chapter": "focus",
+  "text": "Write the question you're answering at the top of the page.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 221,
+  "chapter": "focus",
+  "text": "You can stand in a queue for four minutes without a screen.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 222,
+  "chapter": "focus",
+  "text": "When home keeps winning, work from the library for a week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 223,
+  "chapter": "focus",
+  "text": "Pick one number that says if it's working. Ignore the rest.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 224,
+  "chapter": "focus",
+  "text": "Not sure what you want. Give one thing your full attention for a month.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 225,
+  "chapter": "focus",
+  "text": "Someone wants a quick minute. Offer them one in an hour.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 226,
+  "chapter": "focus",
+  "text": "Practice time goes to the part you keep getting wrong.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 227,
+  "chapter": "focus",
+  "text": "Ask when it's due before you start. Undated work drifts.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 228,
+  "chapter": "focus",
+  "text": "Decide what the laptop is for before you open it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 229,
+  "chapter": "focus",
+  "text": "Rewriting the first line twenty times is stalling. Write the second.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 230,
+  "chapter": "focus",
+  "text": "People are paid to keep you on that feed. Get the hell off it.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 231,
+  "chapter": "training",
+  "text": "Go straight from work. Home first means home for the night.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 232,
+  "chapter": "training",
+  "text": "Put the session in your work calendar before someone books over it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 233,
+  "chapter": "training",
+  "text": "Join the gym on the way home, not the nice one across town.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 234,
+  "chapter": "training",
+  "text": "Half an hour at lunch counts. Stop waiting for a free hour.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 235,
+  "chapter": "training",
+  "text": "If your evenings keep getting taken, train before work.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 236,
+  "chapter": "training",
+  "text": "Pack running shoes for work trips. The hotel gym will do.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 237,
+  "chapter": "training",
+  "text": "Build the program around your actual week, kids included.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 238,
+  "chapter": "training",
+  "text": "Rough day. Do the warm-up and the first lift, then decide.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 239,
+  "chapter": "training",
+  "text": "Learn the lift with an empty bar until it bores you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 240,
+  "chapter": "training",
+  "text": "Plan the rest days in advance. Then actually rest on them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 241,
+  "chapter": "training",
+  "text": "Skipped Monday. Do Tuesday's session, and only Tuesday's.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 242,
+  "chapter": "training",
+  "text": "Being new in a gym lasts about six weeks. Get through them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 243,
+  "chapter": "training",
+  "text": "Let someone stronger watch you squat. Take the note quietly.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 244,
+  "chapter": "training",
+  "text": "You sit nine hours a day. Take your phone calls walking.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 245,
+  "chapter": "training",
+  "text": "Film one set from the side. It won't look how it felt.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 246,
+  "chapter": "training",
+  "text": "Forty minutes on your phone turns the hour into twenty minutes of training.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 247,
+  "chapter": "training",
+  "text": "Add the smallest plates in the gym, week after week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 248,
+  "chapter": "training",
+  "text": "Set the safeties before you bench alone. Every time.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 249,
+  "chapter": "training",
+  "text": "Get the pain you keep training around checked this week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 250,
+  "chapter": "training",
+  "text": "Collapsing after every session isn't toughness. It's bad planning.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 251,
+  "chapter": "training",
+  "text": "Six hard weeks, six months off. Do half as much, all year.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 252,
+  "chapter": "training",
+  "text": "Can't do a pull-up yet. End each session hanging from the bar.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 253,
+  "chapter": "training",
+  "text": "Starting at forty. Go lighter than your pride wants.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 254,
+  "chapter": "training",
+  "text": "Skip the juice cleanse. Put vegetables on tonight's plate instead.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 255,
+  "chapter": "training",
+  "text": "Stretch while the coffee brews. Two minutes, every morning.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 256,
+  "chapter": "training",
+  "text": "Put the plates back after your last set, however tired you are.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 257,
+  "chapter": "training",
+  "text": "Train your weakest lift first, while you've still got energy.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 258,
+  "chapter": "training",
+  "text": "Stop testing your max every week. Build it, then test it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 259,
+  "chapter": "training",
+  "text": "Saturday's meals should look a lot like Tuesday's.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 260,
+  "chapter": "training",
+  "text": "If every Saturday session is hungover, the drinking is the program.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 261,
+  "chapter": "training",
+  "text": "Meet a friend for a run instead of a pint, once a month.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 262,
+  "chapter": "training",
+  "text": "Thursday happy hour, Friday morning session. Have two and go home.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 263,
+  "chapter": "training",
+  "text": "A sleep tracker won't help in a hot, bright room. Fix the room.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 264,
+  "chapter": "training",
+  "text": "Last coffee at two. The slump costs less than a bad night.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 265,
+  "chapter": "training",
+  "text": "Sleep till ten on Sunday and you'll lie awake Sunday night.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 266,
+  "chapter": "training",
+  "text": "Set an alarm for bedtime. Treat it like the morning one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 267,
+  "chapter": "training",
+  "text": "Can't switch off from work. Write tomorrow's list, then put the pen down.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 268,
+  "chapter": "training",
+  "text": "Working nights means blackout curtains and the same routine every shift.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 269,
+  "chapter": "training",
+  "text": "You sleep like shit and the phone comes to bed. Connect those.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 270,
+  "chapter": "training",
+  "text": "The second episode is where your sleep goes. Stop at one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 271,
+  "chapter": "training",
+  "text": "Standing at the fridge late at night usually means you should be asleep.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 272,
+  "chapter": "training",
+  "text": "Cook on Sunday. By Wednesday you'll eat whatever's easiest.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 273,
+  "chapter": "training",
+  "text": "Learn to cook five meals properly. That covers most weeks.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 274,
+  "chapter": "training",
+  "text": "Tight month. Eggs, rice, oats and frozen vegetables still feed you well.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 275,
+  "chapter": "training",
+  "text": "Delete the delivery app you use most. Tired decisions get expensive.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 276,
+  "chapter": "training",
+  "text": "The family-size snacks aren't for guests. Leave them on the shelf.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 277,
+  "chapter": "training",
+  "text": "Skip lunch to be good and you'll make up for it at ten tonight.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 278,
+  "chapter": "training",
+  "text": "Supplements on the counter, nothing green in the fridge. Fix the fridge.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 279,
+  "chapter": "training",
+  "text": "Pre-workout can't keep covering for one o'clock bedtimes. Move the bedtime.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 280,
+  "chapter": "training",
+  "text": "Read the label on the thing you eat every day. Just once.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 281,
+  "chapter": "training",
+  "text": "Strong under the bar and out of breath on the stairs. Add cardio.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 282,
+  "chapter": "training",
+  "text": "Sign up for a race three months out. Train toward the date.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 283,
+  "chapter": "training",
+  "text": "Your training partner cancelled. Go alone and do the whole session.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 284,
+  "chapter": "training",
+  "text": "The sport you quit at sixteen has adult leagues. Find one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 285,
+  "chapter": "training",
+  "text": "Go at the same hour until the regulars nod at you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 286,
+  "chapter": "training",
+  "text": "Warm up properly, even when you're short on time. Cut a set instead.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 287,
+  "chapter": "training",
+  "text": "Cycle to work twice a week. It's training that needs no extra hour.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 288,
+  "chapter": "training",
+  "text": "Stop buying gear for a habit you haven't started yet.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 289,
+  "chapter": "training",
+  "text": "Most of your runs should be slow enough to talk through.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 290,
+  "chapter": "training",
+  "text": "Make training the default and skipping the thing you have to explain.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 291,
+  "chapter": "training",
+  "text": "The scale went the wrong way this week. Keep the plan.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 292,
+  "chapter": "training",
+  "text": "Nowhere near a gym. Push-ups, squats and backpack rows at home.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 293,
+  "chapter": "training",
+  "text": "A month comparing programs is a month you didn't train.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 294,
+  "chapter": "training",
+  "text": "You still say you train. Count last month's sessions.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 295,
+  "chapter": "training",
+  "text": "Wanting to be fit is free. The four evenings a week aren't.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 296,
+  "chapter": "training",
+  "text": "No idea where to start. Walk thirty minutes a day for a month.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 297,
+  "chapter": "training",
+  "text": "New baby, broken nights. Train shorter for a year and don't stop.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 298,
+  "chapter": "training",
+  "text": "Know every set and weight before you walk through the door.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 299,
+  "chapter": "training",
+  "text": "Hate running. Then row, swim, cycle or lift, but pick one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 300,
+  "chapter": "training",
+  "text": "Tell whoever you live with when you train. Then keep to it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 301,
+  "chapter": "training",
+  "text": "When work gets busy, training goes first. Make it go last.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 302,
+  "chapter": "training",
+  "text": "Once a month, walk somewhere hilly for three hours.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 303,
+  "chapter": "money",
+  "text": "Talk pay before review season. By then, the budget's set.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 304,
+  "chapter": "money",
+  "text": "Find out the salary band. Ask why you're not at the top.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 305,
+  "chapter": "money",
+  "text": "Interview elsewhere once a year. It keeps your number honest.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 306,
+  "chapter": "money",
+  "text": "Before you take the counteroffer, list every reason you started looking.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 307,
+  "chapter": "money",
+  "text": "When they make the offer, thank them and ask for a day.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 308,
+  "chapter": "money",
+  "text": "Ask about pay on the first call. It saves everyone weeks.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 309,
+  "chapter": "money",
+  "text": "Get the offer in writing before you hand in your notice.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 310,
+  "chapter": "money",
+  "text": "A new title with the same pay is the company saving money.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 311,
+  "chapter": "money",
+  "text": "Ask what the next level pays and what it takes. Write both down.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 312,
+  "chapter": "money",
+  "text": "Ask a colleague what they earn. Tell them yours first.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 313,
+  "chapter": "money",
+  "text": "Describe your work in money: what it saved or brought in.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 314,
+  "chapter": "money",
+  "text": "Subtract the commute from both offers before you compare them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 315,
+  "chapter": "money",
+  "text": "Before you sign, read the part about leaving.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 316,
+  "chapter": "money",
+  "text": "Read your payslip once, line by line. Know every deduction.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 317,
+  "chapter": "money",
+  "text": "Buy lunch for someone earning double. Ask how they got there.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 318,
+  "chapter": "money",
+  "text": "Your car costs more than the payment. Add insurance, fuel and parking.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 319,
+  "chapter": "money",
+  "text": "Check your balance every morning. Most of all when you'd rather not.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 320,
+  "chapter": "money",
+  "text": "Two years eyeing that course. Pay for it or let it go.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 321,
+  "chapter": "money",
+  "text": "A side income starts with one paying customer. Find yours.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 322,
+  "chapter": "money",
+  "text": "Divide the fee by every hour, emails included. That's your real rate.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 323,
+  "chapter": "money",
+  "text": "Friends can pay full price. They pay it everywhere else.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 324,
+  "chapter": "money",
+  "text": "Take half up front from new clients. The serious ones expect it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 325,
+  "chapter": "money",
+  "text": "When the job grows, the price grows. Put that in the quote.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 326,
+  "chapter": "money",
+  "text": "Write the rate down before the call. Then hold it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 327,
+  "chapter": "money",
+  "text": "Invoice the day you finish. Chase it the day it's late.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 328,
+  "chapter": "money",
+  "text": "Freelance money isn't all yours. Move the tax out the day it lands.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 329,
+  "chapter": "money",
+  "text": "If one client pays half your income, start looking for the next.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 330,
+  "chapter": "money",
+  "text": "Your rent went up this year. Your rate should too.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 331,
+  "chapter": "money",
+  "text": "Put a number and a year on what you want to earn.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 332,
+  "chapter": "money",
+  "text": "Pretending you don't care about money is expensive. Say what you want.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 333,
+  "chapter": "money",
+  "text": "Call the landlord before rent is late, not after.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 334,
+  "chapter": "money",
+  "text": "Finish paying off the last holiday before you book the next one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 335,
+  "chapter": "money",
+  "text": "The letter you haven't opened costs more each week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 336,
+  "chapter": "money",
+  "text": "Delete your saved card details. Make buying take effort.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 337,
+  "chapter": "money",
+  "text": "Total last month's delivery orders. Then cook tonight.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 338,
+  "chapter": "money",
+  "text": "Unsubscribe from store emails. You didn't need anything until they arrived.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 339,
+  "chapter": "money",
+  "text": "Four payments for the jacket still add up to the jacket.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 340,
+  "chapter": "money",
+  "text": "The phone you have still works. Upgrade when it doesn't.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 341,
+  "chapter": "money",
+  "text": "Set a yearly number for weddings and birthdays before the invites arrive.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 342,
+  "chapter": "money",
+  "text": "Buying rounds on credit is borrowing to look generous.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 343,
+  "chapter": "money",
+  "text": "Take out what the night is worth in cash. Leave the card at home.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 344,
+  "chapter": "money",
+  "text": "Your pay rose and your savings didn't. Find where it went.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 345,
+  "chapter": "money",
+  "text": "Sell the gear from the hobby you never started.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 346,
+  "chapter": "money",
+  "text": "Buy clothes when you have money, not to feel like you do.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 347,
+  "chapter": "money",
+  "text": "Ask your internet provider for the new customer price.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 348,
+  "chapter": "money",
+  "text": "Put every bill on autopay so forgetting stops costing you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 349,
+  "chapter": "money",
+  "text": "Payday weekend decides the month. Treat it like any other.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 350,
+  "chapter": "money",
+  "text": "Add up this year's betting deposits. Leave the wins out of it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 351,
+  "chapter": "money",
+  "text": "Keep rent money out of the coin your friend mentioned over drinks.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 352,
+  "chapter": "money",
+  "text": "Phone trading between meetings is betting. Call it that.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 353,
+  "chapter": "money",
+  "text": "Keep one account for bills and one for everything else.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 354,
+  "chapter": "money",
+  "text": "Know your credit score. Lenders already do.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 355,
+  "chapter": "money",
+  "text": "Co-sign only if you could pay the whole loan. Assume you will.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 356,
+  "chapter": "money",
+  "text": "If you lend a friend money, agree on a date out loud.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 357,
+  "chapter": "money",
+  "text": "Tell your partner about the debt before you sign a lease.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 358,
+  "chapter": "money",
+  "text": "Highest rate gets paid first. The rest get the minimum.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 359,
+  "chapter": "money",
+  "text": "Your overdraft is a loan. Pay it down like one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 360,
+  "chapter": "money",
+  "text": "A payday loan buys one week and charges you for months.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 361,
+  "chapter": "money",
+  "text": "Four years of minimum payments and the balance has barely fucking moved.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 362,
+  "chapter": "money",
+  "text": "Something you own will break this year. Have the money waiting.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 363,
+  "chapter": "money",
+  "text": "Three months' rent saved changes how you sit in meetings.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 364,
+  "chapter": "money",
+  "text": "Rename your savings account after what it's for. Then leave it alone.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 365,
+  "chapter": "money",
+  "text": "Don't take on a monthly payment because of a one-off bonus.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 366,
+  "chapter": "money",
+  "text": "Take every cent of your employer's retirement match.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 367,
+  "chapter": "money",
+  "text": "Log in to your retirement account this year. Read what's in it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 368,
+  "chapter": "money",
+  "text": "Photograph every room on move-in day. That's your deposit.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 369,
+  "chapter": "money",
+  "text": "If rent takes half your pay, change the pay or change the place.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 370,
+  "chapter": "money",
+  "text": "Before you move out, save the deposit, furniture and a month of bills.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 371,
+  "chapter": "money",
+  "text": "Living at home to save is a plan. Give it an end date.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 372,
+  "chapter": "money",
+  "text": "File your work expenses this week. It's your money.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 373,
+  "chapter": "money",
+  "text": "Read what your insurance covers before the day you need it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 374,
+  "chapter": "money",
+  "text": "Get three quotes for anything costing over a week's pay.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 375,
+  "chapter": "money",
+  "text": "If it's still in the packaging, return it this week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 376,
+  "chapter": "confidence",
+  "text": "Ask the question in week one. By month six it's awkward.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 377,
+  "chapter": "confidence",
+  "text": "Drop the work voice on calls. Talk to clients like people.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 378,
+  "chapter": "confidence",
+  "text": "Skip the \"this is probably stupid\" opener. Say the idea.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 379,
+  "chapter": "confidence",
+  "text": "If someone talks over you, keep going at the same volume.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 380,
+  "chapter": "confidence",
+  "text": "Someone took credit for your work. Correct it the same day.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 381,
+  "chapter": "confidence",
+  "text": "Before you agree with the room, check that you actually do.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 382,
+  "chapter": "confidence",
+  "text": "When a client praises the work, say thanks. Don't list its flaws.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 383,
+  "chapter": "confidence",
+  "text": "Say \"I don't know yet.\" Then find out by Friday.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 384,
+  "chapter": "confidence",
+  "text": "Admit you were wrong in front of the same people.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 385,
+  "chapter": "confidence",
+  "text": "You said yes to skip one awkward minute. Now it's a month.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 386,
+  "chapter": "confidence",
+  "text": "Get there early. Don't walk into the room already rattled.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 387,
+  "chapter": "confidence",
+  "text": "Let the silence sit after your point. Don't take it back.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 388,
+  "chapter": "confidence",
+  "text": "Show your partner the debt statements. All of them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 389,
+  "chapter": "confidence",
+  "text": "If you need two drinks to talk to people, practice sober.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 390,
+  "chapter": "confidence",
+  "text": "You talked yourself out of three applications this year. Send the next one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 391,
+  "chapter": "confidence",
+  "text": "Get feedback from the person least likely to flatter you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 392,
+  "chapter": "confidence",
+  "text": "Tell your manager the deadline is wrong now, not the night before.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 393,
+  "chapter": "confidence",
+  "text": "State what you did, with numbers. That's a record, not bragging.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 394,
+  "chapter": "confidence",
+  "text": "The team won't all like the call. Explain it once, then hold it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 395,
+  "chapter": "confidence",
+  "text": "Say your name like you expect them to remember it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 396,
+  "chapter": "confidence",
+  "text": "Tell them you like them. A no beats a year of guessing.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 397,
+  "chapter": "confidence",
+  "text": "Stop fake laughing at jokes you don't find funny.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 398,
+  "chapter": "confidence",
+  "text": "Inflating your experience gets found out. Learn the thing instead.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 399,
+  "chapter": "confidence",
+  "text": "Record the pitch and watch it once. Wince, then fix it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 400,
+  "chapter": "confidence",
+  "text": "Clothes get you in the door. After that, you have to talk.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 401,
+  "chapter": "confidence",
+  "text": "It's been in your drafts for a month. Send the fucking thing.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 402,
+  "chapter": "confidence",
+  "text": "Your awkward moment was forgotten by lunch. Speak up again.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 403,
+  "chapter": "confidence",
+  "text": "You've been doing the senior job for a year. Ask for the title.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 404,
+  "chapter": "confidence",
+  "text": "Correct the wrong figure in the deck, even if your boss wrote it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 405,
+  "chapter": "confidence",
+  "text": "Give one reason when you say no. Five sound like guilt.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 406,
+  "chapter": "confidence",
+  "text": "Stop asking \"does that make sense\" after every point.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 407,
+  "chapter": "confidence",
+  "text": "Go to the event alone. Talk to two people, then leave.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 408,
+  "chapter": "confidence",
+  "text": "Show someone the draft. Polishing it in private is hiding.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 409,
+  "chapter": "confidence",
+  "text": "Make yourself the punchline enough and people believe it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 410,
+  "chapter": "confidence",
+  "text": "Being ironic about everything means never admitting what you want.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 411,
+  "chapter": "confidence",
+  "text": "Rehearse the talk out loud, twice. Winging it is easy to spot.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 412,
+  "chapter": "confidence",
+  "text": "Your friend owes you money. Ask for it plainly, without the joke.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 413,
+  "chapter": "confidence",
+  "text": "If a deal feels wrong, leave the table. Explain it later.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 414,
+  "chapter": "confidence",
+  "text": "Ask the mechanic to explain it again. Pretending you followed costs money.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 415,
+  "chapter": "confidence",
+  "text": "Ask someone at the gym to spot you. It's a normal request.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 416,
+  "chapter": "confidence",
+  "text": "Answer the question you were asked, in your first sentence.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 417,
+  "chapter": "confidence",
+  "text": "Put the hard conversation in the calendar. Then turn up.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 418,
+  "chapter": "confidence",
+  "text": "Tell your family the plan yourself. Don't let them hear it secondhand.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 419,
+  "chapter": "confidence",
+  "text": "Email the landlord about the leak. Being easygoing hasn't fixed it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 420,
+  "chapter": "confidence",
+  "text": "Being the oldest in the beginner class is fine. Everyone there is new.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 421,
+  "chapter": "confidence",
+  "text": "Say how sure you are. Sixty percent is a useful answer.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 422,
+  "chapter": "confidence",
+  "text": "Tell your dad you disagree, once, like an adult. Then drop it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 423,
+  "chapter": "confidence",
+  "text": "Stop refreshing to see who liked it. Make the next one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 424,
+  "chapter": "confidence",
+  "text": "Write down why you made the call. Reread it next year.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 425,
+  "chapter": "confidence",
+  "text": "When a friend asks what you think, tell them. Kindly, but tell them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 426,
+  "chapter": "confidence",
+  "text": "Talk about the work, not about how hard you're working.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 427,
+  "chapter": "confidence",
+  "text": "Ask your boss what \"good\" looks like here. Write it down.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 428,
+  "chapter": "confidence",
+  "text": "Volunteer to present when no one else will. Reps add up.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 429,
+  "chapter": "confidence",
+  "text": "You've sulked about it all week. Say why, calmly, today.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 430,
+  "chapter": "confidence",
+  "text": "The doctor needs the real number of drinks. Don't round it down.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 431,
+  "chapter": "confidence",
+  "text": "Phone away at the party. Everyone can see you hiding in it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 432,
+  "chapter": "confidence",
+  "text": "Read the whole contract before you sign, even with them waiting.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 433,
+  "chapter": "confidence",
+  "text": "When your voice breaks during the eulogy, pause. Then keep reading.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 434,
+  "chapter": "confidence",
+  "text": "If you've decided to leave the job, stop hinting. Hand in your notice.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 435,
+  "chapter": "confidence",
+  "text": "Being agreeable gets you invited. Being clear gets you trusted.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 436,
+  "chapter": "confidence",
+  "text": "A borrowed opinion breaks at the first question. Read the source.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 437,
+  "chapter": "confidence",
+  "text": "Decide about the move yourself. Your friends won't be paying the rent.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 438,
+  "chapter": "confidence",
+  "text": "They hired you for your judgment. \"Up to you\" isn't an answer.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 439,
+  "chapter": "confidence",
+  "text": "Don't apologize for your place when people come over. It's where you live.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 440,
+  "chapter": "confidence",
+  "text": "Practice asking on small things: a refund, a better table.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 441,
+  "chapter": "confidence",
+  "text": "After the talk, go and introduce yourself to the speaker.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 442,
+  "chapter": "confidence",
+  "text": "Message the person whose job you want. Ask one specific question.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 443,
+  "chapter": "confidence",
+  "text": "Point out what's wrong with the haircut while you're still in the chair.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 444,
+  "chapter": "confidence",
+  "text": "Take the bad review without arguing. Ask what changes it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 445,
+  "chapter": "confidence",
+  "text": "Let people see you trying. Effortless is usually a costume.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 446,
+  "chapter": "confidence",
+  "text": "Hold eye contact until you finish the sentence.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 447,
+  "chapter": "confidence",
+  "text": "Say you can't afford the trip. Don't invent a deadline.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 448,
+  "chapter": "confidence",
+  "text": "Load the bar for you, not for whoever's on the next bench.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 449,
+  "chapter": "vices",
+  "text": "Three hours a day on your phone is forty-five days a year.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 450,
+  "chapter": "vices",
+  "text": "You picked up the phone to check the time. Twenty minutes ago.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 451,
+  "chapter": "vices",
+  "text": "Don't let a stranger's video be your first thought today.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 452,
+  "chapter": "vices",
+  "text": "Set your phone to grayscale. Watch the feed get boring.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 453,
+  "chapter": "vices",
+  "text": "Log out of the app every time. Make getting back in slow.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 454,
+  "chapter": "vices",
+  "text": "If ten pages of a book feels hard now, look at your evenings.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 455,
+  "chapter": "vices",
+  "text": "One evening a week with no screens. Start this Wednesday.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 456,
+  "chapter": "vices",
+  "text": "Your partner is right there while you scroll. Put it down.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 457,
+  "chapter": "vices",
+  "text": "Eat one meal a day without a screen in front of you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 458,
+  "chapter": "vices",
+  "text": "Phone in the glovebox before you start the car. Every time.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 459,
+  "chapter": "vices",
+  "text": "Read the news once a day. You'll miss nothing that matters.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 460,
+  "chapter": "vices",
+  "text": "Unfollow every account that makes you want to buy something.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 461,
+  "chapter": "vices",
+  "text": "Turn off every notification not sent by an actual person.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 462,
+  "chapter": "vices",
+  "text": "Watch someone scroll for a minute. That's how you look.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 463,
+  "chapter": "vices",
+  "text": "You were going to stop at one episode three episodes ago.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 464,
+  "chapter": "vices",
+  "text": "Swiping for an hour in bed isn't dating. It's another feed.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 465,
+  "chapter": "vices",
+  "text": "Can't sleep. Leave the phone alone and lie in the dark.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 466,
+  "chapter": "vices",
+  "text": "Wait in line today without taking your phone out.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 467,
+  "chapter": "vices",
+  "text": "Go to bed the first time you think about going to bed.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 468,
+  "chapter": "vices",
+  "text": "If every plan involves a drink, look hard at the plans.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 469,
+  "chapter": "vices",
+  "text": "A big Friday night costs you Saturday and most of Sunday.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 470,
+  "chapter": "vices",
+  "text": "If you need a drink to survive the week, change the week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 471,
+  "chapter": "vices",
+  "text": "Decide the last drink before you order the first one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 472,
+  "chapter": "vices",
+  "text": "Stay out of the rounds. Buy your own and leave when you want.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 473,
+  "chapter": "vices",
+  "text": "Three large glasses of wine is a bottle. Stop calling it a couple.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 474,
+  "chapter": "vices",
+  "text": "Half an hour on a reply to a stranger. Delete it and log off.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 475,
+  "chapter": "vices",
+  "text": "Your boss remembers the Christmas party longer than you do.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 476,
+  "chapter": "vices",
+  "text": "Have your answer ready before someone hands you a drink.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 477,
+  "chapter": "vices",
+  "text": "Sober at a party is awkward for twenty minutes. Then it's fine.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 478,
+  "chapter": "vices",
+  "text": "Stop stocking it for guests. Guests can bring their own.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 479,
+  "chapter": "vices",
+  "text": "Book a Saturday morning plan you can't do hungover.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 480,
+  "chapter": "vices",
+  "text": "Smoking only when you drink means you smoke every weekend.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 481,
+  "chapter": "vices",
+  "text": "Same bar, same people, same ending. Change one of the three.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 482,
+  "chapter": "vices",
+  "text": "Keep one friend who'll tell you when to stop. Then listen.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 483,
+  "chapter": "vices",
+  "text": "Every win keeps you betting. That's what the wins are for.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 484,
+  "chapter": "vices",
+  "text": "Lost tonight. Close the app before you try to win it back.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 485,
+  "chapter": "vices",
+  "text": "Betting apps limit accounts that keep winning. Nobody's limited yours.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 486,
+  "chapter": "vices",
+  "text": "Parlays are built to nearly hit. Nearly pays nothing.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 487,
+  "chapter": "vices",
+  "text": "You remember the big win. Search your statement for the rest.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 488,
+  "chapter": "vices",
+  "text": "Betting on a league you don't even watch stopped being about sports.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 489,
+  "chapter": "vices",
+  "text": "Live betting turns one game into a hundred chances to lose.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 490,
+  "chapter": "vices",
+  "text": "An online casino never closes. Leaving is on you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 491,
+  "chapter": "vices",
+  "text": "Day-trading coins on your phone in bed is betting. Call it that.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 492,
+  "chapter": "vices",
+  "text": "Pay rent on payday, before you open the betting app.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 493,
+  "chapter": "vices",
+  "text": "Your betting app has a self-exclusion setting. Use it today.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 494,
+  "chapter": "vices",
+  "text": "Group bets with friends still come out of your account.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 495,
+  "chapter": "vices",
+  "text": "Two scratch cards a day is a monthly bill you never look at.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 496,
+  "chapter": "vices",
+  "text": "Borrowing money to bet is the line. Stop on this side of it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 497,
+  "chapter": "vices",
+  "text": "Late nights feel free because nobody needs you. Tomorrow still does.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 498,
+  "chapter": "vices",
+  "text": "Count your phone unlocks today. Tomorrow, aim for half.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 499,
+  "chapter": "vices",
+  "text": "Half the time you reach for it, you're just tired. Sleep instead.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 500,
+  "chapter": "vices",
+  "text": "Tried to quit three times on your own. Get help with the fourth.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 501,
+  "chapter": "vices",
+  "text": "Some nights you want company more than the drink. Call someone.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 502,
+  "chapter": "vices",
+  "text": "Some of what you call relaxing is just hiding with the lights off.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 503,
+  "chapter": "vices",
+  "text": "A bad day is enough. Don't add a bad night to it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 504,
+  "chapter": "vices",
+  "text": "You slipped on day nine. That's still eight days you didn't.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 505,
+  "chapter": "vices",
+  "text": "Mute your ex on every app. Then stop searching their name.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 506,
+  "chapter": "vices",
+  "text": "An urge feels permanent. Give it fifteen minutes on a timer.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 507,
+  "chapter": "vices",
+  "text": "Plan the hour you used to give it. Empty hours get filled.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 508,
+  "chapter": "vices",
+  "text": "Quitting in secret makes it easy to start again in secret.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 509,
+  "chapter": "vices",
+  "text": "Being the fun one every Saturday is a role. You can drop it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 510,
+  "chapter": "vices",
+  "text": "Write down tonight's excuse. You'll hear it again next week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 511,
+  "chapter": "vices",
+  "text": "Guilt the next morning hasn't stopped it once. A plan might.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 512,
+  "chapter": "vices",
+  "text": "Any habit that needs a dozen rules is already running you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 513,
+  "chapter": "vices",
+  "text": "Write three reasons to stop. Make them your lock screen.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 514,
+  "chapter": "vices",
+  "text": "When the doctor asks how much you drink, give the real number.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 515,
+  "chapter": "vices",
+  "text": "Vapes have no natural stopping point. Set your own.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 516,
+  "chapter": "vices",
+  "text": "Nobody else has noticed yet. That's the cheapest time to stop.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 517,
+  "chapter": "vices",
+  "text": "Four energy drinks by noon is a habit too. Cut one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 518,
+  "chapter": "vices",
+  "text": "Post it and put the phone away. Checking for likes is the habit.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 519,
+  "chapter": "vices",
+  "text": "Take the long way home if the short one passes the bar.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 520,
+  "chapter": "vices",
+  "text": "You know how tonight ends. You've lived it forty fucking times.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 521,
+  "chapter": "stoic",
+  "text": "You applied. Checking your email won't change their answer.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 522,
+  "chapter": "stoic",
+  "text": "Write the worry out. Cross off the parts that aren't yours.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 523,
+  "chapter": "stoic",
+  "text": "Traffic is weather. Leave earlier or stop taking it personally.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 524,
+  "chapter": "stoic",
+  "text": "Your boss's mood is information, not an order.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 525,
+  "chapter": "stoic",
+  "text": "Check the market monthly. Hourly checks only make you jumpy.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 526,
+  "chapter": "stoic",
+  "text": "The gate agent didn't cancel the flight. Be decent to them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 527,
+  "chapter": "stoic",
+  "text": "Answer the angry email at the pace you'd answer a dull one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 528,
+  "chapter": "stoic",
+  "text": "Today will change your plan. Adjust without the speech.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 529,
+  "chapter": "stoic",
+  "text": "Layoffs happen in rooms you're not in. Your skills leave with you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 530,
+  "chapter": "stoic",
+  "text": "Bad sleep makes the shift harder, not optional. Do it properly.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 531,
+  "chapter": "stoic",
+  "text": "Your best lifts may be behind you. Train for the next twenty years.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 532,
+  "chapter": "stoic",
+  "text": "Your family got through worse with less. Ask the oldest one how.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 533,
+  "chapter": "stoic",
+  "text": "Take one walk without headphones. Get used to your own head.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 534,
+  "chapter": "stoic",
+  "text": "A hard talk takes ten minutes. Dodging it takes months.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 535,
+  "chapter": "stoic",
+  "text": "Hard and wrong feel alike in week one. Wait for week four.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 536,
+  "chapter": "stoic",
+  "text": "You got passed over. Ask what it would take, then decide.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 537,
+  "chapter": "stoic",
+  "text": "It's over. Let it hurt, then stop checking their profile.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 538,
+  "chapter": "stoic",
+  "text": "Your parents age on the days you don't call. Call today.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 539,
+  "chapter": "stoic",
+  "text": "New phones feel normal within two weeks. Keep the old one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 540,
+  "chapter": "stoic",
+  "text": "Put some of the good month away. Good months end.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 541,
+  "chapter": "stoic",
+  "text": "A friend's win cost you nothing. Congratulate him and mean it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 542,
+  "chapter": "stoic",
+  "text": "Don't spend Sunday sitting in Monday's meeting.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 543,
+  "chapter": "stoic",
+  "text": "Go to the funeral. Your discomfort is the smallest thing in that room.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 544,
+  "chapter": "stoic",
+  "text": "Debt is a number, not a verdict. Make this month's payment.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 545,
+  "chapter": "stoic",
+  "text": "When your dad tells that story again, ask him a question about it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 546,
+  "chapter": "stoic",
+  "text": "Someone near you is having a worse week. Do one thing for them.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 547,
+  "chapter": "stoic",
+  "text": "Anger makes you predictable. The person baiting you knows it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 548,
+  "chapter": "stoic",
+  "text": "Inboxes never empty. Close yours at six and go home.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 549,
+  "chapter": "stoic",
+  "text": "Know your bare-minimum monthly cost. A priced fear is a smaller one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 550,
+  "chapter": "stoic",
+  "text": "The car broke down. It's a bill and a bad afternoon, nothing more.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 551,
+  "chapter": "stoic",
+  "text": "Write a basic will. It takes an afternoon and spares your family a mess.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 552,
+  "chapter": "stoic",
+  "text": "Self-pity feels like rest but tires you out. Get up.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 553,
+  "chapter": "stoic",
+  "text": "Something you're sure of is wrong. Go looking for it this week.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 554,
+  "chapter": "stoic",
+  "text": "Price the promotion in evenings before you say yes.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 555,
+  "chapter": "stoic",
+  "text": "Don't save your patience for clients and spend your temper at home.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 556,
+  "chapter": "stoic",
+  "text": "Betting on a game you're not playing is paying to feel in control.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 557,
+  "chapter": "stoic",
+  "text": "He broke his word. That doesn't cancel yours.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 558,
+  "chapter": "stoic",
+  "text": "You can't force sleep. Get up at the usual time anyway.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 559,
+  "chapter": "stoic",
+  "text": "Shoulder's out for a month. Train your legs for a month.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 560,
+  "chapter": "stoic",
+  "text": "Three years in isn't a reason to give it a fourth.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 561,
+  "chapter": "stoic",
+  "text": "You can't pick your height or hairline. Pick your manners.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 562,
+  "chapter": "stoic",
+  "text": "He's always late. Bring a book instead of a grudge.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 563,
+  "chapter": "stoic",
+  "text": "The new system isn't going away. Learn it before you judge it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 564,
+  "chapter": "stoic",
+  "text": "Want the raise. Don't need it to respect yourself.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 565,
+  "chapter": "stoic",
+  "text": "A coworker dislikes you. Be civil, be useful, and stop auditioning.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 566,
+  "chapter": "stoic",
+  "text": "Fear counts what could go wrong. It never counts what waiting costs.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 567,
+  "chapter": "stoic",
+  "text": "Stop paying for last year's mistake with today's attention.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 568,
+  "chapter": "stoic",
+  "text": "There won't be a quieter month. Start in this loud one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 569,
+  "chapter": "stoic",
+  "text": "Open the letter. Not reading it has never lowered a bill.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 570,
+  "chapter": "stoic",
+  "text": "Be patient with the new guy. You were him two years ago.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 571,
+  "chapter": "stoic",
+  "text": "Your new title doesn't make you right more often. Keep listening.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 572,
+  "chapter": "stoic",
+  "text": "Go outside tonight and look up. Then look at the problem again.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 573,
+  "chapter": "stoic",
+  "text": "The thief got your bike. Don't let him have your week too.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 574,
+  "chapter": "stoic",
+  "text": "Moving cities is lonely for a while. Join one thing the first month.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 575,
+  "chapter": "stoic",
+  "text": "Pay back the friend before you buy anything for yourself.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 576,
+  "chapter": "stoic",
+  "text": "Lose the game, shake hands, keep the excuses to yourself.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 577,
+  "chapter": "stoic",
+  "text": "Credit the person who did the work, out loud, in the meeting.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 578,
+  "chapter": "stoic",
+  "text": "Learn to cook, budget and fix a leak. Less will rattle you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 579,
+  "chapter": "stoic",
+  "text": "The job you hate is funding your next move. Do it well until then.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 580,
+  "chapter": "stoic",
+  "text": "Friends drift after thirty. Schedule the two you'd miss most.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 581,
+  "chapter": "stoic",
+  "text": "Debt makes you nod in meetings where you should argue.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 582,
+  "chapter": "stoic",
+  "text": "Someone took credit for your work. Correct it once, calmly.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 583,
+  "chapter": "stoic",
+  "text": "When it goes your way, skip the victory lap. Luck was in it somewhere.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 584,
+  "chapter": "stoic",
+  "text": "Read something old this month. Your problem isn't new.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 585,
+  "chapter": "stoic",
+  "text": "A canceled plan is a free evening. Spend it on purpose.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 586,
+  "chapter": "stoic",
+  "text": "Write three rules you live by. Keep them on the days they cost you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 587,
+  "chapter": "stoic",
+  "text": "Save for the bigger flat without hating this one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 588,
+  "chapter": "stoic",
+  "text": "Good mornings are limited. Stop spending them hungover.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 589,
+  "chapter": "stoic",
+  "text": "Keep the expense report honest. Small lies are rehearsals.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 590,
+  "chapter": "stoic",
+  "text": "Do your share of the housework and don't mention it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 591,
+  "chapter": "stoic",
+  "text": "Don't buy a laugh at the expense of someone who isn't there.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 592,
+  "chapter": "stoic",
+  "text": "Fuck the timeline you wrote at twenty-two. Do this year's work.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 593,
+  "chapter": "stoic",
+  "text": "Remember how long thou hast been putting off these things, and how often thou hast received an opportunity from the gods, and yet dost not use it.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations II.4",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 594,
+  "chapter": "stoic",
+  "text": "Do not act as if thou wert going to live ten thousand years. Death hangs over thee. While thou livest, while it is in thy power, be good.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations IV.17",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 595,
+  "chapter": "stoic",
+  "text": "Thou sufferest this justly: for thou choosest rather to become good to-morrow than to be good to-day.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations VIII.22",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 596,
+  "chapter": "stoic",
+  "text": "On every occasion a man should ask himself, Is this one of the unnecessary things?",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations IV.24",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 597,
+  "chapter": "stoic",
+  "text": "Let it make no difference to thee whether thou art cold or warm, if thou art doing thy duty.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations VI.2",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 598,
+  "chapter": "stoic",
+  "text": "A man then must stand erect, not be kept erect by others.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations III.5",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 599,
+  "chapter": "stoic",
+  "text": "So much more respect have we to what our neighbors shall think of us than to what we shall think of ourselves.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations XII.4",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 600,
+  "chapter": "stoic",
+  "text": "Neither must we value the clapping of tongues; for the praise which comes from the many is a clapping of tongues.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations VI.16",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 601,
+  "chapter": "stoic",
+  "text": "Dost thou wish to be praised by a man who curses himself thrice every hour? wouldst thou wish to please a man who does not please himself?",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations VIII.53",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 602,
+  "chapter": "stoic",
+  "text": "Do not disturb thyself by thinking of the whole of thy life.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations VIII.36",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 603,
+  "chapter": "stoic",
+  "text": "Nothing happens to any man which he is not formed by nature to bear.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations V.18",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 604,
+  "chapter": "stoic",
+  "text": "The perfection of moral character consists in this, in passing every day as the last, and in being neither violently excited nor torpid nor playing the hypocrite.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations VII.69",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 605,
+  "chapter": "stoic",
+  "text": "Whatever this may be, it is in thy power to do it or to say it, and do not make excuses that thou art hindered.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations X.33",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 606,
+  "chapter": "stoic",
+  "text": "Be not ashamed to be helped; for it is thy business to do thy duty like a soldier in the assault on a town.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations VII.7",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 607,
+  "chapter": "stoic",
+  "text": "Do not waste the remainder of thy life in thoughts about others, when thou dost not refer thy thoughts to some object of common utility.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations III.4",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 608,
+  "chapter": "stoic",
+  "text": "We do not receive a short life, but we make it a short one, and we are not poor in days, but wasteful of them.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of the Shortness of Life 1",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 609,
+  "chapter": "stoic",
+  "text": "You cannot find any one who wants to distribute his money; yet among how many people does every one distribute his life?",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of the Shortness of Life 3",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 611,
+  "chapter": "stoic",
+  "text": "There is no such obstacle to true living as waiting, which loses to-day while it is depending on the morrow.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of the Shortness of Life 9",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 612,
+  "chapter": "stoic",
+  "text": "Whither are you looking, whither are you stretching forward? everything future is uncertain: live now straightway.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of the Shortness of Life 9",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 613,
+  "chapter": "stoic",
+  "text": "I think you unhappy because you never have been unhappy: you have passed through your life without meeting an antagonist.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of Providence 4",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 614,
+  "chapter": "stoic",
+  "text": "For a man cannot know himself without a trial: no one ever learnt what he could do without putting himself to the test.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of Providence 4",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 615,
+  "chapter": "stoic",
+  "text": "While all excesses are hurtful, excess of comfort is the most hurtful of all.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of Providence 4",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 616,
+  "chapter": "stoic",
+  "text": "By degrees men find pleasure in doing what they were first driven to do by necessity.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of Providence 4",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 617,
+  "chapter": "stoic",
+  "text": "Do you not blush to spend so long a time in dreading what takes so short a time to do?",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of Providence 6",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 618,
+  "chapter": "stoic",
+  "text": "There are certain things whose beginnings lie in our own power, but which, when developed, drag us along by their own force and leave us no retreat.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of Anger I.7",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 619,
+  "chapter": "stoic",
+  "text": "Let all your work, therefore, have some purpose, and keep some object in view.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of Peace of Mind 12",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 620,
+  "chapter": "stoic",
+  "text": "Many men spend their lives in exactly the same fashion, which one may call a state of restless indolence.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Of Peace of Mind 12",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 621,
+  "chapter": "stoic",
+  "text": "It is easier to rule savage nations, impatient of foreign control, than to restrain one's own mind and keep it under one's own control.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "On Benefits V.7",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 622,
+  "chapter": "stoic",
+  "text": "Men would undertake no works either on land or sea if they were not willing to try again what they have failed in once.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "On Benefits VII.31",
+   "translator": "Aubrey Stewart"
+  },
+  "verified": true
+ },
+ {
+  "no": 623,
+  "chapter": "stoic",
+  "text": "Remember that now is the contest, now are the Olympic games, and they cannot be deferred.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Encheiridion 50",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 624,
+  "chapter": "stoic",
+  "text": "You are no longer a youth, but already a full-grown man.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Encheiridion 50",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 625,
+  "chapter": "stoic",
+  "text": "If you would improve, submit to be considered without sense and foolish with respect to externals.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Encheiridion 13",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 626,
+  "chapter": "stoic",
+  "text": "At a banquet do not say how a man ought to eat, but eat as you ought to eat.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Encheiridion 46",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 627,
+  "chapter": "stoic",
+  "text": "And if you ever wish to exercise yourself in labor and endurance, do it for yourself, and not for others.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Encheiridion 47",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 628,
+  "chapter": "stoic",
+  "text": "Immediately prescribe some character and some form to yourself, which you shall observe both when you are alone and when you meet with men.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Encheiridion 33",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 629,
+  "chapter": "stoic",
+  "text": "You can be invincible, if you enter into no contest in which it is not in your power to conquer.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Encheiridion 19",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 630,
+  "chapter": "stoic",
+  "text": "When a difficulty falls upon you, remember that God, like a trainer of wrestlers, has matched you with a rough young man.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Discourses I.24",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 631,
+  "chapter": "stoic",
+  "text": "If you would make anything a habit, do it; if you would not make it a habit, do not do it.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Discourses II.18",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 632,
+  "chapter": "stoic",
+  "text": "When you have remitted your attention for a short time, do not imagine this, that you will recover it when you choose.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Discourses IV.12",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 633,
+  "chapter": "stoic",
+  "text": "Nothing great, said Epictetus, is produced suddenly, since not even the grape or the fig is.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Discourses I.15",
+   "translator": "George Long"
+  },
+  "verified": true
+ },
+ {
+  "no": 634,
+  "chapter": "stoic",
+  "text": "As soon as you have recovered and restored yourself, and employ the same zeal, you may renew the combat again.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Discourses III.25",
+   "translator": "George Long"
+  },
+  "verified": true
  }
 ]
