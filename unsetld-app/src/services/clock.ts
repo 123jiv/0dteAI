@@ -1,8 +1,8 @@
-import { dayKey, type DayKey } from '../core/time';
+import { dayKeyOf, type DayKey } from '../core/time';
 
-// A single source of "now" so the dev tools can time-travel (test streaks,
-// rank-ups and decay without waiting days). The offset is always 0 in
-// production builds because the dev tools are hidden there.
+// A single source of "now" so the tester tools can time-travel (see Day 7,
+// Day 30, a 14-day pause) without waiting. The offset is always 0 in
+// production builds because the tester tools are hidden there.
 let offsetDays = 0;
 
 export function setDayOffset(days: number) {
@@ -17,6 +17,7 @@ export function now(): Date {
   return new Date(Date.now() + offsetDays * 86_400_000);
 }
 
+/** Today's UNSETLD day (4:00 AM boundary). */
 export function today(): DayKey {
-  return dayKey(now());
+  return dayKeyOf(now());
 }

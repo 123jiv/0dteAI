@@ -1,0 +1,568 @@
+[
+ {
+  "no": 1,
+  "chapter": "discipline",
+  "text": "That restless feeling isn't a problem. It's an instruction.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 2,
+  "chapter": "discipline",
+  "text": "Settling rarely feels like a decision. It feels like a normal evening.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 3,
+  "chapter": "discipline",
+  "text": "Pick a pace you can still keep three months from now.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 4,
+  "chapter": "discipline",
+  "text": "Do the part of the job nobody would notice you skipped.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 5,
+  "chapter": "discipline",
+  "text": "Most of the real work happens alone, at bad hours. Go.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 6,
+  "chapter": "discipline",
+  "text": "Count how many times you've started this. Now finish it once.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 7,
+  "chapter": "discipline",
+  "text": "You have time for this. You've been spending it somewhere else.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 8,
+  "chapter": "discipline",
+  "text": "You've had the same plan for two years. Do the fucking plan.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 9,
+  "chapter": "discipline",
+  "text": "Lowering the standard feels like relief for about a day.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 10,
+  "chapter": "discipline",
+  "text": "Lost is fine. Lost and sitting still is the problem.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 11,
+  "chapter": "discipline",
+  "text": "What you promised yourself at midnight still counts at six.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 12,
+  "chapter": "discipline",
+  "text": "Finish the set, the shift, the page. Have your feelings after.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 13,
+  "chapter": "focus",
+  "text": "You've thought about it for months. Thinking is the safe part.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 14,
+  "chapter": "focus",
+  "text": "The important thing gets your morning. Email gets what's left.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 15,
+  "chapter": "focus",
+  "text": "Every time you check your phone, you pay to get back in.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 16,
+  "chapter": "focus",
+  "text": "Not everything that buzzes is yours to answer.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 17,
+  "chapter": "focus",
+  "text": "An hour with the door shut beats a day with it open.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 18,
+  "chapter": "focus",
+  "text": "Hard problems feel like boredom at first. Stay in it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 19,
+  "chapter": "focus",
+  "text": "You've rebuilt the system three times. The system was never the problem.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 20,
+  "chapter": "focus",
+  "text": "Close the tabs. You know damn well you're not reading them.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 21,
+  "chapter": "focus",
+  "text": "The conversation you keep replaying is over. You're the only one still in it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 22,
+  "chapter": "focus",
+  "text": "Your best hours keep going to whoever interrupts first.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 23,
+  "chapter": "focus",
+  "text": "Give it twenty minutes before you decide you're not in the mood.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 24,
+  "chapter": "training",
+  "text": "Write the numbers down. Memory flatters you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 25,
+  "chapter": "training",
+  "text": "Strength is the same few lifts, done properly, for years.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 26,
+  "chapter": "training",
+  "text": "Give a program twelve weeks before you call it useless.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 27,
+  "chapter": "training",
+  "text": "Missed a week. Take ten percent off the bar and start again.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 28,
+  "chapter": "training",
+  "text": "Sleep is part of the program. Treat tonight like a session.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 29,
+  "chapter": "training",
+  "text": "Lay out the gym clothes tonight. Give the morning one less excuse.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 30,
+  "chapter": "training",
+  "text": "Ego lifting is bullshit. Drop the weight and do the full rep.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 31,
+  "chapter": "training",
+  "text": "Eat like you plan to train tomorrow.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 32,
+  "chapter": "training",
+  "text": "Train for the man you'll be at fifty, not the photo this summer.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 33,
+  "chapter": "training",
+  "text": "Keep training after you like what you see. That's when most people stop.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 34,
+  "chapter": "training",
+  "text": "You don't need to love it. You need to be there Thursday.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 35,
+  "chapter": "money",
+  "text": "Want more. Then learn something someone will pay you for.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 36,
+  "chapter": "money",
+  "text": "If he's showing you the car, he's selling you the course.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 37,
+  "chapter": "money",
+  "text": "Before you buy it, count how many days of work it costs.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 38,
+  "chapter": "money",
+  "text": "Know four numbers by heart: income, rent, debt and savings.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 39,
+  "chapter": "money",
+  "text": "Charge what it's worth. Say the number and stop talking.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 40,
+  "chapter": "money",
+  "text": "Ask for the raise with a list, not a feeling.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 41,
+  "chapter": "money",
+  "text": "A real skill is boring as hell for the first year. Do the year.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 42,
+  "chapter": "money",
+  "text": "If you can't say where last month's money went, start there.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 43,
+  "chapter": "money",
+  "text": "A bad week is the most expensive time to go shopping.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 44,
+  "chapter": "money",
+  "text": "Read every monthly charge on your statement. Cancel two.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 45,
+  "chapter": "money",
+  "text": "Your friends' budget isn't yours. Sit this trip out.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 46,
+  "chapter": "confidence",
+  "text": "Wear the calm face if you have to. Don't lie to yourself behind it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 47,
+  "chapter": "confidence",
+  "text": "Say it in the room, not in the car on the way home.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 48,
+  "chapter": "confidence",
+  "text": "Failing costs you less respect than always being about to start.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 49,
+  "chapter": "confidence",
+  "text": "Stop asking for opinions on decisions you've already made.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 50,
+  "chapter": "confidence",
+  "text": "Quiet is fine. Hiding isn't. Be honest about which one this is.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 51,
+  "chapter": "confidence",
+  "text": "Take \"just\" and \"sorry\" out of the email. Then hit send.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 52,
+  "chapter": "confidence",
+  "text": "Being average out loud beats being brilliant in your head.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 53,
+  "chapter": "confidence",
+  "text": "Acting like you don't give a damn is the oldest mask there is.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 54,
+  "chapter": "confidence",
+  "text": "The first time is always ugly. You still need a first time.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 55,
+  "chapter": "confidence",
+  "text": "When you mess up, say so first and say it plainly.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 56,
+  "chapter": "confidence",
+  "text": "Make the phone call you keep turning into texts.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 57,
+  "chapter": "confidence",
+  "text": "Finish your sentence. Don't trail off and wait for someone to rescue it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 58,
+  "chapter": "vices",
+  "text": "Skip it tonight and see what thought shows up. That's the one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 59,
+  "chapter": "vices",
+  "text": "Every night you give it is a morning it takes.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 60,
+  "chapter": "vices",
+  "text": "You went backwards for a week. Fine. Walk forward today.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 61,
+  "chapter": "vices",
+  "text": "Delete it on a good day. You won't on a bad one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 62,
+  "chapter": "vices",
+  "text": "It's not a reward if you need it every night.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 63,
+  "chapter": "vices",
+  "text": "Thirty days without it. Then decide if you want it back.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 64,
+  "chapter": "vices",
+  "text": "The betting app did the math before you placed your first bet.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 65,
+  "chapter": "vices",
+  "text": "You clear the history for a reason. Be honest about the reason.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 66,
+  "chapter": "vices",
+  "text": "Four hours of scrolling and you feel like shit. That's your answer.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 67,
+  "chapter": "vices",
+  "text": "It's 2am. Whatever you're looking for isn't on that screen.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 68,
+  "chapter": "vices",
+  "text": "Quitting is boring. Most nights it's just not doing it again.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 69,
+  "chapter": "stoic",
+  "text": "The result isn't up to you. The next hour is. Start there.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 70,
+  "chapter": "stoic",
+  "text": "You'll die with some plans never started. Don't let this be one.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 71,
+  "chapter": "stoic",
+  "text": "Rehearse the worst outcome once. Then stop flinching at it.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 72,
+  "chapter": "stoic",
+  "text": "Choose small discomforts on purpose so the big ones don't own you.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 73,
+  "chapter": "stoic",
+  "text": "Complaining is the work you do instead of the work.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 74,
+  "chapter": "stoic",
+  "text": "Nobody will remember your name on it. Make it right anyway.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 75,
+  "chapter": "stoic",
+  "text": "If it's out of your hands, put it down. Your hands have work.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 76,
+  "chapter": "stoic",
+  "text": "Tonight, count what you actually did. Intentions don't go on the list.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 77,
+  "chapter": "stoic",
+  "text": "Half of what's pissing you off today won't matter Friday. Ignore that half.",
+  "explicit": true,
+  "volume": 1
+ },
+ {
+  "no": 78,
+  "chapter": "stoic",
+  "text": "Most of what you're scared to lose, you didn't have a year ago.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 79,
+  "chapter": "stoic",
+  "text": "Someone will always have more. Keeping count just costs you the day.",
+  "explicit": false,
+  "volume": 1
+ },
+ {
+  "no": 80,
+  "chapter": "stoic",
+  "text": "We suffer more often in imagination than in reality.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Seneca",
+   "source": "Letters 13",
+   "translator": "Richard M. Gummere"
+  },
+  "verified": true
+ }
+]

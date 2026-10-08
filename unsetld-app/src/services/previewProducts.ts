@@ -5,9 +5,9 @@ import type { Plan } from './purchases';
 // RevenueCat. Real builds read prices from StoreKit and never use these.
 export const PREVIEW_PLANS: Plan[] = [
   {
-    id: 'unsetld.premium.annual',
+    id: 'unsetld_full_annual',
     kind: 'annual',
-    title: 'UNSETLD Premium (Yearly)',
+    title: 'Full Edition (Annual)',
     price: 24.99,
     priceString: '$24.99',
     currencyCode: 'USD',
@@ -15,9 +15,9 @@ export const PREVIEW_PLANS: Plan[] = [
     eligibleForTrial: true,
   },
   {
-    id: 'unsetld.premium.monthly',
+    id: 'unsetld_full_monthly',
     kind: 'monthly',
-    title: 'UNSETLD Premium (Monthly)',
+    title: 'Full Edition (Monthly)',
     price: 4.99,
     priceString: '$4.99',
     currencyCode: 'USD',
@@ -25,9 +25,9 @@ export const PREVIEW_PLANS: Plan[] = [
     eligibleForTrial: false,
   },
   {
-    id: 'unsetld.premium.lifetime',
+    id: 'unsetld_full_lifetime',
     kind: 'lifetime',
-    title: 'UNSETLD Premium (Lifetime)',
+    title: 'Full Edition (Lifetime)',
     price: 39.99,
     priceString: '$39.99',
     currencyCode: 'USD',

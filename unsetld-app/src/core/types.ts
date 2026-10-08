@@ -1,106 +1,86 @@
 import type { DayKey } from './time';
 
-export type LaneId =
-  | 'show-up'
-  | 'bag-talk'
-  | 'gym-rat'
-  | 'lock-in'
-  | 'back-yourself'
-  | 'cut-it-off'
-  | 'stoic';
+export type ChapterId = 'discipline' | 'focus' | 'training' | 'money' | 'confidence' | 'vices' | 'stoic';
 
-export type Tone = 'clean' | 'unfiltered';
-
-export interface Line {
-  id: string;
-  lane: LaneId | 'custom';
-  text: string;
-  tone: Tone;
-  status?: 'draft' | 'approved';
-  /** Stoic quotes only. */
-  author?: string;
-  translator?: string;
-  ref?: string;
+export interface Chapter {
+  id: ChapterId;
+  no: number;
+  name: string;
+  scope: string;
+  free: boolean;
 }
 
-export interface CustomLine {
+export interface Attribution {
+  author: string;
+  source: string;
+  translator: string;
+}
+
+export interface Line {
+  /** Permanent catalogue number, shown as "No. 0412". */
+  no: number;
+  chapter: ChapterId;
+  text: string;
+  explicit: boolean;
+  volume: number;
+  attribution?: Attribution;
+  /** Attributed quotes only: checked against the source text. Unverified quotes never ship. */
+  verified?: boolean;
+}
+
+/** A line the user wrote (Full Edition). Numbered from 9001 so it never collides with the library. */
+export interface YourLine {
   id: string;
   text: string;
   createdAt: number;
 }
 
-export interface DayRecord {
-  line?: boolean;
-  nonNegotiable?: string;
-  mission?: string;
-  xp: number;
-  /** Day was credited while the clock could not be checked against the server. */
-  unverified?: boolean;
-}
-
-export interface CodeClaim {
-  day: DayKey;
-  code: string;
-  percent: number;
-  rank: number;
-  /** Last day the code works at checkout. */
-  expires: DayKey;
-}
-
-export interface Progress {
-  installSalt: string;
-  lastOpenDay: DayKey | null;
-  streak: number;
-  bestStreak: number;
-  /** Streak shields used per calendar month ("YYYY-MM"). */
-  shieldsUsedByMonth: Record<string, number>;
-  /** Bookkeeping for the gap since lastOpenDay, so reconciling is idempotent. */
-  gap: { usedByMonth: Record<string, number>; decayDays: number; broken: boolean } | null;
-  lifetimeXP: number;
-  rankXP: number;
-  highestRank: number;
-  /** Rank the user has already seen a celebration for. */
-  seenRank: number;
-  lastRankDrop: DayKey | null;
-  days: Record<DayKey, DayRecord>;
-  milestonesPaid: Record<string, DayKey>;
-  fullWeeksPaid: DayKey[];
-  comeback: { remaining: number; startedOn: DayKey } | null;
-  lastComebackStart: DayKey | null;
-  claims: CodeClaim[];
-}
-
-export interface RankDef {
+export interface Colorway {
   id: string;
   name: string;
-  xp: number;
-  approx: string;
-  perks: string[];
-  discountPercent: number;
-  cooldownDays: number;
-  /** Discount tier needs server-verified Rank Sync (v2). */
-  needsRankSync: boolean;
+  free: boolean;
+  bg: string;
+  bgEnd?: string;
+  ink: string;
+  secondary: string;
+  rule: string;
+  statusBar: 'light' | 'dark';
+  kind: 'solid' | 'plate' | 'gradient';
+  previewLine: string;
 }
 
-export interface RankConfig {
-  ranks: RankDef[];
-  xp: {
-    line: number;
-    nonNegotiable: number;
-    mission: number;
-    fullWeek: number;
-    milestones: Record<string, number>;
-  };
-  shieldsPerMonth: number;
-  graceDays: number;
-  decayPerDay: number;
-  rankDropFloorDays: number;
-  comebackCooldownDays: number;
-  claims: {
-    minStreak: number;
-    maxPerYear: number;
-    maxDollarsPerOrder: number;
-    minOrder: number;
-    expiresDays: number;
-  };
+export type MilestoneId = 'early-access' | 'member-price' | 'patch' | 'member-price-15' | 'piece-365';
+
+export interface Milestone {
+  id: MilestoneId;
+  day: number;
+  title: string;
+  short: string;
+  detail: string;
+  action: string;
+  pausable: boolean;
+  percent?: number;
+  letter: { sub: string; body: string; primary: string; secondary: string };
+}
+
+export interface ReminderPrompt {
+  slot: 'morning' | 'midday' | 'evening' | 'night';
+  text: string;
+}
+
+/** One day on record. Its presence in Record.days is what "on record" means. */
+export interface DayEntry {
+  /** The phone's clock matched unsetld.com when the day was recorded. */
+  verified: boolean;
+}
+
+export interface RecordState {
+  days: Record<DayKey, DayEntry>;
+  /** Night check answers: true = Held, false = Not today. Never affects the record. */
+  nights: Record<DayKey, boolean>;
+  /** Milestone letters already shown: '7', '30', '90', '180', '365', or 'comeback:YYYY-MM-DD'. */
+  lettersShown: string[];
+  /** Member price used, per collection id. */
+  memberPriceUsed: Record<string, DayKey>;
+  patchClaimed: DayKey | null;
 }

@@ -1,0 +1,13 @@
+[
+  { "slot": "morning", "text": "Up. Do one thing before you look at anyone else's life." },
+  { "slot": "morning", "text": "Today gets one priority. Write it down before you open anything." },
+  { "slot": "morning", "text": "Whatever you're avoiding today, give it the next thirty minutes." },
+  { "slot": "midday", "text": "Half the day is gone. The hard thing hasn't moved." },
+  { "slot": "midday", "text": "Eat something real. Drink some water. Then back to it." },
+  { "slot": "midday", "text": "Phone face down. Look at your list. Do the next thing on it." },
+  { "slot": "evening", "text": "Pick one thing you can finish before dinner. Finish it." },
+  { "slot": "evening", "text": "There's still enough day left to keep your word." },
+  { "slot": "evening", "text": "Whatever you skipped this morning, tonight still counts." },
+  { "slot": "night", "text": "Write tomorrow's first task down before you sleep. One line." },
+  { "slot": "night", "text": "Phone charges in another room tonight. Lights off by midnight." }
+]

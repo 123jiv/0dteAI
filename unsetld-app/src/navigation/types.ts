@@ -1,31 +1,36 @@
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { Letter, MilestoneId } from '../core/record';
+import type { ChapterId } from '../core/types';
+import type { DocId } from '../content';
 
-export type TabParams = {
-  Today: { lineId?: string } | undefined;
-  Rank: undefined;
-  Me: undefined;
-};
+export type ReaderMode =
+  | { kind: 'mix' }
+  | { kind: 'chapter'; id: ChapterId }
+  | { kind: 'saved'; no: number }
+  | { kind: 'volume'; volume: number };
+
+export type PaywallFrom = 'onboarding' | 'chapter' | 'colorway' | 'end' | 'yours' | 'settings' | 'reminders' | 'share';
 
 export type RootParams = {
-  Onboarding: undefined;
-  Paywall: { from: 'onboarding' | 'settings' | 'feature'; reason?: string } | undefined;
-  WidgetGuide: { from?: 'onboarding' } | undefined;
-  Main: NavigatorScreenParams<TabParams> | undefined;
-  Favorites: undefined;
-  CustomLines: undefined;
-  Lanes: undefined;
-  Tone: undefined;
-  Reminders: undefined;
-  Themes: undefined;
-  Legal: { doc: 'privacy' | 'terms' | 'rewards' };
+  Name: undefined;
+  FirstLine: undefined;
+  Standard: { edit?: boolean } | undefined;
+  Chapters: undefined;
+  Day: { edit?: boolean } | undefined;
+  Widget: { guide?: boolean } | undefined;
+  Paywall: { from: PaywallFrom } | undefined;
+  Reader: { mode?: ReaderMode; startNo?: number; nonce?: number; sheet?: 'chapters' | 'colorway' } | undefined;
+  Record: undefined;
+  Settings: undefined;
+  Saved: undefined;
+  YourLines: undefined;
+  Account: undefined;
+  Doc: { id: DocId };
+  /** The same page presented as a sheet (from the paywall, which is itself a modal). */
+  DocSheet: { id: DocId };
+  Milestone: { id: MilestoneId };
+  Letter: { letter: Letter };
   DevTools: undefined;
-  Source: undefined;
 };
 
 export type RootProps<K extends keyof RootParams> = NativeStackScreenProps<RootParams, K>;
-export type TabProps<K extends keyof TabParams> = CompositeScreenProps<
-  BottomTabScreenProps<TabParams, K>,
-  NativeStackScreenProps<RootParams>
->;

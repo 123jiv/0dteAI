@@ -1,16 +1,17 @@
 import type { DayKey } from '../core/time';
-import type { CustomLine, LaneId, Line, Tone } from '../core/types';
-import type { ThemeDef } from '../content';
+import type { ChapterId, Colorway, RecordState } from '../core/types';
+import type { ScheduleInput } from './notifications';
 
-export interface WidgetSnapshotInput {
-  lines: Line[];
-  lanes: LaneId[];
-  tone: Tone;
-  lockScreenClean: boolean;
-  custom: CustomLine[];
-  salt: string;
+/** Everything the widgets need; the app writes it on every foreground and after changes. */
+export interface WidgetInput {
   today: DayKey;
-  streak: number;
-  rankName: string;
-  theme: ThemeDef;
+  premium: boolean;
+  /** Effective colorway: Black for free users. */
+  colorway: Colorway;
+  mix: ChapterId[];
+  record: RecordState;
+  /** The user's three rules. */
+  standard: string[];
+  /** Same plan the notifications use, so the widget shows the line the reminder delivered. */
+  schedule: ScheduleInput;
 }

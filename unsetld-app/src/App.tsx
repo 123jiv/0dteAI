@@ -1,90 +1,79 @@
+import { CormorantGaramond_400Regular } from '@expo-google-fonts/cormorant-garamond/400Regular';
 import { CormorantGaramond_500Medium } from '@expo-google-fonts/cormorant-garamond/500Medium';
-import { CormorantGaramond_600SemiBold } from '@expo-google-fonts/cormorant-garamond/600SemiBold';
+import { CormorantGaramond_500Medium_Italic } from '@expo-google-fonts/cormorant-garamond/500Medium_Italic';
+import { IBMPlexMono_400Regular } from '@expo-google-fonts/ibm-plex-mono/400Regular';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
-import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
-import { DarkTheme, NavigationContainer, createNavigationContainerRef, type LinkingOptions } from '@react-navigation/native';
+import { DarkTheme, NavigationContainer, StackActions, createNavigationContainerRef } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo } from 'react';
-import { Platform, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { newNonce } from './navigation/nonce';
 import { RootNavigator } from './navigation/RootNavigator';
 import type { RootParams } from './navigation/types';
-import { configureNotifications, onReminderOpened } from './services/notifications';
+import { useIntent } from './state/intents';
 import { useBootstrap, useSideEffects } from './state/lifecycle';
-import { useApp, useEntitlements } from './state/store';
-import { ToastHost } from './ui/overlays';
+import { useApp } from './state/store';
+import { ActionHost } from './ui/actions';
 import { PhoneFrame } from './ui/PhoneFrame';
-import { RankUpCelebration } from './ui/RankUpCelebration';
-import { ThemeProvider, toTheme } from './ui/theme';
-
-configureNotifications();
+import { color as C } from './ui/tokens';
 
 export const navigationRef = createNavigationContainerRef<RootParams>();
 
-// Deep links (widgets, notifications) on iOS. The browser preview has none, so
-// navigation never touches the page URL and the preview works anywhere.
-const linking: LinkingOptions<RootParams> | undefined =
-  Platform.OS === 'web'
-    ? undefined
-    : {
-        prefixes: [Linking.createURL('/'), 'unsetld://'],
-        config: { screens: { Main: { screens: { Today: 'today', Rank: 'rank', Me: 'me' } } } },
-      };
+const navTheme = {
+  ...DarkTheme,
+  colors: { ...DarkTheme.colors, background: C.ink, card: C.ink, text: C.bone, border: C.rule, primary: C.bone },
+};
+
+/** Widget taps, deep links and notification taps land here once navigation is ready. */
+function useIntents(ready: boolean) {
+  const intent = useIntent(s => s.intent);
+  const nonce = useIntent(s => s.nonce);
+  useEffect(() => {
+    if (!intent || !ready || !navigationRef.isReady()) return;
+    useIntent.getState().clear();
+    if (!useApp.getState().settings.onboarded) return;
+    const stamp = newNonce();
+    if (intent.kind === 'line') navigationRef.dispatch(StackActions.popTo('Reader', { startNo: intent.no, nonce: stamp }));
+    else navigationRef.dispatch(StackActions.popTo('Reader', { nonce: stamp }));
+    if (intent.kind === 'record') navigationRef.navigate('Record');
+  }, [intent, nonce, ready]);
+}
 
 function Shell() {
   useBootstrap();
   useSideEffects();
-  const ent = useEntitlements();
-  const theme = useMemo(() => toTheme(ent.theme), [ent.theme]);
-
-  useEffect(
-    () =>
-      onReminderOpened(lineId => {
-        if (navigationRef.isReady()) navigationRef.navigate('Main', { screen: 'Today', params: { lineId } });
-      }),
-    [],
-  );
-
-  const navTheme = useMemo(
-    () => ({
-      ...DarkTheme,
-      colors: { ...DarkTheme.colors, background: theme.bg, card: theme.bg, text: theme.text, border: theme.border, primary: theme.accent },
-    }),
-    [theme],
-  );
-
+  const [ready, setReady] = useState(false);
+  useIntents(ready);
   return (
-    <ThemeProvider theme={theme}>
-      <View style={{ flex: 1, backgroundColor: theme.bg }}>
-        <NavigationContainer ref={navigationRef} theme={navTheme} linking={linking}>
-          <RootNavigator />
-        </NavigationContainer>
-        <RankUpCelebration />
-        <ToastHost />
-        <StatusBar style="light" />
-      </View>
-    </ThemeProvider>
+    <View style={{ flex: 1, backgroundColor: C.ink }}>
+      <NavigationContainer ref={navigationRef} theme={navTheme} onReady={() => setReady(true)}>
+        <RootNavigator />
+      </NavigationContainer>
+      <ActionHost />
+      <StatusBar style="light" />
+    </View>
   );
 }
 
 export default function App() {
   const [fontsLoaded] = useFonts({
+    CormorantGaramond_400Regular,
     CormorantGaramond_500Medium,
-    CormorantGaramond_600SemiBold,
+    CormorantGaramond_500Medium_Italic,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
-    Inter_700Bold,
+    IBMPlexMono_400Regular,
   });
   const hydrated = useApp(s => s.hydrated);
   const ready = fontsLoaded && hydrated;
   return (
     <SafeAreaProvider>
-      <PhoneFrame>{ready ? <Shell /> : <View style={{ flex: 1, backgroundColor: '#0a0a0a' }} />}</PhoneFrame>
+      <PhoneFrame>{ready ? <Shell /> : <View style={{ flex: 1, backgroundColor: C.ink }} />}</PhoneFrame>
     </SafeAreaProvider>
   );
 }

@@ -1,0 +1,41 @@
+[
+ {
+  "no": 81,
+  "chapter": "stoic",
+  "text": "No longer talk at all about the kind of man that a good man ought to be, but be such.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations X.16",
+   "translator": "Long"
+  },
+  "verified": false
+ },
+ {
+  "no": 82,
+  "chapter": "stoic",
+  "text": "In the morning when thou risest unwillingly, let this thought be present: I am rising to the work of a human being.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Marcus Aurelius",
+   "source": "Meditations V.1",
+   "translator": "Long"
+  },
+  "verified": false
+ },
+ {
+  "no": 83,
+  "chapter": "stoic",
+  "text": "No man is free who is not master of himself.",
+  "explicit": false,
+  "volume": 1,
+  "attribution": {
+   "author": "Epictetus",
+   "source": "Fragments",
+   "translator": ""
+  },
+  "verified": false
+ }
+]

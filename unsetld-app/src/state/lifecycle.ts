@@ -1,18 +1,30 @@
-import { useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
-import { rankOf } from '../core/rank';
-import { LINES, RANK_CONFIG } from '../content';
-import { backupProgress, readBackup } from '../services/backup';
-import { nextMidnight } from '../core/time';
+import * as Linking from 'expo-linking';
+import { useEffect, useMemo, useRef } from 'react';
+import { AppState, Platform } from 'react-native';
+import { dayCount, sortedDays } from '../core/record';
+import { nextDayStart } from '../core/time';
+import { backupRecord, readBackup } from '../services/backup';
+import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
 import { now } from '../services/clock';
-import { rescheduleReminders, scheduleDropAlerts } from '../services/notifications';
-import { fetchPerksFeed } from '../services/perksFeed';
-import { initPurchases, purchaseMode, refreshPremium, setAcquisitionSource } from '../services/purchases';
-import { updateWidgets } from '../services/widgets';
-import type { CustomLine } from '../core/types';
+import { reschedule, scheduleDropAlerts, type ScheduleInput } from '../services/notifications';
+import { initPurchases, purchaseMode, refreshPremium } from '../services/purchases';
+import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
+import { parseUrl, useIntent } from './intents';
 import { useApp, useEntitlements } from './store';
 
-const NO_CUSTOM: CustomLine[] = [];
+function applyPremium() {
+  refreshPremium()
+    .then(r => {
+      if (r) useApp.getState().setPremium({ active: r.active, plan: r.info.plan, renews: r.info.renews });
+    })
+    .catch(() => {});
+}
+
+function applyConfig() {
+  fetchConfig().then(c => {
+    if (c) useApp.getState().setRemote({ accessEnabled: c.accessEnabled, collection: c.collection });
+  });
+}
 
 /** One-time startup work after the store has hydrated. */
 export function useBootstrap() {
@@ -23,114 +35,128 @@ export function useBootstrap() {
     done.current = true;
     const s = useApp.getState();
 
-    // Reinstall: restore rank from the Keychain backup.
-    if (!s.progress.lastOpenDay) {
+    // Reinstall: bring the record back from the Keychain.
+    if (dayCount(s.record) === 0) {
       readBackup().then(b => {
-        if (b && b.lastOpenDay) useApp.getState().restoreProgress(b);
+        if (b && Object.keys(b.record.days).length) useApp.getState().restore(b.installSalt, b.record);
       });
     }
 
     useApp.getState().setPremium({ mode: purchaseMode });
-    initPurchases(active => useApp.getState().setPremium({ active }))
-      .then(() => refreshPremium())
-      .then(active => {
-        if (active !== null) useApp.getState().setPremium({ active });
-      })
+    initPurchases((active, info) => useApp.getState().setPremium({ active, plan: info.plan, renews: info.renews }))
+      .then(applyPremium)
       .catch(() => {});
-    setAcquisitionSource(s.settings.source);
-
+    applyConfig();
+    prepareWidgetAssets().catch(() => {});
     useApp.getState().refreshDay();
-    useApp.getState().reconcileNow();
-    syncDrops();
 
-    // Roll the day over at midnight even if the app stays open.
-    let midnight: ReturnType<typeof setTimeout>;
-    const armMidnight = () => {
-      midnight = setTimeout(() => {
+    // Roll the day over at 4:00 AM even if the app stays open.
+    let timer: ReturnType<typeof setTimeout>;
+    const arm = () => {
+      timer = setTimeout(() => {
         useApp.getState().refreshDay();
-        useApp.getState().reconcileNow();
-        armMidnight();
-      }, Math.max(1000, nextMidnight(now()).getTime() - now().getTime() + 500));
+        arm();
+      }, Math.max(1000, nextDayStart(now()).getTime() - now().getTime() + 500));
     };
-    armMidnight();
+    arm();
 
     const sub = AppState.addEventListener('change', st => {
       if (st === 'active') {
         useApp.getState().refreshDay();
-        useApp.getState().reconcileNow();
-        refreshPremium()
-          .then(active => {
-            if (active !== null) useApp.getState().setPremium({ active });
-          })
-          .catch(() => {});
+        applyPremium();
+        applyConfig();
       }
     });
+
+    // Deep links from widgets and other apps.
+    if (Platform.OS !== 'web') {
+      Linking.getInitialURL().then(url => {
+        const i = url ? parseUrl(url) : null;
+        if (i) useIntent.getState().push(i);
+      });
+    }
+    const linkSub = Platform.OS !== 'web' ? Linking.addEventListener('url', ({ url }) => {
+      const i = parseUrl(url);
+      if (i) useIntent.getState().push(i);
+    }) : null;
+
     return () => {
       sub.remove();
-      clearTimeout(midnight);
+      linkSub?.remove();
+      clearTimeout(timer);
     };
   }, [hydrated]);
 }
 
-async function syncDrops() {
-  const feed = await fetchPerksFeed();
-  await scheduleDropAlerts(feed?.drops ?? [], useApp.getState().settings.dropAlerts).catch(() => {});
-}
-
-/** Keeps widgets, reminders and the Keychain backup in step with app state. */
+/** Keeps notifications, widgets, the Keychain backup and drop alerts in step with app state. */
 export function useSideEffects() {
   const hydrated = useApp(s => s.hydrated);
+  const onboarded = useApp(s => s.settings.onboarded);
   const settings = useApp(s => s.settings);
-  const custom = useApp(s => s.customLines);
-  const progress = useApp(s => s.progress);
+  const record = useApp(s => s.record);
+  const salt = useApp(s => s.installSalt);
   const day = useApp(s => s.currentDay);
+  const account = useApp(s => s.account.userId);
   const ent = useEntitlements();
+  const mixKey = ent.mix.join(',');
+  const nightsKey = Object.keys(record.nights).sort().slice(-3).join(',');
 
-  const rankName = rankOf(RANK_CONFIG, progress.rankXP).name;
-  const customLines = ent.customLines ? custom : NO_CUSTOM;
-  const lanesKey = ent.lanes.join(',');
+  const schedule: ScheduleInput = useMemo(
+    () => ({
+      remindersOn: settings.reminders.on,
+      count: Math.min(settings.reminders.count, ent.maxReminders),
+      first: settings.reminders.first,
+      last: settings.reminders.last,
+      night: settings.night,
+      answered: new Set(Object.keys(record.nights)),
+      mix: ent.mix,
+      seed: salt,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [settings.reminders, settings.night, ent.maxReminders, mixKey, nightsKey, salt],
+  );
 
+  // Notifications: on every foreground (day change) and after settings change.
   useEffect(() => {
-    if (!hydrated || !settings.onboarded) return;
+    if (!hydrated || !onboarded) return;
+    const t = setTimeout(() => reschedule(schedule).catch(() => {}), 600);
+    return () => clearTimeout(t);
+  }, [hydrated, onboarded, schedule, day]);
+
+  // Widgets: same plan, plus the record, colorway and standard.
+  const standardKey = settings.standard.join('|');
+  const recordKey = `${dayCount(record)}:${sortedDays(record).slice(-7).join(',')}`;
+  useEffect(() => {
+    if (!hydrated || !onboarded) return;
     updateWidgets({
-      lines: LINES,
-      lanes: ent.lanes,
-      tone: settings.tone,
-      lockScreenClean: settings.lockScreenClean,
-      custom: customLines,
-      salt: progress.installSalt,
       today: day,
-      streak: progress.streak,
-      rankName,
-      theme: ent.theme,
+      premium: ent.premium,
+      colorway: ent.colorway,
+      mix: ent.mix,
+      record: useApp.getState().record,
+      standard: settings.standard,
+      schedule,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, settings.onboarded, lanesKey, settings.tone, settings.lockScreenClean, customLines, progress.streak, rankName, ent.theme.id, progress.installSalt, day]);
+  }, [hydrated, onboarded, day, ent.premium, ent.colorway.id, mixKey, recordKey, standardKey, schedule]);
 
+  // Keychain backup of the record.
   useEffect(() => {
-    if (!hydrated || !settings.onboarded) return;
-    const t = setTimeout(() => {
-      rescheduleReminders({
-        enabled: settings.reminders.enabled,
-        perDay: ent.remindersPerDay,
-        startHour: settings.reminders.startHour,
-        endHour: settings.reminders.endHour,
-        lanes: ent.lanes,
-        lockScreenClean: settings.lockScreenClean,
-        tone: settings.tone,
-        custom: customLines,
-        salt: progress.installSalt,
-      }).catch(() => {});
-    }, 800);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, settings.onboarded, settings.reminders, ent.remindersPerDay, lanesKey, settings.lockScreenClean, settings.tone, customLines, progress.installSalt]);
+    if (hydrated) backupRecord({ installSalt: salt, record });
+  }, [hydrated, salt, record]);
 
+  // Account holders: tell the server about today's day on record.
+  const recordedToday = Boolean(record.days[day]);
   useEffect(() => {
-    if (hydrated) backupProgress(progress);
-  }, [hydrated, progress]);
+    if (hydrated && account && recordedToday) syncCheckIn(day).catch(() => {});
+  }, [hydrated, account, recordedToday, day]);
 
+  // Drop alerts (opt-in).
+  const early = dayCount(record) >= 7;
   useEffect(() => {
-    if (hydrated) syncDrops();
-  }, [hydrated, settings.dropAlerts]);
+    if (!hydrated) return;
+    fetchDrops()
+      .then(drops => scheduleDropAlerts(drops, settings.dropAlerts, early))
+      .catch(() => {});
+  }, [hydrated, settings.dropAlerts, early]);
 }

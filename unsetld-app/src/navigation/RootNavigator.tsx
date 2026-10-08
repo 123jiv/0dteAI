@@ -1,80 +1,63 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Platform, Text } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CustomLinesScreen } from '../screens/CustomLinesScreen';
+import { Platform } from 'react-native';
+import { AccountScreen } from '../screens/AccountScreen';
+import { DayScreen } from '../screens/DayScreen';
 import { DevToolsScreen } from '../screens/DevToolsScreen';
-import { FavoritesScreen } from '../screens/FavoritesScreen';
-import { LegalScreen } from '../screens/LegalScreen';
-import { MeScreen } from '../screens/MeScreen';
-import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
+import { DocScreen } from '../screens/DocScreen';
+import { LetterScreen } from '../screens/LetterScreen';
+import { MilestoneScreen } from '../screens/MilestoneScreen';
+import { ChaptersScreen } from '../screens/onboarding/ChaptersScreen';
+import { FirstLineScreen } from '../screens/onboarding/FirstLineScreen';
+import { NameScreen } from '../screens/onboarding/NameScreen';
 import { PaywallScreen } from '../screens/PaywallScreen';
-import { RankScreen } from '../screens/RankScreen';
-import { LanesScreen, RemindersScreen, SourceScreen, ThemesScreen, ToneScreen } from '../screens/SettingsScreens';
-import { TodayScreen } from '../screens/TodayScreen';
-import { WidgetGuideScreen } from '../screens/WidgetGuideScreen';
+import { ReaderScreen } from '../screens/reader/ReaderScreen';
+import { RecordScreen } from '../screens/RecordScreen';
+import { SavedScreen } from '../screens/SavedScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+import { StandardScreen } from '../screens/StandardScreen';
+import { WidgetScreen } from '../screens/WidgetScreen';
+import { YourLinesScreen } from '../screens/YourLinesScreen';
 import { useApp } from '../state/store';
-import { Icon, type IconName } from '../ui/icons';
-import { fonts, useTheme } from '../ui/theme';
-import type { RootParams, TabParams } from './types';
+import { color as C } from '../ui/tokens';
+import type { RootParams } from './types';
 
 const Stack = createNativeStackNavigator<RootParams>();
-const Tabs = createBottomTabNavigator<TabParams>();
+const web = Platform.OS === 'web';
 
-const TAB_ICONS: Record<keyof TabParams, IconName> = { Today: 'home', Rank: 'rank', Me: 'me' };
-
-function MainTabs() {
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
-  return (
-    <Tabs.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: theme.bg,
-          borderTopColor: theme.border,
-          height: 58 + insets.bottom,
-          paddingTop: 6,
-        },
-        tabBarActiveTintColor: theme.text,
-        tabBarInactiveTintColor: theme.muted,
-        tabBarIcon: ({ color }) => <Icon name={TAB_ICONS[route.name]} color={color} size={22} />,
-        tabBarLabel: ({ color }) => (
-          <Text style={{ color, fontFamily: fonts.sansMedium, fontSize: 11, letterSpacing: 0.4 }}>{route.name}</Text>
-        ),
-      })}>
-      <Tabs.Screen name="Today" component={TodayScreen} />
-      <Tabs.Screen name="Rank" component={RankScreen} />
-      <Tabs.Screen name="Me" component={MeScreen} />
-    </Tabs.Navigator>
-  );
-}
-
+/** One native stack, no tab bar. Sheets inside the reader are drawn by the reader itself. */
 export function RootNavigator() {
   // Read once: the navigator only mounts after the store has hydrated.
   const onboarded = useApp.getState().settings.onboarded;
-  const theme = useTheme();
   return (
     <Stack.Navigator
-      initialRouteName={onboarded ? 'Main' : 'Onboarding'}
+      initialRouteName={onboarded ? 'Reader' : 'Name'}
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: theme.bg },
-        animation: Platform.OS === 'web' ? 'none' : 'default',
+        contentStyle: { backgroundColor: C.ink },
+        animation: web ? 'none' : 'default',
       }}>
-      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="Main" component={MainTabs} />
-      <Stack.Screen name="Paywall" component={PaywallScreen} options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
-      <Stack.Screen name="WidgetGuide" component={WidgetGuideScreen} />
-      <Stack.Screen name="Favorites" component={FavoritesScreen} />
-      <Stack.Screen name="CustomLines" component={CustomLinesScreen} />
-      <Stack.Screen name="Lanes" component={LanesScreen} />
-      <Stack.Screen name="Tone" component={ToneScreen} />
-      <Stack.Screen name="Reminders" component={RemindersScreen} />
-      <Stack.Screen name="Themes" component={ThemesScreen} />
-      <Stack.Screen name="Source" component={SourceScreen} />
-      <Stack.Screen name="Legal" component={LegalScreen} />
+      <Stack.Screen name="Name" component={NameScreen} />
+      <Stack.Screen name="FirstLine" component={FirstLineScreen} options={{ animation: web ? 'none' : 'fade', gestureEnabled: false }} />
+      <Stack.Screen name="Standard" component={StandardScreen} />
+      <Stack.Screen name="Chapters" component={ChaptersScreen} />
+      <Stack.Screen name="Day" component={DayScreen} />
+      <Stack.Screen name="Widget" component={WidgetScreen} />
+      <Stack.Screen name="Reader" component={ReaderScreen} options={{ animation: web ? 'none' : 'fade' }} />
+      <Stack.Screen name="Record" component={RecordScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="Saved" component={SavedScreen} />
+      <Stack.Screen name="YourLines" component={YourLinesScreen} />
+      <Stack.Screen name="Account" component={AccountScreen} />
+      <Stack.Screen name="Doc" component={DocScreen} />
+      <Stack.Screen name="Milestone" component={MilestoneScreen} />
       <Stack.Screen name="DevTools" component={DevToolsScreen} />
+      <Stack.Screen name="Paywall" component={PaywallScreen} options={{ presentation: 'fullScreenModal' }} />
+      <Stack.Screen name="DocSheet" component={DocScreen} options={{ presentation: 'modal' }} />
+      <Stack.Screen
+        name="Letter"
+        component={LetterScreen}
+        options={{ presentation: 'fullScreenModal', animation: web ? 'none' : 'fade', animationDuration: 400 }}
+      />
     </Stack.Navigator>
   );
 }

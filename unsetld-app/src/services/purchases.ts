@@ -1,4 +1,4 @@
-// Premium purchases. Products, prices and the trial live in App Store Connect
+// Full Edition purchases. Products, prices and the trial live in App Store Connect
 // and RevenueCat; the app only reads the current Offering. Without a RevenueCat
 // key (or in the browser preview) it runs in preview mode with sample products
 // so the paywall can be tested end to end without charging anyone.
@@ -42,13 +42,14 @@ function lib(): RCModule {
   return rc;
 }
 
-export async function initPurchases(onChange: (premium: boolean) => void): Promise<void> {
+export async function initPurchases(onChange: (premium: boolean, info: EntitlementInfo) => void): Promise<void> {
   if (purchaseMode !== 'revenuecat' || configured) return;
   const Purchases = lib().default;
   Purchases.configure({ apiKey: AppConfig.revenueCatIosKey });
   configured = true;
   Purchases.addCustomerInfoUpdateListener(info => {
-    onChange(Boolean(info.entitlements.active[AppConfig.entitlementId]));
+    const e = info.entitlements.active[AppConfig.entitlementId];
+    onChange(Boolean(e), entitlementInfo(e));
   });
 }
 
@@ -69,7 +70,8 @@ export async function getPlans(): Promise<Plan[]> {
   if (purchaseMode === 'preview') return PREVIEW_PLANS;
   const { default: Purchases, INTRO_ELIGIBILITY_STATUS } = lib();
   const offerings = await Purchases.getOfferings();
-  const pkgs = offerings.current?.availablePackages ?? [];
+  const offering = offerings.all[AppConfig.offeringId] ?? offerings.current;
+  const pkgs = offering?.availablePackages ?? [];
   const plans: Plan[] = [];
   for (const pkg of pkgs) {
     const kind = kindOf(pkg.packageType);
@@ -123,19 +125,23 @@ export async function restore(): Promise<PurchaseOutcome> {
   return { premium: Boolean(info.entitlements.active[AppConfig.entitlementId]), plan: null };
 }
 
-export async function refreshPremium(): Promise<boolean | null> {
+export interface EntitlementInfo {
+  plan: PlanKind | null;
+  /** ISO date the subscription renews, if it does. */
+  renews: string | null;
+}
+
+function entitlementInfo(e: { productIdentifier: string; expirationDate: string | null; willRenew: boolean } | undefined): EntitlementInfo {
+  if (!e) return { plan: null, renews: null };
+  const id = e.productIdentifier;
+  const plan: PlanKind = id.includes('lifetime') ? 'lifetime' : id.includes('monthly') ? 'monthly' : 'annual';
+  return { plan, renews: e.willRenew ? e.expirationDate : null };
+}
+
+export async function refreshPremium(): Promise<{ active: boolean; info: EntitlementInfo } | null> {
   if (purchaseMode === 'preview') return null;
   const Purchases = lib().default;
   const info = await Purchases.getCustomerInfo();
-  return Boolean(info.entitlements.active[AppConfig.entitlementId]);
-}
-
-/** Anonymous acquisition source, so trials can be split per TikTok account. */
-export async function setAcquisitionSource(source: string | null) {
-  if (purchaseMode !== 'revenuecat' || !source) return;
-  try {
-    await lib().default.setAttributes({ acquisition_source: source });
-  } catch {
-    // non-critical
-  }
+  const e = info.entitlements.active[AppConfig.entitlementId];
+  return { active: Boolean(e), info: entitlementInfo(e) };
 }

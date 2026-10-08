@@ -1,0 +1,12 @@
+[
+  { "id": "black", "name": "Black", "free": true, "bg": "#0A0A0A", "ink": "#EDE9E3", "secondary": "#8F8A83", "rule": "#2A2825", "statusBar": "light", "kind": "solid", "previewLine": "Eat like you plan to train tomorrow." },
+  { "id": "bone", "name": "Bone", "free": false, "bg": "#EDE9E3", "ink": "#11100F", "secondary": "#5C574F", "rule": "#CFC9C0", "statusBar": "dark", "kind": "plate", "previewLine": "Write the numbers down. Memory flatters you." },
+  { "id": "snow-wash", "name": "Snow Wash", "free": false, "bg": "#BDB9B2", "ink": "#11100F", "secondary": "#433F3A", "rule": "#9E9A93", "statusBar": "dark", "kind": "plate", "previewLine": "Not everything that buzzes is yours to answer." },
+  { "id": "sun-fade", "name": "Sun Fade", "free": false, "bg": "#2A2826", "ink": "#EDE9E3", "secondary": "#D4CFC8", "rule": "rgba(237,233,227,0.18)", "statusBar": "light", "kind": "plate", "previewLine": "Every night you give it is a morning it takes." },
+  { "id": "concrete", "name": "Concrete", "free": false, "bg": "#8F8A84", "ink": "#0E0D0C", "secondary": "#22201E", "rule": "#77726C", "statusBar": "dark", "kind": "plate", "previewLine": "Ask for the raise with a list, not a feeling." },
+  { "id": "charcoal", "name": "Charcoal", "free": false, "bg": "#1E1D1B", "ink": "#EDE9E3", "secondary": "#A09B94", "rule": "#363431", "statusBar": "light", "kind": "plate", "previewLine": "Delete it on a good day. You won't on a bad one." },
+  { "id": "plum", "name": "Plum", "free": false, "bg": "#3F2F38", "bgEnd": "#33262D", "ink": "#EDE9E3", "secondary": "#C2B6BB", "rule": "#523F49", "statusBar": "light", "kind": "gradient", "previewLine": "Make the phone call you keep turning into texts." },
+  { "id": "coffee", "name": "Coffee", "free": false, "bg": "#403329", "bgEnd": "#34291F", "ink": "#EDE9E3", "secondary": "#C3B8AE", "rule": "#54453A", "statusBar": "light", "kind": "gradient", "previewLine": "It's not a reward if you need it every night." },
+  { "id": "olive", "name": "Olive", "free": false, "bg": "#3E3F31", "bgEnd": "#333428", "ink": "#EDE9E3", "secondary": "#BDBCAD", "rule": "#515241", "statusBar": "light", "kind": "gradient", "previewLine": "Complaining is the work you do instead of the work." },
+  { "id": "midnight", "name": "Midnight", "free": false, "bg": "#0C0F16", "ink": "#EDE9E3", "secondary": "#959BA6", "rule": "#232733", "statusBar": "light", "kind": "plate", "previewLine": "It's 2am. Whatever you're looking for isn't on that screen." }
+]

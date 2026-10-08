@@ -1,83 +1,101 @@
 import { View } from 'react-native';
-import { checkIn, completeMission, rankOf, setNonNegotiable } from '../core/rank';
-import { addDays, dayKey } from '../core/time';
-import { RANK_CONFIG } from '../content';
+import { dayCount, recordDay } from '../core/record';
+import { addDays, formatTime, minutesOf } from '../core/time';
 import type { RootProps } from '../navigation/types';
-import { today } from '../services/clock';
+import { now, today } from '../services/clock';
 import { purchaseMode } from '../services/purchases';
 import { useApp } from '../state/store';
-import { Button, Card, Header, Screen, SectionLabel, T, ToggleRow } from '../ui/components';
-import { space } from '../ui/theme';
+import { Button, NavRow, PageTitle, Screen, SectionHeader, SettingsRow, Toggle } from '../ui/kit';
+import { T } from '../ui/text';
+import { color as C, MARGIN } from '../ui/tokens';
 
 /**
- * Tester tools (dev and preview builds only): time travel so streaks, rank-ups,
- * shields and decay can be tested in minutes instead of months.
+ * Tester tools (dev builds and the browser preview only): time travel so the
+ * record, milestones, letters and the pause rule can be tried in minutes.
  */
 export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
   const offset = useApp(s => s.dayOffset);
-  const setOffset = useApp(s => s.setDayOffset);
-  const backToReal = useApp(s => s.backToRealToday);
-  const progress = useApp(s => s.progress);
-  const premium = useApp(s => s.premium);
-  const setPremium = useApp(s => s.setPremium);
-  const restoreProgress = useApp(s => s.restoreProgress);
-  const pushToast = useApp(s => s.pushToast);
-  const update = useApp(s => s.updateSettings);
-  const rank = rankOf(RANK_CONFIG, progress.rankXP);
+  const record = useApp(s => s.record);
+  const premium = useApp(s => s.premium.active);
+  const remote = useApp(s => s.remote);
+  const settings = useApp(s => s.settings);
+  const st = useApp.getState;
 
-  /** Fast-forward n days, doing the daily work each day (or only opening the app). */
-  const grind = (n: number, full: boolean) => {
-    let p = useApp.getState().progress;
-    let off = offset;
-    for (let i = 0; i < n; i++) {
-      off += 1;
-      const d = addDays(dayKey(new Date()), off);
-      p = checkIn(p, RANK_CONFIG, d, { verified: false }).progress;
-      if (full) {
-        p = setNonNegotiable(p, RANK_CONFIG, d, 'Train').progress;
-        p = completeMission(p, RANK_CONFIG, d, 'm-001').progress;
-      }
-    }
-    setOffset(off);
-    restoreProgress(p);
-    pushToast(`Jumped ${n} days. ${p.rankXP} XP, ${p.streak}-day streak.`, 'info');
+  /**
+   * Opens the app every day for `n` days: today and the next n-1 go on record,
+   * and the new today is left for the reader to record (so Day N and letters show).
+   */
+  const grind = (n: number) => {
+    let r = st().record;
+    for (let i = 0; i < n; i++) r = recordDay(r, addDays(today(), i), true);
+    st().setDayOffset(st().dayOffset + n);
+    st().setRecord(r);
   };
+  const skip = (n: number) => st().setDayOffset(st().dayOffset + n);
 
   return (
-    <Screen scroll>
-      <Header title="Tester tools" onBack={() => navigation.goBack()} />
-      <Card>
-        <T variant="label">Pretend today is</T>
-        <T variant="h2" style={{ marginTop: 4 }}>{`${today()}  (${offset >= 0 ? '+' : ''}${offset} days)`}</T>
-        <T variant="caption" style={{ marginTop: 4 }}>{`${rank.name} · ${progress.rankXP} XP · streak ${progress.streak} · lifetime ${progress.lifetimeXP}`}</T>
-      </Card>
-
-      <SectionLabel>Time travel</SectionLabel>
-      <View style={{ gap: space.sm }}>
-        <Button title="Next day (then open Today)" variant="secondary" onPress={() => setOffset(offset + 1)} />
-        <Button title="Grind 7 days (full daily work)" variant="secondary" onPress={() => grind(7, true)} />
-        <Button title="Grind 30 days (full daily work)" variant="secondary" onPress={() => grind(30, true)} />
-        <Button title="Grind 30 days (only opening the app)" variant="secondary" onPress={() => grind(30, false)} />
-        <Button title="Disappear for 5 days" variant="secondary" onPress={() => setOffset(offset + 5)} />
-        <Button title="Disappear for 14 days" variant="secondary" onPress={() => setOffset(offset + 14)} />
-        <Button title="Back to real today (restores real progress)" variant="ghost" onPress={backToReal} />
+    <Screen nav={<NavRow onBack={() => navigation.goBack()} />}>
+      <PageTitle title="Tester tools" body="Preview and dev builds only. Time travel changes the app's idea of today; notifications still use the real clock." />
+      <View style={{ marginTop: 24, gap: 4 }}>
+        <T v="mono">{`TODAY ${today()}  (${offset >= 0 ? '+' : ''}${offset} DAYS)`}</T>
+        <T v="mono">{`DAY ${dayCount(record)} ON RECORD`}</T>
       </View>
-      <T variant="caption" style={{ marginTop: space.sm }}>
-        After skipping days, open the Today tab: shields, grace and decay apply on the next check-in.
-      </T>
 
-      <SectionLabel>Flags</SectionLabel>
-      {purchaseMode === 'preview' ? (
-        <ToggleRow title="Premium (preview)" value={premium.active} onChange={v => setPremium({ active: v, plan: v ? 'annual' : null })} />
-      ) : null}
-      <Button
-        title="Replay onboarding"
-        variant="ghost"
-        onPress={() => {
-          update({ onboarded: false });
-          navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
-        }}
-      />
+      <SectionHeader first>TIME TRAVEL</SectionHeader>
+      <View style={{ gap: 12 }}>
+        <Button kind="outline" title="Next day (then open the reader)" onPress={() => skip(1)} />
+        <Button kind="outline" title="Jump 6 days, opening the app each day" onPress={() => grind(6)} />
+        <Button kind="outline" title="Jump 23 days, opening the app each day" onPress={() => grind(23)} />
+        <Button kind="outline" title="Jump 60 days, opening the app each day" onPress={() => grind(60)} />
+        <Button kind="outline" title="Disappear for 15 days" onPress={() => skip(15)} />
+        <Button kind="outline" title="Back to the real today" onPress={() => st().backToRealToday()} />
+      </View>
+
+      <SectionHeader>FLAGS</SectionHeader>
+      <View style={{ marginHorizontal: -MARGIN }}>
+        {purchaseMode === 'preview' ? (
+          <SettingsRow
+            first
+            title="Full Edition (preview)"
+            chevron={false}
+            right={<Toggle label="Full Edition" value={premium} onChange={v => st().setPremium({ active: v, plan: v ? 'annual' : null })} />}
+          />
+        ) : null}
+        <SettingsRow
+          title="Access enabled"
+          chevron={false}
+          right={<Toggle label="Access enabled" value={remote.accessEnabled ?? true} onChange={v => st().setRemote({ accessEnabled: v })} />}
+        />
+        <SettingsRow
+          title="Night check due now"
+          value={formatTime(settings.night.time)}
+          chevron={false}
+          onPress={() => st().updateSettings({ night: { on: true, time: Math.max(0, minutesOf(now()) - 1) } })}
+        />
+      </View>
+
+      <SectionHeader>RESET</SectionHeader>
+      <View style={{ gap: 12 }}>
+        <Button
+          kind="outline"
+          title="Replay onboarding"
+          onPress={() => {
+            st().updateSettings({ onboarded: false });
+            navigation.reset({ index: 0, routes: [{ name: 'Name' }] });
+          }}
+        />
+        <Button
+          kind="outline"
+          title="Clear the record and letters"
+          onPress={() => {
+            st().backToRealToday();
+            st().setRecord({ days: {}, nights: {}, lettersShown: [], memberPriceUsed: {}, patchClaimed: null });
+          }}
+        />
+      </View>
+      <T v="note" color={C.stone} style={{ marginTop: 16 }}>
+        After time travel, go back to the reader: it records the new day, shows Day N in the running head, and any milestone letter after a few seconds.
+      </T>
     </Screen>
   );
 }

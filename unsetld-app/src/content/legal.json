@@ -1,88 +1,58 @@
 {
-  "privacy": {
-    "title": "Privacy Policy",
+  "record": {
+    "title": "How the record works",
+    "sections": [
+      { "h": "On record", "p": "A day goes on record when you open that day's line, in the app, from a widget or from a reminder. One a day. A day runs from 4:00 AM to 3:59 AM, so late nights count." },
+      { "h": "It only goes up", "p": "Missed days don't erase the ones on record." },
+      { "h": "The night check", "p": "It's between you and you. Saying Not today keeps the day on record." },
+      { "h": "Access", "list": [
+        "Day 7: every UNSETLD drop opens to you 24 hours before the public.",
+        "Day 30: 10% off one order each collection.",
+        "Day 90: a woven patch with your number, free with your next order.",
+        "Day 180: the member price goes to 15%.",
+        "Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked."
+      ] },
+      { "h": "Keeping it", "p": "If 14 days pass with nothing on record, early access and member prices pause until you put 7 more days on record. Your count and milestones stay." },
+      { "h": "Limits", "p": "One member-price order per collection. Up to $25 off an order. Doesn't combine with other codes, including the 10% first-order code. Excludes the 365 piece. One patch per person." },
+      { "h": "It can't be bought", "p": "Full Edition doesn't change any of this. Access is the same for everyone." },
+      { "h": "Account", "p": "To use access you need a free account, made with Sign in with Apple, so we can hold your place." }
+    ]
+  },
+  "access": {
+    "title": "Access terms",
     "updated": "2026-10-07",
     "sections": [
-      {
-        "h": "The short version",
-        "p": "UNSETLD has no accounts and collects no personal data. Your lanes, lines, favorites, streak, XP and rank live on your iPhone, with a backup of your rank in the phone's secure Keychain so a reinstall doesn't wipe it. We can't see any of it."
-      },
-      {
-        "h": "What leaves your phone",
-        "p": "Purchases: Apple processes payments. RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so Premium works across your devices. If you answered \"How did you find us?\", that answer is sent to RevenueCat with the same anonymous ID so we can see which accounts bring people in. Time check: once a day the app asks unsetld.com for the current date to keep streaks honest. No identifier is sent. Store links: tapping Shop or claiming a code opens unsetld.com in Safari, which is covered by that site's own privacy policy."
-      },
-      {
-        "h": "What we don't do",
-        "p": "No ads, no tracking across apps, no selling data, no analytics SDKs, no contacts, location, camera or microphone."
-      },
-      {
-        "h": "Notifications",
-        "p": "Reminders are local notifications scheduled on your phone. Drop alerts are separate, off by default, and only on if you turn them on."
-      },
-      {
-        "h": "Deleting your data",
-        "p": "Delete the app to remove what's stored in the app. A small backup of your rank and code history is kept in the iPhone's Keychain so a reinstall restores it; Me → Reset progress sets your rank back to zero but keeps code history so cooldowns still apply."
-      },
-      {
-        "h": "Contact",
-        "p": "Questions: contact us through unsetld.com."
-      }
+      { "h": "Who can take part", "p": "For US residents 18 and over." },
+      { "h": "What access is", "p": "Access is earned with days on record in the app. It can't be bought, and Full Edition doesn't change it. Early access opens drops 24 hours before the public. The member price is 10% off one order each collection, 15% from Day 180, up to $25 off an order. The patch is one per person and ships free with an order. The 365 piece is sold at full price." },
+      { "h": "Limits", "p": "No cash value. Not transferable. Codes are single use and don't combine with other codes, including the first-order code. The member price excludes the 365 piece." },
+      { "h": "Pauses", "p": "If 14 days pass with nothing on record, early access and member prices pause until 7 more days are on record. Your count and milestones stay." },
+      { "h": "Changes", "p": "We may change or end the program with 30 days' notice in the app." },
+      { "h": "Contact", "p": "unsetldclothing@gmail.com" }
     ]
   },
   "terms": {
     "title": "Terms of Use",
     "updated": "2026-10-07",
     "sections": [
-      {
-        "h": "Using UNSETLD",
-        "p": "UNSETLD gives you daily lines, reminders, streaks and a rank system to help you stay consistent. It is motivation, not medical, financial or professional advice. Results depend on you."
-      },
-      {
-        "h": "Premium",
-        "p": "Premium is sold through Apple as an auto-renewing subscription (yearly or monthly) or a one-time lifetime purchase. Payment is charged to your Apple ID at confirmation of purchase, or when a free trial ends. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings → your name → Subscriptions. Any unused part of a free trial ends when you buy a subscription."
-      },
-      {
-        "h": "Apple's standard terms",
-        "p": "Apple's Licensed Application End User License Agreement (apple.com/legal/internet-services/itunes/dev/stdeula) also applies."
-      },
-      {
-        "h": "Content",
-        "p": "Lines you write yourself stay on your device. Don't use the app for anything unlawful. Unfiltered mode contains strong language."
-      }
+      { "h": "Using UNSETLD", "p": "UNSETLD gives you a daily line, reminders, a night check and a record of the days you showed up. It is motivation, not medical, financial or professional advice." },
+      { "h": "Full Edition", "p": "Full Edition is sold through Apple as an auto-renewing subscription (yearly or monthly) or a one-time lifetime purchase. Payment is charged to your Apple ID at confirmation of purchase, or when a free trial ends. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings, your name, Subscriptions. Any unused part of a free trial ends when you buy a subscription." },
+      { "h": "Apple's standard terms", "p": "Apple's Licensed Application End User License Agreement (apple.com/legal/internet-services/itunes/dev/stdeula) also applies." },
+      { "h": "Access", "p": "Access to the clothing brand is covered by the Access terms in Settings." },
+      { "h": "Content", "p": "The lines in the app are original to UNSETLD, except attributed quotes, which are public-domain translations. Lines you write yourself stay on your phone." },
+      { "h": "Contact", "p": "unsetldclothing@gmail.com" }
     ]
   },
-  "rewards": {
-    "title": "UNSETLD Rank: Rewards Terms",
+  "privacy": {
+    "title": "Privacy Policy",
     "updated": "2026-10-07",
     "sections": [
-      {
-        "h": "Who can join",
-        "p": "Everyone who uses the app, free or Premium. Rank perks that have cash value (discount codes) are for US residents 16 and older. XP is the same for free and Premium users. You can't buy XP or rank."
-      },
-      {
-        "h": "Earning XP",
-        "p": "Open today's line (10 XP), set today's non-negotiable (10), finish today's mission (15), complete a full week (30), and streak milestones (7, 30, 60, 100, 180, 365 days). XP is never given for ratings, reviews, notifications, tracking, following accounts or posting on social media."
-      },
-      {
-        "h": "Ranks and decay",
-        "p": "SETTLED 0 · HUNGRY 300 · DIALED IN 1,300 · RELENTLESS 3,500 · UNSETLD 8,000. You get 2 streak shields a month. After shields and 2 grace days, rank XP drops 2% per missed day until you open today's line. You drop at most one rank per 30 days. Lifetime XP and your highest-rank badge never decay."
-      },
-      {
-        "h": "Discount codes",
-        "p": "Codes are percent-off discounts at unsetld.com: 10% at DIALED IN (one every 90 days); 15% at RELENTLESS and 20% (max $25 off) at UNSETLD, one every 60 days, once Rank Sync is live. To claim you must hold the rank now and be on a live 7-day streak. Max 6 codes and $150 off per rolling 12 months. One code per order; $60 minimum before discount; no stacking with other codes, sale prices or bundles. Not valid on new drops or restocks for their first 72 hours, numbered or 1-of-1 pieces, collabs, app-only colorways, gift cards, shipping or tax. Codes expire on the date shown."
-      },
-      {
-        "h": "No cash value",
-        "p": "XP, ranks and codes have no cash value, can't be sold, transferred or exchanged for cash or gift cards, and aren't store credit. All sales at unsetld.com are final as stated on the site."
-      },
-      {
-        "h": "Fair play",
-        "p": "Tampering with the app, your device clock or codes can void rank and perks. A monthly redemption cap applies; when it's hit, codes show as sold out until the 1st."
-      },
-      {
-        "h": "Changes",
-        "p": "UNSETLD may change or end the program, rank thresholds or perks at any time. Changes are shown in the app."
-      }
+      { "h": "The short version", "p": "Your record, your standard, saved lines and your lines live on your iPhone. There are no ads, no tracking and no analytics SDKs." },
+      { "h": "What leaves your phone", "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so Full Edition works across your devices. Time check: the app asks unsetld.com for the current date so days on record stay honest. No identifier is sent. Config: the app reads a small public file from unsetld.com to know whether access is on and when drops open." },
+      { "h": "If you sign in for access", "p": "Signing in with Apple is optional and only needed to use access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you put on record so we can hold your place and issue single-use codes. Nothing else." },
+      { "h": "Notifications", "p": "Reminders and the night check are local notifications scheduled on your phone. Drop alerts are separate, off by default, and only on if you turn them on." },
+      { "h": "Store links", "p": "Links to unsetld.com open in Safari, which is covered by that site's privacy policy." },
+      { "h": "Deleting your data", "p": "Delete the app to remove what's stored on your phone. To delete an access account, email unsetldclothing@gmail.com from the address on the account or sign out and ask us to remove it." },
+      { "h": "Contact", "p": "unsetldclothing@gmail.com" }
     ]
   }
 }
