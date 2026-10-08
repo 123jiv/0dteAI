@@ -12,7 +12,7 @@ This addendum supersedes the parts of `DESIGN_SPEC.md` noted below. Everything e
 ## 0. Product (replaces section 0's loop)
 
 The daily loop:
-1. **Morning.** One raw line, the same for everyone, on the lock screen and as the first notification.
+1. **Morning.** One raw line on the lock screen and as the first notification (2.2: the line goes with your daily task).
 2. **Today.** The day's work: your three rules, plus one task from UNSETLD picked from your chapters.
 3. **Through the day.** Reminders name the work that's still open, each with a line about it. Proving a task with a photo ticks it off.
 4. **Night.** One question: did you hold your standard?
@@ -59,7 +59,7 @@ The background is the colorway layer, as in the reader. All text uses the colorw
       - done with proof: a 28×35 thumbnail of the photo with a hairline border;
       - done without proof: a filled square in ink.
   - Tapping a row opens the **Task** modal. A finished task opens the same modal, showing its photo.
-  - Full Edition: up to 3 more tasks of your own sit below the four (`Your task`).
+  - Up to 3 more tasks of your own sit below the four (`Your task`). (2.1 made this Full Edition; 2.2 makes it free.)
     - Row: `+ Add a task` → an inline input, Cormorant 23, 40 characters maximum. The task stays until removed (long-press → Remove).
     - Free users see the same row with the label `FULL EDITION`, and tapping it opens the paywall.
 - **Footer note**, Inter 13 secondary, under the list:
@@ -88,7 +88,7 @@ The background is the colorway layer, as in the reader. All text uses the colorw
   - Picked deterministically per install and day (install salt + day key) from the task library, in the chapters of the user's mix.
   - Never a task shown in the last 30 days; relaxed to 7 days, then to any.
   - Free mix: Discipline plus one chapter. Full Edition: every chosen chapter.
-- **Work for a day:** the three rules, the daily task and, for Full Edition, the user's own tasks. Rule text is stored with each completion, so a later edit to the standard doesn't rewrite the past.
+- **Work for a day:** the three rules, the daily task and the user's own tasks (free since 2.2). Rule text is stored with each completion, so a later edit to the standard doesn't rewrite the past.
 - **Points:**
   - 10 per proven task, up to 4 proven tasks a day.
   - Balance = Σ days × min(4, proven that day) × 10, minus points spent on codes.
@@ -115,11 +115,11 @@ The background is the colorway layer, as in the reader. All text uses the colorw
 
 Paywall spec rows:
 - `CHAPTERS — All seven, for your daily task and lines`
-- `TASKS — Up to three more of your own, every day`
+- ~~`TASKS — Up to three more of your own, every day`~~ (removed in 2.2)
 - `COLORWAYS — All ten, in the app and on your widgets`
 - `REMINDERS — Up to ten a day`
 
-Description: `Every chapter, every colorway, more of your own work.`
+Description: ~~`Every chapter, every colorway, more of your own work.`~~ (2.2: `Every chapter, every colorway, more reminders.`)
 
 ## 6. Copy changes
 

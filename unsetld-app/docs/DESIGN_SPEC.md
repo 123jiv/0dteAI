@@ -18,7 +18,7 @@ Winner: A: Editorial Monochrome ("The Book") as the skeleton (reader, IA, produc
 - From B: a comeback letter when paused access reopens.
 - From B: long-press 'Don't show this line again'.
 - From the teardown and voice editor: the free daily end card after 10 lines, using the voice line 'You've read enough lines like this one. Go do the work.' It is a ritual, not a counter.
-- From the voice guide (overrides all three directions): plain chapter names Discipline, Focus, Training, Money, Confidence, Vices, Stoic. Strong language is a Settings switch, on by default, never asked in onboarding. Public surfaces filter to clean lines automatically.
+- From the voice guide (overrides all three directions): plain chapter names Discipline, Focus, Training, Money, Confidence, Vices, Stoic. Strong language is a Settings switch, off by default since 2.2 (the audience starts at 14), never asked in onboarding. Public surfaces filter to clean lines automatically.
 - From C (optional, ships only if the traced art is approved): the Evolution three-figure print as a free lock-screen wallpaper and as the art on the Day 365 letter.
 
 ## Spec

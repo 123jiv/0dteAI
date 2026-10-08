@@ -157,16 +157,16 @@ CHAPTERS SHEET
 COLORWAY SHEET
 - Title: Colorway
 - Names and preview lines:
-  - BLACK — Eat like you plan to train tomorrow.
+  - BLACK — Ten pages a night is about a book a month.
   - BONE — Write the numbers down. Memory flatters you.
   - SNOW WASH — Not everything that buzzes is yours to answer.
-  - SUN FADE — Every night you give it is a morning it takes.
-  - CONCRETE — Ask for the raise with a list, not a feeling.
+  - SUN FADE — A bad day is enough. Don't add a bad night to it.
+  - CONCRETE — The first time you say a price out loud, it sounds too high.
   - CHARCOAL — Delete it on a good day. You won't on a bad one.
   - PLUM — Make the phone call you keep turning into texts.
   - COFFEE — It's not a reward if you need it every night.
   - OLIVE — Complaining is the work you do instead of the work.
-  - MIDNIGHT — It's 2am. Whatever you're looking for isn't on that screen.
+  - MIDNIGHT — Go to bed the first time you think about going to bed.
 - Locked tag: FULL EDITION
 - Locked bar: Sun Fade is part of Full Edition.  [See Full Edition]
 
@@ -337,7 +337,7 @@ SETTINGS
 - READING
   - Chapters · Discipline, Focus
   - Colorway · Black
-  - Strong language (switch, on)
+  - Strong language (switch, off)
     - Footnote: Some lines swear. They never appear on your lock screen, widgets or notifications.
   - Saved · 12
   - Your lines · Full Edition

@@ -35,6 +35,15 @@ export function YourLinesScreen({ navigation }: RootProps<'YourLines'>) {
     );
   }
 
+  // Editing another line first saves a new line you were still writing.
+  const startEdit = (l: { id: string; text: string }) => {
+    if (writing && !writing.id) {
+      const t = writing.text.trim().replace(/\s+/g, ' ');
+      if (t) add(t);
+    }
+    setWriting({ id: l.id, text: l.text });
+  };
+
   const commit = () => {
     if (!writing) return;
     const text = writing.text.trim().replace(/\s+/g, ' ');
@@ -100,13 +109,13 @@ export function YourLinesScreen({ navigation }: RootProps<'YourLines'>) {
                 { name: 'delete', label: Y.delete },
               ]}
               onAccessibilityAction={e => {
-                if (e.nativeEvent.actionName === 'edit') setWriting({ id: l.id, text: l.text });
+                if (e.nativeEvent.actionName === 'edit') startEdit(l);
                 else if (e.nativeEvent.actionName === 'delete') remove(l.id);
               }}
               onLongPress={() =>
                 showActions({
                   options: [
-                    { label: Y.edit, onPress: () => setWriting({ id: l.id, text: l.text }) },
+                    { label: Y.edit, onPress: () => startEdit(l) },
                     { label: Y.delete, onPress: () => remove(l.id) },
                     { label: COPY.reader.menu.cancel, cancel: true },
                   ],
