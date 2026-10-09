@@ -101,7 +101,7 @@ export const REWARDS_COPY = {
 
   // Milestone page
   milestone: {
-    termsLink: 'Access terms',
+    termsLink: 'Rewards and access terms',
     signInNote: 'Sign in to use access. It takes one tap.',
     networkError: "Couldn't reach unsetld.com. Try again in a moment.",
     pausedError: 'Access is paused. Prove a mission on 7 more days to open it again.',

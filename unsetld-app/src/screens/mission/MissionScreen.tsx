@@ -185,7 +185,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     const kinds = requiredPhotos(mission.proofType);
     const shot = await shoot(kinds[kinds.length - 1]);
     if (!shot) return;
-    // A retake saves over the same file; anything else from before goes.
+    // On iOS a retake gets its own file; in the preview it replaces the same key. Anything else from before goes.
     unsent.current.filter(u => u !== shot.uri).forEach(deletePhoto);
     unsent.current = [shot.uri];
     clockCheck.current = checkTrustedTime();

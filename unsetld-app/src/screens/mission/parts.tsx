@@ -109,7 +109,7 @@ export function ProofFrame({
     <View style={[{ aspectRatio: 4 / 5, borderWidth: hairline, borderColor: C.rule, backgroundColor: C.raise, overflow: 'hidden' }, style]}>
       {src ? (
         <Image
-          // A retake saves to the same file: the key and no cache make sure the new one shows.
+          // A file name can come back (after a rejected attempt, or in the preview): the key and no cache make sure the new photo shows.
           key={`${photo.uri}:${photo.takenAt}`}
           source={{ uri: src }}
           cachePolicy="none"

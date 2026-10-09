@@ -29,7 +29,7 @@ export function proofsByDay(r: RecordState): { day: DayKey; count: number; point
     if (count) out.set(day, { day, count });
   }
   for (const [day, byId] of Object.entries(r.missions ?? {})) {
-    const proven = Object.values(byId).filter(m => m.verification?.status === 'accepted');
+    const proven = Object.values(byId ?? {}).filter(m => m?.verification?.status === 'accepted');
     if (!proven.length) continue;
     const points = proven.reduce((t, m) => t + m.points, 0) + (r.bonuses?.[day] ?? 0);
     const prev = out.get(day);

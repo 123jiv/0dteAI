@@ -6,7 +6,7 @@ Checked 2026-10-07 using the iTunes Search API (US), TikTok profile data, regist
 
 | Where | Result |
 |---|---|
-| App Store | **No app named UNSETLD, UNSETTLD or UNSETLED.** Suggested full name: **"UNSETLD: Daily Discipline"** (25 chars). App Store Connect confirms uniqueness when you create the app record |
+| App Store | **No app named UNSETLD, UNSETTLD or UNSETLED.** Suggested full name: **"UNSETLD: Daily Missions"** (23 chars). App Store Connect confirms uniqueness when you create the app record |
 | Domain | **unsetld.com is yours** (live Shopify/Next.js store). unsetld.app and unsetldapp.com are unregistered; grab unsetld.app or use unsetld.com/app |
 | TikTok | **@unsetldclo and @unsetld are yours.** @unsetld.app, @unsetldapp and @getunsetld are free if you want a separate app account |
 | Instagram | @unsetld (yours) |

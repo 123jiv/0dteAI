@@ -19,7 +19,7 @@ The app has to make sense for someone who never buys a hoodie, so rewards stay q
 
 | | |
 |---|---|
-| Missions | Three a day (four on Push me), chosen per user from `src/content/missions.json`. Only a mission in today's plan can be proven, and each one earns points once. |
+| Missions | Three a day (four on Push me, unless the user has only 5–15 minutes a day), chosen per user from `src/content/missions.json`. Only a mission in today's plan can be proven, and each one earns points once. |
 | Proof | Taken with the camera inside the app (iOS never offers the photo library): one photo, a photo of the result, before and after photos, or a focus timer and then a photo. Stamped with the time and date. |
 | Checks | On the phone: the right photos are there, taken in the last 30 minutes, before and after at least 2 minutes apart, the timer finished first, and the photo was never used before (fingerprints). They don't look at what's in the photo. A rejected proof earns nothing. |
 | Where photos go | Nowhere. They're saved inside the app on the phone, re-encoded without EXIF or location, and deleted after 30 days by default (Settings → Proof photos). When signed in, only the date, the number of proven missions and the points that day go to the server. |

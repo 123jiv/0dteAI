@@ -85,7 +85,7 @@ export const PLATFORM = {
     noneBody: "We couldn't find Full Edition on this Apple ID.",
     restoreFailed: "Couldn't reach the App Store. Try again in a moment.",
 
-    accessTerms: 'Access terms',
+    accessTerms: 'Rewards and access terms',
     contact: 'Contact',
     contactEmail: 'unsetldclothing@gmail.com',
     terms: 'Terms of Use',

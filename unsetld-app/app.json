@@ -3,7 +3,7 @@
     "name": "UNSETLD",
     "slug": "unsetld",
     "scheme": "unsetld",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -81,7 +81,6 @@
       ],
       "expo-notifications",
       "expo-secure-store",
-      "expo-sharing",
       "expo-font",
       [
         "expo-splash-screen",

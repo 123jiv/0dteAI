@@ -5,7 +5,7 @@
 UNSETLD 3.0 is a mission app for ages 13–25, from the clothing brand of the same name ("unsettled" minus two letters; *never settle for less*).
 
 - **Choose tracks.** Pick up to three of seven: Focus & Discipline, Fitness & Energy, School & Learning, Money & Career, Skills & Projects, Life Reset, Confidence & Mindset. A few optional questions (school, work, gym, a project, age range) and a pace (time a day, and Start easy / Lock in / Push me) shape what you get.
-- **Daily missions.** Three a day (four on Push me), picked for you from a library of 313. On Lock in that's a quick win, real progress and a challenge; Start easy swaps the challenge for a second quick win, and Push me adds a second challenge. One free swap a day, three with Full Edition.
+- **Daily missions.** Three a day (four on Push me, unless you have only 5–15 minutes a day), picked for you from a library of 313. On Lock in that's a quick win, real progress and a challenge; Start easy swaps the challenge for a second quick win, and Push me adds a second challenge. One free swap a day, three with Full Edition.
 - **Prove it.** Do it, then prove it with the in-app camera: one photo, a photo of the result, before and after photos, or a focus timer and then a photo. The checks run on the phone and the photo stays there.
 - **Points.** 10 for a quick win, 15 for progress, 25 for a challenge, and 15 more for a perfect day (every mission in the plan proven).
 - **Streak.** Days in a row with at least one proven mission. Off Days: you earn one every 7 days you show up and can bank two; a missed day uses one automatically.

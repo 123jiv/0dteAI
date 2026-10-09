@@ -7,10 +7,10 @@ import { NavRow, PageTitle, Screen } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, hairline } from '../ui/tokens';
 
-// Sections that only make sense once access is live: most of "How the record
-// works", and the Terms of Use pointer to the Access terms row.
+// Sections that only make sense once access is live: the rewards and Access parts
+// of "How missions work", and the Terms of Use pointer to the Access terms.
 const ACCESS_ONLY: Partial<Record<DocId, Set<string>>> = {
-  record: new Set(['Access', 'Keeping it', 'Limits', "It can't be bought", 'Account']),
+  record: new Set(['Access', 'Rewards', 'Keeping it', 'Limits', "It can't be bought", 'Account']),
   terms: new Set(['Access']),
 };
 
@@ -20,7 +20,7 @@ function updated(date?: string): string | null {
   return `UPDATED ${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' }).toUpperCase()} ${d.getFullYear()}`;
 }
 
-/** How the record works, Access terms, Terms of Use, Privacy Policy. */
+/** How missions work, Rewards and access terms, Terms of Use, Privacy Policy. */
 export function DocScreen({ navigation, route }: RootProps<'Doc' | 'DocSheet'>) {
   const doc = DOCS[route.params.id];
   const accessEnabled = useAccessEnabled();
