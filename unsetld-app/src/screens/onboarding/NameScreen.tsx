@@ -71,7 +71,7 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
       Animated.delay(250),
       Animated.timing(page, { toValue: 0, duration: 250, easing: ease.in, useNativeDriver: false }),
     ]).start(() => {
-      // Tracks starts at 0 OF 3: the pick is theirs, not the defaults.
+      // Tracks starts at 0 OF 4: the pick is theirs, not the defaults.
       useApp.getState().setProfile({ tracks: [], priority: null });
       navigation.replace('Tracks');
     });

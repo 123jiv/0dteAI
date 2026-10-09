@@ -1,4 +1,4 @@
-// The focus timer for TIMER_AND_PHOTO missions. It runs on wall-clock time, so it
+// The focus timer for timed missions (TIMER and TIMER_AND_PHOTO). It runs on wall-clock time, so it
 // keeps counting while the phone is locked or the app is closed.
 import type { DayKey } from './time';
 

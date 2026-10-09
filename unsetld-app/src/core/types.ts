@@ -233,7 +233,7 @@ export interface MissionDone {
   points: number;
   doneAt: number;
   photos: ProofPhoto[];
-  /** Seconds the focus timer ran, for TIMER_AND_PHOTO. */
+  /** Seconds the focus timer ran, for TIMER and TIMER_AND_PHOTO. */
   timerSeconds?: number;
   verification: Verification;
   programId?: string;

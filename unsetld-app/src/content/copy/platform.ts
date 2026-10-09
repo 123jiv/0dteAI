@@ -185,7 +185,7 @@ export const PLATFORM = {
     ],
     kindsLabel: 'THE WIDGETS',
     kinds: [
-      { name: 'NEXT MISSION', body: "The next mission you haven't proven, with its time and points. Tap it to start." },
+      { name: 'NEXT MISSION', body: "The next mission you haven't proven, with its area, time and points. Tap it to start." },
       { name: 'TODAY', body: "Today's missions, ticked off as you prove them. Lock Screen only." },
       { name: 'STREAK', body: 'Your streak, your points and every day you showed up.' },
     ],
@@ -211,7 +211,6 @@ export const PLATFORM = {
     waiting: (n: number) => `${word(n)} missions are waiting.`,
     perfect: 'Perfect day.',
     proven: (n: number) => `${n} / ${n} PROVEN`,
-    meta: (minutes: number, points: number) => `${minutes} MIN · +${points} PTS`,
     count: (done: number, all: number) => `${done} / ${all}`,
     streakUnit: (n: number) => (n === 1 ? 'day in a row' : 'days in a row'),
     points: (n: number) => `${num(n)} PTS`,
@@ -220,9 +219,9 @@ export const PLATFORM = {
 
   notifications: {
     title: 'unsetld',
-    /** First reminder of the day: "Today: 25-Minute Lock In, 10 Pages, Make the Bed." */
+    /** First reminder of the day: "Today: Make Your Bed, Study for 30 Minutes, Complete Your Workout." */
     first: (titles: string[]) => `Today: ${titles.join(', ')}.`,
-    /** Later ones: "2 missions left. 10 Pages takes 15 minutes." */
+    /** Later ones: "2 missions left. Read 10 Pages takes 15 minutes." */
     left: (n: number, title: string, minutes: number) =>
       `${plural(n, 'mission', 'missions')} left. ${title} takes ${plural(minutes, 'minute', 'minutes')}.`,
     /** The evening one, only when nothing is proven yet. */
@@ -259,7 +258,7 @@ export const PLATFORM = {
     backfill: 'Add 20 days of proven missions',
     backfilled: (missions: number, days: number) =>
       missions === 0 ? 'Those days already have missions.' : `${plural(missions, 'mission', 'missions')} over ${plural(days, 'day', 'days')}.`,
-    missionsNote: 'Proof made here skips the camera: it is accepted on this phone with a placeholder photo. For testing only.',
+    missionsNote: 'Proof made here skips the camera: it is accepted on this phone with a placeholder photo (timer-only missions get no photo). For testing only.',
     checkNote: 'Tester tools: no photo taken.',
 
     travel: 'TIME TRAVEL',

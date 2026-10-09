@@ -85,7 +85,7 @@ describe('daily missions', () => {
     expect(plan.missions.length).toBe(3);
   });
 
-  it('on a 5–15 minute day: three missions at most, and every chosen track gets one even when its quick wins run long', () => {
+  it('on a 5–15 minute day: three missions at most, and every chosen track gets one even when its short missions run long', () => {
     const lib = [
       ...Array.from({ length: 4 }, () => m('money', 'quick', { minutes: 5 })),
       ...Array.from({ length: 4 }, () => m('skills', 'quick', { minutes: 12 })),
@@ -179,6 +179,17 @@ describe('daily missions', () => {
     const plan = generatePlan(input({ program: { id: 'p', missionIds: ids } }));
     expect(plan.missions.find(p => p.missionId === ids[0])).toMatchObject({ slot: 'main', programId: 'p' });
     expect(plan.missions.length).toBe(3);
+  });
+
+  it("leaves a program's morning mission out of an afternoon plan", () => {
+    const morning = m('discipline', 'quick', { when: 'morning' });
+    const other = LIB.find(x => x.track === 'discipline' && x.minutes === 20)!;
+    const program = { id: 'p', missionIds: [morning.id, other.id] };
+    const early = generatePlan(input({ library: [...LIB, morning], program, hour: 8 }));
+    const late = generatePlan(input({ library: [...LIB, morning], program, hour: 15 }));
+    expect(early.missions.map(p => p.missionId)).toContain(morning.id);
+    expect(late.missions.map(p => p.missionId)).not.toContain(morning.id);
+    expect(late.missions.find(p => p.missionId === other.id)).toMatchObject({ programId: 'p' });
   });
 
   it('never puts two missions from one group on the same day, even after a swap', () => {

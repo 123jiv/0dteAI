@@ -268,6 +268,8 @@ export function generatePlan(input: PlanInput): DayPlan {
   for (const id of input.program?.missionIds ?? []) {
     const m = byId.get(id);
     if (!m || !m.active || used.has(id)) continue;
+    // Too late for a morning mission; the program day's other missions still move it on.
+    if (m.when === 'morning' && (input.hour ?? 0) >= AFTERNOON_HOUR) continue;
     let i = slots.findIndex((s, k) => s === sizeOf(m) && !filled.has(k));
     if (i < 0) i = slots.findIndex((_, k) => !filled.has(k));
     if (i < 0) break;

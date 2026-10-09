@@ -80,6 +80,8 @@ export const HOME = {
     start: 'START',
     timer: (clock: string) => `TIMER ${clock}`,
     timerDone: 'TAKE PHOTO',
+    /** A timer-only mission once its timer ends: no photo, just the tap. */
+    markDone: 'MARK DONE',
     after: 'AFTER PHOTO',
   },
 
@@ -147,6 +149,7 @@ export const HOME = {
     timerRunning: (minutes: number) => `Timer running, ${minutes === 1 ? '1 minute' : `${minutes} minutes`} left`,
     timerPaused: (minutes: number) => `Timer paused, ${minutes === 1 ? '1 minute' : `${minutes} minutes`} left`,
     timerDone: 'Timer done, take the proof photo',
+    timerDoneMark: 'Timer done, mark it done',
     afterWaiting: 'Before photo saved, after photo next',
     provenThumb: 'Proof photo',
   },

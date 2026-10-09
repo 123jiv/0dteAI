@@ -181,18 +181,18 @@ m('fitness-workout', F, 'Complete Your Workout', 45, 20, P,
 m("fitness-gym", F, "Go to the Gym", 45, 20, P,
   "Go to the gym and do a full session.", "The equipment you used, after your session. No people.", 1,
   group="workout", requires=["gym"], anchor=True, weight=2)
-m('fitness-train-30', F, 'Train for at Least 30 Minutes', 35, 20, TP,
+m('fitness-train-30', F, 'Train for at Least 30 Minutes', 30, 20, TP,
   'Lift, practice your sport or do a full workout for at least 30 minutes.', 'Where you trained. No people.', 1,
   timer=30, group='workout')
-m('fitness-home-workout', F, 'Do an At-Home Workout', 25, 15, TP,
+m('fitness-home-workout', F, 'Do an At-Home Workout', 20, 10, TP,
   'Push-ups, squats, lunges and planks for 20 minutes at home. No equipment needed.',
   'Your workout spot, right after.', 2, timer=20, group='workout')
 m('fitness-walk-30', F, 'Walk for 30 Minutes', 30, 15, TP,
   'Go for a 30-minute walk. Phone stays in your pocket.', 'Where you walked. No people.', 1, group='cardio', anchor=True)
-m('fitness-run', F, 'Go for a Run', 25, 15, TP,
+m('fitness-run', F, 'Go for a Run', 20, 10, TP,
   'Run for at least 20 minutes at a pace you can keep. Walk breaks are fine.',
   'Your route after the run. No people.', 2, timer=20, group='cardio')
-m('fitness-cardio-20', F, 'Do 20 Minutes of Cardio', 25, 15, TP,
+m('fitness-cardio-20', F, 'Do 20 Minutes of Cardio', 20, 10, TP,
   'Run, bike, swim, jump rope or use a cardio machine for 20 minutes.', 'Where you did it. No people.', 2,
   timer=20, group='cardio')
 m("fitness-long-walk", F, "Take a Long Walk Instead of Scrolling", 45, 20, TP,

@@ -1,4 +1,4 @@
-// The "timer done" notification for TIMER_AND_PHOTO missions. The focus timer
+// The "timer done" notification for timed missions (TIMER and TIMER_AND_PHOTO). The focus timer
 // runs on wall-clock time (core/timer), so the app can be closed while it runs;
 // this local notification is what tells the user it reached zero. One timer at
 // a time, so one notification, always under the same identifier: scheduling
@@ -7,6 +7,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { clock, endsAt, type FocusTimer } from '../core/timer';
+import { MISSION_BY_ID } from '../content';
 import { MISSION } from '../content/copy/mission';
 
 const supported = Platform.OS !== 'web';
@@ -52,7 +53,7 @@ export function scheduleTimerDone(timer: FocusTimer, opts: { ask?: boolean } = {
       identifier: TIMER_NOTIFICATION_ID,
       content: {
         title: MISSION.notify.title,
-        body: MISSION.notify.body(clock(timer.requiredSeconds)),
+        body: MISSION.notify.body(clock(timer.requiredSeconds), MISSION_BY_ID[timer.missionId]?.proofType),
         sound: true,
         data: { mission: timer.missionId, day: timer.day },
       },

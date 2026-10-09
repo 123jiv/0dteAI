@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Platform, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clock as mmss, remainingSeconds, timerDone, type FocusTimer } from '../../core/timer';
-import type { Colorway, Mission, MissionDone, ProofPhoto } from '../../core/types';
+import type { Colorway, Mission, MissionDone, ProofPhoto, ProofType } from '../../core/types';
 import { TRACK_BY_ID } from '../../content';
 import { HOME } from '../../content/copy/home';
 import { soft } from '../../services/haptics';
@@ -233,7 +233,8 @@ export function ProgramBanner({
 
 /**
  * What the button on an unproven card says: START, the focus timer counting
- * down (`live` while Home is in view and the app is open), or AFTER PHOTO.
+ * down (`live` while Home is in view and the app is open), TAKE PHOTO or MARK
+ * DONE once it ends, or AFTER PHOTO.
  */
 export type CardAction = { kind: 'start' } | { kind: 'timer'; timer: FocusTimer; live: boolean } | { kind: 'after' };
 
@@ -260,16 +261,17 @@ function cardPhoto(done: MissionDone): ProofPhoto | undefined {
   return photos.find(p => p.kind === 'after') ?? photos[photos.length - 1];
 }
 
-function actionLabel(a: CardAction, remaining: number): string {
+/** A finished timer asks for the proof photo, or (timer-only missions) for a tap on Mark it done. */
+function actionLabel(a: CardAction, remaining: number, type: ProofType): string {
   if (a.kind === 'after') return HOME.action.after;
-  if (a.kind === 'timer') return remaining <= 0 ? HOME.action.timerDone : HOME.action.timer(mmss(remaining));
+  if (a.kind === 'timer') return remaining <= 0 ? (type === 'TIMER' ? HOME.action.markDone : HOME.action.timerDone) : HOME.action.timer(mmss(remaining));
   return HOME.action.start;
 }
 
-function actionSaid(a: CardAction, remaining: number): string | null {
+function actionSaid(a: CardAction, remaining: number, type: ProofType): string | null {
   if (a.kind === 'after') return HOME.a11y.afterWaiting;
   if (a.kind === 'timer') {
-    if (remaining <= 0) return HOME.a11y.timerDone;
+    if (remaining <= 0) return type === 'TIMER' ? HOME.a11y.timerDoneMark : HOME.a11y.timerDone;
     // Whole minutes, so VoiceOver isn't handed a label that changes every second.
     const minutes = Math.ceil(remaining / 60);
     return a.timer.pausedAt ? HOME.a11y.timerPaused(minutes) : HOME.a11y.timerRunning(minutes);
@@ -397,7 +399,7 @@ export function MissionCard({
     ? HOME.a11y.card(mission.title, HOME.a11y.proven(time, done.points))
     : HOME.a11y.card(
         mission.title,
-        [HOME.a11y.meta(area, mission.minutes, mission.points, badge?.said ?? null), actionSaid(action, remaining)].filter(Boolean).join('. '),
+        [HOME.a11y.meta(area, mission.minutes, mission.points, badge?.said ?? null), actionSaid(action, remaining, mission.proofType)].filter(Boolean).join('. '),
       );
   // The button sits level with the title's first line.
   const buttonTop = Math.round((30 * scale - 32) / 2);
@@ -486,7 +488,7 @@ export function MissionCard({
               justifyContent: 'center',
             }}>
             <T v="button" color={colorway.bg} style={[{ fontSize: 11, lineHeight: 14, letterSpacing: 1.8 }, TABULAR]} numberOfLines={1}>
-              {actionLabel(action, remaining)}
+              {actionLabel(action, remaining, mission.proofType)}
             </T>
           </View>
         )}
