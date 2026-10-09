@@ -44,10 +44,17 @@ export function Section({ label, children }: { label: string; children: ReactNod
   );
 }
 
-const same = (a: string, b: string) => {
-  const n = (x: string) => x.trim().toLowerCase().replace(/[’‘]/g, "'").replace(/\.$/, '');
-  return n(a) === n(b);
-};
+const plain = (x: string) => x.trim().toLowerCase().replace(/[’‘]/g, "'").replace(/\.$/, '');
+
+/**
+ * The mission's proof line says something the method line doesn't. Not when it repeats
+ * it (every TIMER mission), or is a bare "Before and after." under the before-and-after method.
+ */
+function addsTo(mission: Mission, method: string): boolean {
+  const p = plain(mission.proof ?? '');
+  if (!p || p === plain(method)) return false;
+  return !(mission.proofType === 'BEFORE_AFTER' && p === 'before and after');
+}
 
 /** PROOF: how it's proven ("Take one photo."), then what the proof shows, unless that says the same thing. */
 export function ProofBlock({ mission }: { mission: Mission }) {
@@ -55,7 +62,7 @@ export function ProofBlock({ mission }: { mission: Mission }) {
   return (
     <Section label={MISSION.proof}>
       <T v="body">{method}</T>
-      {mission.proof && !same(mission.proof, method) ? (
+      {addsTo(mission, method) ? (
         <T v="body" color={C.stone}>
           {mission.proof}
         </T>

@@ -4,17 +4,17 @@
 
 UNSETLD 3.0 is a mission app for ages 13–25, from the clothing brand of the same name ("unsettled" minus two letters; *never settle for less*).
 
-- **Choose tracks.** Pick up to three of seven: Focus & Discipline, Fitness & Energy, School & Learning, Money & Career, Skills & Projects, Life Reset, Confidence & Mindset. A few optional questions (school, work, gym, a project, age range) and a pace (time a day, and Start easy / Lock in / Push me) shape what you get.
-- **Daily missions.** Three a day (four on Push me, unless you have only 5–15 minutes a day), picked for you from a library of 313. On Lock in that's a quick win, real progress and a challenge; Start easy swaps the challenge for a second quick win, and Push me adds a second challenge. One free swap a day, three with Full Edition.
-- **Prove it.** Do it, then prove it with the in-app camera: one photo, a photo of the result, before and after photos, or a focus timer and then a photo. The checks run on the phone and the photo stays there.
-- **Points.** 10 for a quick win, 15 for progress, 25 for a challenge, and 15 more for a perfect day (every mission in the plan proven).
+- **Choose areas.** Pick one to four (most people pick two to four) of nine: Discipline, School, Fitness, Money, Career, Business, Skills, Projects, Organization. A few optional questions (school, work, gym, a business or project, age range, what you're learning) and a pace (time a day, and Start easy / Lock in / Push me) shape what you get.
+- **Daily missions.** Normal, useful actions with plain titles: *Study for 30 Minutes*, *Complete Your Workout*, *Work on Your Business for 30 Minutes*, *Read 10 Pages of a Useful Book*, *Plan Tomorrow*, *Track Today's Spending*. Three a day from your areas, picked from a library of 176: one easy one (15 minutes or less) and two that take real focus; Push me adds a third focused one, and with only 5–15 minutes a day all three are short. Core habits (study, train, build, plan tomorrow) come back on most days. One swap a day, three with Full Edition; a swap stays in the same area.
+- **Prove it.** Each mission is a title, its time and points, one sentence and how to prove it: a photo, before and after photos, the in-app focus timer and then a photo, or the timer on its own. The checks run on the phone and the photo stays there.
+- **Points.** By how long a mission takes: 5 (up to 5 minutes), 10 (up to 20), 15 or 20 (about 30), 20 (about 45), 25 (an hour). A perfect day (every mission in the plan proven) adds 15.
 - **Streak.** Days in a row with at least one proven mission. Off Days: you earn one every 7 days you show up and can bank two; a missed day uses one automatically.
-- **Levels.** A level per track, milestones (first mission, first 10 missions, first perfect day, 7 days, 30 missions, 100 missions, a 30-day streak), a weekly review, and optional multi-day programs.
+- **Levels.** A level per area, milestones (first mission, first 10 missions, first perfect day, 7 days, 30 missions, 100 missions, a 30-day streak), a weekly review, and optional multi-day programs.
 - **Rewards.** Points trade for codes at unsetld.com: free shipping (300), 10% off (600), 15% off (1,000), up to $25 off, one of each per collection. Days with a proven mission also open Access: early access to drops (Day 7), a numbered patch (Day 90) and the 365 piece (Day 365). None of it can be bought. See [docs/ACCESS.md](docs/ACCESS.md).
 
 The product spec is [docs/MISSIONS_SPEC.md](docs/MISSIONS_SPEC.md); where an older spec disagrees, it wins. Tokens, type, colorways, the walker and the paywall layout are still in [docs/DESIGN_SPEC.md](docs/DESIGN_SPEC.md). Every UI string is in `src/content/copy/*.ts`. Built with **Expo SDK 57** (React Native, TypeScript), `expo-widgets` for the iOS widgets and RevenueCat for Full Edition.
 
-Quotes, the daily line, chapters, the three standard rules and the night check were retired in 3.0.
+Quotes, the daily line, chapters, the three standard rules and the night check were retired in 3.0. The Quick Win / Progress / Challenge labels, the WHY / HOW sections and the seven original tracks went later in 3.0: missions are now plain actions in nine areas.
 
 ---
 
@@ -38,8 +38,8 @@ The whole app runs in the browser. Proof picks a file instead of opening the cam
   - Timers run 60× faster: a 25-minute timer takes 25 seconds (for timers started after you switch it).
   - Access enabled.
 - **Missions**
-  - Prove today's missions: skips the camera and accepts each one on the phone with a placeholder photo.
-  - Add 20 days of proven missions: plans and proves the 20 days before today (every third day only partly). That's enough points to take a reward, and enough history to see the levels, the milestones and the barcode move.
+  - Prove today's missions: skips the camera and accepts each one on the phone with a placeholder photo (a timer-only mission needs none).
+  - Add 20 days of proven missions: plans the 20 days before today from your areas and answers, as the app would, and proves them (every third day only partly). That's enough points to take a reward, and enough history to see the levels, the milestones and the barcode move.
 - **Time travel** (notifications still use the real clock; after a jump, go back to Home, which builds the day's plan and shows any milestone or letter)
   - Next day.
   - Jump 6, 23 or 60 days, proving one mission each day. Used in that order from an empty record, each one lands on the day that becomes Day 7, Day 30 and Day 90 once you prove a mission there.
@@ -101,39 +101,39 @@ Build the small routes in [docs/ACCESS.md](docs/ACCESS.md) first (sync, check-in
 
 ### 3. Content
 
-Everything editable lives in `src/content/`. Run **`npm run validate`** after every edit: it checks the files below against the rules in `scripts/validate-content.mjs` (and docs/MISSIONS_SPEC.md section 4), prints a count per track, and fails on errors.
+Everything editable lives in `src/content/`. Run **`npm run validate`** after every edit: it checks the files below against the rules in `scripts/validate-content.mjs` (and docs/MISSIONS_SPEC.md section 4), prints a count per area, and fails on errors.
 
-- **Missions:** `missions.json`, 313 missions across the seven tracks. Fields:
-  - `id` (permanent, `<track>-<slug>`: completions and programs refer to it), `track`, `slot` (`quick` / `progress` / `challenge`)
-  - `title` (Title Case, at most 28 characters, unique), `short` (one sentence), `why`, `how` (2–4 steps), `proof` (what the photo shows)
-  - `proofType`: `PHOTO`, `PHOTO_AFTER`, `BEFORE_AFTER` or `TIMER_AND_PHOTO` (with `timerMinutes`, 5–60)
-  - `points` and `difficulty` follow the slot: quick 10 / 1, progress 15 / 2, challenge 25 / 3. `minutes` is the real time it takes (quick 1–15, progress 10–45, challenge 20–90).
-  - `requires` (`school`, `work`, `gym`, `project`, `age16`, `age18`): only offered when the user's answers match
-  - `cooldownDays`, `repeatable` (one-off missions like a first resume are `false`), `anchor` (a habit meant to come back often; cooldown 3 days or less)
-  - `group`: missions that overlap ("room-reset", "tomorrow-ready", "phone-setup" ...) share a group, and a day never holds two from one group, including swaps and programs
-  - `weight`: how often the planner picks it, relative to 1 (situational missions, like the night before a test, are 0.5)
+- **Missions:** written in **`scripts/missions/library.py`**, one `m(...)` call per mission, grouped by area. Don't edit `src/content/missions.json` by hand: edit the script, run `python3 scripts/missions/library.py` (it rewrites `missions.json` and prints a count per area), then `npm run validate`. 176 missions across the nine areas. Fields:
+  - `id` (permanent, `<area>-<slug>`: completions, plans and programs refer to it, so retire a mission with `active: false` instead of renaming or deleting it), `track` (its area), `also` (other areas it serves)
+  - `title` (Title Case, says what to do, at most 48 characters, unique), `short` (the one instruction sentence), `proof` (what the proof shows)
+  - `proofType`: `PHOTO`, `BEFORE_AFTER`, `TIMER_AND_PHOTO` or `TIMER` (the last two with `timerMinutes`, 5–60)
+  - `minutes` is the real time it takes (15 or less makes it the day's easy mission), and `points` follow it: up to 5 minutes 5, up to 20 minutes 10, 21–35 minutes 15 (20 for work on your own business, project, portfolio, applications or training), 36–59 minutes 20, an hour 25
+  - `requires` (`school`, `work`, `gym`, `project`, `age16`, `age18`, or a skill: `coding`, `design`, `video`, `writing`, `language`, `music`): only offered when the user's answers match
+  - `cooldownDays`, `repeatable` (one-off missions like a first resume are `false`), `anchor` (a core habit that comes back most days; cooldown 3 days or less)
+  - `group`: missions that overlap ("deep-work", "study", "tomorrow-ready" ...) share a group, and a day never holds two from one group, including swaps and programs
+  - `weight`: how often the planner picks it, relative to 1; `when`: `morning` missions are left out of a plan made from noon on
   - `tags` (1–4), `active`
-  - The validator also enforces the voice and safety rules. It fails on "!", "…", emoji, swearing and banned hustle words; on anything unsafe for a teen (calorie deficits, water or dry fasts, weigh-ins and body photos, skipping sleep, alcohol, vaping, nicotine, day or options trading, casinos, sports betting, dares); and on missions that mention points, discount codes, merch or UNSETLD. Words worth a second look for safety or privacy (diets, fasting, supplements, caffeine, crypto, betting, selfies, faces, grades, a bedroom, an address, a location) are listed as warnings.
-- **Programs:** `programs.json`: `id`, `title`, `short`, `days`, `tracks`, `free`, and `plan` (one entry per program day, 1–2 mission ids, no two from one group, no missions that need work, a gym or an age). At least two must be free.
+  - There are no slots, difficulty, why or how: the validator rejects them. It also enforces the voice and safety rules. It fails on "!", "…", emoji, swearing and banned hustle words; on anything unsafe for a teen (calorie deficits, water or dry fasts, weigh-ins and body photos, skipping sleep, alcohol, vaping, nicotine, day or options trading, casinos, sports betting, dares); and on missions that mention points, discount codes, merch or UNSETLD. Words worth a second look for safety or privacy (diets, fasting, supplements, caffeine, crypto, betting, selfies, faces, grades, a bedroom, an address, a location) are listed as warnings.
+- **Programs:** `programs.json`: `id`, `title`, `short`, `days`, `tracks` (areas), `free`, and `plan` (one entry per program day, 1–2 mission ids, no two from one group, no missions that need anything but school: no work, gym, project, age or skill). At least two must be free.
 - **Rewards:** `rewards.json`, the default tiers: free shipping (300), 10% off (600, up to $25), 15% off (1,000, up to $25), and a limited piece that is switched off. Fields: `id`, `title`, `detail`, `type`, `points`, `percent`, `maxOff`, `active`, `availableFrom` / `availableUntil`, `codeValidDays`, `inventory`, `perCollection`. Change them here, or send `rewards` from unsetld.com's config.json to replace the whole list without an update ([docs/ACCESS.md](docs/ACCESS.md)).
 - **Rules:** `rules.json`: perfect-day bonus (15), swaps a day (free 1, Full Edition 3), Off Days (one every 7 active days, up to 2), how fresh a proof photo must be (30 minutes), the gap between before and after photos (120 seconds), and the default photo retention (30 days).
 - **Other content:**
-  - tracks: `tracks.json` (seven, in a fixed order)
+  - areas: `tracks.json` (nine, in a fixed order)
   - reminder prompts for days without a plan: `reminders.json`
   - colorways: `colorways.json` (ten, only Black is free; plates come from `npm run colorways`)
   - Access milestones and letters: `milestones.json`
   - legal pages and How missions work: `legal.json`
   - all UI strings: `copy.ts` and `copy/*.ts`
-- **Widget guide:** the in-app guide (`src/screens/WidgetScreen.tsx`) draws the Next mission, Today and Streak widgets from the same copy the real widgets use, on an example day, so there are no screenshots to replace. If a mission it names (`reset-make-the-bed`, `focus-lock-in-25`, `school-10-pages`) is retired, the example drops it.
+- **Widget guide:** the in-app guide (`src/screens/WidgetScreen.tsx`) draws the Next mission, Today and Streak widgets from the same copy the real widgets use, on an example day, so there are no screenshots to replace. If a mission it names (`discipline-make-your-bed`, `school-study-30`, `fitness-workout`) is retired, the example drops it.
 
 ### 4. Privacy
 
 - **Photos stay on the phone.** Proof is taken with the camera inside the app (iOS never offers the photo library), saved in the app's own folder and never uploaded.
 - **Metadata is stripped.** Each photo is resized to 1600 px and re-encoded as a new JPEG when it's saved, which drops EXIF, including location. A fingerprint of the saved image stops the same photo counting twice.
 - **Retention.** Photos are deleted after 30 days by default (Settings → Proof photos: 30 days, 1 year or Keep). The mission, its points and the fingerprint stay. Choosing a shorter time asks before deleting older photos.
-- **On-device checks only.** The checks look at how and when proof was taken: the right photos are there, the proof photo was taken in the last 30 minutes, before and after are at least 2 minutes apart, the focus timer finished first, and the photo was never used before. They don't look at what's in the photo. There is no AI, and the app never claims a photo was verified by AI. `services/verify.ts` has a `TaskProofVerifier` interface for a future server-side check; none is connected.
+- **On-device checks only.** The checks look at how and when proof was taken: the right photos are there, the proof photo was taken in the last 30 minutes, before and after are at least 2 minutes apart, the focus timer finished first (for a timer-only mission, it ran its full length in the last 30 minutes), and the photo was never used before. They don't look at what's in the photo. There is no AI, and the app never claims a photo was verified by AI. `services/verify.ts` has a `TaskProofVerifier` interface for a future server-side check; none is connected.
 - **What missions never ask for:** faces, bodies, other people, IDs, addresses, bank details, grades, medical information, private conversations, a bedroom specifically, or location. No facial recognition, no public feed.
-- **What leaves the phone:** a time check against unsetld.com (no identifier), the public config and drops files, purchases through Apple and RevenueCat (an anonymous app user ID), and, only for someone who signs in for rewards, each day's count of proven missions and their points. Never a photo, never the About you answers.
+- **What leaves the phone:** a time check against unsetld.com (no identifier), the public config and drops files, purchases through Apple and RevenueCat (an anonymous app user ID), and, only for someone who signs in for rewards, each day's count of proven missions and their points. Never a photo, never the About you answers or the areas.
 - The record is mirrored into the iOS Keychain so a reinstall keeps the streak and points. Photos aren't part of it.
 
 ### 5. App Store
@@ -144,8 +144,8 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
 - **Privacy label:** no tracking, no ads, no analytics. Purchases go through RevenueCat. An Apple user ID, an optional email and the dates and counts of proven missions are collected only if the user signs in for rewards. Photos are not collected.
 - **Camera:** the permission text is in `app.json` (`expo-image-picker` plugin). The app asks the first time someone opens the camera to prove a mission.
 - **Screenshots** (captions are suggestions; proof photos in them show objects, never people, faces, documents or screens with personal details):
-  1. Home with today's three missions: *Three missions a day, built around your life.*
-  2. A mission page with PROVE IT: *Do it for real. Prove it with the camera.*
+  1. Home with today's three missions: *Three missions a day, built around your goals.*
+  2. A mission page (Study for 30 Minutes, START 30 MIN TIMER): *Do it for real. Prove it in the app.*
   3. The done screen with points: *Every proven mission earns points.*
   4. Progress with the streak and levels: *A streak that means you showed up.*
   5. The lock screen with the Next mission and Streak widgets: *Your next mission, on your lock screen.*
@@ -159,20 +159,20 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
 
 | Path | What |
 |---|---|
-| `src/screens/onboarding/` | Name, Tracks, About you, Pace (also Settings → Your plan, in edit mode) |
-| `src/screens/home/` | Home (route `Today`): streak, points, today's missions, swaps, program banner, weekly review card, the bottom bar |
-| `src/screens/mission/` | Mission (full-screen): detail, focus timer, before and after, review, the on-device checks, the done screen |
-| `src/screens/progress/` | Progress (stats, barcode, levels, milestones, this week), Weekly review, milestone moments |
+| `src/screens/onboarding/` | Name, Areas (`TracksScreen`), About you, Pace (also Settings → Your plan, in edit mode) |
+| `src/screens/home/` | Home (route `Today`): streak, points, today's mission rows, swaps, program banner, weekly review card, the bottom bar |
+| `src/screens/mission/` | Mission (full-screen): the plain detail page, focus timer, before and after, review, the on-device checks, the done screen |
+| `src/screens/progress/` | Progress (stats, barcode, levels per area, milestones, this week), Weekly review, milestone moments |
 | `src/screens/rewards/` | Rewards: balance, next reward, tiers and redeem, your codes, how points are earned, Access |
 | `src/screens/programs/` | Programs: start, follow and leave a program |
 | `src/screens/` | Reminders (Day), Widget guide, Paywall, Settings, Account, Doc, Milestone, Letter, Proof gallery, Tester tools; `today/ColorwaySheet.tsx` |
-| `src/core/` | Pure, unit-tested rules: the 4:00 AM day, the daily plan and swaps, completion and points, streak and Off Days, levels and milestones, the weekly review, programs, rewards and the config parser, proof checks, fingerprints and retention, the focus timer, Access and the pause rule, reminders, 2.x carry-over |
+| `src/core/` | Pure, unit-tested rules: the 4:00 AM day, the daily plan from the user's areas and swaps within an area, completion and points, streak and Off Days, levels and milestones, the weekly review, programs, rewards and the config parser, proof checks (photo and timer), fingerprints and retention, the focus timer, Access and the pause rule, reminders, 2.x carry-over |
 | `src/state/` | Zustand store (persisted), mission hooks, app lifecycle (4:00 AM rollover, rescheduling, photo expiry, deep links), intents |
 | `src/services/` | Camera and proof storage, the verifier interface, notifications and the timer-done alert, widgets, Access network calls, Sign in with Apple, purchases, Keychain backup, time check |
-| `src/content/` | Missions, programs, rewards, rules, tracks, colorways, milestones, legal pages, every string |
+| `src/content/` | Missions (generated from `scripts/missions/library.py`), programs, rewards, rules, areas, colorways, milestones, legal pages, every string |
 | `src/ui/` | Design tokens, type, buttons, squares, segmented control, icons, the walker, sheets, the proof stamp |
 | `widgets/` | The iOS widgets: Next mission (`UnsetldLine`), Today (`UnsetldStandard`), Streak (`UnsetldRecord`). The 2.x kinds are kept so widgets already placed stay put. |
-| `scripts/` | Preview build, content validation, colorway plates |
+| `scripts/` | The mission library (`missions/library.py`, writes `missions.json`), preview build, content validation, colorway plates |
 
 ## Checks
 

@@ -75,11 +75,15 @@ export const REWARDS_COPY = {
 
   // How points are earned (shown with Access on or off)
   earning: 'HOW POINTS ARE EARNED',
-  /** By how long a mission takes. `said` is what VoiceOver reads for the points. */
+  /**
+   * By how long a mission takes, matching the library's rule (scripts/validate-content.mjs
+   * pointsFor: up to 5 min +5, up to 20 +10, up to 35 +15 or +20, under 60 +20, an hour +25).
+   * `said` is what VoiceOver reads for the points.
+   */
   earningRows: [
     { title: 'A few minutes', value: '+5', said: '5 points' },
     { title: '10–20 minutes', value: '+10', said: '10 points' },
-    { title: '30–45 minutes', value: '+15 to +20', said: '15 to 20 points' },
+    { title: '25–45 minutes', value: '+15 to +20', said: '15 to 20 points' },
     { title: 'An hour', value: '+25', said: '25 points' },
   ],
   earningNote: 'The longer a mission takes, the more it’s worth.',

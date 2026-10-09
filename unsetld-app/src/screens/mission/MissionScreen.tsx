@@ -445,9 +445,16 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
         <T v="list" style={{ marginTop: photos.length > 0 ? 16 : 24 }}>
           {mission.title}
         </T>
-        <T v="note" color={C.stone} style={{ marginTop: 6 }}>
-          {mission.proof}
-        </T>
+        {photos.length > 0 ? (
+          <T v="note" color={C.stone} style={{ marginTop: 6 }}>
+            {mission.proof}
+          </T>
+        ) : mission.timerMinutes ? (
+          // A TIMER mission: no photo, the finished timer is what's being checked.
+          <T v="mono" style={{ marginTop: 8 }}>
+            {MISSION.proven.timed(mission.timerMinutes)}
+          </T>
+        ) : null}
       </Screen>
     );
   }

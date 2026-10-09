@@ -235,8 +235,10 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
   // Busy: its timer is running or its before photo is saved, so it can't be swapped out.
   const busyWith = (m: TodayMission) =>
     (timer?.missionId === m.mission.id && timer.day === day) || (pendingBefore?.missionId === m.mission.id && pendingBefore.day === day);
+  // A mission with any proof on record today (a rejected attempt included) stays: the store won't swap it.
+  const canSwap = (m: TodayMission) => !m.done && !busyWith(m);
   // Swaps left are said once, under TODAY, while there's a mission to use one on.
-  const swappable = missions.some(m => !accepted(m.done) && !busyWith(m));
+  const swappable = missions.some(canSwap);
 
   const all = missions.length;
   const shownDone = seen.day === day ? seen.ids.length : 0;
@@ -305,7 +307,6 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
         <View style={{ marginTop: prog && progDay ? 0 : 20 }}>
           {missions.map((m, i) => {
             const done = accepted(m.done);
-            const busy = busyWith(m);
             const isNew = swapped?.missionId === m.mission.id;
             return (
               <MissionCard
@@ -315,7 +316,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
                 action={actionFor(m)}
                 colorway={colorway}
                 last={i === missions.length - 1}
-                swap={done || busy ? null : { left: swapsLeft, note: isNew ? swapped.note : null }}
+                swap={canSwap(m) ? { left: swapsLeft, note: isNew ? swapped.note : null } : null}
                 onOpen={() => navigation.navigate('Mission', { missionId: m.mission.id })}
                 onSwap={() => swap(m)}
                 celebrate={celebrate.ids.includes(m.mission.id) ? celebrate.n : 0}

@@ -157,7 +157,9 @@ export const PROGRESS = {
     emptyPast: 'Nothing proven that week. This week starts with one mission.',
     nextLabel: 'NEXT WEEK',
     nextBody: 'Pick one area to focus on.',
-    leaning: (short: string) => `Most days next week include a longer ${short} mission.`,
+    /** `longer`: the user's days have a longer mission for the area to take (not on 5–15 minute days). */
+    leaning: (short: string, longer: boolean) =>
+      longer ? `Most days next week include a longer ${short} mission.` : `${short} comes first most days next week.`,
     a11yChip: (name: string) => `Focus on ${name}`,
     footer: 'Never settle for less.',
     done: 'Done',

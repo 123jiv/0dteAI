@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import { DEFAULT_PROFILE } from '../../core/missions';
+import { DEFAULT_PROFILE, slotsFor } from '../../core/missions';
 import { reviewWeekFor, weeklyReview, weekStart } from '../../core/review';
 import { addDays, diffDays } from '../../core/time';
 import type { TrackId } from '../../core/types';
@@ -154,7 +154,7 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
           </View>
           {leaning ? (
             <T v="note" color={C.stone} style={{ marginTop: 12 }}>
-              {R.leaning(leaning.short)}
+              {R.leaning(leaning.short, slotsFor(profile).includes('main'))}
             </T>
           ) : null}
         </>

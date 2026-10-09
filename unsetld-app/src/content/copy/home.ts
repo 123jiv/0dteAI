@@ -15,6 +15,9 @@ function focused(minutes: number): string {
   return h ? `${h}h ${m}m` : `${m}m`;
 }
 
+/** A no-break space: keeps "45 min" together when a line wraps. */
+const NBSP = '\u00a0';
+
 /** "1,340" */
 const num = (n: number) => n.toLocaleString('en-US');
 
@@ -64,9 +67,13 @@ export const HOME = {
   programA11y: (title: string, day: number, days: number) => `${title}, day ${day} of ${days}`,
   programA11yHint: 'Opens Programs',
 
-  /** "School · 30 min · +15", with "Timer" or "Before + after" when the proof needs one. */
+  /**
+   * "School · 30 min · +15", with "Timer" or "Before + after" when the proof needs one.
+   * No-break spaces inside each part and before each dot, so a narrow row wraps only
+   * after a dot ("Organization · 45 min ·" / "+20 · Before + after"), never inside "45 min".
+   */
   meta: (area: string, minutes: number, points: number, badge: string | null) =>
-    [area || null, `${minutes} min`, `+${points}`, badge].filter(Boolean).join(' · '),
+    [area || null, `${minutes}${NBSP}min`, `+${points}`, badge ? badge.replace(/ /g, NBSP) : null].filter(Boolean).join(`${NBSP}· `),
   badge: { timer: 'Timer', beforeAfter: 'Before + after' },
 
   action: {
@@ -84,10 +91,11 @@ export const HOME = {
     left: (n: number) => (n === 0 ? 'No swaps left today' : n === 1 ? '1 swap left today' : `${n} swaps left today`),
     done: (title: string) => `Swapped. ${title} is in.`,
     confirmTitle: (title: string) => `Swap ${title}?`,
-    /** `area`: the mission's area, "School". A swap stays in it. */
+    /** `area`: the mission's area, "School". A swap stays in it when another one fits today. */
     confirmBody: (left: number, area: string) =>
       [
-        area ? `You’ll get a different ${area} mission, and this one stays away for a while.` : 'You’ll get a different mission, and this one stays away for a while.',
+        area ? `You’ll get another ${area} mission if one fits today.` : 'You’ll get a different mission.',
+        'This one stays away for a while.',
         left === 1 ? 'This is your last swap today.' : `You have ${left} swaps left today.`,
       ].join(' '),
     yes: 'Swap',

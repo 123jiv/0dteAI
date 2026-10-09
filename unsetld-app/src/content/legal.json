@@ -8,7 +8,7 @@
       },
       {
         "h": "Swaps",
-        "p": "Don't want one? Swap it for another from the same area before you prove it. One swap a day, three with Full Edition. A mission you swap stays away for two weeks."
+        "p": "Don't want one? Swap it before you prove it, and you get another mission from the same area when one fits today. One swap a day, three with Full Edition. A mission you swap stays away for two weeks."
       },
       {
         "h": "Proof",
@@ -167,7 +167,7 @@
       },
       {
         "h": "Proof checks",
-        "p": "Proof is checked on this phone: that the photos were taken just now, in the right order, after the timer, and weren't used before, and that a timer ran to the end. The checks don't look at what's in a photo. There is no facial recognition, no AI and no one reviewing your photos."
+        "p": "Proof is checked on this phone: that a timer ran to the end, and that the photos were taken just now, in the right order and after the timer, and weren't used before. The checks don't look at what's in a photo. There is no facial recognition, no AI and no one reviewing your photos."
       },
       {
         "h": "What missions ask for",

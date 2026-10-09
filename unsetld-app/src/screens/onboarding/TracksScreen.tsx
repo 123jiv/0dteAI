@@ -230,9 +230,14 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
       <View style={{ marginTop: 24, gap: GAP }}>
         {ROWS.map((row, r) => (
           <View key={row[0].id} style={{ flexDirection: 'row', gap: GAP }}>
+            {/* Each tile sits in a bare half-width cell: a bordered, padded tile beside an empty spacer would take the wider share. */}
             {row.map((t, c) => {
               const on = chosen.includes(t.id);
-              return <Tile key={t.id} track={t} index={r * 2 + c} on={on} dim={full && !on} onPress={() => toggle(t.id)} />;
+              return (
+                <View key={t.id} style={{ flex: 1 }}>
+                  <Tile track={t} index={r * 2 + c} on={on} dim={full && !on} onPress={() => toggle(t.id)} />
+                </View>
+              );
             })}
             {row.length === 1 ? <View style={{ flex: 1 }} /> : null}
           </View>

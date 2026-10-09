@@ -2,95 +2,175 @@
 
 Tokens, type, colorways, the walker, Access (early access / patch / 365 piece), the paywall layout, accounts and purchases from DESIGN_SPEC.md still apply. Where this file disagrees with an older spec, this file wins.
 
-## 0. Audit (9 Oct 2026)
+## 0. Audit and redirect (9 Oct 2026)
 
 **What existed (2.2):** Expo SDK 57 / React Native / TypeScript; one native stack (React Navigation), zustand store persisted locally, Keychain backup of the record; a browser preview build. Onboarding: name → first line (quote) → three "standard" rules → chapters → reminders → widget → paywall. Today: a daily quote on top, a night check, then "today's work" = the 3 rules + 1 daily task + up to 3 own tasks. Task screen with why / how / proof, in-app camera (library on web), 10 points per proven task (max 4/day), discount codes at 600/1000 points (one per collection), "days on record" (opening the app) with a barcode and an Access road (early access day 7, patch day 90, 365 piece), milestone letters, colorways, reminders, iOS widgets (Line / Record / Standard), Full Edition (RevenueCat), Sign in with Apple and account deletion, tester tools, 33 unit tests, a content validator.
 
 **Worth keeping:** camera capture + local-only photos + the proof stamp; points → codes plumbing and the redeem/claim backend contract; Access milestones, letters and drops; accounts; purchases; reminders and the 4 AM day boundary; widgets infrastructure; colorways; the editorial look (Cormorant + Inter + Plex Mono, black / bone / stone); tests, validator, preview build.
 
-**Poorly structured for the product:** the experience was built around quotes (589 lines, saved lines, your lines, a quote share card, the line at the top of Today); tasks were bare sentences with no title, points, difficulty, time, proof type or requirements; everyone got the same three "rules" (the source of "Do the hard thing first", "Finish what I start"); one daily task, no selection logic beyond a shuffle; no replacement, no timers, no before/after; streak = opening the app; no levels, no weekly review, no programs; reward tiers hardcoded in points.json.
+**What changed in 3.0:** missions are the product. Areas + optional personalization + intensity in onboarding; a mission library with a real data model; a few missions a day chosen per user with a swap; a plain mission screen; proof by photo, before and after, the in-app focus timer, or both; on-device proof checks behind a verifier interface (no fake AI); EXIF stripped, fingerprints against reuse, automatic photo expiry; points per mission + perfect-day bonus; a streak that means "I proved one mission today" with Off Days; levels per area and milestones; a weekly review; programs; reward tiers configurable from unsetld.com. The quote library, the standard rules, the night check, saved lines, your lines and the line share card are retired.
 
-**What changes in 3.0:** missions are the product. Tracks + optional personalization + intensity in onboarding; a mission library with a real data model; 3 missions a day chosen per user with a free swap; a mission screen with PROVE IT; four proof types incl. an in-app focus timer and before/after; on-device proof checks behind a verifier interface (no fake AI); EXIF stripped, fingerprints against reuse, automatic photo expiry; points per mission + perfect-day bonus; a streak that means "I proved one mission today" with Off Days; levels per track and milestones; a weekly review; programs; reward tiers configurable from unsetld.com. The quote library, the standard rules, the night check, saved lines, your lines and the line share card are retired.
+**The founder's redirect (same day, wins over everything above it):**
+- Missions are normal, high-value actions a motivated 13–25 year old recognises: `Study for 30 Minutes`, `Complete Your Workout`, `Work on Your Business for 30 Minutes`, `Read 10 Pages of a Useful Book`, `Plan Tomorrow`, `Track Today's Spending`. Clear beats clever. No motivational content, no essays, no lectures.
+- The Quick Win / Progress / Challenge labels are gone everywhere. What matters is the user's goals (their areas), not archetypes.
+- Nine areas replace the seven 3.0 tracks. Users choose about two to four (one to four allowed).
+- The mission screen is the title, time and points, one instruction sentence, PROOF, and one button. No WHY THIS MATTERS, no HOW TO DO IT.
+- Proof is PHOTO, TIMER, TIMER + PHOTO or BEFORE + AFTER PHOTO. Nothing ever claims AI looked at a photo.
 
 ## 1. The loop
 
-Choose what you want to improve → get 3 realistic missions each day → do it in real life → PROVE IT with the camera → earn points → keep the streak → see the levels and the week add up → trade points for UNSETLD rewards.
+Choose the areas you want to improve → get three plain, useful missions each day from those areas → do them in real life → prove each one in the app (a photo, the focus timer, or both) → earn points → keep the streak → see each area's level and the week add up → trade points for UNSETLD rewards.
 
 "Never settle for less." appears only at meaningful moments: onboarding (the name page), the weekly review, milestones and reward unlocks. Nowhere else.
 
-## 2. Tracks (src/content/tracks.json)
+## 2. Areas (src/content/tracks.json)
 
-| id | name | short |
-|---|---|---|
-| focus | FOCUS & DISCIPLINE | Focus |
-| fitness | FITNESS & ENERGY | Fitness |
-| school | SCHOOL & LEARNING | School |
-| money | MONEY & CAREER | Money |
-| skills | SKILLS & PROJECTS | Skills |
-| reset | LIFE RESET | Reset |
-| mindset | CONFIDENCE & MINDSET | Mindset |
+The UI says "areas"; the code calls them tracks (`TrackId`, `Mission.track`, `Profile.tracks`). Nine, in this order (the validator checks it):
 
-## 3. Onboarding (replaces O2–O4)
+| id | name | short | scope |
+|---|---|---|---|
+| discipline | DISCIPLINE | Discipline | Focus, plans, finishing what you start. |
+| school | SCHOOL | School | Studying, assignments, tests, grades. |
+| fitness | FITNESS | Fitness | Workouts, cardio, real food. |
+| money | MONEY | Money | Tracking, saving, budgeting. |
+| career | CAREER | Career | Jobs, internships, your resume. |
+| business | BUSINESS | Business | Customers, product, content, sales. |
+| skills | SKILLS | Skills | Courses, practice, useful books. |
+| projects | PROJECTS | Projects | Building, making, shipping your thing. |
+| organization | ORGANIZATION | Organization | Your room, your stuff, your files. |
 
-1. **Name** (unchanged): "unsettled", "Never settle for less." → Begin.
-2. **Tracks** — title `What are you trying to improve right now?`, body `Pick up to three.` 7 tiles (2 columns; last row 1). Tile: track name (label style) + scope (small, stone), 1px rule border, selected = bone border + filled square. Counter `0 OF 3`. Button `Continue` (disabled until 1+).
-3. **About you** (optional) — title `A few quick ones.`, body `So the missions fit your life. Skip anything.` Rows of chip pairs: `In school?` Yes / No · `Working?` Yes / No · `Gym access?` Yes / No · `Building something?` (a business, a brand, a channel, art, an app) Yes / No · `Age` 13–15 / 16–17 / 18+. Buttons: `Continue`, text button `Skip`.
-4. **Pace** — title `How much time a day?` chips: `5–15 min` / `15–30 min` / `30–60 min` / `60+ min`. Then `How hard?` three cards: **START EASY** `Shorter missions. Build the habit first.` · **LOCK IN** `A quick win, real progress and one challenge a day.` · **PUSH ME** `Longer, harder missions. Four a day.` Button `Continue`.
-5. **Reminders** (DayScreen, unchanged except the night check row is removed; the last reminder is the evening nudge).
-6. **Widget** (unchanged step).
-7. **Your first missions** — after the paywall, Home opens with today's plan already built.
+`short` is what rows, levels, swaps and widgets show ("School · 30 min · +15"). Earlier 3.0 builds had seven tracks; the store's migration (version 4) maps the ids that went away: `focus` → discipline, `reset` → organization, `mindset` → discipline, in the user's areas, their weekly priority and the area stored on each proven mission. From then on a proven mission keeps the area it was proven in, even if the library later moves it.
 
-Edit mode: Settings → Your plan opens the same Tracks / About you / Pace screens with `Save` (and replans today if nothing was done or swapped yet).
+## 3. Onboarding
+
+1. **Name** (unchanged): "unsettled", "Never settle for less." → Begin. Not numbered; the five steps below are `01 / 05` to `05 / 05`.
+2. **Areas** — title `What are you trying to improve right now?`, body `Pick up to four.` Nine tiles, numbered 01–09: the area name (label style) and its scope (small, stone); 1px rule border, chosen = bone border. Counter `0 OF 4`; a fifth tap says `Four is the most. Take one off first.` `Continue` needs at least one.
+3. **About you** (optional) — title `A few quick ones.`, body `So the missions fit your life. Skip anything.` Yes / No: `In school or college?` · `Working?` · `Building a business or project?` (`A brand, a channel, an app, art.`) · `Gym access?`. `Age` 13–15 / 16–17 / 18+. `What are you learning?` (`Pick any that apply.`): Coding, Design, Video editing, Writing, A language, Music. Buttons `Continue` and `Skip`.
+4. **Pace** — `How much time a day?` 5–15 / 15–30 / 30–60 / 60+ MIN. `How hard?` three cards: **START EASY** `Three missions a day, shorter ones.` · **LOCK IN** `Three missions a day: one easy, two that take real focus.` · **PUSH ME** `Four missions a day, longer sessions.` With 5–15 minutes chosen: `With 5–15 minutes, you get three short missions a day, whatever you pick.`
+5. **Reminders** (DayScreen).
+6. **Widget** (the widget guide).
+7. **Paywall**, then Home with today's plan already built.
+
+Edit mode: Settings → Your plan opens the same Areas / About you / Pace screens with `Save`, which rebuilds today's plan if nothing in it was proven or swapped yet.
 
 ## 4. Missions
 
-Data model: `Mission` in src/core/types.ts; library in src/content/missions.json (validated by scripts/validate-content.mjs; brief in docs/research/2026-10-09-missions-brief.md).
+### What a mission is
 
-Daily plan (src/core/missions.ts):
-- Slots by intensity: START EASY = quick, quick, progress · LOCK IN = quick, progress, challenge · PUSH ME = quick, progress, challenge, challenge.
-- Points by slot: quick 10, progress 15, challenge 25. Perfect day (every mission in the plan proven): +15 bonus.
-- Tracks rotate across slots by day; the week's priority track (from the weekly review) takes the progress slot on 2 of 3 days.
-- Filters: requirements (school / work / gym / project / age16 / age18) against the profile (unknown allows what a teen could do; gym and work need a yes; 18+ needs 18+), cooldown after a mission was done, one-off missions once, not shown again for 4 days (anchors sooner), skipped missions away 21 days (90 after 3 skips).
-- Time: the day fits the chosen time where possible; for 5–15 min users slots get easier rather than longer.
-- Programs: an active program's missions for its current day are placed first.
-- The plan is generated once per day and stored; swaps are stored too.
-- **Swap**: `↻ Swap` on an unproven mission card. 1 free swap a day, 3 with Full Edition. The swapped mission is counted as a skip.
+A normal, high-value action: work done, something learned, made, organised, trained, or progress with money or a career. The title says what to do (`Study for 30 Minutes`). One sentence says how (`Put your phone away and spend 30 focused minutes studying one subject.`). One line says what the proof shows (`Your notes or study setup, after the timer.`). Nothing else: no reasons, no steps, no pep talk. Proof never needs a face, a body, other people, an ID, an address, bank details, grades, medical information, private messages or a location.
 
-## 5. Home (root screen, replaces Today)
+### Where it lives
 
-Colorway background as before. Top to bottom:
-- Row: label `UNSETLD` (left), mono `DAY 012` (= days with a proven mission, padded) (right).
-- Stats row: `12` + label `DAY STREAK` (left) · `340` + label `POINTS` (right, tappable → Rewards). Numbers in Cormorant 44. Under the streak, when banked: mono `1 OFF DAY BANKED`.
-- Next reward line (mono, secondary): `150 POINTS TO 10% OFF` (hidden when Access is off).
-- Section header: label `TODAY` + mono `1 / 3 COMPLETE`, a 2px progress bar (bone on rule).
-- Status line (body, secondary): 0 done `Three missions. Finish them.` · some done `2 left. Keep going.` · all done `Perfect day. That's how it's done.` (for 4-mission days the numbers follow).
-- Program banner if one is active: label `7 DAY LOCK IN · DAY 3 OF 7`.
-- **Mission cards** (one per planned mission): label `QUICK WIN` / `PROGRESS` / `CHALLENGE` + track short name; title in Cormorant 26; meta row in mono: `25 MIN · +15 PTS` (+ `TIMER` / `BEFORE + AFTER` badges); right side: primary small button `START` (or `TIMER 12:04` while a timer runs, `AFTER PHOTO` when a before photo is waiting). Proven: title in secondary, a 28×35 photo thumbnail, mono `PROVEN 9:47 AM · +15`. Under unproven cards: text button `↻ Swap` (`1 swap left today` / `No swaps left today`).
-- When everything is proven: a quiet line `Come back tomorrow for three more.`
-- **Weekly review card** (Sunday, Monday, Tuesday until closed): label `YOUR WEEK` + `14 missions · 4h 20m focused` + `See the week →`.
-- Bottom bar (fixed, solid colorway background): `Progress` (walker), `Programs`, `Rewards`; colorway icon stays.
-- Day 3 Access note as before (under the missions).
-- No quote anywhere.
+The library is written in **`scripts/missions/library.py`**, one readable `m(...)` call per mission, grouped by area. Running `python3 scripts/missions/library.py` writes `src/content/missions.json`; never edit the JSON by hand. Then run `npm run validate`. Mission ids are permanent (`<area>-<slug>`, e.g. `school-study-30`): completions, plans and programs refer to them, so retire a mission with `active: false` rather than renaming or deleting it.
 
-## 6. Mission screen (full-screen modal; replaces Task)
+### Data model (`Mission` in src/core/types.ts)
 
-Stages:
-1. **Detail** — close X, mono `DAY 012`. Label `QUICK WIN · FOCUS`. Title (title.xl). Meta row: `25 MIN · +15 POINTS`. Sections with labels: `WHY THIS MATTERS` (body), `HOW TO DO IT` (numbered steps 01–04, body), `PROOF REQUIRED` (body + proof-type line: `One photo` / `A photo of the result` / `Before and after photos` / `25-minute timer, then a photo`). Big primary button `PROVE IT` (or `START THE 25:00 TIMER` for TIMER_AND_PHOTO, `TAKE THE BEFORE PHOTO` for BEFORE_AFTER). Text button `Swap this mission` when swaps are left.
-2. **Timer** (TIMER_AND_PHOTO) — huge mono countdown `24:59`, the mission title, `Phone down. Come back when it rings.` Buttons: `Pause` / `Resume`, text button `End timer` (asks to confirm; ending early earns nothing). The timer keeps running when the app is closed (wall clock); a local notification fires at zero: `25:00 done. Take the proof photo.` At zero: `Time. Take the proof photo.` → camera.
-3. **Before taken** (BEFORE_AFTER) — the before photo small, `Before saved. Now do it.` `TAKE THE AFTER PHOTO`. The before photo waits even if the app closes (store.pendingBefore).
-4. **Review** — the photo(s) at 4:5 with the proof stamp; `Submit proof` (primary), `Retake`.
-5. **Checking** — `Checking proof…` (the on-device checks; instant).
-6. **Done** — `PROVEN.` (title.xl), the mission title, a count-up `+15 POINTS` (mono.l, 600 ms), `340 → 355 POINTS`, a thin bar and `245 POINTS TO 10% OFF` (or `10% OFF IS READY` → Rewards), streak line (`Day 12. Streak's alive.` the first mission of the day / `Streak: 12 days`), perfect day block when the plan is complete: label `PERFECT DAY` `+15 BONUS`. Haptic on the count-up. Button `Done`.
-   - **Rejected** — `Not counted.` + each failed check's note (e.g. `Take the photo again. Proof has to be from the last 30 minutes.`) + `Try again`.
+| field | what |
+|---|---|
+| `id` | permanent, `<area>-<slug>` |
+| `track` | the area it counts toward (its row, its level, its swaps) |
+| `also` | other areas it also serves: `Work on Your Portfolio` is Career, also Projects and Skills |
+| `title` | Title Case, at most 48 characters, unique, no end punctuation |
+| `short` | the one instruction sentence, at most 120 characters, ends with a full stop |
+| `proof` | what the proof shows, at most 90 characters |
+| `proofType` | `PHOTO`, `BEFORE_AFTER`, `TIMER_AND_PHOTO` or `TIMER` (`PHOTO_AFTER` stays readable for older records; the library uses none) |
+| `minutes` | the real time it takes; 15 or less makes it an easy mission |
+| `points` | set by `minutes` (below) |
+| `timerMinutes` | the focus timer for `TIMER` and `TIMER_AND_PHOTO` (5–60, no more than `minutes`) |
+| `requires` | `school`, `work`, `gym`, `project`, `age16`, `age18`, or a skill: `coding`, `design`, `video`, `writing`, `language`, `music` |
+| `cooldownDays` | days before it can come back after it was done (1–365) |
+| `repeatable` | `false` for a one-off (`Write the First Draft of Your Resume`) |
+| `anchor` | a core habit that should come back most days (study, train, build, plan tomorrow); repeatable, cooldown 3 days or less |
+| `group` | missions that overlap share one; a day never holds two from one group |
+| `weight` | how often the planner picks it, relative to 1 (0.1–3) |
+| `when` | `morning` (left out of a plan made from noon on) or `evening` (a label for now; the planner doesn't act on it) |
+| `tags`, `active` | 1–4 tags; `active: false` retires it |
 
-Copy never says a photo was "verified by AI". Wording: `Proof saved.` / `Checked on this phone: taken just now, timer finished, new photo.`
+There is no `slot`, `difficulty`, `why` or `how` any more; the validator rejects them.
+
+### Points by time
+
+| time | points |
+|---|---|
+| up to 5 min | 5 |
+| 6–20 min | 10 |
+| 21–35 min | 15, or 20 for work on your own thing: a business or project session, your portfolio, a job or internship application, training |
+| 36–59 min | 20 |
+| 60 min and up | 25 |
+
+A perfect day (every mission in the day's plan proven) adds 15 (`rules.json` `perfectDayBonus`). Missions never mention points, codes, merch or UNSETLD.
+
+### Requirements
+
+A mission is offered only when the user's answers allow it. `school`: unless they said they're not in school (a skipped answer allows it). `work`, `gym`, `project`: only after a yes. `age16`: not for 13–15. `age18`: only for 18+. A skill: only when they named it under What are you learning?
+
+### Content rules (`npm run validate`, scripts/validate-content.mjs)
+
+Errors fail the run: every field above; points that don't match the time; `"!"`, `"…"`, emoji or swearing; hustle and therapy words (grind, level up, mindset, journey, your potential, you got this ...); anything unsafe for a teen (calorie deficits, water or dry fasts, weigh-ins and body photos, no sleep, alcohol, vaping, nicotine, day or options trading, casinos, betting, dares); any mention of points, codes, merch or UNSETLD. Warnings: words worth a second look for safety or privacy (diet, caffeine, crypto, selfie, face, grades, bedroom, address, location ...). It also prints, per area, the easy, focused, core, timed and before/after counts, and warns when an area has fewer than 4 easy or 5 focused missions or no core habit.
+
+### The daily plan (src/core/missions.ts)
+
+- **Shape.** One easy mission (15 minutes or less) and two focused ones on Start easy and Lock in; Push me adds a third focused one. With 5–15 minutes a day it's three easy missions, whatever the intensity (`slotsFor`). The longest single mission is 30 minutes on Start easy, 45 on Lock in, 60 on Push me (`MAIN_MAX_MINUTES`). The day aims to fit 25 / 65 / 120 / 180 minutes for the four time choices (`DAY_BUDGET`); when nothing fits, the shortest few are used.
+- **Areas first.** Every mission comes from one of the user's areas (its own area, or one it `also` serves). Focused missions are placed first: the lead area (the first pick, or the week's priority from the weekly review) on two days in three, then the others in rotation; the easy mission takes the next area. A day covers as many of the user's areas as it has missions.
+- **Core habits come back.** When an area has a core habit free, a slot takes it 60% of the time (`CORE_SHARE`), and core habits skip the "shown lately" gap, so studying, training, building and planning come back on most days while the rest of the area fills the other days.
+- **Variety.** Never planned before counts 1.3×; planned yesterday 0.3×, two days ago 0.6×; each skip divides the weight by one more; a mission that only `also` serves the area counts 0.6×.
+- **Filters.** Active; requirements met; morning missions (`Make Your Bed`, `Write Your Top 3 Priorities`) left out of a plan made from noon on; not within its cooldown after it was done; one-offs once; a swapped-out mission away 14 days (60 after three swaps); a mission shown but not done waits up to 3 days (core habits excepted); never two from one group.
+- **When an area runs dry.** The slot's area, then the user's other areas not used yet today, then any of their areas, then (easy slot only) the universal basics from Discipline and Organization. A focused slot with nothing that fits gets an easy mission.
+- **Programs.** An active program's missions for its day go in first, each in a slot of its size or the first free one.
+- The plan is generated once per day (deterministic for the install, the day and the history) and stored, with its swaps.
+- **Swap**: `Swap` on an unproven mission. The new mission comes from the same area and is the same size, never overlaps the rest of the day, and falls back to the user's other areas only when that area has nothing left. One swap a day, three with Full Edition. A swap counts as a skip.
+
+## 5. Home (root screen, route `Today`)
+
+Colorway background. Top to bottom:
+- `UNSETLD` (label, left) and `DAY 012` (mono, right: days with a proven mission).
+- `12` `DAY STREAK` · `380` `POINTS` (tappable → Rewards). Under the streak, when banked: `1 OFF DAY BANKED`.
+- Next reward line: `220 POINTS TO 10% OFF` (hidden when Access is off).
+- `TODAY` + `0 / 3`; status line: `Three missions today.` · `2 to go.` · `Perfect day. Every mission proven.`
+- Program banner if one is active: `7 DAY LOCK IN · DAY 3 OF 7`.
+- **Mission rows**, one per planned mission, no labels above them:
+  - `Study for 30 Minutes`
+  - `School · 30 min · +15` (with `Timer` or `Before + after` when the proof needs one)
+  - a small button: `START` (`TIMER 12:04` while a timer runs, `TAKE PHOTO` when it's done, `AFTER PHOTO` when a before photo is waiting).
+  - Proven: the title steps back, a photo thumbnail, `PROVEN 9:47 AM · +15`. Unproven rows have a quiet `Swap`.
+- When everything is proven: `Come back tomorrow for three more.`
+- Weekly review card (Sunday to Tuesday until closed), bottom bar (`Progress`, `Programs`, `Rewards`, colorway), the Day 3 Access note. No quote anywhere.
+
+## 6. Mission screen (full-screen modal)
+
+**Detail**, and nothing more:
+
+```
+STUDY FOR 30 MINUTES
+30 MIN · +15 POINTS
+Put your phone away and spend 30 focused minutes studying one subject.
+
+PROOF
+Run the 30-minute focus timer. When it ends, take a photo.
+Your notes or study setup, after the timer.
+
+[ START 30 MIN TIMER ]
+Swap this mission
+```
+
+Close X and `DAY 012` in the nav row. Title, then time and points, then the mission's one sentence (`short`). `PROOF`: a line for the proof type (`Take one photo.` · `Take a photo before you start and one when you're done.` · `Run the 30-minute focus timer. When it ends, take a photo.` · `Run the 30-minute timer to the end.`), then the mission's own proof line. One button: `Start 30 min timer` (TIMER and TIMER_AND_PHOTO), `Take the before photo` (BEFORE_AFTER) or `Prove it` (PHOTO). `Swap this mission` while swaps are left. No WHY THIS MATTERS, no HOW TO DO IT, no steps.
+
+Then:
+1. **Timer** (TIMER and TIMER_AND_PHOTO) — a big mono countdown, the title, `Phone down. Come back when it rings.` `Pause` / `Resume`, `End timer` (asks; ending early earns nothing). It runs on the wall clock while the app is closed, and a local notification fires at zero. At zero: TIMER_AND_PHOTO → `Time. Take the proof photo.` and the camera; TIMER → `Time. Mark it done.` and `Mark it done` (no photo).
+2. **Before taken** (BEFORE_AFTER) — the before photo small, `Before saved. Now do it.` `Take the after photo`. It waits even if the app closes.
+3. **Review** — the photo(s) with the proof stamp; `Submit proof`, `Retake`.
+4. **Checking** — `Checking proof…` (on-device, instant).
+5. **Done** — `PROVEN.`, the title, `+15 POINTS` counting up, `365 → 380 POINTS`, the next reward line, the streak line, and `PERFECT DAY` `+15 BONUS` when the day is complete. `Done`.
+   - **Rejected** — `Not counted.` and each failed check's note (e.g. `Take the photo again. Proof has to be from the last 30 minutes.`), `Try again`.
+
+Copy never says a photo was verified by AI. Wording: `Proof saved.` / `Checked on this phone: taken just now, timer finished, new photo.`
 
 ## 7. Proof (services/proof.ts, services/verify.ts, core/verify.ts)
 
-- Proof types: PHOTO, PHOTO_AFTER, BEFORE_AFTER, TIMER_AND_PHOTO.
+- Proof types: **PHOTO** (one photo of the thing or the result), **TIMER** (the in-app timer run to the end, no photo), **TIMER_AND_PHOTO** (the timer, then a photo), **BEFORE_AFTER** (a photo before, then one after). PHOTO_AFTER is kept so older records still read.
 - Capture: iOS opens the camera only (no library). The browser preview picks a file and says so.
 - Saving: resized to 1600 px and re-encoded (drops EXIF and location), stored in the app's own folder, fingerprinted.
-- On-device checks: right photos present, taken in the last 30 minutes, before → after at least 2 minutes apart, timer finished and photo after it, photo never used before (fingerprints of all past proofs).
+- On-device checks: the right photos are there, taken in the last 30 minutes, before → after at least 2 minutes apart, the timer finished and the photo came after it, the photo was never used before. TIMER: the timer ran its full length, ended before now and within the last 30 minutes; there's no photo to check.
 - `TaskProofVerifier` interface for a future vision check (server-side). None is connected; results say `on-device`.
 - Retention: photos are cleared after 30 days by default (Settings → Proof photos: 30 days / 1 year / Keep). The mission and its fingerprint stay. Photos never leave the phone.
 - Privacy: missions never require faces, bodies, other people, IDs, addresses, bank info, grades, medical info, private conversations, a bedroom specifically, or location. No facial recognition. No public feed.
@@ -99,22 +179,22 @@ Copy never says a photo was "verified by AI". Wording: `Proof saved.` / `Checked
 
 - Streak = days in a row with at least one proven mission (today counts once proven; until then yesterday's streak stands).
 - **Off Days**: one earned every 7 active days, up to 2 banked; a missed day uses one automatically. Copy: `OFF DAY` · `An Off Day covered Tuesday. Streak's still going.` · Settings/Progress explain: `Miss a day and an Off Day covers it. You earn one every 7 days you show up. You can bank two.`
-- Progress screen: title `Progress`; stats grid: `STREAK` / `LONGEST` / `MISSIONS` / `POINTS` / `FOCUSED` (4h 20m) / `THIS WEEK` (completion %); the active-days barcode (existing component, now mission days); **Levels**: each chosen track first, then the rest: `FOCUS` `LEVEL 4` thin bar `60 / 150`; **Milestones**: First mission, First 10 missions, First perfect day, 7 days, 30 missions, 100 missions, 30-day streak (reached = bone square + date; not yet = outline + progress `12 / 30`); **This week** block (same numbers as the weekly review) with `See the week →`; Proof gallery link; Settings link (top right). Access (early access / patch / 365 piece) lives on Rewards; its day counts are active days.
+- Progress screen: title `Progress`; stats grid: `STREAK` / `LONGEST` / `MISSIONS` / `POINTS` / `FOCUSED` (4h 20m) / `THIS WEEK` (completion %); the active-days barcode; **Levels**: each chosen area first, then any other area with points: `SCHOOL` `LEVEL 4` thin bar `60 / 150`; **Milestones**: First mission, First 10 missions, First perfect day, 7 days, 30 missions, 100 missions, 30-day streak (reached = bone square + date; not yet = outline + progress `12 / 30`); **This week** block with `See the week →`; Proof gallery link; Settings link (top right). Access (early access / patch / 365 piece) lives on Rewards; its day counts are active days.
 - Milestone reached → a letter-style moment on Home (once): `30 MISSIONS.` `Never settle for less.` `Close`.
 
 ## 9. Weekly review (WeeklyReview screen)
 
-`THIS WEEK` (label) + dates. Big numbers: missions completed, focused time, points earned, perfect days. `Strongest area: Skills & Projects`. If one was left out: `Didn't get to: Fitness.` (never shaming). `NEXT WEEK` — `Pick one area to lean on.` chips of the user's tracks → sets profile.priority. Footer: `Never settle for less.` Button `Done`.
+`THIS WEEK` (label) + dates. Big numbers: missions completed, focused time, points earned, perfect days. `Strongest area: School`. If one of the user's areas was left out: `Didn't get to: Fitness.` (never shaming). `NEXT WEEK` — `Pick one area to focus on.` chips of the user's areas → sets `profile.priority`, which leads the plan on two days in three. Footer: `Never settle for less.` Button `Done`.
 
 ## 10. Rewards
 
 - Tiers from content/rewards.json, replaced by unsetld.com's config when it sends `rewards` (id, title, detail, type, points, percent, maxOff, active, availableFrom/Until, codeValidDays, inventory, perCollection).
-- Rewards screen: title `Rewards`; balance (Cormorant 56) `340 POINTS`; next reward block: `450 / 600` mono, bar, `150 POINTS LEFT`, the reward title `10% OFF`; tier list: title, detail, points, status (`READY` / `150 TO GO` / `USED THIS COLLECTION` / `NOT AVAILABLE`); tapping a ready tier → confirm → account (if needed) → redeem → code + `Use it at unsetld.com` + expiry; Your codes list; Access (early access / patch / 365 piece) section moved here from Record; terms link. Points are earned only by proven missions; Full Edition doesn't change them.
+- Rewards screen: title `Rewards`; balance `380 POINTS`; next reward block with a bar and `220 POINTS LEFT`; tier list with status (`READY` / `150 TO GO` / `USED THIS COLLECTION` / `NOT AVAILABLE`); tapping a ready tier → confirm → account (if needed) → redeem → code + `Use it at unsetld.com` + expiry; Your codes; Access; terms link. Points are earned only by proven missions; Full Edition doesn't change them.
 - On the done screen and Home, rewards are a quiet line, never a popup.
 
 ## 11. Programs
 
-Optional multi-day runs (content/programs.json): id, title, short, days, tracks, free, plan (mission ids per program day). Programs screen: list with title, days, tracks, `FREE` / `FULL EDITION`, `Start`; active program at the top with `DAY 3 OF 7`, the next day's missions, `Leave program`. A program day moves on once one of its missions is proven, so missing a day never fails it. Only one program at a time. Free: 7 Day Lock In and Get Organized; the rest are Full Edition.
+Optional multi-day runs (content/programs.json): id, title, short, days, tracks (areas), free, plan (1–2 mission ids per program day; no two from one group; only missions every user can do, `school` excepted). Programs screen: list with the edition, title, what it is, `7 days · Discipline`, `Start`; the active program at the top with `DAY 3 OF 7`, today's (or tomorrow's) missions as rows like Home's (`Lock In for 30 Minutes` / `Discipline · 30 min · +15`), `Leave program`. A program day moves on once one of its missions is proven, so missing a day never fails it. One program at a time. Free: 7 Day Lock In and Get Organized; the rest are Full Edition.
 
 ## 12. Full Edition
 
@@ -130,24 +210,22 @@ Paywall rows: `PROGRAMS — Every program, and new ones each season` · `SWAPS �
 
 ## 13. Notifications and widgets
 
-- Reminders: first of the day `Today: 25-Minute Lock In, 10 Pages, Make the Bed.`; later ones name what's left (`2 missions left. 10 Pages takes 15 minutes.`) and are dropped when everything is proven; the evening one `Last call: 1 mission left to keep the streak.` (only when nothing is proven yet today). Timer end: `25:00 done. Take the proof photo.` The night check and its Held / Not today actions are removed.
-- Widgets: Line → **Next mission** (title, track, minutes, points); Standard → **Today** (the day's missions with done squares, `1 / 3`); Record → **Streak** (streak, points, active-days barcode).
+- Reminders name missions by title. First of the day: `Today: Study for 30 Minutes, Complete Your Workout, Plan Tomorrow.` Later ones name what's left (`2 missions left. Complete Your Workout takes 45 minutes.`) and stop once everything is proven. The last one, only while nothing is proven today: `Last call: 1 mission left to keep the streak.` A day with no plan yet: `Three missions are waiting.` or a plain prompt from `reminders.json`. Timer end: `30:00 done. Take the proof photo.` (TIMER_AND_PHOTO) or `30:00 done. Open the mission and mark it done.` (TIMER).
+- Widgets: **Next mission** (Line): `NEXT MISSION`, the title, `School · 30 min · +15` and `1 / 3`; tap opens the mission. **Today** (Standard, Lock Screen): the day's mission titles with a square each, filled once proven, and `1 / 3`. **Streak** (Record): streak, points, active-days barcode.
 
 ## 14. Removed
 
-Quote library and everything on it (line on Today, line share card, saved lines, your lines, strong language, colorway preview lines become mission titles), the three standard rules and the standard screen, the night check, the old daily task library (tasks.json), chapters (replaced by tracks), own tasks (replaced by swaps and programs).
+Quote library and everything on it (line on Today, line share card, saved lines, your lines, strong language), the three standard rules and the standard screen, the night check, the old daily task library (tasks.json), chapters (replaced by areas), own tasks (replaced by swaps and programs). With the redirect: the Quick Win / Progress / Challenge slots and labels and their fixed points (10 / 15 / 25), `difficulty`, `why` and `how` (WHY THIS MATTERS, HOW TO DO IT), the seven 3.0 tracks (Focus & Discipline, Fitness & Energy, School & Learning, Money & Career, Skills & Projects, Life Reset, Confidence & Mindset) and the 313-mission library written for them. Old proofs keep their stored slot (`quick` / `progress` / `challenge`) and points; nothing reads the slot.
 
-## 15. Build notes (what changed during the build, 9 Oct 2026)
+## 15. Build notes (9 Oct 2026)
 
 Where these notes and the sections above differ, the notes describe the app as built.
 
-- **Library: 313 missions** in `src/content/missions.json`: focus, fitness, school, money, skills and reset 45 each, mindset 43. By slot: 99 quick wins, 136 progress, 78 challenges. By proof: 167 PHOTO, 58 PHOTO_AFTER, 58 TIMER_AND_PHOTO, 30 BEFORE_AFTER. 16 are one-offs (`repeatable: false`) and 31 are anchors. `npm run validate` checks every field, the voice and the teen-safety rules.
-- **Groups.** Missions that overlap share a `group` (7 groups, 20 missions: `deep-block`, `fitness-test`, `laundry`, `phone-setup`, `resume`, `room-reset`, `tomorrow-ready`). A day never holds two from one group: the planner, swaps and program days all respect it, and the validator rejects a program day with two.
-- **Weights.** `weight` (0.1–3, default 1) sets how often the planner picks a mission. The 18 situational missions (the night before a test, asking for a raise, an apology) are 0.5. On top of it, a mission never planned before counts 1.5×, an anchor 1.4×, and each skip divides its weight by one more.
-- **Short days.** With 5–15 minutes a day the plan has at most three missions (Push me drops its second challenge), slots that don't fit get easier, and a track's own quick wins come before another track's, so every chosen track still gets its turn. The Pace screen says so: `With 5–15 minutes, you get up to three short missions a day, whatever you pick.`
-- **Six programs** (`src/content/programs.json`): 7 Day Lock In (7 days, Focus, free), Get Organized (5 days, Reset, free), School Reset (7 days, School and Focus), Build Something (7 days, Skills), Fitness Base (7 days, Fitness), Project Mode (10 days, Skills and Money). Program days list 1–2 missions and never use missions that need work, a gym or an age; a program mission takes the slot that matches its own, or the first free one.
-- **Off Days** (`src/core/streak.ts`, `rules.json`: `offDayEvery` 7, `offDayMax` 2): one is earned on every 7th active day, up to 2 banked, and a missed day uses one automatically. A covered day keeps the streak going but doesn't add to it. Home shows `1 OFF DAY BANKED`, Progress explains them and names the covered day, Settings shows how many are banked. Off Days cover the streak only; Access counts proven days.
-- **Proof retention** (Settings → Proof photos: `30 days` / `1 year` / `Keep`; default from `rules.json` `proofRetentionDays`, 30). Expired photos are deleted from the phone at launch and each time the app comes back to the foreground; the mission, its points and its fingerprint stay. Choosing a shorter time asks first (`Delete 3 older photos?`). The proof gallery opens from Progress and from Settings under Proof photos.
+- **Library: 176 missions**, written in `scripts/missions/library.py`: School 29, Career 23, Organization 23, Fitness 20, Business 20, Projects 17, Skills 17, Money 16, Discipline 11. 67 easy and 109 focused. By proof: 107 PHOTO, 49 TIMER_AND_PHOTO, 16 BEFORE_AFTER, 4 TIMER. By points: 13 at 5, 81 at 10, 54 at 15, 21 at 20, 7 at 25. 24 core habits, 29 groups, 1 one-off, 2 morning and 9 evening missions, 18 with a weight. `npm run validate` prints the current per-area counts.
+- **Groups.** Missions that overlap share a `group` (`deep-work`, `study`, `assignment`, `workout`, `cardio`, `tomorrow-ready`, `skill-session`, `room`, `computer` ...). A day never holds two from one group: the planner, swaps and program days all respect it, and the validator rejects a program day with two.
+- **Six programs** (`src/content/programs.json`): 7 Day Lock In (7 days, Discipline, free), Get Organized (5 days, Organization, free), School Reset (7 days, School), Build Something (7 days, Projects), Fitness Base (7 days, Fitness), Business Week (7 days, Business).
+- **Off Days** (`src/core/streak.ts`, `rules.json`: `offDayEvery` 7, `offDayMax` 2): one is earned on every 7th active day, up to 2 banked, and a missed day uses one automatically. A covered day keeps the streak going but doesn't add to it. Off Days cover the streak only; Access counts proven days.
+- **Proof retention** (Settings → Proof photos: `30 days` / `1 year` / `Keep`; default from `rules.json` `proofRetentionDays`, 30). Expired photos are deleted from the phone at launch and each time the app comes back to the foreground; the mission, its points and its fingerprint stay. Choosing a shorter time asks first.
 - **Rewards config.** unsetld.com's `config.json` may send `rewards`; each entry is checked on the phone, bad entries and repeated ids are dropped, and if none is valid the built-in tiers stay. The redeem body is `{ rewardId, points, type, percent }` and its errors are `used`, `short` and `unavailable` ([ACCESS.md](ACCESS.md)).
-- **Access days** are days with a proven mission, plus days already on record from 2.x. The 2.x balance (10 points a proven task, at most 4 a day, minus the codes already taken) carries over as an opening balance, and a 2.x code from the current collection uses up the tier with the same percent (`src/core/legacy.ts`, `src/core/rewards.ts`).
-- **Tester tools** (Progress → Settings → Tester tools; dev builds and the browser preview only, never a release build): the app's idea of today, streak, points and active days at the top; flags for Full Edition, timers 60× faster and Access enabled; *Prove today's missions* (skips the camera, accepted on the phone with a placeholder photo); *Add 20 days of proven missions*; time travel (next day, jump 6 / 23 / 60 days proving one mission a day, disappear for 15 days, back to the real today with the record from before the first jump); restart onboarding; clear the record. Notifications keep the real clock.
+- **Access days** are days with a proven mission, plus days already on record from 2.x. The 2.x balance (10 points a proven task, at most 4 a day, minus the codes already taken) carries over as an opening balance (`src/core/legacy.ts`, `src/core/rewards.ts`).
+- **Tester tools** (Progress → Settings → Tester tools; dev builds and the browser preview only, never a release build): the app's idea of today, streak, points and active days at the top; flags for Full Edition, timers 60× faster and Access enabled; *Prove today's missions* (skips the camera; accepted on the phone with a placeholder photo, or with none for a timer-only mission); *Add 20 days of proven missions* (plans each day from the user's areas and answers, as the store would, and proves it); time travel (next day, jump 6 / 23 / 60 days proving one mission a day, disappear for 15 days, back to the real today with the record from before the first jump); restart onboarding; clear the record. Notifications keep the real clock.
