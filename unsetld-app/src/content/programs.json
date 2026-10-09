@@ -2,231 +2,101 @@
  {
   "id": "lock-in-7",
   "title": "7 Day Lock In",
-  "short": "A week of phone-away focus blocks, ending with one thing finished.",
+  "short": "A week of phone-away work sessions and finishing what you start.",
   "days": 7,
-  "tracks": [
-   "focus"
-  ],
+  "tracks": ["discipline"],
   "free": true,
   "plan": [
-   [
-    "focus-mute-the-noise",
-    "focus-lock-in-25"
-   ],
-   [
-    "focus-hide-the-distraction",
-    "focus-lock-in-25"
-   ],
-   [
-    "focus-plan-tomorrow-tonight",
-    "focus-one-win-before-noon"
-   ],
-   [
-    "focus-leave-a-next-step",
-    "focus-distraction-pad"
-   ],
-   [
-    "focus-lock-in-25",
-    "focus-earn-the-scroll"
-   ],
-   [
-    "focus-one-hour-one-thing"
-   ],
-   [
-    "focus-plan-tomorrow-tonight",
-    "focus-finish-something"
-   ]
+   ["discipline-plan-tomorrow", "discipline-lock-in-30"],
+   ["discipline-top-3", "discipline-lock-in-30"],
+   ["discipline-most-important-first"],
+   ["discipline-clear-3-small", "discipline-lock-in-30"],
+   ["discipline-avoided-task"],
+   ["discipline-lock-in-60"],
+   ["discipline-plan-week", "discipline-lock-in-30"]
   ]
  },
  {
   "id": "get-organized",
   "title": "Get Organized",
-  "short": "Five days to clear your space, your week and your bag.",
+  "short": "Five days to clean up your room, your stuff and your files.",
   "days": 5,
-  "tracks": [
-   "reset"
-  ],
+  "tracks": ["organization"],
   "free": true,
   "plan": [
-   [
-    "reset-make-the-bed",
-    "reset-return-every-cup"
-   ],
-   [
-    "reset-bag-dump",
-    "reset-10-minute-room-reset"
-   ],
-   [
-    "reset-one-list-for-everything",
-    "reset-map-your-week"
-   ],
-   [
-    "reset-tomorrow-is-ready",
-    "reset-laundry-reset"
-   ],
-   [
-    "reset-full-room-reset"
-   ]
+   ["organization-clean-desk", "organization-trash"],
+   ["organization-clean-room-15", "organization-pack-bag"],
+   ["organization-laundry"],
+   ["organization-drawer", "organization-computer-desktop"],
+   ["organization-clean-room"]
   ]
  },
  {
   "id": "school-reset",
   "title": "School Reset",
-  "short": "A week to catch up, see what's due and stop running behind.",
+  "short": "A week to get on top of every class: plan, catch up, study.",
   "days": 7,
-  "tracks": [
-   "school",
-   "focus"
-  ],
+  "tracks": ["school"],
   "free": false,
   "plan": [
-   [
-    "school-whats-due",
-    "school-clean-setup"
-   ],
-   [
-    "school-work-back-from-date",
-    "school-study-sprint"
-   ],
-   [
-    "school-reread-yesterdays-notes",
-    "school-redo-what-you-missed"
-   ],
-   [
-    "school-subject-you-avoid"
-   ],
-   [
-    "school-read-the-rubric",
-    "school-start-before-urgent"
-   ],
-   [
-    "school-catch-up-hour"
-   ],
-   [
-    "school-unit-on-one-page",
-    "focus-plan-tomorrow-tonight"
-   ]
+   ["school-check-due", "school-organize-schoolwork"],
+   ["school-study-plan", "school-finish-assignment"],
+   ["school-review-notes", "school-study-30"],
+   ["school-hard-topic"],
+   ["school-make-flashcards", "school-test-prep"],
+   ["school-practice-problems"],
+   ["school-review-flashcards", "school-study-60"]
   ]
  },
  {
   "id": "build-something",
   "title": "Build Something",
-  "short": "Seven days from an idea to one finished thing you can show people.",
+  "short": "Seven days of building your project, ending with something you publish.",
   "days": 7,
-  "tracks": [
-   "skills"
-  ],
+  "tracks": ["projects"],
   "free": false,
   "plan": [
-   [
-    "skills-ten-ideas",
-    "skills-build-30"
-   ],
-   [
-    "skills-five-references",
-    "skills-build-30"
-   ],
-   [
-    "skills-ugly-first-draft"
-   ],
-   [
-    "skills-record-it-fix-two",
-    "skills-build-30"
-   ],
-   [
-    "skills-improve-yesterday",
-    "skills-fix-the-hardest-part"
-   ],
-   [
-    "skills-one-hour-build"
-   ],
-   [
-    "skills-photograph-it",
-    "skills-write-up-one-project"
-   ]
+   ["projects-plan-steps", "projects-build-30"],
+   ["projects-build-30"],
+   ["projects-finish-feature"],
+   ["projects-get-feedback", "projects-build-30"],
+   ["projects-fix-problem"],
+   ["projects-build-60"],
+   ["projects-publish", "projects-build-30"]
   ]
  },
  {
   "id": "fitness-base",
   "title": "Fitness Base",
-  "short": "A week of simple training you can start from anywhere, no gym needed.",
+  "short": "A week of workouts and cardio you can start from anywhere, no gym needed.",
   "days": 7,
-  "tracks": [
-   "fitness"
-  ],
+  "tracks": ["fitness"],
   "free": false,
   "plan": [
-   [
-    "fitness-test-day",
-    "fitness-schedule-3-workouts"
-   ],
-   [
-    "fitness-water-before-phone",
-    "fitness-move-20"
-   ],
-   [
-    "fitness-no-equipment-circuit"
-   ],
-   [
-    "fitness-mobility-reset",
-    "fitness-set-your-bedtime"
-   ],
-   [
-    "fitness-run-walk-intervals"
-   ],
-   [
-    "fitness-core-15",
-    "fitness-phone-down-before-bed"
-   ],
-   [
-    "fitness-mobility-reset",
-    "fitness-beat-your-numbers"
-   ]
+   ["fitness-plan-week", "fitness-walk-30"],
+   ["fitness-home-workout"],
+   ["fitness-stretch-10", "fitness-cardio-20"],
+   ["fitness-home-workout"],
+   ["fitness-mobility-10", "fitness-outside-20"],
+   ["fitness-balanced-meal", "fitness-home-workout"],
+   ["fitness-core-10", "fitness-run"]
   ]
  },
  {
   "id": "project-mode",
-  "title": "Project Mode",
-  "short": "Ten days to turn a side project into something people can use or buy.",
-  "days": 10,
-  "tracks": [
-   "skills",
-   "money"
-  ],
+  "title": "Business Week",
+  "short": "Seven days of real work on your business: product, customers, content, numbers.",
+  "days": 7,
+  "tracks": ["business"],
   "free": false,
   "plan": [
-   [
-    "skills-one-page-plan",
-    "skills-cut-to-version-one"
-   ],
-   [
-    "skills-find-the-name"
-   ],
-   [
-    "money-first-batch"
-   ],
-   [
-    "skills-style-sheet"
-   ],
-   [
-    "skills-ship-something"
-   ],
-   [
-    "skills-mock-it-up"
-   ],
-   [
-    "skills-offer-sheet"
-   ],
-   [
-    "skills-photograph-it",
-    "focus-do-the-boring-part"
-   ],
-   [
-    "skills-watch-them-try"
-   ],
-   [
-    "skills-sell-one-thing"
-   ]
+   ["business-plan-tomorrow", "business-work-30"],
+   ["business-competitors"],
+   ["business-marketing-idea", "business-product"],
+   ["business-content"],
+   ["business-fix-problem"],
+   ["business-numbers", "business-work-30"],
+   ["business-work-60"]
   ]
  }
 ]

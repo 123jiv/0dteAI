@@ -3,7 +3,7 @@ import { computeStreak } from './streak';
 import { addDays, type DayKey } from './time';
 import type { DayPlan, MissionDone, ProofPhoto, RecordState, TrackId } from './types';
 
-export const TRACK_IDS: readonly TrackId[] = ['focus', 'fitness', 'school', 'money', 'skills', 'reset', 'mindset'];
+export const TRACK_IDS: readonly TrackId[] = ['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization'];
 const KNOWN_TRACKS: ReadonlySet<string> = new Set(TRACK_IDS);
 
 /** Points a track needs to reach a level: L2 50, L3 150, L4 300, L5 500 ... */

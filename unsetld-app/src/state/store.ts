@@ -18,7 +18,7 @@ import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
 import type { ChapterId, Colorway, DayPlan, Profile, ProgramState, ProofPhoto, RecordState, RewardTier, TrackId, Verification } from '../core/types';
 import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, RULES } from '../content';
-import { getDayOffset, setDayOffset, today } from '../services/clock';
+import { getDayOffset, now, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
 import { deletePhoto } from '../services/proof';
 import { cancelTimerDone } from '../services/timerNotify';
@@ -361,7 +361,7 @@ export const useApp = create<State>()(
         reviewSeen: s.reviewSeen,
         momentsShown: s.momentsShown,
       }),
-      version: 3,
+      version: 4,
       migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<State>;
@@ -394,6 +394,8 @@ function planInput(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
     day,
     salt: s.installSalt,
     history: historyFrom(s.record.missions ?? {}, s.plans, s.skips, day),
+    // Morning missions only go into a plan made in the morning.
+    hour: day === today() ? now().getHours() : 0,
     program: prog && ids.length ? { id: prog.id, missionIds: ids } : null,
   };
 }
@@ -403,22 +405,42 @@ function buildPlan(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
 }
 
 const CHAPTER_TO_TRACK: Record<ChapterId, TrackId> = {
-  discipline: 'focus',
+  discipline: 'discipline',
   focus: 'school',
   training: 'fitness',
   money: 'money',
-  confidence: 'mindset',
-  vices: 'reset',
-  stoic: 'mindset',
+  confidence: 'discipline',
+  vices: 'discipline',
+  stoic: 'discipline',
 };
+
+/** 3.0 preview builds had other goal areas; they map onto today's. */
+const OLD_TRACK: Record<string, TrackId> = { focus: 'discipline', reset: 'organization', mindset: 'discipline' };
+const KNOWN_TRACK = new Set<string>(['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization']);
+const toTrack = (t: string): TrackId | null => (KNOWN_TRACK.has(t) ? (t as TrackId) : OLD_TRACK[t] ?? null);
 
 /**
  * 2.x → 3.0: chapters become tracks, and the points earned from 2.x tasks (minus
  * codes already taken) carry over as a starting balance.
  */
 export function migrateState(p: Partial<State>, version: number): Partial<State> {
-  // 2 → 3 only dropped 2.x-only fields, which merge() leaves behind.
-  if (version >= 2) return p;
+  if (version >= 4) return p;
+  // 3 → 4: the goal areas were renamed (focus → discipline, reset → organization; mindset folded into discipline).
+  if (version >= 2) {
+    const profile = (p.profile ?? DEFAULT_PROFILE) as Profile;
+    const tracks = [...new Set((profile.tracks ?? []).map(t => toTrack(t)).filter((t): t is TrackId => Boolean(t)))].slice(0, 4);
+    const record = p.record ? { ...emptyRecord(), ...p.record } : undefined;
+    if (record?.missions) {
+      record.missions = Object.fromEntries(
+        Object.entries(record.missions).map(([d, byId]) => [
+          d,
+          Object.fromEntries(Object.entries(byId ?? {}).map(([id, m]) => [id, m ? { ...m, track: toTrack(m.track) ?? m.track } : m])),
+        ]),
+      );
+    }
+    const priority = profile.priority ? toTrack(profile.priority) : null;
+    return { ...p, profile: { ...DEFAULT_PROFILE, ...profile, tracks: tracks.length ? tracks : DEFAULT_PROFILE.tracks, priority }, ...(record ? { record } : {}) };
+  }
   const settings = (p.settings ?? {}) as { chapters?: ChapterId[]; freeChapter?: ChapterId };
   const chapters = [...(settings.chapters ?? []), settings.freeChapter].filter(Boolean) as ChapterId[];
   const tracks = [...new Set(chapters.map(c => CHAPTER_TO_TRACK[c]))].slice(0, 3);

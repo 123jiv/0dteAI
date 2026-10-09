@@ -19,25 +19,26 @@ const reminders = read('reminders.json');
 const errors = [];
 const warnings = [];
 
-const TRACK_IDS = ['focus', 'fitness', 'school', 'money', 'skills', 'reset', 'mindset'];
-// slot: [difficulty, points, min minutes, max minutes]
-const SLOTS = { quick: [1, 10, 1, 15], progress: [2, 15, 10, 45], challenge: [3, 25, 20, 90] };
-const PROOF = ['PHOTO', 'PHOTO_AFTER', 'BEFORE_AFTER', 'TIMER_AND_PHOTO'];
-const REQ = ['school', 'work', 'gym', 'project', 'age16', 'age18'];
-// Hustle talk, therapy-speak and slang the voice never uses.
+const TRACK_IDS = ['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization'];
+const PROOF = ['PHOTO', 'PHOTO_AFTER', 'BEFORE_AFTER', 'TIMER_AND_PHOTO', 'TIMER'];
+const REQ = ['school', 'work', 'gym', 'project', 'age16', 'age18', 'coding', 'design', 'video', 'writing', 'language', 'music'];
+// Points by time: up to 5 min = 5, 6–20 = 10, 21–35 = 15 or 20, 36–59 = 20, 60+ = 25.
+const pointsFor = min => (min <= 5 ? [5] : min <= 20 ? [10] : min <= 35 ? [15, 20] : min < 60 ? [20] : [25]);
+// Motivational talk, therapy-speak and slang: missions say what to do, plainly.
 const BANNED = [
   'sigma', 'grindset', 'rise and grind', 'best version of yourself', 'level up', 'unlock', 'journey', 'manifest',
   'crush it', 'beast mode', 'hustle', 'grind', 'grinding', 'king', 'bro', 'no cap', 'main character', 'glow up',
-  'mindset shift', 'game-changer', 'game changer', 'potential', 'you got this', "you've got this", 'believe in yourself',
-  'self-care', 'vibes', 'vibe', 'aura', 'rizz', 'cooked', 'npc', 'era', 'slay', 'alpha', 'no days off',
+  'mindset', 'game-changer', 'game changer', 'your potential', 'you got this', "you've got this", 'believe in yourself',
+  'self-care', 'vibes', 'vibe', 'aura', 'rizz', 'cooked', 'npc', 'era', 'slay', 'alpha', 'no days off', 'choose yourself',
+  'be uncomfortable', 'discomfort', 'embrace', 'warrior', 'champion', 'legend', 'destiny', 'universe',
 ];
-// Words that need a second look for safety or privacy (spec section 7: what proof never asks for).
+// Words that need a second look for safety or privacy.
 const SENSITIVE = [
   'calorie', 'calories', 'diet', 'dieting', 'fast', 'fasting', 'weigh', 'weight loss', 'lose weight', 'body fat',
-  'six-pack', 'abs', 'skip a meal', 'skip breakfast', 'cold plunge', 'ice bath', 'energy drink', 'caffeine', 'coffee',
-  'pre-workout', 'supplement', 'creatine', 'crypto', 'stock', 'stocks', 'trading', 'bet', 'betting', 'gamble',
-  'all-nighter', 'stay up', 'stranger', 'strangers', 'post it', 'post on', 'selfie', 'mirror', 'face', 'bank balance',
-  'account number', 'card number', 'grade', 'grades', 'bedroom', 'address', 'location',
+  'six-pack', 'abs', 'skip a meal', 'cold plunge', 'ice bath', 'energy drink', 'caffeine', 'pre-workout', 'supplement',
+  'crypto', 'stock', 'stocks', 'trading', 'bet', 'betting', 'gamble', 'all-nighter', 'stay up', 'stranger', 'strangers',
+  'selfie', 'mirror', 'face', 'bank balance', 'account number', 'card number', 'grade', 'grades', 'bedroom', 'address',
+  'location',
 ];
 // Never in a mission, whatever the context.
 const NEVER = /\b(shirtless|weigh-in|progress pic\w*|body check|before-and-after body|calorie deficit|water fast|dry fast|no sleep|all-nighter|vape|vaping|alcohol|beer|smoke weed|nicotine|options trading|day trading|leverage|casino|sports bet\w*|lottery|dare)\b/i;
@@ -55,45 +56,41 @@ for (const t of tracks) if (!t.name || !t.short || !t.scope) errors.push(`tracks
 // Missions
 const ids = new Set();
 const titles = new Map();
-const perTrack = Object.fromEntries(TRACK_IDS.map(t => [t, { quick: 0, progress: 0, challenge: 0, anchors: 0, timer: 0, before: 0 }]));
+const perTrack = Object.fromEntries(TRACK_IDS.map(t => [t, { easy: 0, main: 0, core: 0, timer: 0, before: 0 }]));
 for (const m of missions) {
   const where = `mission ${m.id ?? '?'}`;
   const e = msg => errors.push(`${where}: ${msg}`);
   if (!/^[a-z]+(-[a-z0-9]+)+$/.test(m.id ?? '')) e('id must be "<track>-<slug>"');
   if (!TRACK_IDS.includes(m.track)) e(`unknown track "${m.track}"`);
   else if (!m.id.startsWith(`${m.track}-`)) e('id must start with its track');
+  if (m.also != null && (!Array.isArray(m.also) || m.also.some(t => !TRACK_IDS.includes(t) || t === m.track))) e('also must list other known tracks');
   if (ids.has(m.id)) e('duplicate id');
   ids.add(m.id);
   const title = (m.title ?? '').trim();
-  if (!title || title.length > 28 || /[.!?]$/.test(title)) e(`title must be 1–28 characters with no end punctuation: "${title}"`);
+  if (!title || title.length > 48 || /[.!?]$/.test(title)) e(`title must be 1–48 characters with no end punctuation: "${title}"`);
   const key = title.toLowerCase();
   if (titles.has(key)) e(`duplicate title "${title}" (also ${titles.get(key)})`);
   titles.set(key, m.id);
-  if (!m.short || m.short.length > 100 || !/\.$/.test(m.short)) e(`short must be ≤100 characters ending with a full stop: "${m.short}"`);
-  if (!m.why || m.why.length > 160) e(`why must be 1–160 characters (${m.why?.length ?? 0})`);
-  if (!Array.isArray(m.how) || m.how.length < 2 || m.how.length > 4 || m.how.some(s => !s || s.length > 90)) e('how must be 2–4 steps of ≤90 characters');
-  if (!m.proof || m.proof.length > 70) e(`proof must be 1–70 characters: "${m.proof}"`);
+  if (!m.short || m.short.length > 120 || !/\.$/.test(m.short)) e(`short must be one sentence of ≤120 characters ending with a full stop: "${m.short}"`);
+  if (!m.proof || m.proof.length > 90) e(`proof must be 1–90 characters: "${m.proof}"`);
   if (!PROOF.includes(m.proofType)) e(`bad proofType "${m.proofType}"`);
-  const s = SLOTS[m.slot];
-  if (!s) e(`bad slot "${m.slot}"`);
-  else {
-    if (m.difficulty !== s[0]) e(`${m.slot} missions are difficulty ${s[0]}`);
-    if (m.points !== s[1]) e(`${m.slot} missions are worth ${s[1]} points`);
-    if (!(m.minutes >= s[2] && m.minutes <= s[3])) e(`${m.slot} minutes must be ${s[2]}–${s[3]} (got ${m.minutes})`);
-  }
-  if (m.proofType === 'TIMER_AND_PHOTO') {
-    if (!(m.timerMinutes >= 5 && m.timerMinutes <= 60)) e('TIMER_AND_PHOTO needs timerMinutes 5–60');
+  if (!(Number.isInteger(m.minutes) && m.minutes >= 1 && m.minutes <= 120)) e('minutes must be 1–120');
+  else if (!pointsFor(m.minutes).includes(m.points)) e(`${m.minutes} minutes earns ${pointsFor(m.minutes).join(' or ')} points (got ${m.points})`);
+  if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') {
+    if (!(m.timerMinutes >= 5 && m.timerMinutes <= 60)) e(`${m.proofType} needs timerMinutes 5–60`);
     else if (m.minutes < m.timerMinutes) e('minutes must be at least timerMinutes');
-  } else if (m.timerMinutes != null) e('timerMinutes is only for TIMER_AND_PHOTO');
+  } else if (m.timerMinutes != null) e('timerMinutes is only for timed missions');
   if (m.requires != null && (!Array.isArray(m.requires) || m.requires.some(r => !REQ.includes(r)))) e(`bad requires ${JSON.stringify(m.requires)}`);
   if (!(Number.isInteger(m.cooldownDays) && m.cooldownDays >= 1 && m.cooldownDays <= 365)) e('cooldownDays must be 1–365');
   if (typeof m.repeatable !== 'boolean') e('repeatable must be true or false');
-  if (m.anchor && (m.cooldownDays > 3 || !m.repeatable)) e('anchors must be repeatable with cooldownDays ≤ 3');
+  if (m.anchor && (m.cooldownDays > 3 || !m.repeatable)) e('core habits must be repeatable with cooldownDays ≤ 3');
   if (m.group != null && !/^[a-z]+(-[a-z]+)*$/.test(m.group)) e('group must be a lowercase slug');
   if (m.weight != null && !(m.weight >= 0.1 && m.weight <= 3)) e('weight must be 0.1–3');
+  if (m.when != null && !['morning', 'evening'].includes(m.when)) e('when must be morning or evening');
   if (!Array.isArray(m.tags) || m.tags.length < 1 || m.tags.length > 4) e('1–4 tags');
   if (typeof m.active !== 'boolean') e('active must be true or false');
-  const text = [m.title, m.short, m.why, ...(m.how ?? []), m.proof].join(' ');
+  for (const k of ['slot', 'difficulty', 'why', 'how']) if (k in m) e(`"${k}" is no longer a mission field`);
+  const text = [m.title, m.short, m.proof].join(' ');
   const banned = text.match(bannedRe);
   if (banned) e(`off-voice ("${banned[0]}")`);
   if (/[!…]/.test(text) || EMOJI.test(text)) e('no "!", "…" or emoji');
@@ -104,10 +101,10 @@ for (const m of missions) {
   const sensitive = text.match(sensitiveRe);
   if (sensitive) warnings.push(`${where}: check safety/privacy ("${sensitive[0]}")`);
   const p = perTrack[m.track];
-  if (p && s && m.active) {
-    p[m.slot]++;
-    if (m.anchor) p.anchors++;
-    if (m.proofType === 'TIMER_AND_PHOTO') p.timer++;
+  if (p && m.active) {
+    p[m.minutes <= 15 ? 'easy' : 'main']++;
+    if (m.anchor) p.core++;
+    if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') p.timer++;
     if (m.proofType === 'BEFORE_AFTER') p.before++;
   }
 }
@@ -132,7 +129,7 @@ for (const p of programs) {
       const m = byId.get(id);
       if (!m) e(`day ${i + 1}: unknown mission "${id}"`);
       else if (!m.active) e(`day ${i + 1}: "${id}" is not active`);
-      else if (m.requires?.some(r => r !== 'school' && r !== 'project')) e(`day ${i + 1}: "${id}" needs ${m.requires.join(', ')}, which not every user has`);
+      else if (m.requires?.some(r => r !== 'school')) e(`day ${i + 1}: "${id}" needs ${m.requires.join(', ')}, which not every user has`);
     }
     if (new Set(day).size !== (day ?? []).length) e(`day ${i + 1} repeats a mission`);
     const groups = (day ?? []).map(id => byId.get(id)?.group).filter(Boolean);
@@ -180,12 +177,12 @@ for (const p of reminders) {
   if (banned) errors.push(`reminders.json: off-voice ("${banned[0]}"): ${text}`);
 }
 
-console.log('Track     quick  progress  challenge  anchors  timer  before/after');
+console.log('Track          easy  focused  core  timed  before/after');
 for (const t of TRACK_IDS) {
   const p = perTrack[t];
-  console.log(`  ${t.padEnd(8)} ${String(p.quick).padStart(5)}  ${String(p.progress).padStart(8)}  ${String(p.challenge).padStart(9)}  ${String(p.anchors).padStart(7)}  ${String(p.timer).padStart(5)}  ${String(p.before).padStart(12)}`);
-  if (p.quick < 10 || p.progress < 16 || p.challenge < 10) warnings.push(`${t}: aim for at least 10 quick, 16 progress and 10 challenge missions`);
-  if (p.anchors < 3) warnings.push(`${t}: ${p.anchors} anchors (aim for 3–5)`);
+  console.log(`  ${t.padEnd(12)} ${String(p.easy).padStart(4)}  ${String(p.main).padStart(7)}  ${String(p.core).padStart(4)}  ${String(p.timer).padStart(5)}  ${String(p.before).padStart(12)}`);
+  if (p.easy < 4 || p.main < 5) warnings.push(`${t}: aim for at least 4 easy and 5 focused missions`);
+  if (p.core < 1) warnings.push(`${t}: no core habit (anchor)`);
 }
 console.log(`Total: ${missions.length} missions, ${programs.length} programs, ${rewards.length} reward tiers`);
 if (warnings.length) {

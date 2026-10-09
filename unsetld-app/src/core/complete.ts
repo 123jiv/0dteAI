@@ -1,5 +1,6 @@
 // Proving a mission: credit its points, put the day on record, and pay the perfect-day bonus
 // when every mission in the day's plan is proven.
+import { sizeOf } from './missions';
 import { recordDay } from './record';
 import type { DayKey } from './time';
 import type { DayPlan, Mission, MissionDone, ProofPhoto, RecordState, Verification } from './types';
@@ -29,7 +30,7 @@ export function completeMission(
   const points = accepted ? mission.points : 0;
   const done: MissionDone = {
     missionId: mission.id,
-    slot: mission.slot,
+    slot: plan?.missions.find(p => p.missionId === mission.id)?.slot ?? sizeOf(mission),
     track: mission.track,
     points,
     doneAt: opts.at,

@@ -12,27 +12,25 @@ import { dayReminderTimes, daysAhead, MAX_PENDING, planNotifications, slotOf } f
 import { computeStreak } from '../streak';
 import { addDays, atMinutes, type DayKey } from '../time';
 import { clock, elapsedSeconds, endsAt, pauseTimer, remainingSeconds, resumeTimer, startTimer, timerDone } from '../timer';
-import type { CodeClaim, DayPlan, Mission, MissionDone, MissionSlot, Profile, Program, ProofPhoto, RecordState, ReminderPrompt, RewardTier, TrackId, Verification } from '../types';
+import type { CodeClaim, DayPlan, Mission, MissionDone, Profile, Program, ProofPhoto, RecordState, ReminderPrompt, RewardTier, TrackId, Verification } from '../types';
 import { localChecks } from '../verify';
 
-const POINTS: Record<MissionSlot, [1 | 2 | 3, number]> = { quick: [1, 10], progress: [2, 15], challenge: [3, 25] };
+/** Test missions by size: a 5-minute easy one, a 20-minute and a 40-minute focused one. */
+type Kind = 'quick' | 'progress' | 'challenge';
+const SIZE: Record<Kind, [number, number]> = { quick: [5, 5], progress: [20, 10], challenge: [40, 20] };
 let n = 0;
-function m(track: TrackId, slot: MissionSlot, extra: Partial<Mission> = {}): Mission {
+function m(track: TrackId, kind: Kind, extra: Partial<Mission> = {}): Mission {
   n += 1;
-  const [difficulty, points] = POINTS[slot];
+  const [minutes, points] = SIZE[kind];
   return {
     id: `${track}-m${n}`,
     track,
-    slot,
     title: `Mission ${n}`,
     short: 'Do it.',
-    why: 'Because.',
-    how: ['One.', 'Two.'],
     proof: 'The result.',
     proofType: 'PHOTO',
     points,
-    difficulty,
-    minutes: slot === 'quick' ? 5 : slot === 'progress' ? 20 : 40,
+    minutes,
     cooldownDays: 7,
     repeatable: true,
     tags: ['t'],
@@ -40,24 +38,27 @@ function m(track: TrackId, slot: MissionSlot, extra: Partial<Mission> = {}): Mis
     ...extra,
   };
 }
-const TRACKS: TrackId[] = ['focus', 'fitness', 'school', 'money', 'skills', 'reset', 'mindset'];
+const TRACKS: TrackId[] = ['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization'];
 const LIB: Mission[] = TRACKS.flatMap(t => [
   ...Array.from({ length: 6 }, () => m(t, 'quick')),
   ...Array.from({ length: 8 }, () => m(t, 'progress')),
   ...Array.from({ length: 6 }, () => m(t, 'challenge')),
 ]);
 const NO_HISTORY: MissionHistory = { lastDone: {}, lastPlanned: {}, skips: {} };
-const profile = (p: Partial<Profile> = {}): Profile => ({ ...DEFAULT_PROFILE, tracks: ['focus', 'school', 'fitness'], ...p });
+const profile = (p: Partial<Profile> = {}): Profile => ({ ...DEFAULT_PROFILE, tracks: ['discipline', 'school', 'fitness'], ...p });
 const input = (p: Partial<PlanInput> = {}): PlanInput => ({ library: LIB, profile: profile(), day: '2026-10-09', salt: 's', history: NO_HISTORY, ...p });
 const byId = new Map(LIB.map(x => [x.id, x]));
 const accepted: Verification = { status: 'accepted', method: 'on-device', checks: [], at: 0 };
 const photo = (hash: string, kind: ProofPhoto['kind'] = 'single', takenAt = 1000): ProofPhoto => ({ uri: `file://${hash}`, takenAt, kind, hash });
 
 describe('daily missions', () => {
-  it('gives a quick win, a progress mission and a challenge from the chosen tracks', () => {
+  it('gives one easy mission and two focused ones, each from a different chosen goal', () => {
     const plan = generatePlan(input());
-    expect(plan.missions.map(p => p.slot)).toEqual(['quick', 'progress', 'challenge']);
-    for (const p of plan.missions) expect(['focus', 'school', 'fitness']).toContain(byId.get(p.missionId)!.track);
+    expect(plan.missions.map(p => p.slot)).toEqual(['easy', 'main', 'main']);
+    expect(byId.get(plan.missions[0].missionId)!.minutes).toBeLessThanOrEqual(15);
+    for (const p of plan.missions.slice(1)) expect(byId.get(p.missionId)!.minutes).toBeGreaterThan(15);
+    for (const p of plan.missions) expect(['discipline', 'school', 'fitness']).toContain(byId.get(p.missionId)!.track);
+    expect(new Set(plan.missions.map(p => byId.get(p.missionId)!.track)).size).toBe(3);
     expect(new Set(plan.missions.map(p => p.missionId)).size).toBe(3);
   });
 
@@ -68,9 +69,13 @@ describe('daily missions', () => {
     expect(a).not.toBe(b);
   });
 
-  it('follows intensity: easy is three easier missions, push adds a second challenge', () => {
+  it('follows intensity: Push me adds a third focused mission; Start easy keeps them short', () => {
     expect(generatePlan(input({ profile: profile({ intensity: 'easy' }) })).missions.map(p => p.slot)).toEqual(SLOTS_BY_INTENSITY.easy);
     expect(generatePlan(input({ profile: profile({ intensity: 'push', minutes: 90 }) })).missions.map(p => p.slot)).toEqual(SLOTS_BY_INTENSITY.push);
+    for (let i = 0; i < 10; i++) {
+      const plan = generatePlan(input({ day: addDays('2026-10-09', i), profile: profile({ intensity: 'easy' }) }));
+      for (const p of plan.missions) expect(byId.get(p.missionId)!.minutes).toBeLessThanOrEqual(30);
+    }
   });
 
   it('keeps a short day short: with 5–15 minutes the plan fits about 20 minutes', () => {
@@ -86,7 +91,7 @@ describe('daily missions', () => {
       ...Array.from({ length: 4 }, () => m('skills', 'quick', { minutes: 12 })),
       ...Array.from({ length: 3 }, () => m('money', 'progress')),
       ...Array.from({ length: 3 }, () => m('skills', 'challenge')),
-      ...Array.from({ length: 3 }, () => m('reset', 'quick', { minutes: 3 })),
+      ...Array.from({ length: 3 }, () => m('organization', 'quick', { minutes: 3 })),
     ];
     const ids = new Map(lib.map(x => [x.id, x]));
     for (const day of ['2026-10-09', '2026-10-10', '2026-10-11']) {
@@ -94,7 +99,7 @@ describe('daily missions', () => {
       expect(plan.missions.length).toBe(3);
       const tracks = new Set(plan.missions.map(p => ids.get(p.missionId)!.track));
       expect(tracks.has('money') && tracks.has('skills')).toBe(true);
-      expect(plan.missions.every(p => ids.get(p.missionId)!.slot === 'quick')).toBe(true);
+      expect(plan.missions.every(p => ids.get(p.missionId)!.minutes <= 15)).toBe(true);
     }
   });
 
@@ -124,26 +129,29 @@ describe('daily missions', () => {
   });
 
   it('lets anchors come back often but not every new mission', () => {
-    const anchor = m('focus', 'quick', { id: 'focus-anchor', anchor: true, cooldownDays: 1 });
+    const anchor = m('discipline', 'quick', { id: 'discipline-anchor', anchor: true, cooldownDays: 1 });
     const lib = [anchor, ...LIB];
     let seen = 0;
     let lastPlanned: Record<string, DayKey> = {};
     for (let i = 0; i < 30; i++) {
       const day = addDays('2026-10-01', i);
-      const plan = generatePlan(input({ library: lib, day, profile: profile({ tracks: ['focus'] }), history: { ...NO_HISTORY, lastPlanned } }));
-      if (plan.missions.some(p => p.missionId === 'focus-anchor')) seen += 1;
+      const plan = generatePlan(input({ library: lib, day, profile: profile({ tracks: ['discipline'] }), history: { ...NO_HISTORY, lastPlanned } }));
+      if (plan.missions.some(p => p.missionId === 'discipline-anchor')) seen += 1;
       lastPlanned = { ...lastPlanned, ...Object.fromEntries(plan.missions.map(p => [p.missionId, day])) };
     }
-    expect(seen).toBeGreaterThan(2);
+    // A core habit comes back on most days, but not every day.
+    expect(seen).toBeGreaterThan(12);
+    expect(seen).toBeLessThan(30);
   });
 
-  it('swaps a mission for another in the same slot and never brings back what was swapped out', () => {
+  it('swaps a mission for another of the same size and goal, and never brings back what was swapped out', () => {
     const plan = generatePlan(input());
     const next = rerollMission(plan, 0, input())!;
     expect(next.rerolls).toBe(1);
     expect(next.replaced).toEqual([plan.missions[0].missionId]);
     expect(next.missions[0].missionId).not.toBe(plan.missions[0].missionId);
-    expect(next.missions[0].slot).toBe('quick');
+    expect(next.missions[0].slot).toBe('easy');
+    expect(byId.get(next.missions[0].missionId)!.track).toBe(byId.get(plan.missions[0].missionId)!.track);
     expect(next.missions.slice(1)).toEqual(plan.missions.slice(1));
     const again = rerollMission(next, 0, input())!;
     expect([plan.missions[0].missionId, next.missions[0].missionId]).not.toContain(again.missions[0].missionId);
@@ -156,7 +164,7 @@ describe('daily missions', () => {
     for (let i = 1; i < 21; i++) expect(generatePlan(input({ day: addDays('2026-10-09', i), history })).missions.map(p => p.missionId)).not.toContain(id);
   });
 
-  it('puts the priority track on the progress slot most days', () => {
+  it("puts the lead goal (first pick or this week's priority) on a focused mission most days", () => {
     let hits = 0;
     for (let i = 0; i < 30; i++) {
       const t = slotTracks(profile({ priority: 'fitness' }), SLOTS_BY_INTENSITY.lockin, addDays('2026-10-01', i));
@@ -167,22 +175,22 @@ describe('daily missions', () => {
   });
 
   it("places a program's missions first", () => {
-    const ids = [LIB.find(x => x.track === 'money' && x.slot === 'progress')!.id];
+    const ids = [LIB.find(x => x.track === 'money' && x.minutes === 20)!.id];
     const plan = generatePlan(input({ program: { id: 'p', missionIds: ids } }));
-    expect(plan.missions.find(p => p.missionId === ids[0])).toMatchObject({ slot: 'progress', programId: 'p' });
+    expect(plan.missions.find(p => p.missionId === ids[0])).toMatchObject({ slot: 'main', programId: 'p' });
     expect(plan.missions.length).toBe(3);
   });
 
   it('never puts two missions from one group on the same day, even after a swap', () => {
     // One track, every quick and progress mission in the same group: only one of them fits a day.
     const lib = [
-      ...Array.from({ length: 4 }, () => m('reset', 'quick', { group: 'room' })),
-      ...Array.from({ length: 4 }, () => m('reset', 'progress', { group: 'room' })),
-      ...Array.from({ length: 3 }, () => m('reset', 'progress')),
-      ...Array.from({ length: 3 }, () => m('reset', 'challenge')),
+      ...Array.from({ length: 4 }, () => m('organization', 'quick', { group: 'room' })),
+      ...Array.from({ length: 4 }, () => m('organization', 'progress', { group: 'room' })),
+      ...Array.from({ length: 3 }, () => m('organization', 'progress')),
+      ...Array.from({ length: 3 }, () => m('organization', 'challenge')),
     ];
     const ids = new Map(lib.map(x => [x.id, x]));
-    const inp = input({ library: lib, profile: profile({ tracks: ['reset'] }) });
+    const inp = input({ library: lib, profile: profile({ tracks: ['organization'] }) });
     for (const day of ['2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12']) {
       const plan = generatePlan({ ...inp, day });
       const groups = plan.missions.map(p => ids.get(p.missionId)!.group).filter(Boolean);
@@ -265,7 +273,7 @@ describe('proving a mission', () => {
     });
     expect(r.days[plan.day]).toEqual({ verified: true });
     expect(provenInPlan(r, plan)).toBe(3);
-    expect(balance(r)).toBe(10 + 15 + 25 + 15);
+    expect(balance(r)).toBe(plan.missions.reduce((t, p) => t + byId.get(p.missionId)!.points, 0) + 15);
     // Proving one again earns nothing.
     const again = completeMission(r, plan.day, plan, byId.get(plan.missions[0].missionId)!, [photo('h9')], accepted, { at: 9, verifiedClock: true });
     expect(again.points).toBe(0);
@@ -336,11 +344,11 @@ describe('progress', () => {
   });
 
   it('adds up missions, points, focus time, tracks and milestones', () => {
-    const q = LIB.find(x => x.track === 'focus' && x.slot === 'challenge')!;
+    const q = LIB.find(x => x.track === 'discipline' && x.minutes === 40)!;
     const entries = Array.from({ length: 10 }, (_, i) => ({ day: addDays('2026-10-01', i), mission: q, timer: 1500, hash: `t${i}` }));
     const r = recordWith(entries);
-    expect(totals(r)).toMatchObject({ missions: 10, points: 250, focusMinutes: 250, activeDays: 10 });
-    expect(trackProgress(r).focus).toMatchObject({ xp: 250, missions: 10, level: 3 });
+    expect(totals(r)).toMatchObject({ missions: 10, points: 200, focusMinutes: 250, activeDays: 10 });
+    expect(trackProgress(r).discipline).toMatchObject({ xp: 200, missions: 10, level: 3 });
     const ms = milestones(r, '2026-10-10');
     expect(ms.find(x => x.key === 'missions-10')!.reached).toBe('2026-10-10');
     expect(ms.find(x => x.key === 'streak-7')!.reached).toBe('2026-10-07');
@@ -353,25 +361,25 @@ describe('progress', () => {
     expect(reviewWeekFor('2026-10-11')).toBe('2026-10-05');
     expect(reviewWeekFor('2026-10-12')).toBe('2026-10-05');
     expect(reviewWeekFor('2026-10-09')).toBeNull();
-    const f = LIB.find(x => x.track === 'focus' && x.slot === 'progress')!;
-    const s = LIB.find(x => x.track === 'skills' && x.slot === 'quick')!;
+    const f = LIB.find(x => x.track === 'discipline' && x.minutes === 20)!;
+    const s = LIB.find(x => x.track === 'skills' && x.minutes === 5)!;
     const r = recordWith([
       { day: '2026-10-05', mission: f, timer: 1500 },
       { day: '2026-10-06', mission: f, timer: 1500 },
       { day: '2026-10-07', mission: s },
     ]);
     const plans: Record<DayKey, DayPlan> = { '2026-10-05': { day: '2026-10-05', missions: [{ slot: 'quick', missionId: 'x' }, { slot: 'progress', missionId: f.id }, { slot: 'challenge', missionId: 'y' }], rerolls: 0, replaced: [] } };
-    const w = weeklyReview(r, plans, { tracks: ['focus', 'skills', 'fitness'] }, '2026-10-05');
-    expect(w).toMatchObject({ missions: 3, focusMinutes: 50, points: 40, activeDays: 3, strongest: 'focus', ignored: 'fitness' });
+    const w = weeklyReview(r, plans, { tracks: ['discipline', 'skills', 'fitness'] }, '2026-10-05');
+    expect(w).toMatchObject({ missions: 3, focusMinutes: 50, points: 25, activeDays: 3, strongest: 'discipline', ignored: 'fitness' });
     expect(completion(r, plans, '2026-10-05', '2026-10-11')).toEqual({ done: 3, planned: 3 });
   });
 });
 
 describe('old or damaged records', () => {
-  const q = LIB.find(x => x.track === 'focus' && x.slot === 'quick')!;
+  const q = LIB.find(x => x.track === 'discipline' && x.minutes === 5)!;
   // A track that was renamed or removed, a 3.0 beta entry without verification or photos, and an empty day.
   const odd = { missionId: 'gone-x', slot: 'quick', track: 'chess', points: 10, doneAt: 1, photos: [], verification: accepted } as unknown as MissionDone;
-  const bare = { missionId: 'bare', slot: 'quick', track: 'focus', points: 10, doneAt: 2 } as unknown as MissionDone;
+  const bare = { missionId: 'bare', slot: 'quick', track: 'discipline', points: 10, doneAt: 2 } as unknown as MissionDone;
   const base = recordWith([{ day: '2026-10-01', mission: q }]);
   const r: RecordState = {
     ...base,
@@ -385,10 +393,10 @@ describe('old or damaged records', () => {
 
   it('skips unknown tracks and entries without verification instead of crashing', () => {
     const tp = trackProgress(r);
-    expect(tp.focus).toMatchObject({ xp: 10, missions: 1 });
+    expect(tp.discipline).toMatchObject({ xp: 5, missions: 1 });
     expect(Object.keys(tp)).not.toContain('chess');
     // The odd track's proof still counts as a proven mission and a day; the bare entry does not.
-    expect(totals(r)).toMatchObject({ missions: 2, points: 20, activeDays: 2 });
+    expect(totals(r)).toMatchObject({ missions: 2, points: 15, activeDays: 2 });
     expect([...activeDays(r)].sort()).toEqual(['2026-10-01', '2026-10-02']);
     expect(allDone(r).map(m => m.missionId)).toEqual([q.id, 'gone-x', 'bare']);
     expect(milestones(r, '2026-10-04').find(x => x.key === 'first-mission')!.reached).toBe('2026-10-01');
@@ -475,7 +483,7 @@ describe('rewards', () => {
 });
 
 describe('programs', () => {
-  const p: Program = { id: 'lock', title: '7 Day Lock In', short: '', days: 3, tracks: ['focus'], free: true, plan: [['a'], ['b'], ['c']] };
+  const p: Program = { id: 'lock', title: '7 Day Lock In', short: '', days: 3, tracks: ['discipline'], free: true, plan: [['a'], ['b'], ['c']] };
   it('moves on a day once a program mission is proven, so a missed day just waits', () => {
     let s = startProgram('lock', '2026-10-01');
     expect(programDay(p, s, '2026-10-01')).toBe(1);

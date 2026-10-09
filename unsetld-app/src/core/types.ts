@@ -94,14 +94,14 @@ export interface RecordState {
 
 // ── 3.0 Missions ────────────────────────────────────────────────────────────
 
-/** What the user is trying to improve. Up to three are chosen in onboarding. */
-export type TrackId = 'focus' | 'fitness' | 'school' | 'money' | 'skills' | 'reset' | 'mindset';
+/** What the user is trying to improve. One to four are chosen in onboarding. */
+export type TrackId = 'discipline' | 'school' | 'fitness' | 'money' | 'career' | 'business' | 'skills' | 'projects' | 'organization';
 
 export interface Track {
   id: TrackId;
-  /** "FOCUS & DISCIPLINE" */
+  /** "DISCIPLINE" */
   name: string;
-  /** Short name for cards and levels: "Focus". */
+  /** Short name for rows and levels: "Discipline". */
   short: string;
   /** One line under the name in onboarding. */
   scope: string;
@@ -109,51 +109,57 @@ export interface Track {
 
 /**
  * How a mission is proven.
- * PHOTO: one photo of the thing.  PHOTO_AFTER: one photo of the result once it's done.
+ * PHOTO: one photo of the thing or the result.  PHOTO_AFTER: same, kept for older records.
  * BEFORE_AFTER: a photo before, then one after.  TIMER_AND_PHOTO: the in-app timer runs out, then a photo.
+ * TIMER: the in-app timer runs out; no photo.
  */
-export type ProofType = 'PHOTO' | 'PHOTO_AFTER' | 'BEFORE_AFTER' | 'TIMER_AND_PHOTO';
+export type ProofType = 'PHOTO' | 'PHOTO_AFTER' | 'BEFORE_AFTER' | 'TIMER_AND_PHOTO' | 'TIMER';
 
-/** Daily slot. Quick win = difficulty 1, progress = 2, challenge = 3. */
-export type MissionSlot = 'quick' | 'progress' | 'challenge';
+/**
+ * A mission's place in the day: one easy mission (15 minutes or less), the rest
+ * focused ones. Earlier builds stored 'quick' | 'progress' | 'challenge' here.
+ */
+export type MissionSlot = 'easy' | 'main';
+
+/** Skills a user can say they're learning; skill-specific missions need a match. */
+export type SkillId = 'coding' | 'design' | 'video' | 'writing' | 'language' | 'music';
 
 /** What a mission needs from the user's life; a mission is only offered when they match. */
-export type Requirement = 'school' | 'work' | 'gym' | 'project' | 'age16' | 'age18';
+export type Requirement = 'school' | 'work' | 'gym' | 'project' | 'age16' | 'age18' | SkillId;
 
 export interface Mission {
-  /** Permanent id, "<track>-<slug>": "focus-lock-in-25". Completions and programs refer to it. */
+  /** Permanent id, "<track>-<slug>": "school-study-30". Completions and programs refer to it. */
   id: string;
+  /** The goal area it counts toward (shown on the row, levels, swaps). */
   track: TrackId;
-  slot: MissionSlot;
-  /** Card title, Title Case, at most 28 characters: "25-Minute Lock In". */
+  /** Other goal areas it also serves ("Work on Your Portfolio" is career, also projects). */
+  also?: TrackId[];
+  /** Plain title that says what to do: "Study for 30 Minutes". */
   title: string;
-  /** One sentence under the title: what to do. */
+  /** One sentence: exactly what to do. */
   short: string;
-  /** WHY THIS MATTERS: one or two plain sentences. */
-  why: string;
-  /** HOW TO DO IT: 2–4 short steps. */
-  how: string[];
-  /** PROOF REQUIRED: what the photo shows. */
+  /** What the proof shows: "Your notes or study setup, after the timer." */
   proof: string;
   proofType: ProofType;
-  /** Points for a proven completion (by difficulty: 10 / 15 / 25). */
+  /** Points for a proven completion: 5 to 25, by how long it takes. */
   points: number;
-  difficulty: 1 | 2 | 3;
-  /** Realistic time it takes, in minutes. */
+  /** Realistic time it takes, in minutes. Fifteen or less is an easy mission. */
   minutes: number;
-  /** TIMER_AND_PHOTO only: the focus timer length. */
+  /** TIMER and TIMER_AND_PHOTO: the focus timer length. */
   timerMinutes?: number;
   requires?: Requirement[];
   /** Days before it can be offered again after it was done. */
   cooldownDays: number;
-  /** Can be done more than once (most can; one-off missions like "Build a resume" can't). */
+  /** Can be done more than once (most can; "Write the First Draft of Your Resume" can't). */
   repeatable: boolean;
-  /** A useful habit that is meant to come back often (make the bed, plan tomorrow). */
+  /** A core habit that should come back often (study, train, build, plan tomorrow). */
   anchor?: boolean;
-  /** Missions that overlap ("tomorrow-ready", "room-reset") share a group; a day never holds two from one group. */
+  /** Missions that overlap ("tomorrow-ready", "deep-work") share a group; a day never holds two from one group. */
   group?: string;
-  /** How often the generator picks it, relative to 1. Situational missions (the night before a test) are lower. */
+  /** How often the generator picks it, relative to 1. */
   weight?: number;
+  /** Morning missions are left out of a plan made after noon. */
+  when?: 'morning' | 'evening';
   tags: string[];
   active: boolean;
 }
@@ -161,10 +167,14 @@ export interface Mission {
 /** Answers from onboarding. null = skipped. */
 export interface Profile {
   tracks: TrackId[];
+  /** In school or college. */
   school: boolean | null;
   work: boolean | null;
   gym: boolean | null;
+  /** Building a business or a project of their own. */
   project: boolean | null;
+  /** Skills they're learning (optional). */
+  skills: SkillId[];
   /** Age range: 13–15, 16–17, 18+. */
   age: 'u16' | '16to17' | '18plus' | null;
   /** Upper end of the daily time the user chose: 15, 30, 60 or 90 (60+). */
@@ -216,7 +226,8 @@ export interface Verification {
 
 export interface MissionDone {
   missionId: string;
-  slot: MissionSlot;
+  /** Older records hold 'quick' | 'progress' | 'challenge'. */
+  slot: MissionSlot | string;
   track: TrackId;
   /** Points actually credited (0 if the proof was rejected). */
   points: number;
