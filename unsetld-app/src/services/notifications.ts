@@ -1,23 +1,22 @@
+// Local notifications: mission reminders (spec section 13), drop alerts and the
+// trial reminder. The timer-done notification lives in timerNotify.ts.
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { isClean, lineForTask, pickFor } from '../core/feed';
-import { dailyTaskFor } from '../core/points';
-import { lineOfDay } from '../core/today';
-import { planNotifications, type PlannedNotification } from '../core/reminders';
+import { dayReminderTimes, planNotifications, type PlannedNotification } from '../core/reminders';
 import { dayKeyOf, type DayKey } from '../core/time';
-import type { ChapterId } from '../core/types';
-import { LINE_BY_NO, LINES, PROMPTS, SCHEDULE, TASKS } from '../content';
-import { COPY } from '../content/copy';
+import { MISSION_BY_ID, PROMPTS } from '../content';
+import { PLATFORM } from '../content/copy/platform';
 
+const N = PLATFORM.notifications;
 const supported = Platform.OS !== 'web';
-export const NIGHT_CATEGORY = 'NIGHT_CHECK';
-const ACTION_HELD = 'HELD';
-const ACTION_NOT_TODAY = 'NOT_TODAY';
+/** Reminder ids. 'night-' cancels the night checks 2.x scheduled. */
 const OWN_PREFIXES = ['rem-', 'night-'];
+/** The 2.x night check's category (Held / Not today). Removed on launch. */
+const OLD_NIGHT_CATEGORY = 'NIGHT_CHECK';
 
 let configured = false;
 
-/** Called once at module scope (index.ts) so night-check actions work from a cold start. */
+/** Called once at module scope (index.ts), before the first render, so a tap that launched the app is heard. */
 export function configureNotifications() {
   if (!supported || configured) return;
   configured = true;
@@ -29,10 +28,8 @@ export function configureNotifications() {
       shouldShowList: true,
     }),
   });
-  Notifications.setNotificationCategoryAsync(NIGHT_CATEGORY, [
-    { identifier: ACTION_HELD, buttonTitle: COPY.notifications.held, options: { opensAppToForeground: false } },
-    { identifier: ACTION_NOT_TODAY, buttonTitle: COPY.notifications.notToday, options: { opensAppToForeground: false } },
-  ]).catch(() => {});
+  // The night check is gone: its Held / Not today buttons go with it.
+  Notifications.deleteNotificationCategoryAsync(OLD_NIGHT_CATEGORY).catch(() => {});
 }
 
 export type Permission = 'granted' | 'denied' | 'undetermined' | 'unsupported';
@@ -49,76 +46,88 @@ export async function requestNotifications(): Promise<boolean> {
   return s.granted;
 }
 
+/** A mission in a day's plan, as the reminders name it. */
+export interface ReminderMission {
+  id: string;
+  title: string;
+  minutes: number;
+  proven: boolean;
+}
+
 export interface ScheduleInput {
   remindersOn: boolean;
   count: number;
+  /** Minutes after midnight. */
   first: number;
   last: number;
-  night: { on: boolean; time: number };
-  answered: Set<DayKey>;
-  mix: ChapterId[];
-  /** Lines never to send. */
-  hidden: number[];
-  /** Open work per scheduled day (today: what's still not done). Task reminders name it. */
-  work: { day: DayKey; doneDaily?: string; open: { text: string; chapter: ChapterId | null }[] }[];
+  /** Planned missions by day: today, and any later day that already has a plan. */
+  plans: Record<DayKey, ReminderMission[]>;
+  /** Missions a day, for days without a plan yet ("Three missions are waiting."). */
+  perDay: number;
+  /** The streak as it stands today (until something is proven, yesterday's). */
+  streak: number;
   seed: string;
 }
 
-export type ComposedNotification = PlannedNotification & {
-  body: string;
-  /** "Still open: Train every day." on task reminders. */
-  subtitle?: string;
-  lineNo: number | null;
-};
+export type ComposedNotification = PlannedNotification & { body: string };
 
-/** The reminder plan with each notification's body and line. Shared with the widget timeline. */
+/** The missions in a plan, in plan order, as the reminders see them. */
+export function reminderMissions(missionIds: readonly string[], proven: (id: string) => boolean): ReminderMission[] {
+  return missionIds
+    .map(id => MISSION_BY_ID[id])
+    .filter(Boolean)
+    .map(m => ({ id: m.id, title: m.title, minutes: m.minutes, proven: proven(m.id) }));
+}
+
+/**
+ * The reminder plan with each notification's text. First of the day: today's
+ * missions by name. Later ones: what's left, naming one of the open missions
+ * in turn; none once everything is proven. The last one of the day, while
+ * nothing is proven yet: the last call for the streak. A day with no plan yet
+ * names no mission.
+ */
 export function composePlan(input: ScheduleInput, now: Date): ComposedNotification[] {
+  const count = input.remindersOn ? input.count : 0;
   const plan = planNotifications({
     now,
     today: dayKeyOf(now),
-    count: input.remindersOn ? input.count : 0,
+    count,
     first: input.first,
     last: input.last,
-    night: { enabled: input.night.on, time: input.night.time },
-    answered: input.answered,
+    night: { enabled: false, time: 0 },
+    answered: new Set(),
     prompts: PROMPTS,
     seed: input.seed,
   });
-  const mix = new Set(input.mix);
-  const hidden = new Set(input.hidden);
-  const mixPool = LINES.filter(l => mix.has(l.chapter) && isClean(l) && !l.attribution && l.text.length <= 90 && !hidden.has(l.no));
-  const workByDay = new Map(input.work.map(w => [w.day, w.open]));
-  const doneDailyByDay = new Map(input.work.map(w => [w.day, w.doneDaily]));
+  const lastIndex = new Map<DayKey, number>();
+  const lastOf = (day: DayKey) => {
+    let i = lastIndex.get(day);
+    if (i === undefined) {
+      i = dayReminderTimes({ day, count, first: input.first, last: input.last, night: { enabled: false, time: 0 }, seed: input.seed }).length - 1;
+      lastIndex.set(day, i);
+    }
+    return i;
+  };
   const out: ComposedNotification[] = [];
   for (const p of plan) {
-    if (p.kind === 'night') {
-      out.push({ ...p, body: COPY.notifications.night, lineNo: null });
+    const isLast = p.index > 0 && p.index === lastOf(p.day);
+    const missions = input.plans[p.day];
+    if (!missions?.length) {
+      const body = p.index === 0 ? N.waiting(input.perDay) : isLast ? N.lastCall(input.streak) : p.prompt || N.waiting(input.perDay);
+      out.push({ ...p, body });
       continue;
     }
-    if (p.kind === 'today') {
-      const doneDaily = doneDailyByDay.get(p.day);
-      const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: input.mix, salt: input.seed, day: p.day, doneDaily });
-      // The day's line goes with the day's task, unless this user hid it.
-      const l = t && !hidden.has(t.no) ? t : pickFor(mixPool, `${input.seed}:${p.id}`);
-      // Under the line, what today's task is, unless it's already done.
-      const daily = dailyTaskFor(TASKS, input.mix, input.seed, p.day, doneDaily);
-      const open = workByDay.get(p.day);
-      const subtitle = daily && !doneDaily && (!open || open.some(o => o.text === daily.text)) ? COPY.notifications.todayTask(daily.text) : undefined;
-      out.push({ ...p, body: l?.text ?? '', subtitle, lineNo: l?.no ?? null });
-      continue;
+    const open = missions.filter(m => !m.proven);
+    if (!open.length) continue; // everything's proven: no nudge
+    const proven = missions.length - open.length;
+    let body: string;
+    if (proven === 0 && isLast) body = N.lastCall(input.streak);
+    else if (proven === 0 && p.index === 0) body = N.first(missions.map(m => m.title));
+    else {
+      const m = open[p.index % open.length];
+      body = N.left(open.length, m.title, m.minutes);
     }
-    // Task reminder: name the next open task, with a line about it.
-    const open = workByDay.get(p.day);
-    if (open && !open.length) continue; // everything's done: no nudge
-    const task = open?.length ? open[(p.index - 1) % open.length] : null;
-    const chapters = task?.chapter ? [task.chapter] : input.mix;
-    const line = lineForTask(LINES.filter(l => !hidden.has(l.no)), chapters, `${input.seed}:${p.id}`) ?? pickFor(mixPool, `${input.seed}:${p.id}`);
-    out.push({
-      ...p,
-      subtitle: task ? COPY.notifications.stillOpen(task.text) : undefined,
-      body: line?.text ?? p.prompt ?? '',
-      lineNo: line?.no ?? null,
-    });
+    out.push({ ...p, body });
   }
   return out;
 }
@@ -140,7 +149,7 @@ function oneAtATime<T, R>(job: (input: T, stale: () => boolean) => Promise<R>, s
   };
 }
 
-/** Rebuilds the rolling schedule. Call on every foreground and after settings change. */
+/** Rebuilds the rolling schedule. Call on every foreground and after plans, proof or settings change. */
 export const reschedule = oneAtATime(rebuild, 0);
 
 async function rebuild(input: ScheduleInput, stale: () => boolean): Promise<number> {
@@ -159,14 +168,7 @@ async function rebuild(input: ScheduleInput, stale: () => boolean): Promise<numb
     if (stale()) return 0;
     await Notifications.scheduleNotificationAsync({
       identifier: p.id,
-      content: {
-        title: COPY.notificationTitle,
-        subtitle: p.subtitle,
-        body: p.body,
-        sound: false,
-        categoryIdentifier: p.kind === 'night' ? NIGHT_CATEGORY : undefined,
-        data: p.kind === 'night' ? { night: p.day } : { line: p.lineNo, day: p.day },
-      },
+      content: { title: N.title, body: p.body, sound: false, data: { day: p.day } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: p.date },
     });
   }
@@ -178,7 +180,7 @@ export async function scheduleTrialReminder(price: string) {
   if (!supported) return;
   await Notifications.scheduleNotificationAsync({
     identifier: 'trial-day2',
-    content: { title: COPY.notificationTitle, body: COPY.notifications.trial(price), sound: false },
+    content: { title: N.title, body: N.trial(price), sound: false },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(Date.now() + 48 * 3600_000) },
   }).catch(() => {});
 }
@@ -201,13 +203,15 @@ function whenText(publicAt: Date, from: Date): string {
   const t = publicAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   const sameDay = dayKeyOf(publicAt) === dayKeyOf(from);
   const tomorrow = dayKeyOf(new Date(from.getTime() + 86_400_000)) === dayKeyOf(publicAt);
-  return sameDay ? `today at ${t}` : tomorrow ? `tomorrow at ${t}` : `on ${publicAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${t}`;
+  if (sameDay) return N.whenToday(t);
+  if (tomorrow) return N.whenTomorrow(t);
+  return N.whenOn(publicAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), t);
 }
 
 /**
- * Drop alerts: opt-in only. Early access (Day 7+, not paused, access on) hears
- * at early-access open; everyone else gets a heads-up 24 hours before public
- * open. One run at a time.
+ * Drop alerts: opt-in only. Early access (7 active days, not paused, access on)
+ * hears at early-access open; everyone else gets a heads-up 24 hours before
+ * public open. One run at a time.
  */
 export const scheduleDropAlerts = oneAtATime(dropAlerts, undefined);
 
@@ -226,28 +230,22 @@ async function dropAlerts(
     const publicAt = new Date(d.publicAt);
     const at = earlyAccess ? new Date(d.earlyAt) : new Date(publicAt.getTime() - 86_400_000);
     if (Number.isNaN(at.getTime()) || at.getTime() < Date.now()) continue;
-    const body = earlyAccess
-      ? COPY.notifications.dropEarly(d.collection, whenText(publicAt, at))
-      : COPY.notifications.dropPublic(d.collection, whenText(publicAt, at));
+    const body = earlyAccess ? N.dropEarly(d.collection, whenText(publicAt, at)) : N.dropPublic(d.collection, whenText(publicAt, at));
     await Notifications.scheduleNotificationAsync({
       identifier: `drop-${d.id}`,
-      content: { title: COPY.notificationTitle, body, sound: false, data: { drop: d.id, early: earlyAccess } },
+      content: { title: N.title, body, sound: false, data: { drop: d.id, early: earlyAccess } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
     });
   }
 }
 
-export type NotificationEvent =
-  | { kind: 'night-answer'; day: DayKey; held: boolean }
-  | { kind: 'open-line'; no: number }
-  | { kind: 'open-night' }
-  | { kind: 'open-today' };
+export type NotificationEvent = { kind: 'open-today' } | { kind: 'open-mission'; missionId: string; day: DayKey };
 
 const handled = new Set<string>();
 let earlyDropTapped = false;
 
 /**
- * True once after an early drop alert was tapped. That tap lands on Today like
+ * True once after an early drop alert was tapped. That tap lands on Home like
  * any other, and the navigator then opens the early-access page.
  */
 export function takeEarlyDropTap(): boolean {
@@ -260,15 +258,18 @@ function toEvent(r: Notifications.NotificationResponse): NotificationEvent | nul
   const key = `${r.notification.request.identifier}:${r.actionIdentifier}`;
   if (handled.has(key)) return null;
   handled.add(key);
-  const data = r.notification.request.content.data as { line?: number | null; night?: DayKey; drop?: string; early?: boolean } | undefined;
+  // Only a tap on the notification itself opens something. (A 2.x night check
+  // still in Notification Center can carry Held / Not today: they do nothing now.)
+  if (r.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return null;
+  const data = r.notification.request.content.data as { drop?: string; early?: boolean; mission?: string; day?: DayKey } | undefined;
   if (data?.drop) {
     earlyDropTapped = data.early === true;
     return { kind: 'open-today' };
   }
-  if (r.actionIdentifier === ACTION_HELD && data?.night) return { kind: 'night-answer', day: data.night, held: true };
-  if (r.actionIdentifier === ACTION_NOT_TODAY && data?.night) return { kind: 'night-answer', day: data.night, held: false };
-  if (data?.night) return { kind: 'open-night' };
-  if (typeof data?.line === 'number' && LINE_BY_NO[data.line]) return { kind: 'open-line', no: data.line };
+  // The focus timer finished: back to its mission for the proof photo.
+  if (typeof data?.mission === 'string' && MISSION_BY_ID[data.mission] && typeof data.day === 'string') {
+    return { kind: 'open-mission', missionId: data.mission, day: data.day };
+  }
   return { kind: 'open-today' };
 }
 

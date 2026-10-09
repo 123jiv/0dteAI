@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { VOLUME } from '../../content';
 import { COPY } from '../../content/copy';
 import type { RootProps } from '../../navigation/types';
+import { useApp } from '../../state/store';
 import { Button } from '../../ui/kit';
 import { T, useSerifScale } from '../../ui/text';
 import { color as C, ease, font, hairline, MARGIN } from '../../ui/tokens';
@@ -69,7 +70,11 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
       Animated.timing(close, { toValue: 0, duration: reduce ? 0 : 200, easing: ease.out, useNativeDriver: false }),
       Animated.delay(250),
       Animated.timing(page, { toValue: 0, duration: 250, easing: ease.in, useNativeDriver: false }),
-    ]).start(() => navigation.replace('FirstLine'));
+    ]).start(() => {
+      // Tracks starts at 0 OF 3: the pick is theirs, not the defaults.
+      useApp.getState().setProfile({ tracks: [], priority: null });
+      navigation.replace('Tracks');
+    });
   };
 
   let droppedIndex = -1;

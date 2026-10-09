@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Linking, View, type StyleProp, type ViewStyle } from 'react-native';
-import { milestoneStatus, type MilestoneId, type MilestoneStatus } from '../core/record';
+import { accessState, milestoneStatus, REOPEN_AFTER, type MilestoneId, type MilestoneStatus } from '../core/record';
 import { milestoneNo } from '../core/typography';
 import { MILESTONES } from '../content';
 import { REWARDS_COPY } from '../content/copy/rewards';
@@ -58,8 +58,9 @@ export function ActionError({ result, style }: { result: ActionResult | null; st
  * days a mission was proven.
  */
 export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
-  const id = route.params.id as MilestoneId;
-  const m = MILESTONES.find(x => x.id === id)!;
+  const id = route.params?.id as MilestoneId;
+  // An id that isn't a milestone (an old link) falls back to the first one rather than crashing.
+  const m = MILESTONES.find(x => x.id === id) ?? MILESTONES[0];
   const record = useApp(s => s.record);
   const day = useApp(s => s.currentDay);
   const signedIn = useApp(s => Boolean(s.account.userId));
@@ -68,7 +69,8 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
   const accessEnabled = useAccessEnabled();
   const [result, setResult] = useState<ActionResult | null>(null);
   const [busy, setBusy] = useState(false);
-  const status = milestoneStatus(accessRecord(record), m, day);
+  const ar = accessRecord(record);
+  const status = milestoneStatus(ar, m, day);
   const proven = accessDays(record);
 
   // Real time for the drop windows, moved on when one opens or closes while this page is up.
@@ -82,8 +84,8 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
 
   // Early access opens the drop that's open early now; with none, it turns on
   // drop alerts (until they're on). Claims need an account.
-  const drop = id === 'early-access' && accessEnabled ? earlyDrop(drops, now) : null;
-  const claims = id !== 'early-access' || drop !== null;
+  const drop = m.id === 'early-access' && accessEnabled ? earlyDrop(drops, now) : null;
+  const claims = m.id !== 'early-access' || drop !== null;
   const showAction = status.kind === 'open' && (claims || !dropAlerts);
   const needsAccount = claims && !signedIn;
 
@@ -91,8 +93,14 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
     if (needsAccount) return navigation.navigate('Account');
     setBusy(true);
     setResult(null);
-    const r = claims ? await runMilestoneAction(id) : await enableDropAlerts();
-    setBusy(false);
+    let r: ActionResult;
+    try {
+      r = claims ? await runMilestoneAction(m.id) : await enableDropAlerts();
+    } catch {
+      r = 'network';
+    } finally {
+      setBusy(false);
+    }
     if (r === 'needs-account') navigation.navigate('Account');
     else setResult(r);
   };
@@ -123,7 +131,7 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
       ) : null}
       {status.kind === 'paused' ? (
         <T v="note" color={C.stone} style={{ marginTop: 16 }}>
-          {R.pausedNote}
+          {R.pausedNote(Math.max(1, REOPEN_AFTER - accessState(ar, day).reopenProgress))}
         </T>
       ) : null}
       {showAction ? (

@@ -3,7 +3,7 @@ import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IS_PREVIEW } from '../config/app';
 import { formatMoney, perMonth, savingsPercent } from '../core/pricing';
-import { COPY } from '../content/copy';
+import { PLATFORM } from '../content/copy/platform';
 import type { RootProps } from '../navigation/types';
 import { selection } from '../services/haptics';
 import { scheduleTrialReminder } from '../services/notifications';
@@ -15,7 +15,7 @@ import { Button, Square, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, font, hairline, MARGIN } from '../ui/tokens';
 
-const P = COPY.paywall;
+const P = PLATFORM.paywall;
 
 /** Full Edition, set like a product page. Prices always come from StoreKit. */
 export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
@@ -75,7 +75,7 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
       const r = await restore();
       if (r.premium) {
         setPremium({ active: true });
-        showDialog(P.restored, undefined, [{ label: 'OK', cancel: true, onPress: close }]);
+        showDialog(P.restored, undefined, [{ label: P.ok, cancel: true, onPress: close }]);
       } else showDialog(P.noneTitle, P.noneBody);
     } catch {
       showDialog(P.restoreFailed);
@@ -114,7 +114,7 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
       <View style={{ marginTop: insets.top + 8, height: 44, paddingHorizontal: MARGIN - 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Pressable accessibilityRole="button" accessibilityLabel={COPY.reader.a11y.close} onPress={close} style={{ width: 44, height: 44, justifyContent: 'center', paddingLeft: 6 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={PLATFORM.a11y.close} onPress={close} style={{ width: 44, height: 44, justifyContent: 'center', paddingLeft: 6 }}>
           <Icon name="close" size={24} />
         </Pressable>
         <TextButton title={P.restore} onPress={doRestore} style={{ paddingHorizontal: 10 }} />
@@ -142,8 +142,11 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
             </View>
           ))}
         </View>
+        <T v="note" color={C.stone} style={{ marginTop: 12 }}>
+          {P.freeNote}
+        </T>
 
-        <View accessibilityRole="radiogroup" style={{ marginTop: 32 }}>
+        <View accessibilityRole="radiogroup" style={{ marginTop: 28 }}>
           {rows.map((r, i) => {
             const p = plans?.find(x => x.kind === r.kind);
             const on = kind === r.kind;
@@ -152,7 +155,7 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
                 key={r.kind}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: on }}
-                accessibilityLabel={`${r.name}, ${p ? p.priceString : 'loading'}${r.kind === 'lifetime' ? ' once' : r.kind === 'annual' ? ' a year' : ' a month'}. ${r.sub}`}
+                accessibilityLabel={P.a11yPlan(r.name, p ? p.priceString : P.a11yLoading, P.a11yUnit[r.kind], r.sub)}
                 onPress={() => {
                   if (!on) selection();
                   setKind(r.kind);
@@ -212,7 +215,7 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
         ) : null}
 
         {trial && plan ? (
-          <View style={{ marginTop: 24 }} accessible accessibilityLabel={`Today, everything opens. Day 2, we remind you. Day 3, ${plan.priceString} billed.`}>
+          <View style={{ marginTop: 24 }} accessible accessibilityLabel={P.a11yTimeline(plan.priceString)}>
             <View style={{ height: 9, justifyContent: 'center' }}>
               <View style={{ height: 1, backgroundColor: C.ruleStrong }} />
               <View style={{ position: 'absolute', left: 0, width: 9, height: 9, backgroundColor: C.bone }} />

@@ -17,17 +17,23 @@ import {
 } from '@expo/ui/swift-ui/modifiers';
 import { createWidget, type WidgetEnvironment } from 'expo-widgets';
 
+/**
+ * The Next mission widget (kind "UnsetldLine", kept so widgets already placed
+ * stay put): the next mission in today's plan that isn't proven yet.
+ */
 export type LineWidgetProps = {
-  /** The line for the Home Screen sizes: clean, typographic quotes applied. */
-  text: string;
-  no: number;
-  /** Clean and 60 characters or fewer, for the Lock Screen. Often the same line as `text`. */
-  lockText: string;
-  lockNo: number;
-  /** Chapter label, uppercased ('DISCIPLINE'). */
-  chapter: string;
-  /** 'No. 0412' */
-  catalogue: string;
+  /** 'NEXT MISSION', or 'TODAY' when there's no mission to name. */
+  label: string;
+  /** Track short name, uppercased ('FOCUS'); '' when there's no mission. */
+  track: string;
+  /** Mission title ('25-Minute Lock In'), or 'Perfect day.' / 'Three missions are waiting.'. Typographic quotes applied. */
+  title: string;
+  /** '25 MIN · +15 PTS', or '3 / 3 PROVEN'; '' when there's nothing to add. */
+  meta: string;
+  /** Today's count, '1 / 3'; '' without a plan. */
+  progress: string;
+  /** Mission id: a tap opens it. '' opens Home. */
+  missionId: string;
   /** 'WED 7 OCT' */
   date: string;
   /** 'unsetld' */
@@ -63,6 +69,10 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
   const family = environment.widgetFamily;
   const white = '#FFFFFF';
   const wordmark = props.wordmark || 'unsetld';
+  const label = props.label || 'NEXT MISSION';
+  const title = props.title || wordmark;
+  const url = props.missionId ? 'unsetld://mission/' + props.missionId : 'unsetld://today';
+  const heading = props.track ? label + ' · ' + props.track : label;
   const walkerImage = (src: string | undefined, width: number, height: number) =>
     src ? (
       <Image
@@ -71,33 +81,38 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
       />
     ) : null;
 
-  // Lock Screen: no background, clean lines of 60 characters or fewer.
+  // Lock Screen: no background, white text the system renders vibrant.
   if (family === 'accessoryRectangular') {
     return (
       <VStack
         alignment="leading"
-        spacing={2}
+        spacing={1}
         modifiers={[
           frame({ maxWidth: 10000, maxHeight: 10000, alignment: 'topLeading' }),
           containerBackground('clear', 'widget'),
-          widgetURL(props.lockNo ? 'unsetld://line/' + props.lockNo : 'unsetld://today'),
+          widgetURL(url),
         ]}>
         <HStack spacing={4}>
           {walkerImage(props.walkerTemplate, 7, 15)}
-          <HStack spacing={0} modifiers={[opacity(0.6)]}>
-            <Text modifiers={[font({ size: 11, weight: 'semibold' }), foregroundStyle(white)]}>{wordmark}</Text>
+          <HStack spacing={0} modifiers={[opacity(0.7)]}>
+            <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1), foregroundStyle(white), lineLimit(1)]}>
+              {heading}
+            </Text>
           </HStack>
         </HStack>
-        {props.lockText ? (
-          <Text
-            modifiers={[
-              font({ size: 15, design: 'serif', weight: 'semibold' }),
-              foregroundStyle(white),
-              lineLimit(3),
-              minimumScaleFactor(0.8),
-            ]}>
-            {props.lockText}
-          </Text>
+        <Text
+          modifiers={[
+            font({ size: 15, design: 'serif', weight: 'semibold' }),
+            foregroundStyle(white),
+            lineLimit(2),
+            minimumScaleFactor(0.8),
+          ]}>
+          {title}
+        </Text>
+        {props.meta ? (
+          <HStack spacing={0} modifiers={[opacity(0.7)]}>
+            <Text modifiers={[font({ size: 11, design: 'monospaced' }), foregroundStyle(white), lineLimit(1)]}>{props.meta}</Text>
+          </HStack>
         ) : null}
       </VStack>
     );
@@ -109,34 +124,38 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
   const ink = bare ? white : props.ink || '#EDE9E3';
   const secondary = bare ? white : props.secondary || '#8F8A83';
   const walker = bare ? props.walkerTemplate : props.walker;
-  const text = props.text || wordmark;
   const plate =
     family === 'systemMedium' ? props.plateMedium : family === 'systemLarge' ? props.plateLarge : props.plateSmall;
   const fill = frame({ maxWidth: 10000, maxHeight: 10000, alignment: 'topLeading' });
+  const labelText = (text: string) => (
+    <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1.5), foregroundStyle(secondary), lineLimit(1)]}>
+      {text}
+    </Text>
+  );
+  const monoText = (text: string, size: number) => (
+    <Text modifiers={[font({ size, design: 'monospaced' }), foregroundStyle(secondary), lineLimit(1)]}>{text}</Text>
+  );
 
   const body =
     family === 'systemMedium' ? (
       <VStack alignment="leading" spacing={0} modifiers={[fill, padding({ all: 16 })]}>
         <HStack spacing={8}>
-          <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1.5), foregroundStyle(secondary)]}>
-            {props.chapter || ''}
-          </Text>
+          {labelText(heading)}
           <Spacer />
-          <Text modifiers={[font({ size: 10, design: 'monospaced' }), foregroundStyle(secondary)]}>
-            {props.catalogue || ''}
-          </Text>
+          {props.progress ? monoText(props.progress, 10) : null}
         </HStack>
         <Spacer />
         <Text
           modifiers={[
-            font({ size: 22, design: 'serif', weight: 'medium' }),
+            font({ size: 24, design: 'serif', weight: 'medium' }),
             foregroundStyle(ink),
-            lineLimit(3),
+            lineLimit(2),
             minimumScaleFactor(0.8),
           ]}>
-          {text}
+          {title}
         </Text>
-        <HStack spacing={0}>
+        <HStack spacing={8} alignment="bottom" modifiers={[padding({ top: 6 })]}>
+          {props.meta ? monoText(props.meta, 10) : null}
           <Spacer />
           {walkerImage(walker, 12, 27)}
         </HStack>
@@ -144,24 +163,24 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
     ) : family === 'systemLarge' ? (
       <VStack alignment="leading" spacing={0} modifiers={[fill, padding({ all: 16 })]}>
         <HStack spacing={8}>
-          <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1.5), foregroundStyle(secondary)]}>
-            {props.date || ''}
-          </Text>
+          {labelText(props.date || '')}
           <Spacer />
-          <Text modifiers={[font({ size: 10, design: 'monospaced' }), foregroundStyle(secondary)]}>
-            {props.catalogue || ''}
-          </Text>
+          {props.progress ? monoText(props.progress, 10) : null}
         </HStack>
         <Spacer />
-        <Text
-          modifiers={[
-            font({ size: 30, design: 'serif', weight: 'medium' }),
-            foregroundStyle(ink),
-            lineLimit(6),
-            minimumScaleFactor(0.8),
-          ]}>
-          {text}
-        </Text>
+        {labelText(heading)}
+        <HStack spacing={0} modifiers={[padding({ top: 8 })]}>
+          <Text
+            modifiers={[
+              font({ size: 34, design: 'serif', weight: 'medium' }),
+              foregroundStyle(ink),
+              lineLimit(4),
+              minimumScaleFactor(0.8),
+            ]}>
+            {title}
+          </Text>
+        </HStack>
+        {props.meta ? <HStack spacing={0} modifiers={[padding({ top: 10 })]}>{monoText(props.meta, 11)}</HStack> : null}
         <Spacer />
         <HStack spacing={6} alignment="bottom">
           {walkerImage(walker, 14, 31)}
@@ -170,26 +189,27 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
       </VStack>
     ) : (
       <VStack alignment="leading" spacing={0} modifiers={[fill, padding({ all: 16 })]}>
+        {labelText(props.track || label)}
+        <Spacer />
         <Text
           modifiers={[
-            font({ size: 18, design: 'serif', weight: 'medium' }),
+            font({ size: 19, design: 'serif', weight: 'medium' }),
             foregroundStyle(ink),
-            lineLimit(5),
+            lineLimit(3),
             minimumScaleFactor(0.75),
           ]}>
-          {text}
+          {title}
         </Text>
-        <Spacer />
-        {walkerImage(walker, 9, 20)}
+        <HStack spacing={6} alignment="bottom" modifiers={[padding({ top: 6 })]}>
+          {props.meta ? monoText(props.meta, 9) : null}
+          <Spacer />
+          {walkerImage(walker, 9, 20)}
+        </HStack>
       </VStack>
     );
 
   return (
-    <ZStack
-      modifiers={[
-        containerBackground(props.bg || '#0A0A0A', 'widget'),
-        widgetURL(props.no ? 'unsetld://line/' + props.no : 'unsetld://today'),
-      ]}>
+    <ZStack modifiers={[containerBackground(props.bg || '#0A0A0A', 'widget'), widgetURL(url)]}>
       {!bare && plate ? (
         <Image
           uiImage={plate}

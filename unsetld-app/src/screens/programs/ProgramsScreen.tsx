@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { programDay, programMissions } from '../../core/programs';
@@ -51,7 +51,7 @@ function Bar({ value, max }: { value: number; max: number }) {
   );
 }
 
-type MissionState = 'open' | 'proven' | 'later';
+type MissionState = 'open' | 'proven' | 'swapped' | 'later';
 
 /** One of the program's missions: open it when it's in today's plan, PROVEN once done. */
 function ProgramMission({ id, state, last, onOpen }: { id: string; state: MissionState; last: boolean; onOpen: () => void }) {
@@ -62,7 +62,7 @@ function ProgramMission({ id, state, last, onOpen }: { id: string; state: Missio
   return (
     <Pressable
       accessibilityRole={open ? 'button' : undefined}
-      accessibilityLabel={P.missionA11y(m.title, P.missionSaid(track, m.minutes, m.points), state === 'proven' ? P.proven : undefined)}
+      accessibilityLabel={P.missionA11y(m.title, P.missionSaid(track, m.minutes, m.points), state === 'proven' ? P.proven : state === 'swapped' ? P.swappedLabel : undefined)}
       accessibilityHint={open ? P.openHint : undefined}
       disabled={!open}
       onPress={onOpen}
@@ -84,6 +84,8 @@ function ProgramMission({ id, state, last, onOpen }: { id: string; state: Missio
       </View>
       {state === 'proven' ? (
         <T v="label">{P.proven}</T>
+      ) : state === 'swapped' ? (
+        <T v="label">{P.swappedLabel}</T>
       ) : open ? (
         <View style={{ marginRight: -8 }}>
           <Icon name="chevron-right" size={24} color={C.stone} />
@@ -150,6 +152,11 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
   const [started, setStarted] = useState<{ id: string; line: string } | null>(null);
 
   const current = program ? PROGRAM_BY_ID[program.id] ?? null : null;
+  // A program no longer in the library (an old install's) can't be shown or run: let it go.
+  const gone = Boolean(program && !current);
+  useEffect(() => {
+    if (gone) useApp.getState().leaveProgram();
+  }, [gone]);
   const finished = Boolean(program?.finishedDay);
   const running = current && program && !finished ? current : null;
   const n = running && program ? programDay(running, program, day) : null;
@@ -206,12 +213,15 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
       block = { label: P.tomorrow, ids, today: false, note: swapped ? P.swapped : P.joinsTomorrow };
     }
     if (started?.id === running.id) block.note = started.line;
+    // A mission no longer in the library has nothing to show.
+    block.ids = block.ids.filter(id => MISSION_BY_ID[id]);
   }
 
   const stateOf = (id: string): MissionState => {
     if (!block?.today) return 'later';
     if (provenToday?.[id]?.verification.status === 'accepted') return 'proven';
-    return plan?.missions.some(m => m.missionId === id) ? 'open' : 'later';
+    if (plan?.missions.some(m => m.missionId === id)) return 'open';
+    return plan?.replaced.includes(id) ? 'swapped' : 'later';
   };
 
   return (
@@ -227,7 +237,9 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
         {running && program && n !== null && block ? (
           <View style={{ marginTop: 40 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <T v="label">{P.active}</T>
+              <T v="label" accessibilityRole="header">
+                {P.active}
+              </T>
               <T v="mono" color={C.bone} accessibilityLabel={P.dayOfA11y(n, running.days)}>
                 {P.dayOf(n, running.days)}
               </T>
@@ -259,7 +271,9 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
 
         {current && program && finished ? (
           <View style={{ marginTop: 40 }}>
-            <T v="label">{P.finished}</T>
+            <T v="label" accessibilityRole="header">
+              {P.finished}
+            </T>
             <T v="title.m" accessibilityRole="header" style={{ marginTop: 10 }}>
               {current.title}
             </T>
@@ -274,7 +288,7 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
         ) : null}
 
         <View style={{ marginTop: 48 }}>
-          <T v="label" style={{ marginBottom: 8 }}>
+          <T v="label" accessibilityRole="header" style={{ marginBottom: 8 }}>
             {P.all}
           </T>
           {PROGRAMS.map((p, i) => (

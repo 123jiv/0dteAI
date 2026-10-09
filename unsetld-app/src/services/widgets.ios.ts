@@ -1,23 +1,23 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Directory, File, Paths } from 'expo-file-system';
 import { Image as ExpoImage } from 'expo-image';
-import * as Notifications from 'expo-notifications';
 import { AppState, Dimensions, Image, PixelRatio, type NativeEventSubscription } from 'react-native';
 import type { LineWidgetProps } from '../../widgets/UnsetldLine';
 import type { RecordWidgetProps } from '../../widgets/UnsetldRecord';
 import type { StandardWidgetProps } from '../../widgets/UnsetldStandard';
-import { isClean, isLockEligible, pickFor } from '../core/feed';
-import { dayCount, emptyRecord, week } from '../core/record';
-import { MAX_PENDING } from '../core/reminders';
+import { emptyRecord } from '../core/record';
+import { activeDays } from '../core/progress';
+import { balance } from '../core/rewards';
+import { computeStreak } from '../core/streak';
 import { addDays, dayKeyOf, dayStart, widgetDate, type DayKey } from '../core/time';
-import { lineOfDay } from '../core/today';
-import { catalogueNo, typo } from '../core/typography';
-import type { Colorway, Line } from '../core/types';
-import { chapterLabel, COLORWAYS, LINE_BY_NO, LINES, SCHEDULE, TASKS } from '../content';
-import { COPY } from '../content/copy';
+import { typo } from '../core/typography';
+import type { Colorway, Mission } from '../core/types';
+import { COLORWAYS, MISSION_BY_ID, TRACK_BY_ID } from '../content';
+import { PLATFORM } from '../content/copy/platform';
 import { getDayOffset } from './clock';
-import { composePlan, type ScheduleInput } from './notifications';
 import type { WidgetInput } from './widgets.types';
+
+const W = PLATFORM.widgets;
 
 // expo-widgets isn't in Expo Go, so the widget modules (and expo-widgets itself)
 // load lazily and everything here no-ops there. Dev and TestFlight builds get widgets.
@@ -251,32 +251,26 @@ export async function prepareWidgetAssets(): Promise<void> {
   } catch {
     // No App Group container or file access: widgets draw without images.
   }
+  // 2.x kept when the reminder settings last changed, to know which line each
+  // reminder had delivered. Widgets no longer follow the reminders.
+  try {
+    const old = new File(Paths.document, 'widget-schedule.json');
+    if (old.exists) old.delete();
+  } catch {
+    // Harmless if it stays.
+  }
   await writePreviews(w).catch(() => {});
 }
 
 // ---------------------------------------------------------------------------
 // Timelines
 
-/** Days of 4:00 AM boundaries written ahead. */
+/** Days of 4:00 AM boundaries written ahead, so a closed app still turns the day over on the widgets. */
 const DAYS_AHEAD = 7;
-/** Line timeline cap: now, every boundary and every reminder the notifications can hold, so nothing is ever cut. */
-const MAX_LINE_ENTRIES = 1 + DAYS_AHEAD + MAX_PENDING;
+/** Days in the Streak widget's barcode. */
+const BARCODE_DAYS = 28;
 /** Inks of the light colorways (Bone, Snow Wash, Concrete): they take the ink walker. */
 const LIGHT_INKS = ['#11100F', '#0E0D0C'];
-/**
- * reschedule() runs about a second after updateWidgets and only schedules
- * reminders more than a minute ahead, so a reminder this close after the
- * settings took effect may never have been scheduled.
- */
-const SCHEDULE_MARGIN_MS = 2 * 60_000;
-
-const byNo = (a: Line, b: Line) => a.no - b.no;
-/** Clean, unattributed, 60 characters or fewer: the Lock Screen pool. */
-const LOCK_POOL = LINES.filter(isLockEligible).sort(byNo);
-
-type Planned = ReturnType<typeof composePlan>[number];
-
-type Input = WidgetInput;
 
 /** One clock for everything: the app's clock (with the testers' day offset) for what to show, real time for when. */
 interface Clock {
@@ -290,64 +284,6 @@ function readClock(): Clock {
   const offsetMs = getDayOffset() * 86_400_000;
   const now = new Date(Date.now() + offsetMs);
   return { now, today: dayKeyOf(now), offsetMs };
-}
-
-interface Delivery {
-  /** Notifications are allowed, so reschedule() schedules the plan's reminders. */
-  granted: boolean;
-  /** Real time since which the current reminder settings (and permission) have been in effect. */
-  since: number;
-  /** Reminders still in Notification Center. */
-  presented: ReadonlySet<string>;
-}
-
-const NO_DELIVERY: Delivery = { granted: false, since: Infinity, presented: new Set() };
-
-const SCHEDULE_FILE = 'widget-schedule.json';
-
-function timeZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
-  } catch {
-    return String(new Date().getTimezoneOffset());
-  }
-}
-
-/**
- * When the reminder settings that decide which reminders exist and when
- * (count, first, last, night check, permission, time zone) last changed.
- * Persisted, so a cold start keeps it.
- */
-function settingsSince(s: ScheduleInput, granted: boolean, realNow: number): number {
-  const key = JSON.stringify([s.remindersOn, s.count, s.first, s.last, s.night.on, s.night.time, s.seed, granted, timeZone()]);
-  let file: File | null = null;
-  try {
-    file = new File(Paths.document, SCHEDULE_FILE);
-    if (file.exists) {
-      const saved = JSON.parse(file.textSync()) as { key?: string; since?: number };
-      if (saved.key === key && typeof saved.since === 'number' && saved.since <= realNow) return saved.since;
-    }
-  } catch {
-    // Unreadable: start over.
-  }
-  try {
-    file?.write(JSON.stringify({ key, since: realNow }));
-  } catch {
-    // Without the file, every write counts as a fresh start: today's line until the next reminder.
-  }
-  return realNow;
-}
-
-async function deliveryState(s: ScheduleInput): Promise<Delivery> {
-  const [perm, presented] = await Promise.all([
-    Notifications.getPermissionsAsync(),
-    Notifications.getPresentedNotificationsAsync().catch(() => [] as Notifications.Notification[]),
-  ]);
-  return {
-    granted: perm.granted,
-    since: settingsSince(s, perm.granted, Date.now()),
-    presented: new Set(presented.map(n => n.request.identifier).filter(id => id.startsWith('rem-'))),
-  };
 }
 
 interface Art {
@@ -368,122 +304,35 @@ function artFor(directory: string | null, c: Colorway): Art {
 }
 
 interface Ctx {
-  input: Input;
-  clock: Clock;
-  delivery: Delivery;
+  input: WidgetInput;
   art: Art;
-  hidden: ReadonlySet<number>;
-  /** Stand-ins: short clean lines from the user's chapters (else any chapter), none hidden. */
-  pool: Line[];
+  active: Set<DayKey>;
+  points: number;
 }
 
-function context(input: Input, clock: Clock, delivery: Delivery, art: Art): Ctx {
-  const hidden = new Set(input.hidden);
-  const mix = new Set(input.mix);
-  const open = LOCK_POOL.filter(l => !hidden.has(l.no));
-  const mine = open.filter(l => mix.has(l.chapter));
-  return { input, clock, delivery, art, hidden, pool: mine.length ? mine : open };
+interface DayMissions {
+  /** null: the day has no plan yet. */
+  missions: { mission: Mission; proven: boolean }[] | null;
 }
 
-interface LineSlot {
-  /** App-clock time of the entry. */
-  date: Date;
-  day: DayKey;
-  line: Line;
-  /** One of the user's own lines (no catalogue number). */
-  yours?: boolean;
-  /** Seeds the Lock Screen substitute when the line is too long for it. */
-  lockKey: string;
+/** A day's planned missions in plan order, each with whether it's proven. */
+function dayMissions(c: Ctx, day: DayKey): DayMissions {
+  const plan = c.input.plans[day];
+  if (!plan || !plan.missions.length) return { missions: null };
+  const done = c.input.record.missions?.[day] ?? {};
+  const missions = plan.missions
+    .map(p => MISSION_BY_ID[p.missionId])
+    .filter((m): m is Mission => Boolean(m))
+    .map(mission => ({ mission, proven: done[mission.id]?.verification.status === 'accepted' }));
+  return { missions: missions.length ? missions : null };
 }
 
-/**
- * The line an entry shows. Boundaries and the day's first reminder: today's
- * global line. Task reminders: the line that notification delivered (a line
- * about the open task), or a short clean line from the user's chapters. Your
- * lines (Full Edition) take every other task reminder's slot. Never an
- * explicit or hidden line: a hidden one is swapped for a stand-in.
- */
-function lineFor(c: Ctx, p: Planned | null, day: DayKey): Line | null {
-  const seed = c.input.schedule.seed;
-  if (p?.kind === 'task' && c.input.yourLines.length && p.index % 2 === 1) {
-    const text = pickFor(c.input.yourLines, `${seed}:yours:${p.id}`);
-    if (text) return { no: 0, chapter: 'discipline', text, explicit: false, volume: 1 };
-  }
-  const ok = (l: Line | null | undefined): l is Line => Boolean(l && isClean(l) && !c.hidden.has(l.no));
-  if (p?.kind === 'task' && p.lineNo != null) {
-    const l = LINE_BY_NO[p.lineNo];
-    if (ok(l)) return l;
-  }
-  if (p && p.kind !== 'today') {
-    const l = pickFor(c.pool, `${seed}:${p.id}`);
-    if (l) return l;
-  }
-  const t = lineOfDay({ lines: LINES, schedule: SCHEDULE, tasks: TASKS, chapters: c.input.mix, salt: seed, day, doneDaily: c.input.record.work[day]?.d?.text });
-  if (ok(t)) return t;
-  return pickFor(c.pool, `${seed}:today:${day}`) ?? t;
-}
-
-function lineSlots(c: Ctx): LineSlot[] {
-  const { input, delivery } = c;
-  const { now, today, offsetMs } = c.clock;
-  const slot = (date: Date, p: Planned | null, day: DayKey): LineSlot | null => {
-    const line = lineFor(c, p, day);
-    return line ? { date, day, line, yours: line.no === 0, lockKey: p && p.kind !== 'today' ? p.id : `day:${day}` } : null;
-  };
-
-  // Now: the line the latest reminder delivered today, else today's line. A
-  // reminder counts as delivered only if it is still in Notification Center,
-  // or it came due after the current settings were scheduled (permission
-  // granted). Reminders planned for earlier today, before the settings took
-  // effect, never went out.
-  const deliveredToday = composePlan(input.schedule, dayStart(today)).filter(p => {
-    if (p.kind === 'night' || p.day !== today || p.date.getTime() > now.getTime()) return false;
-    if (delivery.presented.has(p.id)) return true;
-    return delivery.granted && p.date.getTime() - offsetMs > delivery.since + SCHEDULE_MARGIN_MS;
-  });
-  const current = slot(now, deliveredToday.length ? deliveredToday[deliveredToday.length - 1] : null, today);
-
-  // Ahead: each 4:00 AM boundary for 7 days, and each reminder that will be
-  // scheduled (permission granted) before the last of them ends.
-  const ahead = new Map<number, LineSlot>();
-  const end = dayStart(addDays(today, DAYS_AHEAD + 1)).getTime();
-  for (let i = 1; i <= DAYS_AHEAD; i++) {
-    const day = addDays(today, i);
-    const s = slot(dayStart(day), null, day);
-    if (s) ahead.set(s.date.getTime(), s);
-  }
-  if (delivery.granted) {
-    for (const p of composePlan(input.schedule, now)) {
-      if (p.kind === 'night' || p.date.getTime() >= end) continue;
-      const s = slot(p.date, p, p.day);
-      // A reminder at exactly 4:00 AM replaces the boundary entry: same moment, the notification's line.
-      if (s) ahead.set(s.date.getTime(), s);
-    }
-  }
-  const later = [...ahead.values()]
-    .filter(s => s.date.getTime() > now.getTime())
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
-  return (current ? [current, ...later] : later).slice(0, MAX_LINE_ENTRIES);
-}
-
-/** The same line if it fits the Lock Screen, else a stable short clean line (the user's chapters first). */
-function lockLine(c: Ctx, s: LineSlot): Line {
-  if (s.yours ? s.line.text.length <= 60 : isLockEligible(s.line)) return s.line;
-  return pickFor(c.pool, `${c.input.schedule.seed}:lock:${s.lockKey}`) ?? s.line;
-}
-
-function lineProps(c: Ctx, s: LineSlot): LineWidgetProps {
-  const lock = lockLine(c, s);
+/** Next mission: the first one in the day's plan that isn't proven yet. */
+function lineProps(c: Ctx, day: DayKey): LineWidgetProps {
   const cw = c.input.colorway;
-  return {
-    text: typo(s.line.text),
-    no: s.line.no,
-    lockText: typo(lock.text),
-    lockNo: lock.no,
-    chapter: chapterLabel(s.yours ? 'yours' : s.line.chapter),
-    catalogue: s.yours ? '' : catalogueNo(s.line.no),
-    date: widgetDate(s.day),
-    wordmark: COPY.wordmark,
+  const base = {
+    date: widgetDate(day),
+    wordmark: PLATFORM.wordmark,
     ink: cw.ink,
     secondary: cw.secondary,
     bg: cw.bg,
@@ -493,17 +342,50 @@ function lineProps(c: Ctx, s: LineSlot): LineWidgetProps {
     walker: c.art.walker,
     walkerTemplate: c.art.walkerTemplate,
   };
+  const { missions } = dayMissions(c, day);
+  if (!missions) return { ...base, label: W.today, track: '', title: W.waiting(c.input.perDay), meta: '', progress: '', missionId: '' };
+  const proven = missions.filter(m => m.proven).length;
+  const progress = W.count(proven, missions.length);
+  const next = missions.find(m => !m.proven);
+  if (!next) return { ...base, label: W.today, track: '', title: W.perfect, meta: W.proven(missions.length), progress, missionId: '' };
+  const m = next.mission;
+  return {
+    ...base,
+    label: W.next,
+    track: (TRACK_BY_ID[m.track]?.short ?? '').toUpperCase(),
+    title: typo(m.title),
+    meta: W.meta(m.minutes, m.points),
+    progress,
+    missionId: m.id,
+  };
 }
 
+/** The barcode string for the Streak widget (see RecordWidgetProps.bars). */
+function barsFor(active: ReadonlySet<DayKey>, covered: readonly DayKey[], day: DayKey): string {
+  const first = [...active].filter(d => d <= day).sort()[0] ?? day;
+  const off = new Set(covered);
+  let out = '';
+  for (let i = BARCODE_DAYS - 1; i >= 0; i--) {
+    const d = addDays(day, -i);
+    if (d === day) out += active.has(d) ? 't' : 'p';
+    else if (d < first) out += ' ';
+    else out += active.has(d) ? 'o' : off.has(d) ? 'c' : '-';
+  }
+  return out;
+}
+
+/** Streak: as it stands at `day` (a later day counts only what's proven by now). */
 function recordProps(c: Ctx, day: DayKey): RecordWidgetProps {
-  const count = dayCount(c.input.record);
+  const s = computeStreak(c.active, day);
   const cw = c.input.colorway;
   return {
-    count,
-    label: COPY.record.label,
-    unit: COPY.record.daysOnRecord(count),
-    inline: `Day ${count}`,
-    week: week(c.input.record, day).map(d => d.on),
+    count: s.current,
+    label: W.streak,
+    unit: W.streakUnit(s.current),
+    points: W.points(c.points),
+    inline: W.inline(s.current),
+    week: Array.from({ length: 7 }, (_, i) => c.active.has(addDays(day, i - 6))),
+    bars: barsFor(c.active, s.covered, day),
     ink: cw.ink,
     secondary: cw.secondary,
     bg: cw.bg,
@@ -513,57 +395,57 @@ function recordProps(c: Ctx, day: DayKey): RecordWidgetProps {
   };
 }
 
+/** Today: the day's missions with a square each, at most three (open ones first when there are four). */
+function standardProps(c: Ctx, day: DayKey): StandardWidgetProps {
+  const { missions } = dayMissions(c, day);
+  const empty = typo(W.waiting(c.input.perDay));
+  if (!missions) return { label: W.today, count: '', titles: [], done: [], empty, walkerTemplate: c.art.walkerTemplate };
+  const shown = missions.length > 3 ? [...missions.filter(m => !m.proven), ...missions.filter(m => m.proven)].slice(0, 3) : missions;
+  const order = [...shown].sort((a, b) => missions.indexOf(a) - missions.indexOf(b));
+  return {
+    label: W.today,
+    count: W.count(missions.filter(m => m.proven).length, missions.length),
+    titles: order.map(m => typo(m.mission.title)),
+    done: order.map(m => m.proven),
+    empty,
+    walkerTemplate: c.art.walkerTemplate,
+  };
+}
+
 type Which = { line: boolean; record: boolean; standard: boolean };
 const ALL: Which = { line: true, record: true, standard: true };
 
-function writeTimelines(w: Loaded, c: Ctx, which: Which = ALL) {
-  const real = (d: Date) => new Date(d.getTime() - c.clock.offsetMs);
-  const { now, today } = c.clock;
-
-  if (which.line) {
-    try {
-      const entries = lineSlots(c).map(s => ({ date: real(s.date), props: lineProps(c, s) }));
-      if (entries.length) w.line.updateTimeline(entries);
-    } catch {
-      // Widget extension not in this build, or nothing to show.
-    }
+/** Each timeline: now, then every 4:00 AM boundary for a week, when a new day with nothing proven yet begins. */
+function writeTimelines(w: Loaded, c: Ctx, clock: Clock, which: Which = ALL) {
+  const real = (d: Date) => new Date(d.getTime() - clock.offsetMs);
+  const moments: { date: Date; day: DayKey }[] = [{ date: clock.now, day: clock.today }];
+  for (let i = 1; i <= DAYS_AHEAD; i++) {
+    const day = addDays(clock.today, i);
+    const start = dayStart(day);
+    if (start.getTime() > clock.now.getTime()) moments.push({ date: start, day });
   }
-
-  if (which.record) {
+  const write = <P,>(widget: { updateTimeline(entries: { date: Date; props: P }[]): void }, props: (day: DayKey) => P) => {
     try {
-      const entries = [{ date: real(now), props: recordProps(c, today) }];
-      for (let i = 1; i <= DAYS_AHEAD; i++) {
-        const day = addDays(today, i);
-        const start = dayStart(day);
-        if (start.getTime() > now.getTime()) entries.push({ date: real(start), props: recordProps(c, day) });
-      }
-      w.record.updateTimeline(entries);
+      widget.updateTimeline(moments.map(m => ({ date: real(m.date), props: props(m.day) })));
     } catch {
       // Widget extension not in this build.
     }
-  }
-
-  if (which.standard) {
-    try {
-      const props: StandardWidgetProps = {
-        rules: c.input.standard.filter(r => r.trim()).slice(0, 3).map(typo),
-        empty: typo(COPY.standard.title),
-        walkerTemplate: c.art.walkerTemplate,
-      };
-      w.standard.updateTimeline([{ date: real(now), props }]);
-    } catch {
-      // Widget extension not in this build.
-    }
-  }
+  };
+  if (which.line) write(w.line, day => lineProps(c, day));
+  if (which.record) write(w.record, day => recordProps(c, day));
+  if (which.standard) write(w.standard, day => standardProps(c, day));
 }
 
-let generation = 0;
+function context(input: WidgetInput, art: Art): Ctx {
+  return { input, art, active: activeDays(input.record), points: balance(input.record) };
+}
+
 let latest: WidgetInput | null = null;
 let foreground: NativeEventSubscription | null = null;
 
 /**
  * Writes all three timelines: on every foreground (it re-runs itself with the
- * latest input), after settings change and after the night check. Never throws.
+ * latest input), and after plans, proof or the colorway change. Never throws.
  */
 export function updateWidgets(input: WidgetInput): void {
   const w = load();
@@ -574,23 +456,18 @@ export function updateWidgets(input: WidgetInput): void {
       if (state === 'active' && latest) updateWidgets(latest);
     });
   }
-  const run = ++generation;
   ensurePlates(w, input.colorway);
-  deliveryState(input.schedule)
-    .catch(() => NO_DELIVERY)
-    .then(delivery => {
-      // A newer call has the newer input.
-      if (run !== generation) return;
-      const clock = readClock();
-      writeTimelines(w, context(input, clock, delivery, artFor(w.directory, input.colorway)), ALL);
-    })
-    .catch(() => {});
+  try {
+    writeTimelines(w, context(input, artFor(w.directory, input.colorway)), readClock(), ALL);
+  } catch {
+    // Nothing to show; the widgets keep their last timeline.
+  }
 }
 
 /**
  * Before onboarding finishes nothing calls updateWidgets, and a widget with no
  * timeline renders empty in the gallery. Fill any empty timeline with a Black
- * preview: today's line, no reminders, an empty record, no rules.
+ * preview: missions waiting, no streak yet.
  */
 async function writePreviews(w: Loaded) {
   if (latest) return;
@@ -600,32 +477,12 @@ async function writePreviews(w: Loaded) {
   if (latest || !empty.some(Boolean)) return;
   const clock = readClock();
   const colorway = COLORWAYS[0];
-  const input: Input = {
-    today: clock.today,
-    premium: false,
-    colorway,
-    mix: [],
-    record: emptyRecord(),
-    standard: [],
-    hidden: [],
-    yourLines: [],
-    schedule: {
-      remindersOn: false,
-      count: 0,
-      first: 0,
-      last: 0,
-      night: { on: false, time: 0 },
-      answered: new Set(),
-      mix: [],
-      hidden: [],
-      work: [],
-      seed: '',
-    },
-  };
+  const input: WidgetInput = { today: clock.today, premium: false, colorway, record: emptyRecord(), plans: {}, perDay: 3 };
   ensurePlates(w, colorway);
-  writeTimelines(w, context(input, clock, NO_DELIVERY, artFor(w.directory, colorway)), {
+  writeTimelines(w, context(input, artFor(w.directory, colorway)), clock, {
     line: empty[0],
     record: empty[1],
     standard: empty[2],
   });
 }
+

@@ -14,23 +14,34 @@ import {
   monospacedDigit,
   padding,
   resizable,
-  strokeBorder,
   widgetAccentedRenderingMode,
   widgetURL,
 } from '@expo/ui/swift-ui/modifiers';
 import { createWidget, type WidgetEnvironment } from 'expo-widgets';
 
+/**
+ * The Streak widget (kind "UnsetldRecord", kept so widgets already placed stay
+ * put): the streak, the points balance and the active days as a barcode.
+ */
 export type RecordWidgetProps = {
-  /** Days on record. */
+  /** Days in a row with a proven mission. */
   count: number;
-  /** 'RECORD' */
+  /** 'STREAK' */
   label: string;
-  /** 'days on record' (or 'day on record' for 1). */
+  /** 'days in a row' (or 'day in a row' for 1). */
   unit: string;
-  /** Inline Lock Screen text: 'Day 41'. */
+  /** '340 PTS' */
+  points: string;
+  /** Inline Lock Screen text: '12-day streak'. */
   inline: string;
-  /** The last 7 days, oldest first, today last: true = on record. */
+  /** The last 7 days, oldest first, today last: true = a mission was proven. Drives the circular gauge. */
   week: boolean[];
+  /**
+   * The active-days barcode, oldest first, one character a day, today last:
+   * 'o' proven, 'c' covered by an Off Day, '-' missed, 't' today (proven),
+   * 'p' today (nothing proven yet), ' ' before the first active day.
+   */
+  bars: string;
   ink: string;
   secondary: string;
   bg: string;
@@ -66,7 +77,7 @@ const UnsetldRecord = (props: Partial<RecordWidgetProps>, environment: RecordEnv
         {props.walkerInline ? (
           <Image uiImage={props.walkerInline} modifiers={[widgetAccentedRenderingMode('accented')]} />
         ) : null}
-        <Text>{props.inline || 'Day ' + count}</Text>
+        <Text>{props.inline || count + '-day streak'}</Text>
       </HStack>
     );
   }
@@ -108,7 +119,7 @@ const UnsetldRecord = (props: Partial<RecordWidgetProps>, environment: RecordEnv
   const ink = bare ? white : props.ink || '#EDE9E3';
   const secondary = bare ? white : props.secondary || '#8F8A83';
   const signal = bare ? white : '#C41E1E';
-  const last = week.length - 1;
+  const bars = (props.bars || 'p').split('').slice(-28);
 
   return (
     <ZStack modifiers={[containerBackground(props.bg || '#0A0A0A', 'widget'), widgetURL(url)]}>
@@ -127,13 +138,19 @@ const UnsetldRecord = (props: Partial<RecordWidgetProps>, environment: RecordEnv
         alignment="leading"
         spacing={0}
         modifiers={[frame({ maxWidth: 10000, maxHeight: 10000, alignment: 'topLeading' }), padding({ all: 16 })]}>
-        <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1.5), foregroundStyle(secondary)]}>
-          {props.label || 'RECORD'}
-        </Text>
+        <HStack spacing={6}>
+          <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1.5), foregroundStyle(secondary)]}>
+            {props.label || 'STREAK'}
+          </Text>
+          <Spacer />
+          <Text modifiers={[font({ size: 10, design: 'monospaced' }), foregroundStyle(secondary), lineLimit(1)]}>
+            {props.points || ''}
+          </Text>
+        </HStack>
         <Spacer />
         <Text
           modifiers={[
-            font({ size: 56, design: 'serif', weight: 'regular' }),
+            font({ size: 52, design: 'serif', weight: 'regular' }),
             monospacedDigit(),
             foregroundStyle(ink),
             lineLimit(1),
@@ -142,27 +159,18 @@ const UnsetldRecord = (props: Partial<RecordWidgetProps>, environment: RecordEnv
           {String(count)}
         </Text>
         <Text modifiers={[font({ size: 13, design: 'serif' }), italic(), foregroundStyle(secondary), lineLimit(1)]}>
-          {props.unit || (count === 1 ? 'day on record' : 'days on record')}
+          {props.unit || (count === 1 ? 'day in a row' : 'days in a row')}
         </Text>
-        <HStack spacing={4} modifiers={[padding({ top: 10 })]}>
-          {week.map((onRecord, i) => (
+        <HStack spacing={1.5} alignment="bottom" modifiers={[padding({ top: 10 })]}>
+          {bars.map((b, i) => (
             <Rectangle
               key={String(i)}
-              modifiers={
-                i === last
-                  ? [
-                      foregroundStyle(onRecord ? ink : 'clear'),
-                      frame({ width: 12, height: 12 }),
-                      strokeBorder({ content: signal, style: { lineWidth: 1.5 } }),
-                    ]
-                  : onRecord
-                    ? [foregroundStyle(ink), frame({ width: 12, height: 12 })]
-                    : [
-                        foregroundStyle('clear'),
-                        frame({ width: 12, height: 12 }),
-                        strokeBorder({ content: secondary, style: { lineWidth: 1 } }),
-                      ]
-              }
+              modifiers={[
+                foregroundStyle(
+                  b === 't' || b === 'p' ? signal : b === 'o' ? ink : b === 'c' || b === '-' ? secondary : 'clear',
+                ),
+                frame({ width: 2, height: b === 'o' || b === 't' ? 18 : b === 'c' ? 9 : 3 }),
+              ]}
             />
           ))}
         </HStack>

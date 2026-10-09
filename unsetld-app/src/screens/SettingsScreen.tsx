@@ -3,58 +3,71 @@ import { useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppConfig, IS_PREVIEW } from '../config/app';
+import { photosToClear } from '../core/proofs';
 import { formatTime } from '../core/time';
-import { CHAPTER_BY_ID, VOLUME } from '../content';
-import { COPY } from '../content/copy';
+import type { Profile } from '../core/types';
+import { DOCS, RULES, TRACK_BY_ID } from '../content';
+import { PLATFORM } from '../content/copy/platform';
 import { newNonce } from '../navigation/nonce';
 import type { RootProps } from '../navigation/types';
+import { today } from '../services/clock';
+import { deletePhoto } from '../services/proof';
 import { restore } from '../services/purchases';
+import { useStreak } from '../state/missions';
 import { useAccessEnabled, useApp, useEntitlements } from '../state/store';
 import { showDialog } from '../ui/actions';
-import { Footnote, InlineLink, NavRow, PageTitle, SectionHeader, SettingsRow, Toggle } from '../ui/kit';
+import { Footnote, InlineLink, NavRow, PageTitle, SectionHeader, Segmented, SettingsRow, Toggle } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, hairline, MARGIN } from '../ui/tokens';
 import { enableDropAlerts } from './access';
 
-const S = COPY.settings;
+const S = PLATFORM.settings;
+/** Settings → Proof photos: 30 days, 1 year, or keep (0). */
+const RETENTION: readonly number[] = [30, 365, 0];
 
 function renewText(plan: string | null, renews: string | null): string {
   if (!plan) return S.free;
-  const name = plan === 'annual' ? 'Annual' : plan === 'monthly' ? 'Monthly' : 'Lifetime';
+  const name = S.planName[plan] ?? S.free;
   if (plan === 'lifetime' || !renews) return name;
   const d = new Date(renews);
   if (Number.isNaN(d.getTime())) return name;
-  return `${name}, renews ${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()}`;
+  return S.renews(name, `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()}`);
+}
+
+/** How many of the five About you questions have an answer. */
+function answered(p: Profile): number {
+  return [p.school, p.work, p.gym, p.project, p.age].filter(v => v !== null && v !== undefined).length;
 }
 
 export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
   const insets = useSafeAreaInsets();
   const settings = useApp(s => s.settings);
   const update = useApp(s => s.updateSettings);
-  const saved = useApp(s => s.reading.saved.length);
-  const yours = useApp(s => s.yourLines.length);
+  const profile = useApp(s => s.profile);
   const account = useApp(s => s.account);
   const premium = useApp(s => s.premium);
+  const day = useApp(s => s.currentDay);
+  const streak = useStreak(day);
   const ent = useEntitlements();
   const accessEnabled = useAccessEnabled();
   const [dropPermOff, setDropPermOff] = useState(false);
 
   const r = settings.reminders;
-  const reminders = r.on ? S.remindersValue(Math.min(r.count, ent.maxReminders), formatTime(r.first), formatTime(r.last)) : 'Off';
-  const standard = settings.standard.length ? `${settings.standard[0]}${settings.standard.length > 1 ? ` +${settings.standard.length - 1}` : ''}` : '';
-  const chapters = ent.mix.map(c => CHAPTER_BY_ID[c].name).join(', ');
-  const openInReader = (sheet: 'chapters' | 'colorway') =>
-    navigation.dispatch(StackActions.popTo('Today', { sheet, nonce: newNonce() }));
+  const reminders = r.on ? S.remindersValue(Math.min(r.count, ent.maxReminders), formatTime(r.first), formatTime(r.last)) : S.remindersOff;
+  const tracks = S.tracksValue(profile.tracks.map(t => TRACK_BY_ID[t]?.short).filter((x): x is string => Boolean(x)));
+  const retention = RETENTION.includes(settings.proofRetentionDays) ? settings.proofRetentionDays : RETENTION[0];
+
+  const openColorway = () => navigation.dispatch(StackActions.popTo('Today', { sheet: 'colorway', nonce: newNonce() }));
 
   const doRestore = async () => {
     try {
       const res = await restore();
       if (res.premium) {
         useApp.getState().setPremium({ active: true });
-        showDialog(COPY.paywall.restored);
-      } else showDialog(COPY.paywall.noneTitle, COPY.paywall.noneBody);
+        showDialog(S.restored);
+      } else showDialog(S.noneTitle, S.noneBody);
     } catch {
-      showDialog(COPY.paywall.restoreFailed);
+      showDialog(S.restoreFailed);
     }
   };
 
@@ -63,6 +76,20 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
     setDropPermOff(false);
     if (!on) return update({ dropAlerts: false });
     setDropPermOff((await enableDropAlerts()) === 'notifications-off');
+  };
+
+  // A shorter keep time deletes the older photos now, so it asks first when there are any.
+  const setRetention = (days: number) => {
+    const apply = () => {
+      useApp.getState().updateSettings({ proofRetentionDays: days });
+      for (const uri of useApp.getState().expireProofPhotos()) deletePhoto(uri);
+    };
+    const clear = photosToClear(useApp.getState().record, days, today());
+    if (!clear.length) return apply();
+    showDialog(S.clearTitle(clear.length), S.clearBody(S.retentionSpan[String(days)] ?? ''), [
+      { label: S.clearNo, cancel: true },
+      { label: S.clearYes, destructive: true, onPress: apply },
+    ]);
   };
 
   const planAction =
@@ -75,39 +102,54 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
         : undefined;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0A0A0A' }}>
+    <View style={{ flex: 1, backgroundColor: C.ink }}>
       <NavRow onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40 }} showsVerticalScrollIndicator={false}>
         <View style={{ paddingHorizontal: MARGIN }}>
           <PageTitle title={S.title} />
         </View>
 
-        <SectionHeader>{S.sections.daily}</SectionHeader>
+        <SectionHeader>{S.sections.plan}</SectionHeader>
+        <SettingsRow first title={S.tracks} value={tracks} onPress={() => navigation.navigate('Tracks', { edit: true })} />
+        <SettingsRow
+          title={S.aboutYou}
+          value={S.aboutValue(answered(profile), 5)}
+          onPress={() => navigation.navigate('AboutYou', { edit: true })}
+        />
+        <SettingsRow
+          title={S.pace}
+          value={S.paceValue(profile.minutes, profile.intensity)}
+          onPress={() => navigation.navigate('Pace', { edit: true })}
+        />
+        <Footnote>{S.planNote}</Footnote>
+
+        <SectionHeader>{S.sections.reminders}</SectionHeader>
         <SettingsRow first title={S.reminders} value={reminders} onPress={() => navigation.navigate('Day', { edit: true })} />
-        <SettingsRow
-          title={S.night}
-          value={settings.night.on ? formatTime(settings.night.time) : undefined}
-          chevron={false}
-          onPress={() => navigation.navigate('Day', { edit: true })}
-          right={<Toggle value={settings.night.on} onChange={on => update({ night: { ...settings.night, on } })} label={S.night} />}
-        />
-        <SettingsRow title={S.standard} value={standard} onPress={() => navigation.navigate('Standard', { edit: true })} />
+        <Footnote>{S.remindersNote}</Footnote>
 
-        <SectionHeader>{S.sections.reading}</SectionHeader>
-        <SettingsRow first title={S.chapters} value={chapters} onPress={() => openInReader('chapters')} />
-        <SettingsRow title={S.colorway} value={ent.colorway.name} onPress={() => openInReader('colorway')} />
-        <SettingsRow
-          title={S.strong}
-          chevron={false}
-          right={<Toggle value={settings.strongLanguage} onChange={v => update({ strongLanguage: v })} label={S.strong} />}
-        />
-        <Footnote>{S.strongNote}</Footnote>
-        <View style={{ height: 8 }} />
-        <SettingsRow first title={S.saved} value={String(saved)} onPress={() => navigation.navigate('Saved')} />
-        <SettingsRow title={S.yourLines} value={ent.premium ? String(yours) : 'Full Edition'} onPress={() => navigation.navigate('YourLines')} />
+        <SectionHeader>{S.sections.streak}</SectionHeader>
+        <SettingsRow first title={S.offDays} value={S.offDaysValue(streak.offDays, RULES.offDayMax)} chevron={false} />
+        <Footnote>{S.offDayNote}</Footnote>
 
-        <SectionHeader>{S.sections.widgets}</SectionHeader>
-        <SettingsRow first title={S.addWidget} onPress={() => navigation.navigate('Widget', { guide: true })} />
+        <SectionHeader>{S.sections.proof}</SectionHeader>
+        <View style={{ paddingHorizontal: MARGIN, paddingTop: 4, paddingBottom: 12 }}>
+          <T v="small" color={C.stone} style={{ marginBottom: 10 }}>
+            {S.retentionLabel}
+          </T>
+          <Segmented
+            options={RETENTION}
+            value={retention}
+            onChange={setRetention}
+            labels={S.retention}
+            style={{ alignSelf: 'stretch' }}
+          />
+        </View>
+        <SettingsRow first title={S.gallery} onPress={() => navigation.navigate('ProofGallery')} />
+        <Footnote>{S.retentionNote}</Footnote>
+
+        <SectionHeader>{S.sections.look}</SectionHeader>
+        <SettingsRow first title={S.colorway} value={ent.colorway.name} onPress={openColorway} />
+        <SettingsRow title={S.addWidget} onPress={() => navigation.navigate('Widget', { guide: true })} />
 
         <SectionHeader>{S.sections.unsetld}</SectionHeader>
         <SettingsRow
@@ -118,29 +160,29 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
         />
         {dropPermOff ? (
           <View style={{ marginHorizontal: MARGIN, paddingVertical: 12, borderBottomWidth: hairline, borderColor: C.rule, gap: 4 }}>
-            <T v="small">{COPY.day.permOff}</T>
-            <InlineLink title={COPY.day.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
+            <T v="small">{S.permOff}</T>
+            <InlineLink title={S.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
           </View>
         ) : null}
         <Footnote>{S.dropNote}</Footnote>
         {accessEnabled || account.userId ? (
           <>
             <View style={{ height: 8 }} />
-            <SettingsRow first title={S.account} value={account.email ?? (account.userId ? COPY.account.signedInApple : S.notSignedIn)} onPress={() => navigation.navigate('Account')} />
+            <SettingsRow
+              first
+              title={S.account}
+              value={account.email ?? (account.userId ? S.signedInApple : S.notSignedIn)}
+              onPress={() => navigation.navigate('Account')}
+            />
           </>
         ) : null}
 
         <SectionHeader>{S.sections.full}</SectionHeader>
-        <SettingsRow
-          first
-          title={S.plan}
-          value={premium.active ? renewText(premium.plan, premium.renews) : S.free}
-          onPress={planAction}
-        />
+        <SettingsRow first title={S.plan} value={premium.active ? renewText(premium.plan, premium.renews) : S.free} onPress={planAction} />
         <SettingsRow title={S.restore} chevron={false} onPress={doRestore} />
 
         <SectionHeader>{S.sections.about}</SectionHeader>
-        <SettingsRow first title={S.record} onPress={() => navigation.navigate('Doc', { id: 'record' })} />
+        <SettingsRow first title={DOCS.record.title} onPress={() => navigation.navigate('Doc', { id: 'record' })} />
         {accessEnabled ? <SettingsRow title={S.accessTerms} onPress={() => navigation.navigate('Doc', { id: 'access' })} /> : null}
         <SettingsRow
           title={S.contact}
@@ -159,7 +201,7 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
         ) : null}
 
         <T v="mono.s" style={{ marginTop: 40, paddingHorizontal: MARGIN }}>
-          {S.footer(AppConfig.version, VOLUME)}
+          {S.footer(AppConfig.version)}
         </T>
       </ScrollView>
     </View>

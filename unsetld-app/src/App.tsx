@@ -14,8 +14,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { newNonce } from './navigation/nonce';
 import { RootNavigator } from './navigation/RootNavigator';
 import type { RootParams } from './navigation/types';
+import { today } from './services/clock';
 import { takeEarlyDropTap } from './services/notifications';
-import { useIntent } from './state/intents';
+import { useIntent, type Intent } from './state/intents';
 import { useBootstrap, useSideEffects } from './state/lifecycle';
 import { useAccessEnabled, useApp } from './state/store';
 import { ActionHost } from './ui/actions';
@@ -29,6 +30,16 @@ const navTheme = {
   colors: { ...DarkTheme.colors, background: C.ink, card: C.ink, text: C.bone, border: C.rule, primary: C.bone },
 };
 
+/** A mission link opens the mission only while it's in today's plan and not proven yet; otherwise Home is enough. */
+function openMission(intent: Intent): string | null {
+  if (intent.kind !== 'mission') return null;
+  const s = useApp.getState();
+  const day = today();
+  const planned = s.plans[day]?.missions.some(p => p.missionId === intent.missionId);
+  const proven = s.record.missions?.[day]?.[intent.missionId]?.verification.status === 'accepted';
+  return planned && !proven ? intent.missionId : null;
+}
+
 /** Widget taps, deep links and notification taps land here once navigation is ready. */
 function useIntents(ready: boolean) {
   const intent = useIntent(s => s.intent);
@@ -39,9 +50,11 @@ function useIntents(ready: boolean) {
     useIntent.getState().clear();
     const earlyDrop = takeEarlyDropTap();
     if (!useApp.getState().settings.onboarded) return;
-    const stamp = newNonce();
-    navigationRef.dispatch(StackActions.popTo('Today', { nonce: stamp, night: intent.kind === 'night' }));
-    if (intent.kind === 'record') navigationRef.navigate('Record');
+    // Every intent starts from Home, with whatever was open on top of it closed.
+    navigationRef.dispatch(StackActions.popTo('Today', { nonce: newNonce() }));
+    const missionId = openMission(intent);
+    if (intent.kind === 'progress') navigationRef.navigate('Progress');
+    else if (missionId) navigationRef.navigate('Mission', { missionId });
     // An early drop alert opens the early-access page, where the drop opens.
     else if (earlyDrop && accessEnabled) navigationRef.navigate('Milestone', { id: 'early-access' });
   }, [intent, nonce, ready, accessEnabled]);

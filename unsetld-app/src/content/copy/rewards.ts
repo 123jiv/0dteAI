@@ -5,7 +5,6 @@ const pts = (n: number) => n.toLocaleString('en-US');
 
 export const REWARDS_COPY = {
   title: 'Rewards',
-  settings: 'Settings',
 
   // Balance
   balanceUnit: (n: number) => (n === 1 ? 'POINT' : 'POINTS'),
@@ -19,7 +18,9 @@ export const REWARDS_COPY = {
   left: (n: number) => (n === 1 ? '1 POINT LEFT' : `${pts(n)} POINTS LEFT`),
   isReady: (title: string) => `${title.toUpperCase()} IS READY`,
   nextA11y: (title: string, left: number) => (left > 0 ? `${title}: ${pts(left)} points left` : `${title} is ready`),
-  allTaken: 'Every reward is taken this collection. More open with the next one.',
+  allTaken: "You've taken every reward open this collection. More come with the next one.",
+  /** No tier is switched on or in its dates. */
+  noneOpen: 'No rewards are open right now. Your points keep counting.',
 
   // Tiers
   tiers: 'ALL REWARDS',
@@ -57,7 +58,8 @@ export const REWARDS_COPY = {
   copyCode: 'Copy code',
   cancel: 'Cancel',
   use: 'Use it at unsetld.com',
-  worksUntil: (date: string) => `Works until ${date}. One order.`,
+  /** `date` as shortDate gives it ('8 NOV'); the month reads in sentence case here. */
+  worksUntil: (date: string) => `Works until ${date.replace(/[A-Z]{2,}/g, m => m[0] + m.slice(1).toLowerCase())}. One order.`,
   previewCode: 'Preview build: this code is not real.',
   done: 'Done',
   never: 'Never settle for less.',
@@ -84,11 +86,10 @@ export const REWARDS_COPY = {
 
   // Access (moved here from Record). Day counts are active days.
   access: 'Access',
-  details: 'Details',
   accessNote: "Earned with days you prove a mission. It can't be bought.",
   road: (n: number) => (n === 1 ? '1 day proven, on the road to 365' : `${n} days proven, on the road to 365`),
-  daysProven: (n: number) => (n === 1 ? 'DAY PROVEN' : 'DAYS PROVEN'),
-  pausedNote: 'Early access is paused. Prove a mission on 7 more days to open it again.',
+  /** `left`: days with a proven mission still needed to reopen it. */
+  pausedNote: (left: number) => `Early access is paused. Prove a mission on ${left === 1 ? '1 more day' : `${left} more days`} to open it again.`,
   milestoneStatus: {
     open: 'OPEN',
     used: 'USED',

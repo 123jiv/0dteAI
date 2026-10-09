@@ -2,20 +2,31 @@ import * as Linking from 'expo-linking';
 import { useEffect, useMemo, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import { create } from 'zustand';
-import { accessState, dayCount, sortedDays } from '../core/record';
+import { SLOTS_BY_INTENSITY } from '../core/missions';
+import { activeDays } from '../core/progress';
+import { accessState, dayCount } from '../core/record';
 import { daysAhead } from '../core/reminders';
-import { addDays, nextDayStart } from '../core/time';
-import { backupRecord, readBackup } from '../services/backup';
+import { computeStreak } from '../core/streak';
+import { addDays, nextDayStart, type DayKey } from '../core/time';
+import type { DayPlan, MissionDone } from '../core/types';
+import { accessDays, accessRecord } from '../screens/access';
 import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
-import { now } from '../services/clock';
-import { cancelTrialReminder, reschedule, scheduleDropAlerts, type Drop, type ScheduleInput } from '../services/notifications';
+import { backupRecord, readBackup } from '../services/backup';
+import { now, today } from '../services/clock';
+import {
+  cancelTrialReminder,
+  reminderMissions,
+  reschedule,
+  scheduleDropAlerts,
+  type Drop,
+  type ReminderMission,
+  type ScheduleInput,
+} from '../services/notifications';
+import { deletePhoto } from '../services/proof';
 import { initPurchases, purchaseMode, refreshPremium, type EntitlementInfo } from '../services/purchases';
 import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
 import { parseUrl, useIntent } from './intents';
 import { useAccessEnabled, useApp, useEntitlements } from './store';
-import { workFor } from './work';
-
-const NO_HIDDEN: number[] = [];
 
 /** The last drops.json that loaded, for the early-access page. Fetched on launch and every foreground. */
 export const useDrops = create<{ drops: Drop[] }>(() => ({ drops: [] }));
@@ -39,10 +50,27 @@ function applyPremium() {
     .catch(() => {});
 }
 
+/** unsetld.com's config: Access on or off, the collection, and reward tiers (null keeps the defaults). */
 function applyConfig() {
-  fetchConfig().then(c => {
-    if (c) useApp.getState().setRemote({ accessEnabled: c.accessEnabled, collection: c.collection });
-  });
+  fetchConfig()
+    .then(c => {
+      if (c) useApp.getState().setRemote({ accessEnabled: c.accessEnabled, collection: c.collection, rewards: c.rewards });
+    })
+    .catch(() => {});
+}
+
+/** Today's plan, built the first time it's needed. Not before onboarding: the profile isn't chosen yet. */
+function ensureToday() {
+  const s = useApp.getState();
+  s.refreshDay();
+  if (s.settings.onboarded) s.ensurePlan(today());
+}
+
+/** Clears proof photos past the retention setting, from the record and from the phone. */
+function expirePhotos() {
+  const s = useApp.getState();
+  if (!s.settings.onboarded) return;
+  for (const uri of s.expireProofPhotos()) deletePhoto(uri);
 }
 
 /** One-time startup work after the store has hydrated. */
@@ -55,9 +83,11 @@ export function useBootstrap() {
     const s = useApp.getState();
 
     // Reinstall: bring the record back from the Keychain.
-    if (dayCount(s.record) === 0) {
+    if (dayCount(s.record) === 0 && !Object.keys(s.record.missions ?? {}).length) {
       readBackup().then(b => {
-        if (b && Object.keys(b.record.days).length) useApp.getState().restore(b.installSalt, b.record);
+        if (b && (Object.keys(b.record.days ?? {}).length || Object.keys(b.record.missions ?? {}).length)) {
+          useApp.getState().restore(b.installSalt, b.record);
+        }
       });
     }
 
@@ -67,24 +97,25 @@ export function useBootstrap() {
       .catch(() => {});
     applyConfig();
     prepareWidgetAssets().catch(() => {});
-    useApp.getState().refreshDay();
+    ensureToday();
+    expirePhotos();
 
-    // Roll the day over at 4:00 AM even if the app stays open.
+    // Roll the day over at 4:00 AM even if the app stays open: the new day gets its plan.
     let timer: ReturnType<typeof setTimeout>;
     const arm = () => {
       timer = setTimeout(() => {
-        useApp.getState().refreshDay();
+        ensureToday();
         arm();
       }, Math.max(1000, nextDayStart(now()).getTime() - now().getTime() + 500));
     };
     arm();
 
     const sub = AppState.addEventListener('change', st => {
-      if (st === 'active') {
-        useApp.getState().refreshDay();
-        applyPremium();
-        applyConfig();
-      }
+      if (st !== 'active') return;
+      ensureToday();
+      expirePhotos();
+      applyPremium();
+      applyConfig();
     });
 
     // Deep links from widgets and other apps.
@@ -94,10 +125,13 @@ export function useBootstrap() {
         if (i) useIntent.getState().push(i);
       });
     }
-    const linkSub = Platform.OS !== 'web' ? Linking.addEventListener('url', ({ url }) => {
-      const i = parseUrl(url);
-      if (i) useIntent.getState().push(i);
-    }) : null;
+    const linkSub =
+      Platform.OS !== 'web'
+        ? Linking.addEventListener('url', ({ url }) => {
+            const i = parseUrl(url);
+            if (i) useIntent.getState().push(i);
+          })
+        : null;
 
     return () => {
       sub.remove();
@@ -107,46 +141,66 @@ export function useBootstrap() {
   }, [hydrated]);
 }
 
-/** Keeps notifications, widgets, the Keychain backup and drop alerts in step with app state. */
+/** Planned missions for today and every later day that already has a plan, as the reminders name them. */
+function reminderPlans(
+  plans: Record<DayKey, DayPlan>,
+  missions: Record<DayKey, Record<string, MissionDone>> | undefined,
+  day: DayKey,
+  days: number,
+): Record<DayKey, ReminderMission[]> {
+  const out: Record<DayKey, ReminderMission[]> = {};
+  for (let i = 0; i < days; i++) {
+    const d = addDays(day, i);
+    const plan = plans[d];
+    if (!plan) continue;
+    const done = missions?.[d] ?? {};
+    out[d] = reminderMissions(
+      plan.missions.map(p => p.missionId),
+      id => done[id]?.verification.status === 'accepted',
+    );
+  }
+  return out;
+}
+
+/** Keeps the day's plan, notifications, widgets, the Keychain backup and drop alerts in step with app state. */
 export function useSideEffects() {
   const hydrated = useApp(s => s.hydrated);
   const onboarded = useApp(s => s.settings.onboarded);
-  const settings = useApp(s => s.settings);
+  const reminders = useApp(s => s.settings.reminders);
   const record = useApp(s => s.record);
+  const plans = useApp(s => s.plans);
+  const intensity = useApp(s => s.profile.intensity);
   const salt = useApp(s => s.installSalt);
   const day = useApp(s => s.currentDay);
   const account = useApp(s => s.account.userId);
-  const yourLines = useApp(s => s.yourLines);
   const ent = useEntitlements();
-  const mixKey = ent.mix.join(',');
-  const nightsKey = Object.keys(record.nights).sort().slice(-3).join(',');
-  const workKey = `${settings.standard.join('|')}#${settings.ownTasks.map(t => t.text).join('|')}#${ent.maxOwnTasks}`;
-  const doneTodayKey = Object.keys(record.work[day] ?? {}).sort().join(',');
+  const perDay = SLOTS_BY_INTENSITY[intensity]?.length ?? 3;
+  const active = useMemo(() => activeDays(record), [record]);
+  const streak = useMemo(() => computeStreak(active, day).current, [active, day]);
 
+  // A new day (4:00 AM, a foreground on a later day, tester time travel) gets its plan.
+  useEffect(() => {
+    if (hydrated && onboarded) useApp.getState().ensurePlan(today());
+  }, [hydrated, onboarded, day]);
+
+  const count = reminders.on ? Math.min(reminders.count, ent.maxReminders) : 0;
   const schedule: ScheduleInput = useMemo(
     () => ({
-      remindersOn: settings.reminders.on,
-      count: Math.min(settings.reminders.count, ent.maxReminders),
-      first: settings.reminders.first,
-      last: settings.reminders.last,
-      night: settings.night,
-      answered: new Set(Object.keys(record.nights)),
-      mix: ent.mix,
-      hidden: NO_HIDDEN,
-      // Open work for each day the plan covers; today's leaves out what's done.
-      work: Array.from({ length: daysAhead(settings.reminders.on ? Math.min(settings.reminders.count, ent.maxReminders) : 0, settings.night.on) }, (_, i) => {
-        const d = addDays(day, i);
-        const done = useApp.getState().record.work[d] ?? {};
-        return { day: d, doneDaily: done.d?.text, open: workFor(d, settings, ent, salt, done.d?.text).filter(w => !done[w.key]).map(w => ({ text: w.text, chapter: w.chapter })) };
-      }),
+      remindersOn: reminders.on,
+      count,
+      first: reminders.first,
+      last: reminders.last,
+      plans: reminderPlans(plans, record.missions, day, daysAhead(count, false)),
+      perDay,
+      streak,
       seed: salt,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [settings.reminders, settings.night, ent.maxReminders, mixKey, nightsKey, salt, day, workKey, doneTodayKey],
+    [reminders.on, reminders.first, reminders.last, count, plans, record.missions, day, perDay, streak, salt],
   );
 
-  // Notifications: after settings change, on a new day, and on every foreground
-  // (so allowing notifications in iOS Settings mid-day takes effect at once).
+  // Notifications: after plans, proof, the profile or settings change, on a new
+  // day, and on every foreground (so allowing notifications in iOS Settings
+  // mid-day takes effect at once).
   useEffect(() => {
     if (!hydrated || !onboarded) return;
     const t = setTimeout(() => reschedule(schedule).catch(() => {}), 600);
@@ -157,46 +211,34 @@ export function useSideEffects() {
       clearTimeout(t);
       sub.remove();
     };
-  }, [hydrated, onboarded, schedule, day]);
+  }, [hydrated, onboarded, schedule]);
 
-  // Widgets: same plan, plus the record, colorway and standard.
-  const standardKey = settings.standard.join('|');
-  const yoursKey = ent.yourLines ? yourLines.map(y => y.text).join('|') : '';
-  const recordKey = `${dayCount(record)}:${sortedDays(record).slice(-7).join(',')}`;
+  // Widgets: next mission, today's missions, the streak.
+  const colorway = ent.colorway;
+  const premium = ent.premium;
   useEffect(() => {
     if (!hydrated || !onboarded) return;
-    updateWidgets({
-      today: day,
-      premium: ent.premium,
-      colorway: ent.colorway,
-      mix: ent.mix,
-      record: useApp.getState().record,
-      standard: settings.standard,
-      hidden: NO_HIDDEN,
-      yourLines: ent.yourLines ? yourLines.map(y => y.text) : [],
-      schedule,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, onboarded, day, ent.premium, ent.colorway.id, mixKey, recordKey, standardKey, yoursKey, schedule]);
+    updateWidgets({ today: day, premium, colorway, record, plans, perDay });
+  }, [hydrated, onboarded, day, premium, colorway, record, plans, perDay]);
 
   // Keychain backup of the record.
   useEffect(() => {
     if (hydrated) backupRecord({ installSalt: salt, record });
   }, [hydrated, salt, record]);
 
-  // Account holders: tell the server about today's day on record.
+  // Account holders: tell the server about today's day on record (a proven mission).
   const recordedToday = Boolean(record.days[day]);
   useEffect(() => {
     if (hydrated && account && recordedToday) syncCheckIn(day).catch(() => {});
   }, [hydrated, account, recordedToday, day]);
 
   // Drops: fetched on launch and every foreground, for the early-access page
-  // and the opt-in alerts. Early access needs Day 7, access on and no pause.
-  // A failed fetch keeps the alerts already scheduled.
+  // and the opt-in alerts. Early access needs 7 active days, access on and no
+  // pause. A failed fetch keeps the alerts already scheduled.
   const accessEnabled = useAccessEnabled();
-  const paused = useMemo(() => accessState(record, day).paused, [record, day]);
-  const early = accessEnabled && dayCount(record) >= 7 && !paused;
-  const dropAlerts = settings.dropAlerts;
+  const paused = useMemo(() => accessState(accessRecord(record), day).paused, [record, day]);
+  const early = accessEnabled && accessDays(record) >= 7 && !paused;
+  const dropAlerts = useApp(s => s.settings.dropAlerts);
   useEffect(() => {
     if (!hydrated) return;
     let live = true;

@@ -2,7 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Platform, Pressable, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import { SLOT_POINTS } from '../../core/missions';
-import { accessState, milestoneStatus, ROAD, roadPosition, type MilestoneStatus } from '../../core/record';
+import { accessState, milestoneStatus, REOPEN_AFTER, ROAD, roadPosition, type MilestoneStatus } from '../../core/record';
 import { rewardStatus, type RewardStatus } from '../../core/rewards';
 import { shortDate, type DayKey } from '../../core/time';
 import { milestoneNo } from '../../core/typography';
@@ -317,7 +317,8 @@ export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
 
   const ar = accessRecord(record);
   const proven = accessDays(record);
-  const paused = accessState(ar, day).paused;
+  const access = accessState(ar, day);
+  const paused = access.paused;
 
   const run = async (tier: RewardTier) => {
     if (!useApp.getState().account.userId) {
@@ -326,8 +327,14 @@ export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
     }
     setBusy(tier.id);
     setError(null);
-    const r = await redeem(tier);
-    setBusy(null);
+    let r: Awaited<ReturnType<typeof redeem>>;
+    try {
+      r = await redeem(tier);
+    } catch {
+      r = { ok: false, reason: 'network' };
+    } finally {
+      setBusy(null);
+    }
     if (r.ok) {
       useApp.getState().redeemReward(tier, { code: r.code, url: r.url });
       const all = useApp.getState().record.redemptions ?? [];
@@ -382,14 +389,16 @@ export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
             </Pressable>
           ) : (
             <T v="note" color={C.stone} style={{ marginTop: 24 }}>
-              {R.allTaken}
+              {sorted.some(t => rewardStatus(record, t, collection, day) === 'used') ? R.allTaken : R.noneOpen}
             </T>
           )
         ) : null}
 
         {accessEnabled ? (
           <View style={{ marginTop: 40 }}>
-            <T v="label">{R.tiers}</T>
+            <T v="label" accessibilityRole="header">
+              {R.tiers}
+            </T>
             <View style={{ marginTop: 8 }}>
               {sorted.map((t, i) => (
                 <TierRow
@@ -426,7 +435,9 @@ export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
 
         {accessEnabled && codes.length ? (
           <View style={{ marginTop: 40 }}>
-            <T v="label">{R.codes}</T>
+            <T v="label" accessibilityRole="header">
+              {R.codes}
+            </T>
             <View style={{ marginTop: 8 }}>
               {codes.map((c, i) => (
                 <CodeRow key={c.key} item={c} expired={day > c.expires} last={i === codes.length - 1} />
@@ -441,7 +452,9 @@ export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
         ) : null}
 
         <View style={{ marginTop: 40 }}>
-          <T v="label">{R.earning}</T>
+          <T v="label" accessibilityRole="header">
+              {R.earning}
+            </T>
           <View style={{ marginTop: 8 }}>
             {SLOTS.map(slot => (
               <EarnRow key={slot} title={R.earningRows[slot]} value={R.plus(SLOT_POINTS[slot])} />
@@ -466,7 +479,7 @@ export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
             </View>
             {paused ? (
               <T v="note" color={C.stone} style={{ marginTop: 12 }}>
-                {R.pausedNote}
+                {R.pausedNote(Math.max(1, REOPEN_AFTER - access.reopenProgress))}
               </T>
             ) : null}
             <View style={{ marginTop: 24 }}>

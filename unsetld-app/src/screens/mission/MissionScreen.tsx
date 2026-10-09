@@ -472,12 +472,19 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
           </>
         }>
         <MissionHeading mission={mission} />
-        <View style={{ marginTop: 28, flexDirection: 'row', alignItems: 'flex-end', gap: 18 }}>
-          <ProofFrame photo={beforeHere.photo} day={day} label={MISSION.before.label} small a11y={MISSION.a11y.before} style={{ width: 148 }} />
-          <T v="list" style={{ flex: 1 }} accessibilityLiveRegion="polite">
-            {MISSION.before.saved}
-          </T>
+        {/* The pair as it will be proven: the before photo, and the after still to come. */}
+        <View style={{ marginTop: 28, flexDirection: 'row', gap: 8 }}>
+          <ProofFrame photo={beforeHere.photo} day={day} label={MISSION.before.label} small a11y={MISSION.a11y.before} style={{ flex: 1 }} />
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={{ flex: 1, aspectRatio: 4 / 5, borderWidth: hairline, borderColor: C.ruleStrong, alignItems: 'center', justifyContent: 'center' }}>
+            <T v="mono.s">{MISSION.before.after}</T>
+          </View>
         </View>
+        <T v="title.m" style={{ marginTop: 20 }} accessibilityLiveRegion="polite">
+          {MISSION.before.saved}
+        </T>
         <Section label={MISSION.section.how}>
           <Steps steps={mission.how} />
         </Section>

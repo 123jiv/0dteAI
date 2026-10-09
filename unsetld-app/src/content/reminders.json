@@ -1,13 +1,13 @@
 [
-  {"slot": "morning", "text": "Alarm off. Feet on the floor before you open a single app."},
-  {"slot": "morning", "text": "Before school or your shift, write down the one thing that has to get done today."},
-  {"slot": "morning", "text": "Pick the thing you're dreading today and the time you'll do it. Write both down."},
-  {"slot": "midday", "text": "Eat real food at lunch and drink a full glass of water before you open your phone."},
-  {"slot": "midday", "text": "Half the day is gone. Look at your list and start the next thing on it."},
-  {"slot": "midday", "text": "Free period or break coming up. Give ten minutes of it to the thing you keep putting off."},
-  {"slot": "evening", "text": "When you get home, put your phone in another room until the hard thing is done."},
-  {"slot": "evening", "text": "If you haven't moved today, get a 20-minute walk or run in before it gets dark."},
-  {"slot": "evening", "text": "Look at what's still open today. Finish the smallest one before dinner."},
-  {"slot": "night", "text": "Write tomorrow's first task on paper before bed. One line is enough."},
-  {"slot": "night", "text": "Count back nine hours from your alarm. Be in bed by then, phone across the room."}
+  {"slot": "morning", "text": "Do the quick one before you open a single app."},
+  {"slot": "morning", "text": "Pick the time you'll do the hardest mission today. Then keep it."},
+  {"slot": "morning", "text": "Start small and start now. The first mission makes the rest easier."},
+  {"slot": "midday", "text": "Half the day is gone. Prove one mission before the afternoon gets away."},
+  {"slot": "midday", "text": "A break coming up is enough time for the quick one."},
+  {"slot": "midday", "text": "Look at what's left today and start the next one."},
+  {"slot": "evening", "text": "Phone in another room until the next mission is proven."},
+  {"slot": "evening", "text": "Still time to finish today. Start the shortest one now."},
+  {"slot": "evening", "text": "The evening goes fast. Do the next mission before dinner."},
+  {"slot": "night", "text": "One proven mission keeps the streak. There's still time."},
+  {"slot": "night", "text": "Prove what you can, then put the phone across the room."}
 ]

@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { AppState, Linking, Platform, Pressable, Text, View } from 'react-native';
 import { REMINDER_COUNTS } from '../core/reminders';
 import { DAY_START_HOUR, formatTime, minutesIntoDay } from '../core/time';
-import { COPY } from '../content/copy';
+import { MISSION_BY_ID } from '../content';
+import { ONBOARDING } from '../content/copy/onboarding';
 import type { RootProps } from '../navigation/types';
 import { notificationStatus, requestNotifications, type Permission } from '../services/notifications';
 import { useApp, useEntitlements } from '../state/store';
-import { Button, InlineLink, NavRow, PageTitle, Screen, Segmented, TextButton, Toggle } from '../ui/kit';
+import { Button, InlineLink, NavRow, PageTitle, Screen, Segmented, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { TimeSheet } from '../ui/TimeSheet';
 import { color as C, hairline } from '../ui/tokens';
@@ -56,7 +57,9 @@ function TimeValue({ value, onPress, disabled, label }: { value: number; onPress
   );
 }
 
-/** O5, and Settings › Reminders. */
+const COPY = ONBOARDING.day;
+
+/** Onboarding step 4 (Pace → Reminders → Widget), and Settings › Reminders. */
 export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   const edit = Boolean(route.params?.edit);
   const settings = useApp(s => s.settings);
@@ -65,9 +68,7 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   const [count, setCount] = useState(Math.min(settings.reminders.count, ent.maxReminders));
   const [first, setFirst] = useState(settings.reminders.first);
   const [last, setLast] = useState(settings.reminders.last);
-  const [nightOn, setNightOn] = useState(settings.night.on);
-  const [nightTime, setNightTime] = useState(settings.night.time);
-  const [picker, setPicker] = useState<'first' | 'last' | 'night' | null>(null);
+  const [picker, setPicker] = useState<'first' | 'last' | null>(null);
   const [perm, setPerm] = useState<Permission>('undetermined');
 
   // Checked again on return from iOS Settings, where Open Settings sends people.
@@ -82,8 +83,12 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
 
   const disabled = REMINDER_COUNTS.filter(n => n > ent.maxReminders);
 
-  const save = (on: boolean) =>
-    update({ reminders: { on, count, first, last }, night: { on: nightOn, time: nightTime } });
+  // Today's missions, as the first reminder of the day names them.
+  const plan = useApp(s => s.plans[s.currentDay]);
+  const titles = (plan?.missions ?? []).map(p => MISSION_BY_ID[p.missionId]?.title).filter((t): t is string => Boolean(t));
+  const previewBody = COPY.previewBody(titles);
+
+  const save = (on: boolean) => update({ reminders: { on, count, first, last } });
 
   const allow = async () => {
     const granted = await requestNotifications().catch(() => false);
@@ -99,21 +104,21 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
     navigation.goBack();
   };
 
-  const pickerTitle = picker === 'first' ? COPY.day.first : picker === 'last' ? COPY.day.last : COPY.day.night;
-  const pickerValue = picker === 'first' ? first : picker === 'last' ? last : nightTime;
+  const pickerTitle = picker === 'last' ? COPY.last : COPY.first;
+  const pickerValue = picker === 'last' ? last : first;
 
   return (
     <View style={{ flex: 1 }}>
       <Screen
-        nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : '03 / 04'} />}
+        nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(4)} />}
         footer={
           edit ? (
-            <Button title={COPY.day.save} onPress={saveEdit} />
+            <Button title={COPY.save} onPress={saveEdit} />
           ) : (
             <View>
-              <Button title={COPY.day.allow} onPress={allow} />
+              <Button title={COPY.allow} onPress={allow} />
               <TextButton
-                title={COPY.day.notNow}
+                title={COPY.notNow}
                 style={{ marginTop: 8 }}
                 onPress={() => {
                   save(false);
@@ -125,15 +130,15 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
         }>
         {edit && perm === 'denied' ? (
           <View style={{ marginTop: 16, paddingVertical: 12, borderTopWidth: hairline, borderBottomWidth: hairline, borderColor: C.rule, gap: 4 }}>
-            <T v="small">{COPY.day.permOff}</T>
-            <InlineLink title={COPY.day.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
+            <T v="small">{COPY.permOff}</T>
+            <InlineLink title={COPY.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
           </View>
         ) : null}
-        <PageTitle title={edit ? COPY.day.remindersTitle : COPY.day.title} />
+        <PageTitle title={edit ? COPY.remindersTitle : COPY.title} />
 
         <View
           accessible
-          accessibilityLabel={`Notification preview. unsetld, ${formatTime(first)}. ${COPY.day.previewBody}`}
+          accessibilityLabel={COPY.a11yPreview(formatTime(first), previewBody)}
           style={{ marginTop: 24, backgroundColor: C.notification, borderRadius: 20, padding: 14, flexDirection: 'row', gap: 10 }}>
           <View style={{ width: 38, height: 38, borderRadius: 9, backgroundColor: C.ink, borderWidth: hairline, borderColor: C.ruleStrong, alignItems: 'center', justifyContent: 'center' }}>
             <Walker height={26} />
@@ -148,13 +153,13 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
               </Text>
             </View>
             <Text maxFontSizeMultiplier={1.3} style={{ fontFamily: SYSTEM, fontSize: 15, lineHeight: 20, color: C.bone, marginTop: 1 }}>
-              {COPY.day.previewBody.replace(/'/g, '’')}
+              {previewBody.replace(/'/g, '’')}
             </Text>
           </View>
         </View>
 
         <View style={{ marginTop: 28 }}>
-          <Row title={COPY.day.perDay}>
+          <Row title={COPY.perDay}>
             <Segmented
               options={REMINDER_COUNTS}
               value={count as (typeof REMINDER_COUNTS)[number]}
@@ -165,21 +170,17 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
           </Row>
           {!ent.premium ? (
             <T v="note" color={C.stone} style={{ marginTop: -4, marginBottom: 12 }}>
-              {COPY.day.perDayNote}
+              {COPY.perDayNote}
             </T>
           ) : null}
-          <Row title={COPY.day.first}>
-            <TimeValue label={COPY.day.first} value={first} onPress={() => setPicker('first')} />
+          <Row title={COPY.first}>
+            <TimeValue label={COPY.first} value={first} onPress={() => setPicker('first')} />
           </Row>
-          <Row title={COPY.day.last}>
-            <TimeValue label={COPY.day.last} value={last} onPress={() => setPicker('last')} disabled={count === 1} />
-          </Row>
-          <Row title={COPY.day.night} last>
-            <TimeValue label={COPY.day.night} value={nightTime} onPress={() => setPicker('night')} disabled={!nightOn} />
-            <Toggle value={nightOn} onChange={setNightOn} label={COPY.day.night} />
+          <Row title={COPY.last} last>
+            <TimeValue label={COPY.last} value={last} onPress={() => setPicker('last')} disabled={count === 1} />
           </Row>
           <T v="note" color={C.stone} style={{ marginTop: 8 }}>
-            {COPY.day.nightNote}
+            {COPY.note}
           </T>
         </View>
       </Screen>
@@ -195,7 +196,6 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
             setLast(lastAfter(m, last));
           }
           if (picker === 'last') setLast(lastAfter(first, m));
-          if (picker === 'night') setNightTime(m);
           setPicker(null);
         }}
       />
