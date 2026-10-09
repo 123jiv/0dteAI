@@ -33,6 +33,7 @@ function Column<V extends number | string>({
   return (
     <ScrollView
       ref={ref}
+      accessibilityRole="radiogroup"
       accessibilityLabel={label}
       style={{ flex: 1, height: ROW * 5 }}
       // Two empty rows above and below so the first and last values can centre.
@@ -44,8 +45,10 @@ function Column<V extends number | string>({
         return (
           <Pressable
             key={String(v)}
-            accessibilityRole="button"
-            accessibilityState={{ selected: on }}
+            // A radio with aria-checked: react-native-web drops accessibilityState, and
+            // the web has no selected state for a plain button.
+            accessibilityRole="radio"
+            aria-checked={on}
             onPress={() => {
               selection();
               onPick(v);

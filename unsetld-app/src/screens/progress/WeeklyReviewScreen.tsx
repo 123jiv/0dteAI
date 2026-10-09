@@ -37,7 +37,8 @@ function Chip({ id, on, onPress }: { id: TrackId; on: boolean; onPress: () => vo
   return (
     <Pressable
       accessibilityRole="radio"
-      accessibilityState={{ checked: on }}
+      // aria-checked rather than accessibilityState: react-native-web only reads the former.
+      aria-checked={on}
       accessibilityLabel={R.a11yChip(short)}
       onPress={onPress}
       style={({ pressed }) => ({
@@ -60,8 +61,8 @@ function Chip({ id, on, onPress }: { id: TrackId; on: boolean; onPress: () => vo
 
 /** The weekly review: what the week added up to, where it went, and one area to lean on next. */
 export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyReview'>) {
-  const from = route.params.weekStart;
   const today = useApp(s => s.currentDay);
+  const from = route.params?.weekStart ?? weekStart(today);
   const record = useApp(s => s.record);
   const plans = useApp(s => s.plans);
   const profile = useApp(s => s.profile);
@@ -83,7 +84,10 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
   const thisWeek = weekStart(today);
   const label = from === thisWeek ? R.thisWeek : from === addDays(thisWeek, -7) ? R.lastWeek : R.week;
   const left = today >= review.from && today < review.to ? diffDays(today, review.to) : 0;
-  const tracks = profile.tracks.length ? profile.tracks : TRACK_IDS;
+  // Only tracks the app still knows; everything when none were chosen.
+  const chosen = profile.tracks.filter(id => TRACK_BY_ID[id]);
+  const tracks = chosen.length ? chosen : TRACK_IDS;
+  const over = today > review.to;
   const strongest = review.strongest ? TRACK_BY_ID[review.strongest] : null;
   const ignored = review.ignored ? TRACK_BY_ID[review.ignored] : null;
   const priority = profile.priority;
@@ -125,7 +129,7 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
         ) : null}
         {review.missions === 0 ? (
           <T v="body" color={C.stone}>
-            {R.empty}
+            {over ? R.emptyPast : R.empty}
           </T>
         ) : null}
       </View>

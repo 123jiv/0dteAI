@@ -3,9 +3,8 @@ import { useEffect, useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { IS_PREVIEW } from '../config/app';
-import { provenCounts } from '../core/points';
+import { proofsByDay } from '../core/legacy';
 import { sortedDays } from '../core/record';
-import { POINTS } from '../content';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { appleSignInAvailable, signInWithApple, signOutApple } from '../services/account';
@@ -60,7 +59,7 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
     // The server trades Apple's sign-in for its session and holds the user's place
     // with the days already verified on this phone. Only then is the phone signed in.
     const rec = useApp.getState().record;
-    const synced = r ? await syncRecord(r.apple, sortedDays(rec).filter(d => rec.days[d].verified), provenCounts(rec, POINTS)) : false;
+    const synced = r ? await syncRecord(r.apple, sortedDays(rec).filter(d => rec.days[d].verified), proofsByDay(rec)) : false;
     setBusy(false);
     if (r === null) return setError(deleting ? 'delete-sign-in' : null);
     if (!r || !synced) return setError('sign-in');

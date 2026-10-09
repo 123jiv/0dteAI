@@ -3,13 +3,14 @@
 // plan is complete, the perfect-day bonus. The one place in the flow that moves.
 import { useEffect, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Pressable, View } from 'react-native';
+import { rewardStatus } from '../../core/rewards';
 import type { DayKey } from '../../core/time';
 import type { Mission, Verification } from '../../core/types';
 import { MISSION } from '../../content/copy/mission';
 import { medium } from '../../services/haptics';
 import { PROOF_FROM_CAMERA } from '../../services/proof';
-import { useNextReward } from '../../state/missions';
-import { useAccessEnabled, type MissionResult } from '../../state/store';
+import { useNextReward, useRewardTiers } from '../../state/missions';
+import { useAccessEnabled, useApp, type MissionResult } from '../../state/store';
 import { Button, Screen } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, ease, hairline } from '../../ui/tokens';
@@ -34,12 +35,24 @@ export function DoneStage({
   onRewards: () => void;
 }) {
   const accessOn = useAccessEnabled();
+  const record = useApp(s => s.record);
+  const collection = useApp(s => s.remote.collection);
+  const tiers = useRewardTiers();
   const next = useNextReward(day);
-  const target = next ? share(next.have, next.tier.points) : 0;
+  // A reward this proof just brought into reach is the news; otherwise the next one along.
+  const unlocked = tiers
+    .filter(t => t.points > result.balanceBefore && rewardStatus(record, t, collection, day) === 'ready')
+    .sort((a, b) => b.points - a.points)[0];
+  const goal = unlocked
+    ? { title: unlocked.title, points: unlocked.points, need: 0, ready: true }
+    : next
+      ? { title: next.tier.title, points: next.tier.points, need: next.need, ready: next.ready }
+      : null;
+  const target = goal ? (goal.ready ? 1 : share(result.balanceAfter, goal.points)) : 0;
   const [shown, setShown] = useState(0);
   const [rise] = useState(() => new Animated.Value(0));
   // The bar starts where the balance was before this mission.
-  const [fill] = useState(() => new Animated.Value(next ? share(result.balanceBefore, next.tier.points) : 0));
+  const [fill] = useState(() => new Animated.Value(goal ? share(result.balanceBefore, goal.points) : 0));
   const points = result.points;
 
   useEffect(() => {
@@ -76,8 +89,9 @@ export function DoneStage({
     };
   }, [points, target, rise, fill]);
 
-  const rewardLine = next ? (next.ready ? MISSION.done.ready(next.tier.title) : MISSION.done.toReward(next.need, next.tier.title)) : null;
-  const firstToday = result.streakAfter > result.streakBefore;
+  const rewardLine = goal ? (goal.ready ? MISSION.done.ready(goal.title) : MISSION.done.toReward(goal.need, goal.title)) : null;
+  // The first mission proven today (this one is already on the record).
+  const firstToday = !Object.values(record.missions?.[day] ?? {}).some(m => m.missionId !== mission.id && m.verification?.status === 'accepted');
 
   return (
     <Screen nav={nav} contentStyle={{ flexGrow: 1, justifyContent: 'center' }} footer={<Button title={MISSION.button.done} onPress={onDone} />}>
@@ -97,7 +111,7 @@ export function DoneStage({
         {MISSION.done.balance(result.balanceBefore, result.balanceAfter)}
       </T>
 
-      {accessOn && next && rewardLine ? (
+      {accessOn && goal && rewardLine ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={rewardLine}
@@ -107,7 +121,7 @@ export function DoneStage({
           <View style={{ height: 2, backgroundColor: C.rule }}>
             <Animated.View style={{ height: 2, backgroundColor: C.bone, width: fill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
           </View>
-          <T v="mono" color={next.ready ? C.bone : C.stone} style={{ marginTop: 10 }}>
+          <T v="mono" color={goal.ready ? C.bone : C.stone} style={{ marginTop: 10 }}>
             {rewardLine}
           </T>
         </Pressable>

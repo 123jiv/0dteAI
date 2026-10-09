@@ -67,7 +67,8 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
               label={COPY.a11yMinutes[m]}
               onPress={() => set('minutes', m)}
               style={{ flex: 1, minWidth: 0, minHeight: 64, paddingHorizontal: 4, gap: 2 }}>
-              <T v="mono.l" align="center" color={on ? C.ink : C.bone}>
+              {/* Four across: at the largest text sizes the range shrinks to fit rather than breaking at the dash. */}
+              <T v="mono.l" align="center" color={on ? C.ink : C.bone} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
                 {COPY.minutes[m]}
               </T>
               <T v="mono.s" align="center" color={on ? C.ink : C.stone}>
@@ -81,6 +82,12 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
       <T v="title.m" accessibilityRole="header" style={{ marginTop: 44 }}>
         {COPY.hard}
       </T>
+      {/* The day's time budget wins over intensity: with 5–15 minutes even Push me stays quick. */}
+      {value.minutes === 15 ? (
+        <T v="small" color={C.stone} style={{ marginTop: 8 }} accessibilityLabel={COPY.a11yShortDay}>
+          {COPY.shortDay}
+        </T>
+      ) : null}
       <View accessibilityRole="radiogroup" accessibilityLabel={COPY.hard} style={{ marginTop: 16, gap: 10 }}>
         {INTENSITIES.map(i => {
           const on = value.intensity === i;

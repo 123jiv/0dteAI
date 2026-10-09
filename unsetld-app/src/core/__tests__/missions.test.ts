@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
+import promptsJson from '../../content/reminders.json';
 import { completeMission, provenInPlan } from '../complete';
 import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, meetsRequirements, rerollMission, slotTracks, SLOTS_BY_INTENSITY, type MissionHistory, type PlanInput } from '../missions';
 import { programDay, programMissions, programProgress, startProgram } from '../programs';
 import { clearPhotos, fingerprint, photosToClear, usedHashes } from '../proofs';
-import { completion, levelFor, levelStart, milestones, totals, trackProgress } from '../progress';
+import { activeDays, allDone, completion, isProven, levelFor, levelStart, milestones, photosOf, totals, trackProgress } from '../progress';
 import { emptyRecord } from '../record';
 import { reviewWeekFor, weekStart, weeklyReview } from '../review';
-import { balance, effectiveTiers, isAvailable, nextReward, redeem, rewardStatus } from '../rewards';
+import { balance, effectiveTiers, isAvailable, nextReward, pointsEarned, redeem, rewardStatus, takenThisCollection } from '../rewards';
+import { dayReminderTimes, daysAhead, MAX_PENDING, planNotifications, slotOf } from '../reminders';
 import { computeStreak } from '../streak';
-import { addDays, type DayKey } from '../time';
+import { addDays, atMinutes, type DayKey } from '../time';
 import { clock, elapsedSeconds, endsAt, pauseTimer, remainingSeconds, resumeTimer, startTimer, timerDone } from '../timer';
-import type { DayPlan, Mission, MissionSlot, Profile, Program, ProofPhoto, RecordState, RewardTier, TrackId, Verification } from '../types';
+import type { CodeClaim, DayPlan, Mission, MissionDone, MissionSlot, Profile, Program, ProofPhoto, RecordState, ReminderPrompt, RewardTier, TrackId, Verification } from '../types';
 import { localChecks } from '../verify';
 
 const POINTS: Record<MissionSlot, [1 | 2 | 3, number]> = { quick: [1, 10], progress: [2, 15], challenge: [3, 25] };
@@ -257,6 +259,13 @@ describe('proving a mission', () => {
     const c = completeMission(emptyRecord(), '2026-10-09', null, LIB[0], [photo('x')], rejected, { at: 0, verifiedClock: true });
     expect(c.points).toBe(0);
     expect(c.record.days['2026-10-09']).toBeUndefined();
+    // A good proof after a rejected one still earns its points; a second good proof earns nothing.
+    const again = completeMission(c.record, '2026-10-09', null, LIB[0], [photo('y')], accepted, { at: 5, verifiedClock: true });
+    expect(again.points).toBe(LIB[0].points);
+    expect(again.record.missions['2026-10-09'][LIB[0].id].doneAt).toBe(5);
+    const twice = completeMission(again.record, '2026-10-09', null, LIB[0], [photo('z')], accepted, { at: 9, verifiedClock: true });
+    expect(twice.points).toBe(0);
+    expect(twice.record).toBe(again.record);
   });
 });
 
@@ -340,6 +349,46 @@ describe('progress', () => {
   });
 });
 
+describe('old or damaged records', () => {
+  const q = LIB.find(x => x.track === 'focus' && x.slot === 'quick')!;
+  // A track that was renamed or removed, a 3.0 beta entry without verification or photos, and an empty day.
+  const odd = { missionId: 'gone-x', slot: 'quick', track: 'chess', points: 10, doneAt: 1, photos: [], verification: accepted } as unknown as MissionDone;
+  const bare = { missionId: 'bare', slot: 'quick', track: 'focus', points: 10, doneAt: 2 } as unknown as MissionDone;
+  const base = recordWith([{ day: '2026-10-01', mission: q }]);
+  const r: RecordState = {
+    ...base,
+    missions: {
+      ...base.missions,
+      '2026-10-02': { 'gone-x': odd, bare },
+      '2026-10-03': null as unknown as Record<string, MissionDone>,
+      '2026-10-04': { empty: null as unknown as MissionDone },
+    },
+  };
+
+  it('skips unknown tracks and entries without verification instead of crashing', () => {
+    const tp = trackProgress(r);
+    expect(tp.focus).toMatchObject({ xp: 10, missions: 1 });
+    expect(Object.keys(tp)).not.toContain('chess');
+    // The odd track's proof still counts as a proven mission and a day; the bare entry does not.
+    expect(totals(r)).toMatchObject({ missions: 2, points: 20, activeDays: 2 });
+    expect([...activeDays(r)].sort()).toEqual(['2026-10-01', '2026-10-02']);
+    expect(allDone(r).map(m => m.missionId)).toEqual([q.id, 'gone-x', 'bare']);
+    expect(milestones(r, '2026-10-04').find(x => x.key === 'first-mission')!.reached).toBe('2026-10-01');
+    expect(completion(r, {}, '2026-10-01', '2026-10-04')).toEqual({ done: 2, planned: 2 });
+    expect(isProven(bare)).toBe(false);
+    expect(isProven(undefined)).toBe(false);
+    expect(photosOf(bare)).toEqual([]);
+    expect(photosOf(odd)).toEqual([]);
+  });
+
+  it('counts no points from an entry that has none', () => {
+    const noPoints = { ...bare, points: undefined } as unknown as MissionDone;
+    const p: RecordState = { ...emptyRecord(), legacyPoints: 40, missions: { '2026-10-05': { x: noPoints } } };
+    expect(pointsEarned(p)).toBe(40);
+    expect(balance(p)).toBe(40);
+  });
+});
+
 describe('rewards', () => {
   const tiers: RewardTier[] = [
     { id: 'ship', title: 'Free shipping', detail: '', type: 'free-shipping', points: 300, active: true, codeValidDays: 30, perCollection: 1 },
@@ -350,9 +399,50 @@ describe('rewards', () => {
   ];
   const r450: RecordState = { ...emptyRecord(), legacyPoints: 450 };
   it('shows how close the next reward is', () => {
-    expect(nextReward(r450, tiers, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ten' }, have: 450, need: 150, ready: false });
+    const r250: RecordState = { ...emptyRecord(), legacyPoints: 250 };
+    expect(nextReward(r250, tiers, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, have: 250, need: 50, ready: false });
+    // Free shipping is in reach at 450: that's the news, not the 150 left to 10% off.
+    expect(nextReward(r450, tiers, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, have: 450, need: 0, ready: true });
     expect(rewardStatus(r450, tiers[0], '004', '2026-10-09')).toBe('ready');
     for (const t of tiers.slice(2)) expect(isAvailable(t, '2026-10-09')).toBe(false);
+  });
+
+  it('names the most valuable reward in reach, and the cheapest one out of reach once those are taken', () => {
+    const fifteen: RewardTier = { ...tiers[1], id: 'fifteen', title: '15% off', points: 1000, percent: 15 };
+    const all = [...tiers, fifteen];
+    const r700: RecordState = { ...emptyRecord(), legacyPoints: 700 };
+    expect(nextReward(r700, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ten' }, need: 0, ready: true });
+    const r1200: RecordState = { ...emptyRecord(), legacyPoints: 1200 };
+    expect(nextReward(r1200, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'fifteen' }, have: 1200, need: 0, ready: true });
+    // Same price: the bigger discount.
+    const twelve: RewardTier = { ...tiers[1], id: 'twelve', percent: 12 };
+    expect(nextReward(r700, [tiers[1], twelve], '004', '2026-10-09')!.tier.id).toBe('twelve');
+    // 10% off taken this collection: shipping is the one in reach.
+    const took = redeem(r1200, fifteen, '004', '2026-10-09', { code: 'C', url: 'u' }); // 200 left
+    expect(nextReward(took, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, have: 200, need: 100, ready: false });
+    const both = redeem({ ...took, legacyPoints: 2000 }, tiers[1], '004', '2026-10-09', { code: 'D', url: 'u' });
+    expect(nextReward(both, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, ready: true });
+    const none = redeem(both, tiers[0], '004', '2026-10-09', { code: 'E', url: 'u' });
+    expect(nextReward(none, all, '004', '2026-10-09')).toBeNull();
+  });
+
+  it('counts a 2.x code against the tier with the same percent, in the same collection only', () => {
+    const code = (percent: number, collection = '004'): CodeClaim => ({ day: '2026-09-01', collection, points: 600, percent, code: 'OLD', url: 'u', expires: '2026-10-01' });
+    const r: RecordState = { ...emptyRecord(), legacyPoints: 1200, codes: [code(10)] };
+    expect(takenThisCollection(r, tiers[1], '004')).toBe(1);
+    expect(rewardStatus(r, tiers[1], '004', '2026-10-09')).toBe('used');
+    expect(rewardStatus(r, tiers[1], '005', '2026-10-09')).toBe('ready');
+    // No percent, or another percent: untouched.
+    expect(rewardStatus(r, tiers[0], '004', '2026-10-09')).toBe('ready');
+    const fifteen: RewardTier = { ...tiers[1], id: 'fifteen', points: 1000, percent: 15 };
+    expect(rewardStatus(r, fifteen, '004', '2026-10-09')).toBe('ready');
+    expect(nextReward(r, [tiers[0], tiers[1]], '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, ready: true });
+    // Two allowed per collection: one 2.x code leaves one.
+    const twice: RewardTier = { ...tiers[1], perCollection: 2 };
+    expect(rewardStatus(r, twice, '004', '2026-10-09')).toBe('ready');
+    expect(rewardStatus({ ...r, codes: [code(10), code(10)] }, twice, '004', '2026-10-09')).toBe('used');
+    // Records from before codes existed.
+    expect(takenThisCollection({ ...r, codes: undefined as unknown as CodeClaim[] }, tiers[1], '004')).toBe(0);
   });
 
   it('spends points once per collection and takes the server list when there is one', () => {
@@ -397,5 +487,73 @@ describe('proof photos', () => {
     const after = clearPhotos(r, clear);
     expect(after.missions['2026-08-01'][q.id].photos[0]).toMatchObject({ uri: '', hash: 'old' });
     expect(usedHashes(after).has('old')).toBe(true);
+  });
+});
+
+describe('reminders', () => {
+  const PROMPTS = promptsJson as ReminderPrompt[];
+  const base = { day: '2026-10-07', first: 7 * 60, last: 22 * 60, seed: 's' };
+
+  it('spreads the day from First to Last, with no night check to move around', () => {
+    for (const seed of ['s', 'a', 'b', 'c', 'd']) {
+      for (let i = 0; i < 20; i++) {
+        const t = dayReminderTimes({ ...base, seed, day: addDays('2026-10-07', i), count: 3 });
+        expect(t.map(x => x.kind)).toEqual(['today', 'task', 'task']);
+        expect(t[0].minutes).toBe(7 * 60);
+        expect(Math.abs(t[1].minutes - (14 * 60 + 30))).toBeLessThanOrEqual(10);
+        // The last one stays near Last (10:00 PM), never pulled earlier.
+        expect(t[2].minutes).toBeLessThanOrEqual(22 * 60);
+        expect(t[2].minutes).toBeGreaterThanOrEqual(22 * 60 - 10);
+      }
+    }
+  });
+
+  it('never stacks reminders on one minute and never runs past the end of the day', () => {
+    const cases = [
+      { first: 23 * 60, last: 22 * 60, count: 3 }, // reversed
+      { first: 8 * 60, last: 8 * 60, count: 5 }, // equal
+      { first: 20 * 60, last: 4 * 60 + 30, count: 3 }, // ends after 4:00 AM
+      { first: 19 * 60, last: 22 * 60, count: 10 },
+    ];
+    for (const c of cases) {
+      const t = dayReminderTimes({ ...base, ...c });
+      expect(t.length).toBe(c.count);
+      expect(t[0].minutes).toBe(c.first);
+      for (let i = 1; i < t.length; i++) expect(t[i].minutes).toBeGreaterThan(t[i - 1].minutes);
+      expect(t[t.length - 1].minutes).toBeLessThanOrEqual(28 * 60 - 1);
+    }
+    const narrow = dayReminderTimes({ ...base, first: 8 * 60, last: 8 * 60 + 3, count: 10 }).map(x => x.minutes);
+    expect(narrow[0]).toBe(480);
+    expect(new Set(narrow).size).toBe(narrow.length);
+    expect(narrow.every(x => x <= 483)).toBe(true);
+  });
+
+  it('schedules floor(60 / reminders a day) days ahead, reminders only', () => {
+    expect([0, 1, 3, 5, 10].map(c => daysAhead(c))).toEqual([60, 60, 20, 12, 6]);
+    const now = new Date(2026, 9, 7, 6, 0);
+    const opts = { now, today: '2026-10-07', first: 7 * 60, last: 22 * 60, prompts: PROMPTS, seed: 's' };
+    for (const count of [1, 3, 10]) {
+      const plan = planNotifications({ ...opts, count });
+      expect(plan.length).toBeLessThanOrEqual(MAX_PENDING);
+      expect(plan.every(p => p.id.startsWith('rem-') && (p.kind === 'today' || p.kind === 'task'))).toBe(true);
+      expect(plan.every(p => p.date > now)).toBe(true);
+    }
+    expect(planNotifications({ ...opts, count: 3 }).some(p => p.id === `rem-${addDays('2026-10-07', 19)}-2`)).toBe(true);
+    // Rebuilt later in the day: what's still ahead keeps its prompt.
+    const early = new Map(planNotifications({ ...opts, count: 3 }).map(p => [p.id, p.prompt]));
+    const later = planNotifications({ ...opts, count: 3, now: atMinutes('2026-10-07', 16 * 60) });
+    for (const p of later) expect(p.prompt).toBe(early.get(p.id));
+  });
+
+  it("picks each nudge's fallback text from its time of day, and rotates it day to day", () => {
+    const plan = planNotifications({ now: new Date(2026, 9, 7, 6, 0), today: '2026-10-07', count: 10, first: 7 * 60, last: 22 * 60, prompts: PROMPTS, seed: 's' });
+    for (const p of plan.filter(x => x.kind === 'task')) {
+      expect(PROMPTS.find(x => x.text === p.prompt)?.slot).toBe(slotOf(p.date.getHours() * 60 + p.date.getMinutes()));
+    }
+    const midday = [0, 1, 2, 3].map(i => {
+      const day = addDays('2026-10-07', i);
+      return planNotifications({ now: atMinutes(day, 9 * 60), today: day, count: 3, first: 7 * 60, last: 22 * 60, prompts: PROMPTS, seed: 's' }).find(p => p.id === `rem-${day}-1`)!.prompt;
+    });
+    for (let i = 1; i < midday.length; i++) expect(midday[i]).not.toBe(midday[i - 1]);
   });
 });

@@ -219,7 +219,7 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
 
   const stateOf = (id: string): MissionState => {
     if (!block?.today) return 'later';
-    if (provenToday?.[id]?.verification.status === 'accepted') return 'proven';
+    if (provenToday?.[id]?.verification?.status === 'accepted') return 'proven';
     if (plan?.missions.some(m => m.missionId === id)) return 'open';
     return plan?.replaced.includes(id) ? 'swapped' : 'later';
   };

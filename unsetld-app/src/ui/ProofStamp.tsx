@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { shortDate, type DayKey } from '../core/time';
+import { MISSION } from '../content/copy/mission';
 import { T } from './text';
 import { color as C } from './tokens';
 
@@ -19,9 +20,12 @@ export function clockTime(at: number): string {
  */
 export function ProofStamp({ day, takenAt, label, small = false }: { day: DayKey; takenAt: number; label?: string; small?: boolean }) {
   const when = `${clockTime(takenAt)} · ${shortDate(day)}`;
-  const said = `Taken ${shortDate(day)} at ${clockTime(takenAt)}`;
+  const said = MISSION.a11y.stamp(shortDate(day), clockTime(takenAt));
   const v = small ? 'mono.s' : 'mono';
   const size = small ? { fontSize: 8, lineHeight: 10 } : undefined;
+  // The gap before the dot is a margin one mono space wide (0.6em plus tracking), not a
+  // space character: the web drops a leading space in a text run, so the dot ran into the label.
+  const gap = small ? 5 : 7;
   return (
     <View
       accessible
@@ -39,9 +43,8 @@ export function ProofStamp({ day, takenAt, label, small = false }: { day: DayKey
           {label}
         </T>
       ) : null}
-      <T v={v} color={C.ink} numberOfLines={1} style={[{ flexShrink: 0 }, size]}>
-        {/* A no-break space: a leading plain space is dropped on the web. */}
-        {label ? `\u00A0· ${when}` : when}
+      <T v={v} color={C.ink} numberOfLines={1} style={[{ flexShrink: 0, marginLeft: label ? gap : 0 }, size]}>
+        {label ? `· ${when}` : when}
       </T>
     </View>
   );

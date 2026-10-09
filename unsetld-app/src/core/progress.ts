@@ -1,9 +1,10 @@
 // Progress beyond points: a level per track, totals, milestones and the week.
 import { computeStreak } from './streak';
 import { addDays, type DayKey } from './time';
-import type { DayPlan, MissionDone, RecordState, TrackId } from './types';
+import type { DayPlan, MissionDone, ProofPhoto, RecordState, TrackId } from './types';
 
 export const TRACK_IDS: readonly TrackId[] = ['focus', 'fitness', 'school', 'money', 'skills', 'reset', 'mindset'];
+const KNOWN_TRACKS: ReadonlySet<string> = new Set(TRACK_IDS);
 
 /** Points a track needs to reach a level: L2 50, L3 150, L4 300, L5 500 ... */
 export function levelStart(level: number): number {
@@ -17,19 +18,37 @@ export function levelFor(xp: number): { level: number; into: number; span: numbe
   return { level, into: xp - start, span: levelStart(level + 1) - start };
 }
 
-/** Every proven mission, oldest first. */
+/**
+ * Accepted proof. Old or damaged entries (no verification, or no entry at all)
+ * count as not proven rather than crashing what reads them.
+ */
+export function isProven(m: MissionDone | null | undefined): m is MissionDone {
+  return m?.verification?.status === 'accepted';
+}
+
+/** A proof's photos; [] for entries saved without them. */
+export function photosOf(m: MissionDone | null | undefined): ProofPhoto[] {
+  const photos = m?.photos;
+  return Array.isArray(photos) ? photos : [];
+}
+
+/** Points as stored, or 0 when an entry has none. */
+const pointsOf = (m: MissionDone) => (typeof m.points === 'number' && Number.isFinite(m.points) ? m.points : 0);
+
+/** Every mission on record (proven or not), oldest first. Missing or empty entries are skipped. */
 export function allDone(r: RecordState): (MissionDone & { day: DayKey })[] {
-  return Object.keys(r.missions ?? {})
+  const missions = r.missions ?? {};
+  return Object.keys(missions)
     .sort()
-    .flatMap(day => Object.values(r.missions[day]).map(m => ({ ...m, day })))
-    .sort((a, b) => (a.day === b.day ? a.doneAt - b.doneAt : a.day < b.day ? -1 : 1));
+    .flatMap(day => Object.values(missions[day] ?? {}).flatMap(m => (m && typeof m === 'object' ? [{ ...m, day }] : [])))
+    .sort((a, b) => (a.day === b.day ? (a.doneAt ?? 0) - (b.doneAt ?? 0) : a.day < b.day ? -1 : 1));
 }
 
 /** Days with at least one proven mission that earned points. */
 export function activeDays(r: RecordState): Set<DayKey> {
   const out = new Set<DayKey>();
   for (const [day, byId] of Object.entries(r.missions ?? {})) {
-    if (Object.values(byId).some(m => m.verification.status === 'accepted')) out.add(day);
+    if (Object.values(byId ?? {}).some(isProven)) out.add(day);
   }
   return out;
 }
@@ -46,8 +65,9 @@ export interface TrackProgress {
 export function trackProgress(r: RecordState): Record<TrackId, TrackProgress> {
   const out = Object.fromEntries(TRACK_IDS.map(t => [t, { track: t, xp: 0, missions: 0, level: 1, into: 0, span: 50 }])) as Record<TrackId, TrackProgress>;
   for (const m of allDone(r)) {
-    if (m.verification.status !== 'accepted') continue;
-    out[m.track].xp += m.points;
+    // A track that no longer exists (or an entry without one) adds to no level.
+    if (!isProven(m) || !KNOWN_TRACKS.has(m.track)) continue;
+    out[m.track].xp += pointsOf(m);
     out[m.track].missions += 1;
   }
   for (const t of TRACK_IDS) Object.assign(out[t], levelFor(out[t].xp));
@@ -63,11 +83,11 @@ export interface Totals {
 }
 
 export function totals(r: RecordState): Totals {
-  const done = allDone(r).filter(m => m.verification.status === 'accepted');
+  const done = allDone(r).filter(isProven);
   return {
     missions: done.length,
-    points: done.reduce((t, m) => t + m.points, 0) + Object.values(r.bonuses ?? {}).reduce((t, b) => t + b, 0),
-    focusMinutes: Math.floor(done.reduce((t, m) => t + (m.timerSeconds ?? 0), 0) / 60),
+    points: done.reduce((t, m) => t + pointsOf(m), 0) + Object.values(r.bonuses ?? {}).reduce((t, b) => t + (typeof b === 'number' ? b : 0), 0),
+    focusMinutes: Math.floor(done.reduce((t, m) => t + (typeof m.timerSeconds === 'number' ? m.timerSeconds : 0), 0) / 60),
     perfectDays: Object.keys(r.bonuses ?? {}).length,
     activeDays: activeDays(r).size,
   };
@@ -100,7 +120,7 @@ export interface MilestoneState extends MilestoneDef {
 
 /** Milestones with the day each was reached, found by replaying the record. */
 export function milestones(r: RecordState, today: DayKey): MilestoneState[] {
-  const done = allDone(r).filter(m => m.verification.status === 'accepted');
+  const done = allDone(r).filter(isProven);
   const reachedMissions = (n: number) => (done.length >= n ? done[n - 1].day : null);
   const perfectDays = Object.keys(r.bonuses ?? {}).sort();
   const active = [...activeDays(r)].sort();
@@ -128,7 +148,7 @@ export function completion(r: RecordState, plans: Record<DayKey, DayPlan>, from:
     const plan = plans[d];
     const byId = r.missions?.[d] ?? {};
     if (plan) planned += plan.missions.length;
-    done += Object.values(byId).filter(m => m.verification.status === 'accepted').length;
+    done += Object.values(byId).filter(isProven).length;
   }
   return { done, planned: Math.max(planned, done) };
 }

@@ -1,6 +1,5 @@
-// Reminder and night-check planning. Pure: the notification service turns
-// these into scheduled local notifications, and the widget timeline uses the
-// same plan so the lock screen shows the line the reminder just delivered.
+// Reminder planning. Pure: the notification service turns these into
+// scheduled local notifications with each one's text (services/notifications).
 import { hash32, mulberry32 } from './random';
 import { addDays, atMinutes, dayNumber, minutesIntoDay, type DayKey } from './time';
 import type { ReminderPrompt } from './types';
@@ -22,7 +21,7 @@ export function slotOf(minutes: number): Slot {
   return 'night';
 }
 
-/** The first reminder delivers today's line; the rest nudge the work that's still open. */
+/** The first reminder names today's missions; the rest nudge the ones still open. */
 export type ReminderKind = 'today' | 'task';
 
 export interface ReminderTime {
@@ -37,7 +36,6 @@ export interface DayPlanOptions {
   /** Minutes after midnight. */
   first: number;
   last: number;
-  night: { enabled: boolean; time: number };
   seed: string;
 }
 
@@ -46,8 +44,7 @@ const DAY_END = 24 * 60 - 1;
 
 /**
  * The day's reminder times. The first is exact; the rest are evenly spaced
- * between First and Last inclusive with ±10 minutes of jitter. A reminder
- * within 30 minutes of the night check moves 45 minutes earlier. A Last at or
+ * between First and Last inclusive with ±10 minutes of jitter. A Last at or
  * before First runs to the end of the day (3:59 AM). No two share a minute.
  */
 export function dayReminderTimes(o: DayPlanOptions): ReminderTime[] {
@@ -57,16 +54,13 @@ export function dayReminderTimes(o: DayPlanOptions): ReminderTime[] {
   let end = minutesIntoDay(o.last);
   if (end <= start) end = DAY_END;
   const rand = mulberry32(hash32(`${o.seed}:rem:${o.day}`));
-  const nightAt = minutesIntoDay(o.night.time);
   const later: number[] = [];
   for (let i = 1; i < count; i++) {
-    let t = start + ((end - start) * i) / (count - 1);
-    t = Math.round(Math.min(end, Math.max(start + 1, t + (rand() * 20 - 10))));
-    if (o.night.enabled && Math.abs(t - nightAt) <= 30) t -= 45;
-    later.push(t);
+    const t = start + ((end - start) * i) / (count - 1);
+    later.push(Math.round(Math.min(end, Math.max(start + 1, t + (rand() * 20 - 10)))));
   }
-  // After the first, in time order (a moved one keeps its own time), one a
-  // minute, inside the window: a window too narrow for the count gets fewer.
+  // After the first, in time order, one a minute, inside the window: a window
+  // too narrow for the count gets fewer.
   const out: ReminderTime[] = [{ minutes: start + 4 * 60, kind: 'today' }];
   let prev = start;
   for (const x of later.sort((a, b) => a - b)) {
@@ -82,7 +76,7 @@ export interface PlannedNotification {
   id: string;
   date: Date;
   day: DayKey;
-  kind: ReminderKind | 'night';
+  kind: ReminderKind;
   /** Fallback text for a task reminder when there's no open work to name. */
   prompt?: string;
   /** Index into the day's reminders. */
@@ -95,28 +89,24 @@ export interface PlanOptions {
   count: number;
   first: number;
   last: number;
-  night: { enabled: boolean; time: number };
-  /** Night check already answered for these days (skip their night notification). */
-  answered: ReadonlySet<DayKey>;
   prompts: readonly ReminderPrompt[];
   seed: string;
 }
 
-/** How many days ahead fit under the pending limit: floor(60 / notifications a day). */
-export function daysAhead(count: number, nightEnabled: boolean): number {
-  const perDay = Math.max(1, count + (nightEnabled ? 1 : 0));
-  return Math.max(1, Math.floor(MAX_PENDING / perDay));
+/** How many days ahead fit under the pending limit: floor(60 / reminders a day). */
+export function daysAhead(count: number): number {
+  return Math.max(1, Math.floor(MAX_PENDING / Math.max(1, Math.floor(count))));
 }
 
 export function planNotifications(o: PlanOptions): PlannedNotification[] {
-  const days = daysAhead(o.count, o.night.enabled);
+  const days = daysAhead(o.count);
   const out: PlannedNotification[] = [];
   const bySlot: Record<Slot, ReminderPrompt[]> = { morning: [], midday: [], evening: [], night: [] };
   for (const p of o.prompts) bySlot[p.slot].push(p);
   const soon = o.now.getTime() + 60_000;
   for (let d = 0; d < days; d++) {
     const day = addDays(o.today, d);
-    const times = dayReminderTimes({ day, count: o.count, first: o.first, last: o.last, night: o.night, seed: o.seed });
+    const times = dayReminderTimes({ day, count: o.count, first: o.first, last: o.last, seed: o.seed });
     // Round-robin per slot, carried on from the day before, from a seeded offset
     // so installs don't all match. Each prompt depends only on the day and its
     // place in it, so rebuilding the plan mid-day never changes or repeats one.
@@ -135,10 +125,6 @@ export function planNotifications(o: PlanOptions): PlannedNotification[] {
       if (date.getTime() <= soon) return;
       out.push({ id: `rem-${day}-${index}`, date, day, kind: t.kind, prompt, index });
     });
-    if (o.night.enabled && !o.answered.has(day)) {
-      const date = atMinutes(day, o.night.time);
-      if (date.getTime() > soon) out.push({ id: `night-${day}`, date, day, kind: 'night', index: -1 });
-    }
   }
   return out.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, MAX_PENDING);
 }

@@ -50,7 +50,6 @@ export const MISSION = {
     after: 'Take the after photo',
     proofPhoto: 'Take the proof photo',
     done: 'Done',
-    close: 'Close',
   },
 
   swap: {
@@ -67,9 +66,15 @@ export const MISSION = {
   },
 
   busy: {
-    timerTitle: (title: string) => `A timer is running for ${title}.`,
-    timerBody: 'Start this one instead? That timer ends and earns nothing.',
-    beforeTitle: (title: string) => `${title} has a before photo waiting.`,
+    /** Another mission's timer: running, paused, or finished and waiting for its photo. No title if that mission is gone. */
+    timerTitle: (title: string | undefined, state: 'running' | 'paused' | 'done') => {
+      const of = title ? `The timer for ${title}` : 'Another timer';
+      if (state === 'done') return `${of} is done, and its proof photo isn’t in yet.`;
+      if (state === 'paused') return `${of} is paused.`;
+      return title ? `A timer is running for ${title}.` : 'Another timer is running.';
+    },
+    timerBody: 'Start this one instead? That timer is cleared and earns nothing.',
+    beforeTitle: (title: string | undefined) => (title ? `${title} has a before photo waiting.` : 'Another mission has a before photo waiting.'),
     beforeBody: 'Start this one instead? That before photo is deleted.',
     yes: 'Start this one',
     no: 'Cancel',
@@ -108,6 +113,7 @@ export const MISSION = {
   },
 
   checking: 'Checking proof…',
+  checkFailed: 'That didn’t go through. Nothing was counted. Try again.',
 
   done: {
     title: 'PROVEN.',
@@ -115,7 +121,6 @@ export const MISSION = {
     balance: (from: number, to: number) => `${from} → ${to} POINTS`,
     toReward: (need: number, title: string) => `${need} POINTS TO ${title.toUpperCase()}`,
     ready: (title: string) => `${title.toUpperCase()} IS READY`,
-    readyHint: 'Opens Rewards',
     streakFirst: (n: number) => `Day ${n}. Streak's alive.`,
     streak: (n: number) => (n === 1 ? 'Streak: 1 day' : `Streak: ${n} days`),
     perfect: 'PERFECT DAY',
@@ -170,6 +175,8 @@ export const MISSION = {
     points: (n: number) => `${n} points when the proof is in`,
     meta: (minutes: number, points: number) => `${minutes} minutes, ${points} points`,
     balance: (from: number, to: number) => `${from} to ${to} points`,
+    /** The proof stamp, read aloud. */
+    stamp: (date: string, time: string) => `Taken ${date} at ${time}`,
   },
 
   notify: {

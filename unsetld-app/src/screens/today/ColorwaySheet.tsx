@@ -76,7 +76,7 @@ export function ColorwaySheet({ visible, onClose, onFull }: { visible: boolean; 
                 key={c.id}
                 accessibilityRole="radio"
                 accessibilityLabel={`${c.name}${locked ? HOME.colorway.lockedA11y : ''}`}
-                accessibilityState={{ selected: on }}
+                aria-checked={on}
                 onPress={() => pick(c.id)}
                 style={{ width: w }}>
                 <View style={{ padding: 3, margin: -4, borderWidth: 1, borderColor: on ? C.bone : 'transparent' }}>

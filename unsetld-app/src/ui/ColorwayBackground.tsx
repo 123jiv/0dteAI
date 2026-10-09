@@ -8,7 +8,7 @@ import { PLATES, SWATCHES } from './colorwayAssets';
 export function ColorwayBackground({ colorway, swatch = false }: { colorway: Colorway; swatch?: boolean }) {
   const plate = swatch ? SWATCHES[colorway.id] : colorway.kind === 'plate' ? PLATES[colorway.id] : undefined;
   return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: colorway.bg }]}>
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: colorway.bg, pointerEvents: 'none' }]}>
       {plate ? (
         <Image source={plate} style={StyleSheet.absoluteFill} contentFit="cover" transition={0} cachePolicy="memory" />
       ) : colorway.kind === 'gradient' && colorway.bgEnd ? (

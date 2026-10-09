@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import { create } from 'zustand';
 import { SLOTS_BY_INTENSITY } from '../core/missions';
-import { activeDays } from '../core/progress';
+import { activeDays, isProven } from '../core/progress';
 import { accessState, dayCount } from '../core/record';
 import { daysAhead } from '../core/reminders';
 import { computeStreak } from '../core/streak';
@@ -24,6 +24,7 @@ import {
 } from '../services/notifications';
 import { deletePhoto } from '../services/proof';
 import { initPurchases, purchaseMode, refreshPremium, type EntitlementInfo } from '../services/purchases';
+import { cancelTimerDone } from '../services/timerNotify';
 import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
 import { parseUrl, useIntent } from './intents';
 import { useAccessEnabled, useApp, useEntitlements } from './store';
@@ -84,11 +85,13 @@ export function useBootstrap() {
 
     // Reinstall: bring the record back from the Keychain.
     if (dayCount(s.record) === 0 && !Object.keys(s.record.missions ?? {}).length) {
-      readBackup().then(b => {
-        if (b && (Object.keys(b.record.days ?? {}).length || Object.keys(b.record.missions ?? {}).length)) {
-          useApp.getState().restore(b.installSalt, b.record);
-        }
-      });
+      readBackup()
+        .then(b => {
+          if (b && (Object.keys(b.record.days ?? {}).length || Object.keys(b.record.missions ?? {}).length)) {
+            useApp.getState().restore(b.installSalt, b.record);
+          }
+        })
+        .catch(() => {});
     }
 
     useApp.getState().setPremium({ mode: purchaseMode });
@@ -120,10 +123,12 @@ export function useBootstrap() {
 
     // Deep links from widgets and other apps.
     if (Platform.OS !== 'web') {
-      Linking.getInitialURL().then(url => {
-        const i = url ? parseUrl(url) : null;
-        if (i) useIntent.getState().push(i);
-      });
+      Linking.getInitialURL()
+        .then(url => {
+          const i = url ? parseUrl(url) : null;
+          if (i) useIntent.getState().push(i);
+        })
+        .catch(() => {});
     }
     const linkSub =
       Platform.OS !== 'web'
@@ -156,7 +161,7 @@ function reminderPlans(
     const done = missions?.[d] ?? {};
     out[d] = reminderMissions(
       plan.missions.map(p => p.missionId),
-      id => done[id]?.verification.status === 'accepted',
+      id => isProven(done[id]),
     );
   }
   return out;
@@ -184,19 +189,26 @@ export function useSideEffects() {
   }, [hydrated, onboarded, day]);
 
   const count = reminders.on ? Math.min(reminders.count, ent.maxReminders) : 0;
-  const schedule: ScheduleInput = useMemo(
-    () => ({
+  const schedule: ScheduleInput = useMemo(() => {
+    const days = daysAhead(count);
+    // A later day's last call names the streak as it will stand then, if nothing more is proven.
+    const streaks: Record<DayKey, number> = {};
+    for (let i = 1; count > 1 && i < days; i++) {
+      const d = addDays(day, i);
+      streaks[d] = computeStreak(active, d).current;
+    }
+    return {
       remindersOn: reminders.on,
       count,
       first: reminders.first,
       last: reminders.last,
-      plans: reminderPlans(plans, record.missions, day, daysAhead(count, false)),
+      plans: reminderPlans(plans, record.missions, day, days),
       perDay,
       streak,
+      streaks,
       seed: salt,
-    }),
-    [reminders.on, reminders.first, reminders.last, count, plans, record.missions, day, perDay, streak, salt],
-  );
+    };
+  }, [reminders.on, reminders.first, reminders.last, count, plans, record.missions, day, perDay, streak, active, salt]);
 
   // Notifications: after plans, proof, the profile or settings change, on a new
   // day, and on every foreground (so allowing notifications in iOS Settings
@@ -220,6 +232,13 @@ export function useSideEffects() {
     if (!hydrated || !onboarded) return;
     updateWidgets({ today: day, premium, colorway, record, plans, perDay });
   }, [hydrated, onboarded, day, premium, colorway, record, plans, perDay]);
+
+  // No focus timer, no "timer done" notification: whatever ended the timer
+  // (proof, Home closing an old day's timer, tester tools) takes it with it.
+  const hasTimer = useApp(s => s.timer !== null);
+  useEffect(() => {
+    if (hydrated && !hasTimer) cancelTimerDone().catch(() => {});
+  }, [hydrated, hasTimer]);
 
   // Keychain backup of the record.
   useEffect(() => {

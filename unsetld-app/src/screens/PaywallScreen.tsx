@@ -154,7 +154,8 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
               <Pressable
                 key={r.kind}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: on }}
+                // aria-checked rather than accessibilityState: react-native-web only reads the former.
+                aria-checked={on}
                 accessibilityLabel={P.a11yPlan(r.name, p ? p.priceString : P.a11yLoading, P.a11yUnit[r.kind], r.sub)}
                 onPress={() => {
                   if (!on) selection();

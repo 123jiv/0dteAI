@@ -51,7 +51,8 @@ export function Button({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
-      accessibilityState={{ disabled: Boolean(disabled) }}
+      // aria-* rather than accessibilityState: react-native-web only reads the former, iOS reads both.
+      aria-disabled={Boolean(disabled)}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
@@ -228,8 +229,8 @@ export function Screen({
         <View style={[{ flex: 1 }, pad, contentStyle]}>{children}</View>
       )}
       {footer ? (
-        <View onLayout={onFooter} pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
-          <LinearGradient colors={['rgba(10,10,10,0)', background]} style={{ height: 24 }} pointerEvents="none" />
+        <View onLayout={onFooter} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, pointerEvents: 'box-none' }}>
+          <LinearGradient colors={['rgba(10,10,10,0)', background]} style={{ height: 24, pointerEvents: 'none' }} />
           <View style={{ backgroundColor: background, paddingHorizontal: MARGIN, paddingBottom: insets.bottom + 16 }}>{footer}</View>
         </View>
       ) : null}
@@ -262,7 +263,8 @@ export function Segmented<V extends string | number>({
           <Pressable
             key={String(o)}
             accessibilityRole="tab"
-            accessibilityState={{ selected: on, disabled: off }}
+            aria-selected={on}
+            aria-disabled={off}
             disabled={off}
             onPress={() => {
               if (on || off) return;
@@ -405,7 +407,7 @@ export function ListRow({
   height = 48,
   style,
   accessibilityLabel,
-  accessibilityState,
+  state,
   accessibilityRole = 'button',
 }: {
   children: ReactNode;
@@ -414,14 +416,17 @@ export function ListRow({
   height?: number;
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
-  accessibilityState?: { checked?: boolean; selected?: boolean; disabled?: boolean };
+  /** Read out as aria-checked, aria-selected and aria-disabled, which iOS and the web both understand. */
+  state?: { checked?: boolean; selected?: boolean; disabled?: boolean };
   accessibilityRole?: 'button' | 'checkbox' | 'radio';
 }) {
   return (
     <Pressable
       accessibilityRole={onPress ? accessibilityRole : undefined}
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={accessibilityState}
+      aria-checked={state?.checked}
+      aria-selected={state?.selected}
+      aria-disabled={state?.disabled}
       disabled={!onPress && !onLongPress}
       onPress={onPress}
       onLongPress={onLongPress}

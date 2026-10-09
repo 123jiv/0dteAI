@@ -4,7 +4,7 @@ import type { Letter, MilestoneId } from '../core/record';
 import type { DayKey } from '../core/time';
 import type { DocId } from '../content';
 
-export type PaywallFrom = 'onboarding' | 'chapter' | 'colorway' | 'tasks' | 'yours' | 'settings' | 'reminders' | 'share' | 'programs' | 'swaps';
+export type PaywallFrom = 'onboarding' | 'colorway' | 'settings' | 'reminders' | 'programs' | 'swaps';
 
 export type RootParams = {
   Name: undefined;
@@ -20,24 +20,18 @@ export type RootParams = {
   Programs: undefined;
   /** A progress milestone reached (first 10 missions, 7 days ...). */
   Moment: { key: MilestoneKey };
-  FirstLine: undefined;
-  Standard: { edit?: boolean } | undefined;
-  Chapters: undefined;
   Day: { edit?: boolean } | undefined;
   Widget: { guide?: boolean } | undefined;
   Paywall: { from: PaywallFrom } | undefined;
-  Today: { nonce?: number; sheet?: 'chapters' | 'colorway'; night?: boolean } | undefined;
-  Record: undefined;
+  /** Home. */
+  Today: { nonce?: number; sheet?: 'colorway' } | undefined;
   Settings: undefined;
-  Saved: undefined;
-  YourLines: undefined;
   Account: undefined;
   Doc: { id: DocId };
   /** The same page presented as a sheet (from the paywall, which is itself a modal). */
   DocSheet: { id: DocId };
   Milestone: { id: MilestoneId };
   Letter: { letter: Letter };
-  Task: { key: string };
   ProofGallery: undefined;
   DevTools: undefined;
 };

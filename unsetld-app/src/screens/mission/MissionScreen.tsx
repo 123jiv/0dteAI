@@ -70,19 +70,22 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const active = useAppActive();
   const [stage, setStage] = useState<Stage>({ kind: 'detail' });
   const [denied, setDenied] = useState(false);
-  const [busy, setBusy] = useState(false);
   // Proof photos saved but not submitted yet (deleted if the screen closes), and the clock check started at capture.
   const unsent = useRef<string[]>([]);
   const clockCheck = useRef<Promise<TimeCheck> | null>(null);
+  // A second tap before the screen redraws must not open a second camera or prove the mission twice.
+  const shooting = useRef(false);
+  const submitting = useRef(false);
 
   const isOurs = ours(missionId, day);
   const index = plan ? plan.missions.findIndex(p => p.missionId === missionId) : -1;
   const inPlan = index >= 0;
   const done = record.missions?.[day]?.[missionId];
-  const proven = done?.verification.status === 'accepted' ? done : null;
+  const proven = done?.verification?.status === 'accepted' ? done : null;
   const timerHere: FocusTimer | null = mission?.proofType === 'TIMER_AND_PHOTO' && timer && isOurs(timer) ? timer : null;
   const beforeHere: PendingBefore | null = mission?.proofType === 'BEFORE_AFTER' && pending && isOurs(pending) ? pending : null;
-  const dayNo = activeDays(record).size;
+  const shownUp = activeDays(record);
+  const dayNo = shownUp.size + (shownUp.has(day) ? 0 : 1);
 
   // Home builds the plan; a screen opened some other way builds it too.
   useEffect(() => {
@@ -136,21 +139,27 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
 
   /** Opens the camera (a file picker in the preview) and saves the photo for this mission. */
   const shoot = async (kind: ProofPhoto['kind']): Promise<ProofPhoto | null> => {
-    const r = await capture();
-    if (!r.ok) {
-      if (r.reason === 'denied') setDenied(true);
-      else if (r.reason === 'failed') showDialog(MISSION.camera.failed, undefined, OK);
-      return null;
-    }
-    setDenied(false);
-    const takenAt = Date.now();
+    if (shooting.current) return null;
+    shooting.current = true;
     try {
-      const saved = await savePhoto(r.uri, `${day}-${missionId}-${kind}`);
-      if (!saved.uri) throw new Error('not saved');
-      return { uri: saved.uri, hash: saved.hash, takenAt, kind };
-    } catch {
-      showDialog(MISSION.camera.saveFailed, undefined, OK);
-      return null;
+      const r = await capture();
+      if (!r.ok) {
+        if (r.reason === 'denied') setDenied(true);
+        else if (r.reason === 'failed') showDialog(MISSION.camera.failed, undefined, OK);
+        return null;
+      }
+      setDenied(false);
+      const takenAt = Date.now();
+      try {
+        const saved = await savePhoto(r.uri, `${day}-${missionId}-${kind}`);
+        if (!saved.uri) throw new Error('not saved');
+        return { uri: saved.uri, hash: saved.hash, takenAt, kind };
+      } catch {
+        showDialog(MISSION.camera.saveFailed, undefined, OK);
+        return null;
+      }
+    } finally {
+      shooting.current = false;
     }
   };
 
@@ -198,6 +207,8 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     const s = useApp.getState();
     if (usedHashes(s.record).has(shot.hash)) {
       deletePhoto(shot.uri);
+      // A retake saves over the waiting before photo's file, so that one is gone too.
+      if (s.pendingBefore?.photo.uri === shot.uri) s.setPendingBefore(null);
       showDialog(MISSION.before.used, undefined, OK);
       return;
     }
@@ -211,7 +222,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const beforePressed = () => {
     const other = useApp.getState().pendingBefore;
     if (other && other.missionId !== missionId && other.day === today()) {
-      showDialog(MISSION.busy.beforeTitle(MISSION_BY_ID[other.missionId]?.title ?? ''), MISSION.busy.beforeBody, [
+      showDialog(MISSION.busy.beforeTitle(MISSION_BY_ID[other.missionId]?.title), MISSION.busy.beforeBody, [
         { label: MISSION.busy.no, cancel: true },
         { label: MISSION.busy.yes, onPress: () => afterDialog(() => void takeBefore()) },
       ]);
@@ -232,7 +243,8 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const timerPressed = () => {
     const other = useApp.getState().timer;
     if (other && other.missionId !== missionId && other.day === today()) {
-      showDialog(MISSION.busy.timerTitle(MISSION_BY_ID[other.missionId]?.title ?? ''), MISSION.busy.timerBody, [
+      const state = timerDone(other, Date.now()) ? 'done' : other.pausedAt != null ? 'paused' : 'running';
+      showDialog(MISSION.busy.timerTitle(MISSION_BY_ID[other.missionId]?.title, state), MISSION.busy.timerBody, [
         { label: MISSION.busy.no, cancel: true },
         { label: MISSION.busy.yes, onPress: beginTimer },
       ]);
@@ -283,12 +295,13 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     ]);
   };
 
-  /** The server keeps each day's proven count for rewards; it never sees a photo. */
+  /** The server keeps each day's proven count and points (missions plus the perfect-day bonus) for rewards; it never sees a photo. */
   const pushCount = () => {
     const s = useApp.getState();
     if (!s.account.userId) return;
-    const count = Object.values(s.record.missions?.[day] ?? {}).filter(m => m.verification.status === 'accepted').length;
-    syncProof(day, count).catch(() => {});
+    const accepted = Object.values(s.record.missions?.[day] ?? {}).filter(m => m.verification?.status === 'accepted');
+    const points = accepted.reduce((t, m) => t + m.points, 0) + (s.record.bonuses?.[day] ?? 0);
+    syncProof(day, accepted.length, points).catch(() => {});
   };
 
   /** A rejected attempt leaves nothing behind but a before photo that can still be used. */
@@ -306,9 +319,9 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   };
 
   const submit = async () => {
-    if (stage.kind !== 'review' || busy) return;
+    if (stage.kind !== 'review' || submitting.current) return;
+    submitting.current = true;
     const photos = stage.photos;
-    setBusy(true);
     setStage({ kind: 'checking', photos });
     try {
       const now = Date.now();
@@ -335,13 +348,19 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       if (timed) cancelTimerDone();
       pushCount();
       setStage({ kind: 'done', result, verification });
+    } catch {
+      // Nothing was credited (the store only changes once everything else has run): back to the photo.
+      setStage({ kind: 'review', photos });
+      showDialog(MISSION.checkFailed, undefined, OK);
     } finally {
-      setBusy(false);
+      submitting.current = false;
     }
   };
 
   /** Try again: straight back to the camera when the photo is the next step, else to the mission. */
   const retry = () => {
+    // The after photo came too soon after the before: it needs a few minutes yet, so the mission, not the camera.
+    const tooSoon = stage.kind === 'rejected' && stage.checks.some(c => c.id === 'order');
     setStage({ kind: 'detail' });
     const s = useApp.getState();
     const type = mission.proofType;
@@ -349,7 +368,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       type === 'PHOTO' ||
       type === 'PHOTO_AFTER' ||
       (type === 'TIMER_AND_PHOTO' && isOurs(s.timer) && timerDone(s.timer!, Date.now())) ||
-      (type === 'BEFORE_AFTER' && isOurs(s.pendingBefore));
+      (type === 'BEFORE_AFTER' && isOurs(s.pendingBefore) && !tooSoon);
     if (ready) void takeProof();
   };
 
@@ -394,7 +413,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       </View>
     ) : (
       <>
-        <Button title={MISSION.review.submit} onPress={() => void submit()} disabled={busy} />
+        <Button title={MISSION.review.submit} onPress={() => void submit()} />
         <TextButton title={MISSION.review.retake} onPress={() => void takeProof()} style={{ marginTop: 8 }} />
       </>
     );
@@ -415,16 +434,17 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
 
   // Proven: the photo, its stamp and the points. Nothing left to do.
   if (proven) {
-    const kept = proven.photos.some(p => proofImage(p.uri));
+    const photos = proven.photos ?? [];
+    const kept = photos.some(p => proofImage(p.uri));
     return (
       <Screen nav={nav}>
         <MissionHeading mission={mission} />
         <View style={{ marginTop: 24 }}>
           {kept ? (
-            proven.photos.length === 1 ? (
-              <ProofFrame photo={proven.photos[0]} day={day} label={MISSION.proven.stamp(proven.points)} a11y={MISSION.a11y.photo} style={{ width: '100%' }} />
+            photos.length === 1 ? (
+              <ProofFrame photo={photos[0]} day={day} label={MISSION.proven.stamp(proven.points)} a11y={MISSION.a11y.photo} style={{ width: '100%' }} />
             ) : (
-              <ProofPhotos photos={proven.photos} day={day} single={MISSION.proven.stamp(proven.points)} />
+              <ProofPhotos photos={photos} day={day} single={MISSION.proven.stamp(proven.points)} />
             )
           ) : (
             <T v="note" color={C.stone}>

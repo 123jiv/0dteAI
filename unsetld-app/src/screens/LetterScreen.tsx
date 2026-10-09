@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { dayCount, type MilestoneId } from '../core/record';
+import type { MilestoneId } from '../core/record';
 import { MILESTONES } from '../content';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
@@ -11,7 +11,7 @@ import { Button, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, MARGIN } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
-import { enableDropAlerts, runMilestoneAction, type ActionResult } from './access';
+import { accessDays, enableDropAlerts, runMilestoneAction, type ActionResult } from './access';
 import { ActionError } from './MilestoneScreen';
 
 /** A milestone or comeback letter. Shown once; opaque ink, fades in from black. */
@@ -19,7 +19,8 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
   const { letter } = route.params;
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const n = useApp(s => dayCount(s.record));
+  // Active days, as Rewards and the milestone pages count them.
+  const n = useApp(s => accessDays(s.record));
   const [result, setResult] = useState<ActionResult | null>(null);
 
   useEffect(() => {

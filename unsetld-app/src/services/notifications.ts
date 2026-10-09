@@ -66,6 +66,11 @@ export interface ScheduleInput {
   perDay: number;
   /** The streak as it stands today (until something is proven, yesterday's). */
   streak: number;
+  /**
+   * The streak as it will stand on each later day if nothing more is proven
+   * (a missed day breaks it unless an Off Day covers it). Days not listed use `streak`.
+   */
+  streaks?: Record<DayKey, number>;
   seed: string;
 }
 
@@ -94,8 +99,6 @@ export function composePlan(input: ScheduleInput, now: Date): ComposedNotificati
     count,
     first: input.first,
     last: input.last,
-    night: { enabled: false, time: 0 },
-    answered: new Set(),
     prompts: PROMPTS,
     seed: input.seed,
   });
@@ -103,17 +106,18 @@ export function composePlan(input: ScheduleInput, now: Date): ComposedNotificati
   const lastOf = (day: DayKey) => {
     let i = lastIndex.get(day);
     if (i === undefined) {
-      i = dayReminderTimes({ day, count, first: input.first, last: input.last, night: { enabled: false, time: 0 }, seed: input.seed }).length - 1;
+      i = dayReminderTimes({ day, count, first: input.first, last: input.last, seed: input.seed }).length - 1;
       lastIndex.set(day, i);
     }
     return i;
   };
+  const streakOn = (day: DayKey) => input.streaks?.[day] ?? input.streak;
   const out: ComposedNotification[] = [];
   for (const p of plan) {
     const isLast = p.index > 0 && p.index === lastOf(p.day);
     const missions = input.plans[p.day];
     if (!missions?.length) {
-      const body = p.index === 0 ? N.waiting(input.perDay) : isLast ? N.lastCall(input.streak) : p.prompt || N.waiting(input.perDay);
+      const body = p.index === 0 ? N.waiting(input.perDay) : isLast ? N.lastCall(streakOn(p.day)) : p.prompt || N.waiting(input.perDay);
       out.push({ ...p, body });
       continue;
     }
@@ -121,7 +125,7 @@ export function composePlan(input: ScheduleInput, now: Date): ComposedNotificati
     if (!open.length) continue; // everything's proven: no nudge
     const proven = missions.length - open.length;
     let body: string;
-    if (proven === 0 && isLast) body = N.lastCall(input.streak);
+    if (proven === 0 && isLast) body = N.lastCall(streakOn(p.day));
     else if (proven === 0 && p.index === 0) body = N.first(missions.map(m => m.title));
     else {
       const m = open[p.index % open.length];
@@ -255,7 +259,9 @@ export function takeEarlyDropTap(): boolean {
 }
 
 function toEvent(r: Notifications.NotificationResponse): NotificationEvent | null {
-  const key = `${r.notification.request.identifier}:${r.actionIdentifier}`;
+  // The delivery time is part of the key: the timer-done notification reuses
+  // one identifier, and each new one that's tapped must be heard.
+  const key = `${r.notification.request.identifier}:${r.notification.date}:${r.actionIdentifier}`;
   if (handled.has(key)) return null;
   handled.add(key);
   // Only a tap on the notification itself opens something. (A 2.x night check

@@ -69,7 +69,9 @@ function TierRow({ tier, status, need, last, busy, onPress }: { tier: RewardTier
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={R.tierA11y(tier.title, tier.points, tier.detail, text)}
-      accessibilityState={{ disabled: !ready || busy, busy }}
+      // aria-* rather than accessibilityState: react-native-web only reads the former.
+      aria-disabled={!ready || busy}
+      aria-busy={busy}
       disabled={!ready || busy}
       onPress={onPress}
       style={({ pressed }) => rowStyle(last, pressed)}>
@@ -118,7 +120,7 @@ function CodeRow({ item, expired, last }: { item: CodeItem; expired: boolean; la
       accessibilityRole="button"
       accessibilityLabel={R.codeA11y(item.title, item.code, until)}
       accessibilityHint={expired ? undefined : R.codeHint}
-      accessibilityState={{ disabled: expired }}
+      aria-disabled={expired}
       disabled={expired}
       onPress={open}
       style={({ pressed }) => rowStyle(last, pressed)}>

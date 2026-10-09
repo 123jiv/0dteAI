@@ -61,7 +61,7 @@ export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, 
   if (!mounted) return null;
   const scrim = y.interpolate({ inputRange: [0, sheetH], outputRange: [dim, 0], extrapolate: 'clamp' });
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents={visible ? 'box-none' : 'none'} accessibilityViewIsModal>
+    <View style={[StyleSheet.absoluteFill, { pointerEvents: visible ? 'box-none' : 'none' }]} accessibilityViewIsModal>
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#000', opacity: scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" accessibilityRole="button" />
       </Animated.View>

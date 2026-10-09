@@ -9,7 +9,7 @@ import { RULES, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
 import { useApp } from '../../state/store';
-import { Icon } from '../../ui/icons';
+import { Icon, SVG_HIDDEN } from '../../ui/icons';
 import { NavRow, Screen, Square, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, font, hairline, MARGIN } from '../../ui/tokens';
@@ -37,6 +37,19 @@ function activeBars(active: ReadonlySet<DayKey>, covered: readonly DayKey[], tod
 }
 
 /**
+ * The last day an Off Day covered, when it still belongs to the streak running now and
+ * happened within the last six days (so naming its weekday is unambiguous). Null otherwise:
+ * a covered day before a break says nothing about the streak that's going now.
+ */
+function coveredInRun(active: ReadonlySet<DayKey>, covered: readonly DayKey[], today: DayKey): DayKey | null {
+  const last = covered[covered.length - 1];
+  if (last === undefined || diffDays(last, today) > 6) return null;
+  const off = new Set(covered);
+  for (let d = addDays(last, 1); d < today; d = addDays(d, 1)) if (!active.has(d) && !off.has(d)) return null;
+  return last;
+}
+
+/**
  * Active days as a barcode: a full bar for a day with a proven mission, a short tick for a
  * missed one, a half bar for a day an Off Day covered. Today is red: a full bar once a
  * mission is proven, a tick until then.
@@ -47,7 +60,7 @@ function Barcode({ width, bars }: { width: number; bars: Bar[] }) {
   const total = bars.length * pitch;
   return (
     <View>
-      <Svg width={width} height={60} accessibilityElementsHidden importantForAccessibility="no">
+      <Svg width={width} height={60} {...SVG_HIDDEN}>
         {bars.map((b, i) => {
           const x = width - total + i * pitch + (pitch - bar) / 2;
           switch (b.kind) {
@@ -212,16 +225,15 @@ export function ProgressScreen({ navigation }: RootProps<'Progress'>) {
   const marks = milestones(record, today);
   const bars = activeBars(active, streak.covered, today);
   const firstActive = [...active].sort()[0];
-  const lastCovered = streak.covered[streak.covered.length - 1];
-  // Named by weekday only while that is unambiguous: within the last six days.
-  const showCovered = streak.current > 0 && lastCovered !== undefined && diffDays(lastCovered, today) <= 6;
+  const lastCovered = streak.current > 0 ? coveredInRun(active, streak.covered, today) : null;
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Today'));
   const proofs = Object.values(record.missions ?? {}).reduce(
-    (n, byId) => n + Object.values(byId).filter(m => m.verification.status === 'accepted' && m.photos.length > 0).length,
+    (n, byId) => n + Object.values(byId).filter(m => m.verification?.status === 'accepted' && (m.photos?.length ?? 0) > 0).length,
     0,
   );
 
   return (
-    <Screen nav={<NavRow onBack={() => navigation.goBack()} right={<TextButton title={PROGRESS.settings} onPress={() => navigation.navigate('Settings')} />} />}>
+    <Screen nav={<NavRow onBack={back} right={<TextButton title={PROGRESS.settings} onPress={() => navigation.navigate('Settings')} />} />}>
       <T v="title.xl" accessibilityRole="header" style={{ marginTop: 24 }}>
         {P.title}
       </T>
@@ -280,7 +292,7 @@ export function ProgressScreen({ navigation }: RootProps<'Progress'>) {
           </View>
         }
       />
-      {showCovered ? (
+      {lastCovered ? (
         <T v="body" style={{ marginBottom: 8 }}>
           {P.offCovered(PROGRESS.weekday(lastCovered))}
         </T>

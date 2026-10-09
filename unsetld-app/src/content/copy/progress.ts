@@ -153,7 +153,9 @@ export const PROGRESS = {
     dates: (range: string, left: number) => (left > 0 ? `${range} · ${soFar(left)}` : range),
     strongest: (name: string) => `Strongest area: ${name}`,
     didntGetTo: (short: string) => `Didn't get to: ${short}.`,
-    empty: 'No missions proven this week. Pick an area below and start with one.',
+    /** A week with nothing proven: still going, or already over. */
+    empty: 'Nothing proven yet this week. Pick an area below and start with one.',
+    emptyPast: 'Nothing proven that week. Pick an area below and start this week with one.',
     nextLabel: 'NEXT WEEK',
     nextBody: 'Pick one area to lean on.',
     leaning: (short: string) => `${short} takes the progress slot most days.`,

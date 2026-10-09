@@ -1,4 +1,5 @@
 import Svg, { Path } from 'react-native-svg';
+import { SVG_HIDDEN } from './icons';
 import { color as C } from './tokens';
 import { WALKER_FIG, WALKER_LAP, WALKER_VIEWBOX } from './walkerPaths';
 
@@ -20,8 +21,7 @@ export function Walker({ height, color = C.bone, lapelColor }: Props) {
       width={height * WALKER_RATIO}
       height={height}
       viewBox={WALKER_VIEWBOX}
-      accessibilityElementsHidden
-      importantForAccessibility="no">
+      {...SVG_HIDDEN}>
       <Path d={WALKER_FIG} fill={color} fillRule="evenodd" />
       <Path d={WALKER_LAP} fill={lapel} fillRule="evenodd" />
     </Svg>

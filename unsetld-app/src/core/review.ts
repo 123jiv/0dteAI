@@ -45,7 +45,7 @@ export function weeklyReview(r: RecordState, plans: Record<DayKey, DayPlan>, pro
   let activeDays = 0;
   const byTrack: Partial<Record<TrackId, number>> = {};
   for (let d = from; d <= to; d = addDays(d, 1)) {
-    const done = Object.values(r.missions?.[d] ?? {}).filter(m => m.verification.status === 'accepted');
+    const done = Object.values(r.missions?.[d] ?? {}).filter(m => m.verification?.status === 'accepted');
     if (done.length) activeDays += 1;
     for (const m of done) {
       missions += 1;

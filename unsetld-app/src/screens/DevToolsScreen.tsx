@@ -49,7 +49,7 @@ function accepted(at: number): Verification {
   return { status: 'accepted', method: 'on-device', checks: [{ id: 'photos', ok: true, note: D.checkNote }], at };
 }
 
-const isProven = (r: RecordState, day: DayKey, id: string) => r.missions?.[day]?.[id]?.verification.status === 'accepted';
+const isProven = (r: RecordState, day: DayKey, id: string) => r.missions?.[day]?.[id]?.verification?.status === 'accepted';
 
 /** A past or future day's plan, as the store would build it (no program). */
 function planFor(r: RecordState, plans: Record<DayKey, DayPlan>, day: DayKey): DayPlan {
@@ -109,6 +109,9 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
     for (const p of plan.missions) {
       const m = MISSION_BY_ID[p.missionId];
       if (!m || isProven(st().record, d, m.id)) continue;
+      // Proving it here closes its waiting before photo (the store forgets it); the file goes too.
+      const waiting = st().pendingBefore;
+      if (waiting?.missionId === m.id) deletePhoto(waiting.photo.uri);
       const at = Date.now();
       st().completeMission(m.id, fakePhotos(m, d, at), accepted(at), {
         verifiedClock: false,
@@ -195,8 +198,10 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
         onPress: () => {
           backToReal();
           for (const byId of Object.values(st().record.missions ?? {})) {
-            for (const m of Object.values(byId)) for (const p of m.photos) deletePhoto(p.uri);
+            for (const m of Object.values(byId)) for (const p of m.photos ?? []) deletePhoto(p.uri);
           }
+          const waiting = st().pendingBefore;
+          if (waiting) deletePhoto(waiting.photo.uri);
           st().setRecord(emptyRecord());
           useApp.setState({ momentsShown: [], reviewSeen: null, timer: null, pendingBefore: null });
         },

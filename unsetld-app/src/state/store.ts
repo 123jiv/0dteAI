@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type PersistStorage } from 'zustand/middleware';
 import { AppConfig } from '../config/app';
 import { randomSalt } from '../core/random';
-import { claimCode, completeTask, dayPoints, pointsBalance, uncompleteTask } from '../core/points';
+import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
 import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, prunePlans, rerollMission as rerollCore, type MissionHistory } from '../core/missions';
 import { programMissions, programProgress, startProgram as startProgramCore } from '../core/programs';
@@ -13,55 +13,33 @@ import { activeDays } from '../core/progress';
 import { balance, redeem } from '../core/rewards';
 import { computeStreak } from '../core/streak';
 import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as startCore, type FocusTimer } from '../core/timer';
-import {
-  answerNight,
-  claimPatch,
-  emptyRecord,
-  markLetterShown,
-  recordDay,
-  type Letter,
-} from '../core/record';
+import { claimPatch, emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
-import type { ChapterId, Colorway, DayPlan, PointsConfig, Profile, ProgramState, Proof, ProofPhoto, RecordState, RewardTier, TrackId, Verification, WorkItem, YourLine } from '../core/types';
-import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, POINTS, PROGRAM_BY_ID, RULES, STANDARD_RULES } from '../content';
+import type { ChapterId, Colorway, DayPlan, Profile, ProgramState, ProofPhoto, RecordState, RewardTier, TrackId, Verification } from '../core/types';
+import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, RULES } from '../content';
 import { getDayOffset, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
-import { checkTrustedTime } from '../services/trustedTime';
+import { deletePhoto } from '../services/proof';
+import { cancelTimerDone } from '../services/timerNotify';
 import { appStorage } from './storage';
 
 export interface Settings {
   onboarded: boolean;
-  /** Chapters in the mix (Full Edition). Discipline is always in. */
-  chapters: ChapterId[];
-  /** Free tier: the one chapter besides Discipline. */
-  freeChapter: ChapterId;
   colorway: string;
-  strongLanguage: boolean;
   reminders: { on: boolean; count: number; first: number; last: number };
-  night: { on: boolean; time: number };
   dropAlerts: boolean;
-  /** The user's three rules. */
-  standard: string[];
-  /** A rule the user wrote, kept so the standard page can show it again. */
-  ownRule: string | null;
-  /** Full Edition: up to three more tasks of your own, every day. */
-  ownTasks: { id: string; text: string }[];
-  /** The day-1 "Swipe up for the next line." hint has done its job. */
-  hintDone: boolean;
   /** Proof photos are cleared after this many days (0 = keep). The mission record stays. */
   proofRetentionDays: number;
   /** Tester tools: focus timers run this many times faster (preview and dev builds only). */
   timerSpeed: number;
 }
 
+/** One-time UI state. */
 export interface Reading {
-  /** Saved line numbers, most recent first. */
-  saved: number[];
-  /** Today has already greeted this day (haptic, walker nudge). */
-  dayHeadShown: DayKey | null;
+  /** The day-3 Access note on Home has been seen. */
   accessIntroShown: boolean;
-  /** Days on record when the Record road last showed; the walker walks only when it changes. */
+  /** Active days when the Rewards road last showed; the walker walks only when it changes. */
   road: number;
 }
 
@@ -113,7 +91,6 @@ interface State {
   settings: Settings;
   reading: Reading;
   record: RecordState;
-  yourLines: YourLine[];
   premium: Premium;
   account: Account;
   remote: Remote;
@@ -140,25 +117,12 @@ interface State {
 
   updateSettings: (patch: Partial<Settings>) => void;
   completeOnboarding: (verified: boolean) => void;
-  recordToday: (verified: boolean) => boolean;
-  answerNight: (day: DayKey, held: boolean) => void;
-  toggleSave: (no: number) => boolean;
-  /** Marks a task of today's work done. Returns the points it earned. */
-  completeTask: (item: WorkItem, proof: Proof | null) => number;
-  uncompleteTask: (key: string) => void;
-  addOwnTask: (text: string) => void;
-  removeOwnTask: (id: string) => void;
-  addYourLine: (text: string) => void;
-  updateYourLine: (id: string, text: string) => void;
-  removeYourLine: (id: string) => void;
   setPremium: (p: Partial<Premium>) => void;
   signIn: (a: Account) => void;
   signOut: () => void;
   setRemote: (r: Partial<Remote>) => void;
   letterShown: (l: Letter) => void;
   claimPatch: () => void;
-  claimCode: (tier: PointsConfig['tiers'][number], minted: { code: string; url: string }) => void;
-  markDayHead: (day: DayKey) => void;
   markAccessIntro: () => void;
   markRoad: (n: number) => void;
   setPreviewColorway: (id: string | null) => void;
@@ -191,24 +155,14 @@ interface State {
 
 export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
-  chapters: ['discipline', 'focus', 'training'],
-  freeChapter: 'focus',
   colorway: 'black',
-  strongLanguage: false,
   reminders: { on: false, count: 3, first: 7 * 60, last: 22 * 60 },
-  night: { on: true, time: 21 * 60 + 30 },
   dropAlerts: false,
-  standard: STANDARD_RULES.slice(0, 3),
-  ownRule: null,
-  ownTasks: [],
-  hintDone: false,
   proofRetentionDays: RULES.proofRetentionDays,
   timerSpeed: 1,
 };
 
 const EMPTY_READING: Reading = {
-  saved: [],
-  dayHeadShown: null,
   accessIntroShown: false,
   road: 0,
 };
@@ -221,7 +175,6 @@ export const useApp = create<State>()(
       settings: DEFAULT_SETTINGS,
       reading: EMPTY_READING,
       record: emptyRecord(),
-      yourLines: [],
       premium: { active: false, plan: null, renews: null, mode: null },
       account: { userId: null, email: null },
       remote: { accessEnabled: null, collection: AppConfig.defaultCollection },
@@ -243,10 +196,17 @@ export const useApp = create<State>()(
 
       ensurePlan: day => {
         const d = day ?? today();
-        const have = get().plans[d];
-        if (have) return have;
-        const plan = buildPlan(get(), d);
-        set(s => ({ plans: { ...prunePlans(s.plans, d), [d]: plan } }));
+        const s = get();
+        const have = s.plans[d];
+        if (have && have.missions.every(p => MISSION_BY_ID[p.missionId])) return have;
+        let plan: DayPlan;
+        if (!have) plan = buildPlan(s, d);
+        else {
+          // A library update removed a planned mission: rebuild an untouched day, otherwise drop it.
+          const touched = have.rerolls > 0 || Object.keys(s.record.missions?.[d] ?? {}).length > 0;
+          plan = touched ? { ...have, missions: have.missions.filter(p => MISSION_BY_ID[p.missionId]) } : buildPlan(s, d);
+        }
+        set(st => ({ plans: { ...prunePlans(st.plans, d), [d]: plan } }));
         return plan;
       },
 
@@ -269,7 +229,12 @@ export const useApp = create<State>()(
         if (!old || s.record.missions?.[d]?.[old.missionId]) return 'none';
         const next = rerollCore(plan, index, planInput(s, d));
         if (!next) return 'none';
-        set(st => ({ plans: { ...st.plans, [d]: next }, skips: addSkip(st.skips, old.missionId, d) }));
+        // A running timer or a waiting before photo for the swapped-out mission goes with it.
+        const timer = s.timer?.missionId === old.missionId ? null : s.timer;
+        const pendingBefore = s.pendingBefore?.missionId === old.missionId ? null : s.pendingBefore;
+        if (s.timer && !timer) cancelTimerDone();
+        if (s.pendingBefore && !pendingBefore) void deletePhoto(s.pendingBefore.photo.uri);
+        set(st => ({ plans: { ...st.plans, [d]: next }, skips: addSkip(st.skips, old.missionId, d), timer, pendingBefore }));
         return 'ok';
       },
 
@@ -310,7 +275,7 @@ export const useApp = create<State>()(
           pendingBefore: s.pendingBefore?.missionId === missionId ? null : s.pendingBefore,
         });
         const after = { balance: balance(c.record), streak: computeStreak(activeDays(c.record), d).current };
-        const perfect = !!plan && plan.missions.every(p => c.record.missions[d]?.[p.missionId]?.verification.status === 'accepted');
+        const perfect = !!plan && plan.missions.every(p => c.record.missions[d]?.[p.missionId]?.verification?.status === 'accepted');
         return { points: c.points, bonus: c.bonus, balanceBefore: before.balance, balanceAfter: after.balance, streakBefore: before.streak, streakAfter: after.streak, perfect, accepted };
       },
 
@@ -337,55 +302,11 @@ export const useApp = create<State>()(
       updateSettings: patch => set(s => ({ settings: { ...s.settings, ...patch } })),
 
       completeOnboarding: verified => {
-        const s = get();
-        // Free tier keeps Discipline plus the first other chapter chosen.
-        const extra = s.settings.chapters.find(c => c !== 'discipline') ?? 'focus';
-        // 3.0: a day goes on record when a mission is proven, not when onboarding ends.
+        // A day goes on record when a mission is proven, not when onboarding ends.
         void verified;
-        set({ settings: { ...s.settings, onboarded: true, freeChapter: extra } });
+        set(s => ({ settings: { ...s.settings, onboarded: true } }));
         get().ensurePlan(today());
       },
-
-      recordToday: verified => {
-        const before = get().record;
-        const after = recordDay(before, today(), verified);
-        if (after !== before) set({ record: after });
-        return Boolean(after.days[today()]) && !before.days[today()];
-      },
-
-      answerNight: (day, held) => set(s => ({ record: answerNight(s.record, day, held) })),
-
-      toggleSave: no => {
-        const has = get().reading.saved.includes(no);
-        set(s => ({
-          reading: { ...s.reading, saved: has ? s.reading.saved.filter(n => n !== no) : [no, ...s.reading.saved] },
-        }));
-        return !has;
-      },
-
-      completeTask: (item, proof) => {
-        const d = today();
-        const before = dayPoints(get().record, POINTS, d);
-        set(s => ({ record: completeTask(s.record, d, item, proof, Date.now()) }));
-        return dayPoints(get().record, POINTS, d) - before;
-      },
-      uncompleteTask: key => set(s => ({ record: uncompleteTask(s.record, today(), key) })),
-      addOwnTask: text =>
-        set(s => ({
-          settings: {
-            ...s.settings,
-            ownTasks: [...s.settings.ownTasks, { id: Date.now().toString(36), text: text.trim() }].slice(0, 3),
-          },
-        })),
-      removeOwnTask: id => set(s => ({ settings: { ...s.settings, ownTasks: s.settings.ownTasks.filter(t => t.id !== id) } })),
-
-      addYourLine: text =>
-        set(s => ({
-          yourLines: [{ id: `y${Date.now().toString(36)}`, text: text.trim(), createdAt: Date.now() }, ...s.yourLines],
-        })),
-      updateYourLine: (id, text) =>
-        set(s => ({ yourLines: s.yourLines.map(y => (y.id === id ? { ...y, text: text.trim() } : y)) })),
-      removeYourLine: id => set(s => ({ yourLines: s.yourLines.filter(y => y.id !== id) })),
 
       setPremium: p => set(s => ({ premium: { ...s.premium, ...p } })),
       signIn: a => set({ account: a }),
@@ -394,10 +315,6 @@ export const useApp = create<State>()(
 
       letterShown: l => set(s => ({ record: markLetterShown(s.record, l) })),
       claimPatch: () => set(s => ({ record: claimPatch(s.record, today()) })),
-      claimCode: (tier, minted) =>
-        set(s => ({ record: claimCode(s.record, POINTS, tier, s.remote.collection, today(), minted) })),
-
-      markDayHead: day => set(s => ({ reading: { ...s.reading, dayHeadShown: day } })),
       markAccessIntro: () => set(s => ({ reading: { ...s.reading, accessIntroShown: true } })),
       markRoad: n => {
         if (get().reading.road !== n) set(s => ({ reading: { ...s.reading, road: n } }));
@@ -430,7 +347,6 @@ export const useApp = create<State>()(
         settings: s.settings,
         reading: s.reading,
         record: s.record,
-        yourLines: s.yourLines,
         premium: s.premium,
         account: s.account,
         remote: s.remote,
@@ -445,15 +361,15 @@ export const useApp = create<State>()(
         reviewSeen: s.reviewSeen,
         momentsShown: s.momentsShown,
       }),
-      version: 2,
+      version: 3,
       migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<State>;
         return {
           ...current,
           ...p,
-          settings: { ...DEFAULT_SETTINGS, ...p.settings },
-          reading: { ...EMPTY_READING, ...p.reading },
+          settings: known(DEFAULT_SETTINGS, p.settings),
+          reading: known(EMPTY_READING, p.reading),
           record: { ...emptyRecord(), ...p.record },
           profile: { ...DEFAULT_PROFILE, ...p.profile },
         };
@@ -501,17 +417,24 @@ const CHAPTER_TO_TRACK: Record<ChapterId, TrackId> = {
  * codes already taken) carry over as a starting balance.
  */
 export function migrateState(p: Partial<State>, version: number): Partial<State> {
+  // 2 → 3 only dropped 2.x-only fields, which merge() leaves behind.
   if (version >= 2) return p;
-  const settings = (p.settings ?? {}) as Partial<Settings>;
+  const settings = (p.settings ?? {}) as { chapters?: ChapterId[]; freeChapter?: ChapterId };
   const chapters = [...(settings.chapters ?? []), settings.freeChapter].filter(Boolean) as ChapterId[];
   const tracks = [...new Set(chapters.map(c => CHAPTER_TO_TRACK[c]))].slice(0, 3);
   const record = { ...emptyRecord(), ...p.record } as RecordState;
-  const legacy = Object.keys(record.work ?? {}).length || (record.codes ?? []).length ? pointsBalance(record, POINTS) : 0;
   return {
     ...p,
     profile: { ...DEFAULT_PROFILE, tracks: tracks.length ? tracks : DEFAULT_PROFILE.tracks },
-    record: { ...record, legacyPoints: record.legacyPoints || legacy },
+    record: { ...record, legacyPoints: record.legacyPoints || legacyBalance(record) },
   };
+}
+
+/** Only the keys the current version knows, so retired 2.x settings aren't saved again. */
+function known<T extends object>(defaults: T, saved: Partial<T> | undefined): T {
+  const out = { ...defaults };
+  for (const k of Object.keys(defaults) as (keyof T)[]) if (saved && saved[k] !== undefined) out[k] = saved[k] as T[keyof T];
+  return out;
 }
 
 /**
@@ -547,7 +470,7 @@ else useApp.persist.onFinishHydration(markHydrated);
 let readFails = 0;
 
 /**
- * Storage couldn't be read. A night-check action can launch the app in the
+ * Storage couldn't be read. A notification tap (timer done, a drop alert) can launch the app in the
  * background while the phone is still locked after a restart, when its files
  * can't be read yet. Defaults then would stay in memory, show onboarding on the
  * next open and be saved over the real record. So it reads again in the
@@ -568,27 +491,6 @@ function readFailed() {
   });
 }
 
-let checking: DayKey | null = null;
-
-/**
- * Opening Today or Record in the foreground puts the day on record. A day that
- * isn't verified yet (Day 1 from onboarding, or a first open while offline)
- * retries the clock check on each open until it is.
- */
-export function putDayOnRecord(day: DayKey): void {
-  const st = useApp.getState();
-  if (!st.settings.onboarded) return;
-  const entry = st.record.days[day];
-  if (!entry) st.recordToday(false);
-  // One check per day at a time: Today and Record can both ask while it's offline.
-  if (entry?.verified || checking === day) return;
-  checking = day;
-  checkTrustedTime().then(t => {
-    if (checking === day) checking = null;
-    if (t.verified && today() === day) useApp.getState().recordToday(true);
-  });
-}
-
 const onAppState = (cb: () => void) => {
   const sub = AppState.addEventListener('change', cb);
   return () => sub.remove();
@@ -602,28 +504,20 @@ export function useAppActive(): boolean {
 
 export interface Entitlements {
   premium: boolean;
-  /** Chapters actually in the mix. */
-  mix: ChapterId[];
   colorway: Colorway;
   maxReminders: number;
-  yourLines: boolean;
-  /** Tasks of your own, on top of the rules and the daily task. Free for everyone. */
-  maxOwnTasks: number;
+  /** Swaps a day. */
+  maxSwaps: number;
 }
 
 export function entitlementsOf(s: Pick<State, 'settings' | 'premium'>): Entitlements {
   const premium = s.premium.active;
   const chosen = COLORWAY_BY_ID[s.settings.colorway] ?? COLORWAYS[0];
-  const mix: ChapterId[] = premium
-    ? ['discipline', ...s.settings.chapters.filter(c => c !== 'discipline')]
-    : ['discipline', s.settings.freeChapter];
   return {
     premium,
-    mix,
     colorway: premium || chosen.free ? chosen : COLORWAYS[0],
     maxReminders: premium ? FULL_MAX_REMINDERS : FREE_MAX_REMINDERS,
-    yourLines: premium,
-    maxOwnTasks: 3,
+    maxSwaps: premium ? RULES.rerolls.full : RULES.rerolls.free,
   };
 }
 

@@ -1,5 +1,14 @@
-import Svg, { Path } from 'react-native-svg';
+import { Platform } from 'react-native';
+import Svg, { Path, type SvgProps } from 'react-native-svg';
 import { color as C } from './tokens';
+
+/**
+ * Keeps a drawing out of VoiceOver. On the web react-native-svg hands its props
+ * straight to the <svg> element, where the iOS props are unknown attributes;
+ * aria-hidden is the web's own word for the same thing.
+ */
+export const SVG_HIDDEN: SvgProps =
+  Platform.OS === 'web' ? { 'aria-hidden': true } : { accessibilityElementsHidden: true, importantForAccessibility: 'no' };
 
 export type IconName =
   | 'bookmark'
@@ -30,7 +39,7 @@ export function Icon({ name, size = 24, color = C.stone }: Props) {
     strokeLinejoin: 'round' as const,
   };
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden importantForAccessibility="no">
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...SVG_HIDDEN}>
       {(name === 'bookmark' || name === 'bookmark-filled') && (
         <Path {...p} fill={name === 'bookmark-filled' ? color : 'none'} d="M6.5 3.75h11v16.5L12 16.4l-5.5 3.85V3.75z" />
       )}

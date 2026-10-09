@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { VOLUME } from '../../content';
+import { MISSIONS } from '../../content';
 import { COPY } from '../../content/copy';
 import type { RootProps } from '../../navigation/types';
 import { useApp } from '../../state/store';
@@ -95,7 +95,7 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
         <Text maxFontSizeMultiplier={1.3} style={{ fontFamily: font.serif, fontSize: 22, color: C.bone }} accessibilityRole="header">
           {COPY.wordmark}
         </Text>
-        <T v="mono">{COPY.volumeLabel(VOLUME)}</T>
+        <T v="mono">{COPY.libraryLabel(MISSIONS.length)}</T>
       </View>
 
       <Animated.View

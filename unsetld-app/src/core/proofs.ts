@@ -15,7 +15,7 @@ export function fingerprint(data: string): string {
 /** Fingerprints of every photo already used. */
 export function usedHashes(r: RecordState): Set<string> {
   const out = new Set<string>();
-  for (const byId of Object.values(r.missions ?? {})) for (const m of Object.values(byId)) for (const p of m.photos) if (p.hash) out.add(p.hash);
+  for (const byId of Object.values(r.missions ?? {})) for (const m of Object.values(byId)) for (const p of m.photos ?? []) if (p.hash) out.add(p.hash);
   return out;
 }
 
@@ -32,7 +32,7 @@ export function photosToClear(r: RecordState, days: number, today: DayKey): Stor
   const out: StoredPhoto[] = [];
   for (const [day, byId] of Object.entries(r.missions ?? {})) {
     if (day >= cutoff) continue;
-    for (const m of Object.values(byId)) for (const p of m.photos) if (p.uri) out.push({ day, missionId: m.missionId, uri: p.uri });
+    for (const m of Object.values(byId)) for (const p of m.photos ?? []) if (p.uri) out.push({ day, missionId: m.missionId, uri: p.uri });
   }
   return out;
 }
@@ -44,7 +44,7 @@ export function clearPhotos(r: RecordState, cleared: readonly StoredPhoto[]): Re
   const missions: RecordState['missions'] = {};
   for (const [day, byId] of Object.entries(r.missions)) {
     missions[day] = Object.fromEntries(
-      Object.entries(byId).map(([id, m]): [string, MissionDone] => [id, { ...m, photos: m.photos.map(p => (gone.has(p.uri) ? { ...p, uri: '' } : p)) }]),
+      Object.entries(byId).map(([id, m]): [string, MissionDone] => [id, { ...m, photos: (m.photos ?? []).map(p => (gone.has(p.uri) ? { ...p, uri: '' } : p)) }]),
     );
   }
   return { ...r, missions };

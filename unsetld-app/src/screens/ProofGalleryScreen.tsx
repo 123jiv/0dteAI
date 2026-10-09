@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { allDone } from '../core/progress';
-import { shortDate, type DayKey } from '../core/time';
+import { addDays, shortDate, type DayKey } from '../core/time';
 import type { Mission, MissionDone, ProofPhoto } from '../core/types';
 import { MISSION_BY_ID, TRACK_BY_ID } from '../content';
 import { PROGRESS } from '../content/copy/progress';
@@ -79,7 +79,7 @@ interface Item {
 /** Proven missions with photos, newest first. */
 function items(record: Parameters<typeof allDone>[0]): Item[] {
   return allDone(record)
-    .filter(m => m.verification.status === 'accepted' && m.photos.length > 0)
+    .filter(m => m.verification?.status === 'accepted' && (m.photos?.length ?? 0) > 0)
     .reverse()
     .map(({ day, ...done }) => {
       const mission = MISSION_BY_ID[done.missionId];
@@ -88,7 +88,7 @@ function items(record: Parameters<typeof allDone>[0]): Item[] {
         done,
         mission,
         title: mission?.title ?? G.fallbackTitle(done.missionId),
-        cover: done.photos.find(p => p.kind !== 'before') ?? done.photos[0] ?? null,
+        cover: (done.photos ?? []).find(p => p.kind !== 'before') ?? done.photos?.[0] ?? null,
       };
     });
 }
@@ -97,6 +97,9 @@ function items(record: Parameters<typeof allDone>[0]): Item[] {
 function Photo({ photo, day, width, maxHeight, label, cleared, said }: { photo: ProofPhoto; day: DayKey; width: number; maxHeight: number; label: string; cleared: string; said: string }) {
   const src = proofImage(photo.uri);
   const h = Math.min((width * 5) / 4, maxHeight);
+  // Same insets as the mission's proof frame: a half-width stamp needs the room for BEFORE.
+  const small = width < 200;
+  const inset = small ? 6 : 12;
   return (
     <View
       accessible
@@ -106,8 +109,8 @@ function Photo({ photo, day, width, maxHeight, label, cleared, said }: { photo: 
       {src ? (
         <>
           <Image source={{ uri: src }} style={StyleSheet.absoluteFill} contentFit="cover" />
-          <View style={{ position: 'absolute', left: 10, right: 10, bottom: 10 }}>
-            <ProofStamp day={day} takenAt={photo.takenAt} label={label} small={width < 200} />
+          <View style={{ position: 'absolute', left: inset, right: inset, bottom: inset }}>
+            <ProofStamp day={day} takenAt={photo.takenAt} label={label} small={small} />
           </View>
         </>
       ) : (
@@ -126,6 +129,7 @@ export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const record = useApp(s => s.record);
+  const today = useApp(s => s.currentDay);
   const keepDays = useApp(s => s.settings.proofRetentionDays);
   const list = items(record);
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -133,11 +137,15 @@ export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
   const gap = 8;
   const size = Math.floor((width - MARGIN * 2 - gap * 2) / 3);
   const w = width - MARGIN * 2;
-  const cleared = G.cleared(keepDays);
+  // A photo gone from the record says how long photos are kept only when that's why it went:
+  // it's older than the setting. One cleared under a shorter earlier setting just says cleared.
+  const cutoff = keepDays > 0 ? addDays(today, -keepDays) : null;
+  const clearedOn = (day: DayKey) => (cutoff && day < cutoff ? G.cleared(keepDays) : G.cleared(0));
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Today'));
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
-      <NavRow onBack={() => navigation.goBack()} />
+      <NavRow onBack={back} />
       <FlatList
         data={list}
         keyExtractor={i => `${i.day}:${i.done.missionId}`}
@@ -158,18 +166,22 @@ export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
             <ProofThumb
               uri={item.cover?.uri ?? ''}
               size={size}
-              placeholder={cleared}
+              height={Math.round((size * 5) / 4)}
+              placeholder={clearedOn(item.day)}
               label={G.a11yThumb(item.title, shortDate(item.day))}
               onPress={() => setOpenKey(`${item.day}:${item.done.missionId}`)}
             />
-            <T v="note" numberOfLines={2}>
-              {item.title}
-            </T>
-            <T v="mono.s">{shortDate(item.day)}</T>
+            {/* The thumbnail already says the title and date to VoiceOver. */}
+            <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ gap: 6 }}>
+              <T v="note" numberOfLines={2}>
+                {item.title}
+              </T>
+              <T v="mono.s">{shortDate(item.day)}</T>
+            </View>
           </View>
         )}
       />
-      {open ? <Viewer item={open} width={w} maxHeight={height * 0.62} cleared={cleared} onClose={() => setOpenKey(null)} /> : null}
+      {open ? <Viewer item={open} width={w} maxHeight={height * 0.62} cleared={clearedOn(open.day)} onClose={() => setOpenKey(null)} /> : null}
     </View>
   );
 }
@@ -178,15 +190,15 @@ export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
 function Viewer({ item, width, maxHeight, cleared, onClose }: { item: Item; width: number; maxHeight: number; cleared: string; onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const { done, day, title, mission } = item;
-  const before = done.photos.find(p => p.kind === 'before');
-  const after = done.photos.find(p => p.kind === 'after');
+  const before = (done.photos ?? []).find(p => p.kind === 'before');
+  const after = (done.photos ?? []).find(p => p.kind === 'after');
   const pair = before && after ? [before, after] : null;
   const single = pair ? null : item.cover;
   const half = Math.floor((width - 8) / 2);
   const track = TRACK_BY_ID[done.track]?.short.toUpperCase() ?? '';
   const proven = G.proven(clockTime(done.doneAt), shortDate(day), done.points);
   return (
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: C.ink }]} accessibilityViewIsModal>
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: C.ink }]} accessibilityViewIsModal onAccessibilityEscape={onClose}>
       <NavRow onClose={onClose} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: MARGIN, paddingTop: 16, paddingBottom: insets.bottom + 40 }}>
         <T v="label">{[PROGRESS.slot[done.slot], track].filter(Boolean).join(' · ')}</T>

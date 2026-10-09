@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { Profile, Track, TrackId } from '../../core/types';
-import { TRACKS } from '../../content';
+import { TRACK_BY_ID, TRACKS } from '../../content';
 import { ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection, warning } from '../../services/haptics';
@@ -65,7 +65,8 @@ export function Choice({
     <Pressable
       accessibilityRole={role}
       accessibilityLabel={label}
-      accessibilityState={{ checked: on }}
+      // aria-checked rather than accessibilityState: react-native-web only reads the former.
+      aria-checked={on}
       onPress={onPress}
       style={({ pressed }) => [
         {
@@ -101,7 +102,8 @@ export function Chip({
     <Pressable
       accessibilityRole="radio"
       accessibilityLabel={label}
-      accessibilityState={{ checked: on }}
+      // aria-checked rather than accessibilityState: react-native-web only reads the former.
+      aria-checked={on}
       onPress={onPress}
       hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
       style={({ pressed }) => [
@@ -158,7 +160,8 @@ const ROWS: Track[][] = TRACKS.reduce<Track[][]>((rows, t, i) => {
 export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
   const edit = Boolean(route.params?.edit);
   const { value, change, save } = useProfileDraft(edit);
-  const chosen = value.tracks;
+  // A saved id the library no longer has would count toward three with no tile to take it off.
+  const chosen = value.tracks.filter(id => TRACK_BY_ID[id]);
   const full = chosen.length >= MAX;
   const [flash] = useState(() => new Animated.Value(1));
 
@@ -186,10 +189,10 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
     // A week's lean on a track that's no longer chosen goes with it.
     const priority = value.priority && chosen.includes(value.priority) ? value.priority : null;
     if (edit) {
-      save({ priority });
+      save({ tracks: chosen, priority });
       navigation.goBack();
     } else {
-      if (priority !== value.priority) change({ priority });
+      if (priority !== value.priority || chosen.length !== value.tracks.length) change({ tracks: chosen, priority });
       navigation.navigate('AboutYou');
     }
   };

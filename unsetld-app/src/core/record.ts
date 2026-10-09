@@ -37,44 +37,9 @@ export function recordDay(r: RecordState, day: DayKey, verified: boolean): Recor
   return { ...r, days: { ...r.days, [day]: { verified } } };
 }
 
-export function answerNight(r: RecordState, day: DayKey, held: boolean): RecordState {
-  return { ...r, nights: { ...r.nights, [day]: held } };
-}
-
 /** "Day N": the number of days on record. */
 export function dayCount(r: RecordState): number {
   return Object.keys(r.days).length;
-}
-
-export interface Stats {
-  /** Days on record. */
-  total: number;
-  /** Consecutive days on record ending today (0 if today isn't on record yet and yesterday wasn't either). */
-  run: number;
-  longest: number;
-  /** Nights answered Held, among days on record. */
-  held: number;
-}
-
-export function stats(r: RecordState, today: DayKey): Stats {
-  const days = sortedDays(r);
-  let longest = 0;
-  let cur = 0;
-  let prev: DayKey | null = null;
-  for (const d of days) {
-    cur = prev && diffDays(prev, d) === 1 ? cur + 1 : 1;
-    longest = Math.max(longest, cur);
-    prev = d;
-  }
-  // Current run: count back from today (or yesterday, if today isn't on record yet).
-  let run = 0;
-  let cursor = r.days[today] ? today : addDays(today, -1);
-  while (r.days[cursor]) {
-    run++;
-    cursor = addDays(cursor, -1);
-  }
-  const held = days.filter(d => r.nights[d] === true).length;
-  return { total: days.length, run, longest, held };
 }
 
 export interface AccessState {

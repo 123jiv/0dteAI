@@ -22,7 +22,7 @@ const num = (n: number) => n.toLocaleString('en-US');
 export const HOME = {
   brand: 'UNSETLD',
   day: (n: number) => `DAY ${String(n).padStart(3, '0')}`,
-  a11yDay: (n: number) => (n === 1 ? '1 day with a proven mission' : `${n} days with a proven mission`),
+  a11yDay: (n: number) => `Day ${n}`,
   num,
 
   stats: {
@@ -123,13 +123,15 @@ export const HOME = {
   },
 
   a11y: {
+    slot: { quick: 'Quick win', progress: 'Progress', challenge: 'Challenge' } satisfies Record<MissionSlot, string>,
+    label: (slot: string, track: string) => (track ? `${slot}, ${track}` : slot),
     card: (label: string, title: string, rest: string) => `${label}. ${title}. ${rest}`,
     meta: (minutes: number, points: number, badge: string | null) =>
       `${minutes} minutes, ${points} points${badge ? `, ${badge.toLowerCase()}` : ''}`,
     proven: (time: string, points: number) => `Proven at ${time}, ${points} points`,
     hint: 'Opens the mission',
-    timerRunning: (clock: string) => `Timer running, ${clock} left`,
-    timerPaused: (clock: string) => `Timer paused, ${clock} left`,
+    timerRunning: (minutes: number) => `Timer running, ${minutes === 1 ? '1 minute' : `${minutes} minutes`} left`,
+    timerPaused: (minutes: number) => `Timer paused, ${minutes === 1 ? '1 minute' : `${minutes} minutes`} left`,
     timerDone: 'Timer done, take the proof photo',
     afterWaiting: 'Before photo saved, after photo next',
     provenThumb: 'Proof photo',

@@ -3,7 +3,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Animated, Pressable, View } from 'react-native';
+import { AccessibilityInfo, Animated, Platform, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clock as mmss, remainingSeconds, timerDone, type FocusTimer } from '../../core/timer';
 import type { Colorway, Mission, MissionDone, ProofPhoto } from '../../core/types';
@@ -20,6 +20,9 @@ import { Walker } from '../../ui/Walker';
 
 /** Lets the Mission modal slide away before a completion plays on Home. */
 export const ARRIVE_DELAY = 350;
+
+/** The browser preview has no native animation driver; asking for it there only logs a warning. */
+const NATIVE = Platform.OS !== 'web';
 
 const TABULAR = { fontVariant: ['lining-nums', 'tabular-nums'] as ('lining-nums' | 'tabular-nums')[] };
 
@@ -237,7 +240,8 @@ function useRemaining(timer: FocusTimer | null, live: boolean): number {
 
 /** The photo a proven card shows: the after photo of a pair, else the last one. */
 function cardPhoto(done: MissionDone): ProofPhoto | undefined {
-  return done.photos.find(p => p.kind === 'after') ?? done.photos[done.photos.length - 1];
+  const photos = done.photos ?? [];
+  return photos.find(p => p.kind === 'after') ?? photos[photos.length - 1];
 }
 
 function actionLabel(a: CardAction, remaining: number): string {
@@ -250,7 +254,9 @@ function actionSaid(a: CardAction, remaining: number): string | null {
   if (a.kind === 'after') return HOME.a11y.afterWaiting;
   if (a.kind === 'timer') {
     if (remaining <= 0) return HOME.a11y.timerDone;
-    return a.timer.pausedAt ? HOME.a11y.timerPaused(mmss(remaining)) : HOME.a11y.timerRunning(mmss(remaining));
+    // Whole minutes, so VoiceOver isn't handed a label that changes every second.
+    const minutes = Math.ceil(remaining / 60);
+    return a.timer.pausedAt ? HOME.a11y.timerPaused(minutes) : HOME.a11y.timerRunning(minutes);
   }
   return null;
 }
@@ -296,7 +302,9 @@ export function MissionCard({
 }) {
   const scale = useSerifScale();
   const track = TRACK_BY_ID[mission.track]?.short ?? '';
-  const label = HOME.cardLabel(HOME.slot[mission.slot], track.toUpperCase());
+  const label = track ? HOME.cardLabel(HOME.slot[mission.slot], track.toUpperCase()) : HOME.slot[mission.slot];
+  // Read aloud as words ("Quick win, Focus"), not as a capitalised label with a dot in it.
+  const spoken = HOME.a11y.label(HOME.a11y.slot[mission.slot], track);
   const badge = badgeOf(mission);
   const proven = Boolean(done);
 
@@ -346,14 +354,19 @@ export function MissionCard({
     };
   }, [celebrate, sweep, glow, settle]);
 
-  // A card swapped in fades up into place.
+  // A card swapped in fades up into place (under Reduce Motion it only fades in).
   const [enter] = useState(() => new Animated.Value(arrive ? 0 : 1));
+  const [lift] = useState(() => new Animated.Value(arrive ? 6 : 0));
   useEffect(() => {
     if (!arrive) return;
-    return withMotion(() => {
-      Animated.timing(enter, { toValue: 1, duration: 360, easing: ease.out, useNativeDriver: true }).start();
+    return withMotion(reduce => {
+      if (reduce) lift.setValue(0);
+      Animated.parallel([
+        Animated.timing(enter, { toValue: 1, duration: 360, easing: ease.out, useNativeDriver: NATIVE }),
+        Animated.timing(lift, { toValue: 0, duration: 360, easing: ease.out, useNativeDriver: NATIVE }),
+      ]).start();
     });
-  }, [arrive, enter]);
+  }, [arrive, enter, lift]);
 
   const remaining = useRemaining(action.kind === 'timer' ? action.timer : null, action.kind === 'timer' && action.live);
   const photoUri = done ? cardPhoto(done)?.uri ?? '' : '';
@@ -361,22 +374,22 @@ export function MissionCard({
   const thumb = useMemo(() => (photoUri ? proofImage(photoUri) : null), [photoUri]);
   const time = done ? clockTime(done.doneAt) : '';
   const said = done
-    ? HOME.a11y.card(label, mission.title, HOME.a11y.proven(time, done.points))
-    : HOME.a11y.card(label, mission.title, [HOME.a11y.meta(mission.minutes, mission.points, badge), actionSaid(action, remaining)].filter(Boolean).join('. '));
+    ? HOME.a11y.card(spoken, mission.title, HOME.a11y.proven(time, done.points))
+    : HOME.a11y.card(spoken, mission.title, [HOME.a11y.meta(mission.minutes, mission.points, badge), actionSaid(action, remaining)].filter(Boolean).join('. '));
 
   return (
     <Animated.View
       style={{
         opacity: enter,
-        transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [6, 0] }) }],
+        transform: [{ translateY: lift }],
         borderTopWidth: hairline,
         borderBottomWidth: last ? hairline : 0,
         borderColor: colorway.rule,
         overflow: 'hidden',
       }}>
       <Animated.View
-        pointerEvents="none"
         style={{
+          pointerEvents: 'none',
           position: 'absolute',
           left: 0,
           top: 0,
@@ -390,7 +403,6 @@ export function MissionCard({
         accessibilityRole="button"
         accessibilityLabel={said}
         accessibilityHint={HOME.a11y.hint}
-        accessibilityState={{ checked: proven }}
         onPress={onOpen}
         style={({ pressed }) => ({
           paddingTop: 18,
@@ -429,21 +441,24 @@ export function MissionCard({
           )}
         </View>
         {done ? (
-          <Animated.View
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            style={{
-              width: 28,
-              height: 35,
-              backgroundColor: colorway.rule,
-              borderWidth: hairline,
-              borderColor: colorway.rule,
-              overflow: 'hidden',
-              opacity: settle,
-              transform: [{ scale: settle.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }],
-            }}>
-            {thumb ? <Image source={{ uri: thumb }} style={{ width: 28, height: 35 }} contentFit="cover" accessibilityLabel={HOME.a11y.provenThumb} /> : null}
-          </Animated.View>
+          // No box without a photo to put in it (a proof from the tester tools, or one cleared off the phone).
+          thumb ? (
+            <Animated.View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={{
+                width: 28,
+                height: 35,
+                backgroundColor: colorway.rule,
+                borderWidth: hairline,
+                borderColor: colorway.rule,
+                overflow: 'hidden',
+                opacity: settle,
+                transform: [{ scale: settle.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }],
+              }}>
+              <Image source={{ uri: thumb }} style={{ width: 28, height: 35 }} contentFit="cover" accessibilityLabel={HOME.a11y.provenThumb} />
+            </Animated.View>
+          ) : null
         ) : (
           <View
             style={{
@@ -553,12 +568,13 @@ function BarItem({ label, onPress, colorway, children }: { label: string; onPres
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 4,
-        marginRight: 12,
+        marginRight: 10,
         flexShrink: 1,
         opacity: pressed ? 0.6 : 1,
       })}>
       {children}
-      <T v="small" color={colorway.secondary} numberOfLines={1}>
+      {/* Capped below the usual 1.3x so the three labels and the colorway icon still fit a 375pt phone. */}
+      <T v="small" color={colorway.secondary} numberOfLines={1} maxFontSizeMultiplier={1.15}>
         {label}
       </T>
     </Pressable>
@@ -596,14 +612,14 @@ export function BottomBar({
       if (reduce) return;
       Animated.sequence([
         Animated.delay(ARRIVE_DELAY + 300),
-        Animated.timing(step, { toValue: 3, duration: 200, easing: ease.out, useNativeDriver: true }),
-        Animated.timing(step, { toValue: 0, duration: 200, easing: ease.in, useNativeDriver: true }),
+        Animated.timing(step, { toValue: 3, duration: 200, easing: ease.out, useNativeDriver: NATIVE }),
+        Animated.timing(step, { toValue: 0, duration: 200, easing: ease.in, useNativeDriver: NATIVE }),
       ]).start();
     });
   }, [nudge, step]);
   return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
-      <LinearGradient pointerEvents="none" colors={[`${barBg}00`, barBg]} style={{ height: colorway.kind === 'plate' ? 48 : 32 }} />
+    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, pointerEvents: 'box-none' }}>
+      <LinearGradient colors={[`${barBg}00`, barBg]} style={{ height: colorway.kind === 'plate' ? 48 : 32, pointerEvents: 'none' }} />
       <View
         style={{
           backgroundColor: barBg,

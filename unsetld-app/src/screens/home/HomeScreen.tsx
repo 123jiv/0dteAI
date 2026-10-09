@@ -14,6 +14,8 @@ import { MISSION_BY_ID, PROGRAM_BY_ID } from '../../content';
 import { HOME } from '../../content/copy/home';
 import type { RootProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
+import { deletePhoto } from '../../services/proof';
+import { cancelTimerDone } from '../../services/timerNotify';
 import { useBalance, useNextReward, useRerollsLeft, useStreak, useTodayMissions, type TodayMission } from '../../state/missions';
 import { useAccessEnabled, useApp, useAppActive, useReaderColorway } from '../../state/store';
 import { showDialog } from '../../ui/actions';
@@ -42,7 +44,7 @@ const LETTER_DELAY = 2500;
 
 /** The proof that counts: a rejected attempt leaves the mission to do. */
 function accepted(done: MissionDone | null): MissionDone | null {
-  return done && done.verification.status === 'accepted' ? done : null;
+  return done && done.verification?.status === 'accepted' ? done : null;
 }
 
 /**
@@ -87,9 +89,21 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
   const [scrollTop, setScrollTop] = useState(0);
 
   // Today's plan, on focus and again when the day turns over at 4:00 AM.
+  // A timer or a before photo left from an earlier day can't count any more
+  // (that day's plan is closed): it goes, with its photo and its notification.
+  // Home in focus means no Mission screen is open on top of it.
   useFocusEffect(
     useCallback(() => {
-      useApp.getState().ensurePlan(day);
+      const s = useApp.getState();
+      s.ensurePlan(day);
+      if (s.pendingBefore && s.pendingBefore.day < day) {
+        deletePhoto(s.pendingBefore.photo.uri);
+        s.setPendingBefore(null);
+      }
+      if (s.timer && s.timer.day < day) {
+        s.cancelTimer();
+        cancelTimerDone();
+      }
     }, [day]),
   );
 
@@ -184,6 +198,9 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
       return;
     }
     const doSwap = () => {
+      // 4:00 AM passed while the dialog was up: this card belongs to a day that's over.
+      useApp.getState().refreshDay();
+      if (useApp.getState().currentDay !== day) return;
       const result = useApp.getState().rerollMission(m.index);
       if (result === 'ok') {
         const nowPlan = useApp.getState().plans[day];
@@ -225,7 +242,9 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
   const week = reviewWeekFor(day);
   const review = week && reviewSeen !== week ? weeklyReview(record, plans, profile, week) : null;
 
-  const proven = activeDays(record).size;
+  // Day N: the day you're on, counting only days with a proven mission (so day one reads DAY 001).
+  const shownUp = activeDays(record);
+  const dayNo = shownUp.size + (shownUp.has(day) ? 0 : 1);
 
   return (
     <View style={{ flex: 1, backgroundColor: colorway.bg }}>
@@ -235,7 +254,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: MARGIN, paddingTop: insets.top + 8, paddingBottom: insets.bottom + 120 }}>
-        <TopRow colorway={colorway} days={proven} />
+        <TopRow colorway={colorway} days={dayNo} />
 
         <View style={{ marginTop: 20 }}>
           <StatsHeader

@@ -1,39 +1,7 @@
 import type { DayKey } from './time';
 
+/** 2.x chapters, kept so saved choices can be turned into tracks. */
 export type ChapterId = 'discipline' | 'focus' | 'training' | 'money' | 'confidence' | 'vices' | 'stoic';
-
-export interface Chapter {
-  id: ChapterId;
-  no: number;
-  name: string;
-  scope: string;
-  free: boolean;
-}
-
-export interface Attribution {
-  author: string;
-  source: string;
-  translator: string;
-}
-
-export interface Line {
-  /** Permanent catalogue number, shown as "No. 0412". */
-  no: number;
-  chapter: ChapterId;
-  text: string;
-  explicit: boolean;
-  volume: number;
-  attribution?: Attribution;
-  /** Attributed quotes only: checked against the source text. Unverified quotes never ship. */
-  verified?: boolean;
-}
-
-/** A line the user wrote (Full Edition). Numbered from 9001 so it never collides with the library. */
-export interface YourLine {
-  id: string;
-  text: string;
-  createdAt: number;
-}
 
 export interface Colorway {
   id: string;
@@ -46,7 +14,6 @@ export interface Colorway {
   rule: string;
   statusBar: 'light' | 'dark';
   kind: 'solid' | 'plate' | 'gradient';
-  previewLine: string;
 }
 
 export type MilestoneId = 'early-access' | 'patch' | 'piece-365';
@@ -73,35 +40,7 @@ export interface DayEntry {
   verified: boolean;
 }
 
-/** A daily task from the UNSETLD library. */
-export interface Task {
-  id: string;
-  chapter: ChapterId;
-  text: string;
-  /** What the photo shows, e.g. "The page you finished on." */
-  proof: string;
-  when: 'morning' | 'day' | 'evening' | 'any';
-  /** Why it matters, in a sentence or two. */
-  why: string;
-  /** How to start, right now. */
-  how: string;
-  /** Lines from the same chapter that go with this task; the day's line comes from these. */
-  lines: number[];
-}
-
-/** One item of a day's work. Keys: 'r0'-'r2' (the rules), 'd' (the daily task), 'o:<id>' (your own). */
-export interface WorkItem {
-  key: string;
-  text: string;
-  source: 'rule' | 'daily' | 'own';
-  chapter: ChapterId | null;
-  /** Daily task only: what to photograph, why it matters, how to start. */
-  proof?: string;
-  why?: string;
-  how?: string;
-}
-
-/** A proof photo, taken in the app. The photo never leaves the phone. */
+/** A 2.x proof photo (kept in old records). */
 export interface Proof {
   /** Local file (iOS) or stored image key (browser preview). Empty if the photo is gone (reinstall). */
   uri: string;
@@ -111,7 +50,7 @@ export interface Proof {
   lineNo: number | null;
 }
 
-/** A finished task. Its text is kept so later edits to the standard don't rewrite the past. */
+/** A 2.x finished task (kept in old records; their points carried over as legacyPoints). */
 export interface TaskDone {
   text: string;
   doneAt: number;
@@ -119,7 +58,7 @@ export interface TaskDone {
   proof: Proof | null;
 }
 
-/** A discount code traded for points. */
+/** A 2.x discount code traded for points. */
 export interface CodeClaim {
   day: DayKey;
   collection: string;
@@ -131,24 +70,15 @@ export interface CodeClaim {
   expires: DayKey;
 }
 
-export interface PointsConfig {
-  perProof: number;
-  /** Proven tasks that earn points in one day. */
-  maxPerDay: number;
-  tiers: { points: number; percent: number }[];
-  maxOff: number;
-  codeValidDays: number;
-}
-
 export interface RecordState {
   /** Active days. Since 3.0 a day goes on record when a mission is proven. */
   days: Record<DayKey, DayEntry>;
-  /** Night check answers: true = Held, false = Not today. Never affects the record. */
+  /** 2.x night check answers (no longer asked). */
   nights: Record<DayKey, boolean>;
   /** Milestone letters already shown: '7', '90', '365', or 'comeback:YYYY-MM-DD'. */
   lettersShown: string[];
   patchClaimed: DayKey | null;
-  /** Finished tasks per day, by work-item key. */
+  /** 2.x finished tasks per day. */
   work: Record<DayKey, Record<string, TaskDone>>;
   /** Codes traded for points (2.x). */
   codes: CodeClaim[];

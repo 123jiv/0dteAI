@@ -323,7 +323,7 @@ function dayMissions(c: Ctx, day: DayKey): DayMissions {
   const missions = plan.missions
     .map(p => MISSION_BY_ID[p.missionId])
     .filter((m): m is Mission => Boolean(m))
-    .map(mission => ({ mission, proven: done[mission.id]?.verification.status === 'accepted' }));
+    .map(mission => ({ mission, proven: done[mission.id]?.verification?.status === 'accepted' }));
   return { missions: missions.length ? missions : null };
 }
 

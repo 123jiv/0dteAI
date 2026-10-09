@@ -3,7 +3,10 @@
 // Sentence case, no exclamation marks. Straight quotes become typographic at display time.
 import type { Profile } from '../../core/types';
 
-const WORDS = ['No', 'One', 'Two', 'Three', 'Four'];
+const WORDS = ['None', 'One', 'Two', 'Three', 'Four'];
+
+/** VoiceOver gets names in sentence case: an all-caps word can be spelled out letter by letter. */
+const spoken = (name: string) => name.charAt(0) + name.slice(1).toLowerCase();
 
 /** Onboarding runs Tracks, About you, Pace, Reminders, Widget. */
 export const ONBOARDING_STEPS = 5;
@@ -21,7 +24,7 @@ export const ONBOARDING = {
     a11yCounter: (n: number) => `${WORDS[n] ?? n} of three chosen`,
     /** A fourth tap. Read out by VoiceOver; the counter flashes on screen. */
     full: 'Three is the most. Take one off first.',
-    a11yTile: (name: string, scope: string) => `${name}. ${scope}`,
+    a11yTile: (name: string, scope: string) => `${spoken(name)}. ${scope}`,
     tileNo: (i: number) => String(i + 1).padStart(2, '0'),
   },
 
@@ -53,6 +56,9 @@ export const ONBOARDING = {
       90: 'More than 60 minutes',
     } satisfies Record<Profile['minutes'], string>,
     hard: 'How hard?',
+    /** Under How hard? when 5–15 is chosen: the day's budget keeps every mission short, Push me included. */
+    shortDay: 'With 5–15 minutes, missions stay short whatever you pick.',
+    a11yShortDay: 'With 5 to 15 minutes, missions stay short whatever you pick.',
     intensity: {
       easy: {
         name: 'START EASY',
@@ -70,7 +76,7 @@ export const ONBOARDING = {
         a11yDay: 'Four a day: a quick win, a progress mission and two challenges.',
       },
     } satisfies Record<Profile['intensity'], { name: string; body: string; a11yDay: string }>,
-    a11yIntensity: (name: string, body: string, day: string) => `${name}. ${body} ${day}`,
+    a11yIntensity: (name: string, body: string, day: string) => `${spoken(name)}. ${body} ${day}`,
   },
 
   /** Reminders: onboarding, and Settings › Reminders. */

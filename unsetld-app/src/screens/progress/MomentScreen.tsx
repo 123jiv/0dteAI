@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Platform, Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { milestones } from '../../core/progress';
+import { milestones, type MilestoneKey } from '../../core/progress';
 import { shortDate } from '../../core/time';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
@@ -15,21 +15,33 @@ import { Walker } from '../../ui/Walker';
 
 const M = PROGRESS.moment;
 
+function markSeen(key: MilestoneKey) {
+  const s = useApp.getState();
+  if (milestones(s.record, s.currentDay).some(m => m.key === key && m.reached)) s.markMomentShown(key);
+}
+
 /** A progress milestone reached: shown once, letter-style, on opaque ink. */
 export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
   const { key } = route.params;
+  const routeKey = route.key;
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const today = useApp(s => s.currentDay);
   const record = useApp(s => s.record);
-  const reached = milestones(record, today).find(m => m.key === key)?.reached ?? today;
+  // Null when it isn't reached (a stale link): then no date is claimed.
+  const reached = milestones(record, today).find(m => m.key === key)?.reached ?? null;
   const words = M.byKey[key] ?? { title: '', line: '' };
   const [rise] = useState(() => new Animated.Value(0));
 
-  // The first time it shows: a soft tap, and the page settles in. Reduce Motion: no movement.
+  // The page settles in (Reduce Motion: no movement), with a soft tap the first time it shows.
+  // Home marks a moment shown as it opens it, so a revisit is told apart by where it was
+  // opened from: a reached milestone tapped on Progress.
   useEffect(() => {
     let live = true;
-    if (!useApp.getState().momentsShown.includes(key)) soft();
+    const { routes } = navigation.getState();
+    const at = routes.findIndex(r => r.key === routeKey);
+    const revisit = at > 0 && routes[at - 1].name === 'Progress' && useApp.getState().momentsShown.includes(key);
+    if (!revisit) soft();
     AccessibilityInfo.isReduceMotionEnabled()
       .catch(() => false)
       .then(reduce => {
@@ -40,13 +52,14 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
     return () => {
       live = false;
     };
-  }, [key, rise]);
+  }, [key, rise, navigation, routeKey]);
 
-  // However the page is left (Close, the X, a swipe), the moment has been seen.
-  useEffect(() => navigation.addListener('beforeRemove', () => useApp.getState().markMomentShown(key)), [navigation, key]);
+  // However the page is left (Close, the X, a swipe), the moment has been seen. Only once it's
+  // reached, though: a moment opened early must still show when the milestone comes.
+  useEffect(() => navigation.addListener('beforeRemove', () => markSeen(key)), [navigation, key]);
 
   const close = () => {
-    useApp.getState().markMomentShown(key);
+    markSeen(key);
     if (navigation.canGoBack()) navigation.goBack();
     else navigation.navigate('Today');
   };
@@ -61,10 +74,12 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
             opacity: rise,
             transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
           }}>
-          <T v="mono" accessibilityLabel={M.a11yDate(shortDate(reached))}>
-            {M.reached(shortDate(reached))}
-          </T>
-          <T v="letter.day" style={{ marginTop: 12, fontVariant: ['lining-nums'] }} accessibilityRole="header">
+          {reached ? (
+            <T v="mono" accessibilityLabel={M.a11yDate(shortDate(reached))} style={{ marginBottom: 12 }}>
+              {M.reached(shortDate(reached))}
+            </T>
+          ) : null}
+          <T v="letter.day" style={{ fontVariant: ['lining-nums'] }} accessibilityRole="header">
             {words.title}
           </T>
           <T v="body" style={{ marginTop: 20 }}>

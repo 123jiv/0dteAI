@@ -105,7 +105,7 @@ export const PLATFORM = {
       ['COLORWAYS', 'All ten, in the app and on your widgets'],
       ['REMINDERS', 'Up to ten a day'],
     ] as const,
-    freeNote: 'Daily missions, proof, points, the streak, levels and rewards are the same on every plan.',
+    freeNote: 'Daily missions, proof, points, the streak, levels, the weekly review and rewards are the same on every plan.',
     plans: {
       annual: 'Annual',
       monthly: 'Monthly',
@@ -178,11 +178,19 @@ export const PLATFORM = {
     kindsLabel: 'THE WIDGETS',
     kinds: [
       { name: 'NEXT MISSION', body: "The next mission you haven't proven, with its time and points. Tap it to start." },
-      { name: 'TODAY', body: "Today's missions, ticked off as you prove them. Lock Screen." },
+      { name: 'TODAY', body: "Today's missions, ticked off as you prove them. Lock Screen only." },
       { name: 'STREAK', body: 'Your streak, your points and every day you showed up.' },
     ],
-    a11yLock: 'A lock screen with an unsetld widget under the clock',
-    a11yHome: 'A home screen with unsetld widgets',
+    a11yLock: 'A lock screen with the Next mission and Streak widgets under the clock',
+    a11yHome: 'A home screen with the Next mission and Streak widgets',
+    /** The drawn preview: an example day, not the user's. */
+    preview: {
+      date: 'Friday 9 October',
+      time: '9:41',
+      app: 'unsetld',
+      streak: 16,
+      points: 340,
+    },
     done: 'Done',
     later: 'Later',
   },
@@ -248,7 +256,7 @@ export const PLATFORM = {
 
     travel: 'TIME TRAVEL',
     next: 'Next day',
-    jump: (n: number) => `Jump ${n} days, proving a mission each day`,
+    jump: (n: number) => `Jump ${n} days, proving daily`,
     disappear: (n: number) => `Disappear for ${n} days`,
     back: 'Back to the real today',
     travelNote:
@@ -256,7 +264,7 @@ export const PLATFORM = {
 
     reset: 'RESET',
     restart: 'Restart onboarding',
-    clear: 'Clear missions, points and the record',
+    clear: 'Clear the record',
     clearTitle: 'Clear everything on record?',
     clearBody: 'Missions, points, streak, rewards taken and proof photos on this phone. Settings stay.',
     clearYes: 'Clear',

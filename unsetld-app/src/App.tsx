@@ -36,7 +36,7 @@ function openMission(intent: Intent): string | null {
   const s = useApp.getState();
   const day = today();
   const planned = s.plans[day]?.missions.some(p => p.missionId === intent.missionId);
-  const proven = s.record.missions?.[day]?.[intent.missionId]?.verification.status === 'accepted';
+  const proven = s.record.missions?.[day]?.[intent.missionId]?.verification?.status === 'accepted';
   return planned && !proven ? intent.missionId : null;
 }
 

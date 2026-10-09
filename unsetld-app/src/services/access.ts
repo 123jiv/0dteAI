@@ -5,11 +5,15 @@
 // again.
 import { Linking, Platform } from 'react-native';
 import { AppConfig, IS_PREVIEW } from '../config/app';
+import { parseRewards } from '../core/rewards';
 import type { DayKey } from '../core/time';
-import type { RewardTier, RewardType } from '../core/types';
+import type { RewardTier } from '../core/types';
 import { useApp } from '../state/store';
 import { saveSession, sessionToken, signOutApple, type SignedIn } from './account';
 import type { Drop } from './notifications';
+
+/** The reward-config parser lives in core/rewards (pure, unit-tested); kept here for older imports. */
+export { parseRewards, parseRewardTier } from '../core/rewards';
 
 async function getJson<T>(url: string): Promise<T | null> {
   if (Platform.OS === 'web') return null; // the preview makes no outside requests
@@ -82,71 +86,6 @@ export async function fetchConfig(): Promise<RemoteConfig | null> {
     collection: String(json.collection ?? AppConfig.defaultCollection),
     rewards: parseRewards(json.rewards),
   };
-}
-
-const REWARD_TYPES: readonly RewardType[] = ['discount', 'free-shipping', 'early-access', 'limited', 'drop'];
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}/;
-
-const isCount = (v: unknown, min: number): v is number => typeof v === 'number' && Number.isInteger(v) && v >= min;
-const isText = (v: unknown, max: number): v is string => typeof v === 'string' && v.trim().length > 0 && v.length <= max;
-/** A date the window can compare against (YYYY-MM-DD first), or nothing. */
-const dateOrNull = (v: unknown): string | null | undefined =>
-  v === undefined || v === null ? null : typeof v === 'string' && ISO_DAY.test(v) && !Number.isNaN(Date.parse(v.slice(0, 10))) ? v : undefined;
-
-/**
- * One tier from the server's config, or null if anything in it is off. Fields
- * the server leaves out get the same defaults as content/rewards.json.
- */
-export function parseRewardTier(raw: unknown): RewardTier | null {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
-  const o = raw as Record<string, unknown>;
-  if (!isText(o.id, 64) || !isText(o.title, 40)) return null;
-  if (o.detail !== undefined && typeof o.detail !== 'string') return null;
-  if (typeof o.type !== 'string' || !REWARD_TYPES.includes(o.type as RewardType)) return null;
-  const type = o.type as RewardType;
-  if (!isCount(o.points, 1)) return null;
-  // A discount needs its percent; anything else may carry one only if it's sane.
-  const percent = o.percent;
-  if (percent !== undefined && percent !== null && !(typeof percent === 'number' && percent > 0 && percent <= 100)) return null;
-  if (type === 'discount' && typeof percent !== 'number') return null;
-  const maxOff = o.maxOff;
-  if (maxOff !== undefined && maxOff !== null && !(typeof maxOff === 'number' && Number.isFinite(maxOff) && maxOff > 0)) return null;
-  if (o.active !== undefined && typeof o.active !== 'boolean') return null;
-  const from = dateOrNull(o.availableFrom);
-  const until = dateOrNull(o.availableUntil);
-  if (from === undefined || until === undefined) return null;
-  if (o.codeValidDays !== undefined && !isCount(o.codeValidDays, 1)) return null;
-  if (o.inventory !== undefined && o.inventory !== null && !isCount(o.inventory, 0)) return null;
-  if (o.perCollection !== undefined && !isCount(o.perCollection, 1)) return null;
-  return {
-    id: o.id.trim(),
-    title: o.title.trim(),
-    detail: typeof o.detail === 'string' ? o.detail.trim() : '',
-    type,
-    points: o.points,
-    ...(typeof percent === 'number' ? { percent } : {}),
-    ...(typeof maxOff === 'number' ? { maxOff } : {}),
-    active: o.active ?? true,
-    availableFrom: from,
-    availableUntil: until,
-    codeValidDays: (o.codeValidDays as number | undefined) ?? 30,
-    inventory: (o.inventory as number | null | undefined) ?? null,
-    perCollection: (o.perCollection as number | undefined) ?? 1,
-  };
-}
-
-/** The config's `rewards` list: bad entries and repeated ids are dropped. null when nothing usable came. */
-export function parseRewards(raw: unknown): RewardTier[] | null {
-  if (!Array.isArray(raw)) return null;
-  const seen = new Set<string>();
-  const out: RewardTier[] = [];
-  for (const item of raw) {
-    const tier = parseRewardTier(item);
-    if (!tier || seen.has(tier.id)) continue;
-    seen.add(tier.id);
-    out.push(tier);
-  }
-  return out.length ? out : null;
 }
 
 /** Null when the fetch fails, so the alerts already scheduled can stay. */

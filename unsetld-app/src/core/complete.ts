@@ -23,15 +23,16 @@ export function completeMission(
   opts: { at: number; verifiedClock: boolean; timerSeconds?: number; programId?: string; perfectBonus?: number },
 ): Completion {
   const accepted = verification.status === 'accepted';
-  const already = r.missions?.[day]?.[mission.id];
-  // Proving the same mission twice in a day earns nothing more.
-  const points = accepted && !already ? mission.points : 0;
+  const prev = r.missions?.[day]?.[mission.id];
+  // A mission is proven once a day: a second proof changes nothing and earns nothing.
+  if (prev?.verification?.status === 'accepted') return { record: r, points: 0, bonus: 0 };
+  const points = accepted ? mission.points : 0;
   const done: MissionDone = {
     missionId: mission.id,
     slot: mission.slot,
     track: mission.track,
-    points: already ? already.points : points,
-    doneAt: already?.doneAt ?? opts.at,
+    points,
+    doneAt: opts.at,
     photos,
     timerSeconds: opts.timerSeconds,
     verification,
@@ -43,7 +44,7 @@ export function completeMission(
   let bonus = 0;
   if (accepted && plan && !next.bonuses?.[day]) {
     const proven = next.missions[day];
-    const all = plan.missions.length > 0 && plan.missions.every(p => proven[p.missionId]?.verification.status === 'accepted');
+    const all = plan.missions.length > 0 && plan.missions.every(p => proven[p.missionId]?.verification?.status === 'accepted');
     if (all) {
       bonus = opts.perfectBonus ?? RULES.perfectDayBonus;
       next = { ...next, bonuses: { ...next.bonuses, [day]: bonus } };
@@ -56,5 +57,5 @@ export function completeMission(
 export function provenInPlan(r: RecordState, plan: DayPlan | null | undefined): number {
   if (!plan) return 0;
   const byId = r.missions?.[plan.day] ?? {};
-  return plan.missions.filter(p => byId[p.missionId]?.verification.status === 'accepted').length;
+  return plan.missions.filter(p => byId[p.missionId]?.verification?.status === 'accepted').length;
 }
