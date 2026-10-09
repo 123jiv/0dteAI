@@ -1,43 +1,23 @@
-// The Mission screen and its proof flow (spec sections 6 and 7), and the timer-done
-// notification. Every user-facing string for the group.
+// The Mission screen and its proof flow (spec sections 6 and 7), the on-device
+// check notes, and the timer-done notification. Every user-facing string for the group.
 // Never say a photo was checked by AI: the checks run on this phone and look at
 // when and how a photo was taken, not at what it shows.
-import type { MissionSlot, ProofType, VerificationCheck } from '../../core/types';
-
-const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six'];
-
-/** "three" for 3, the digits past six. */
-function word(n: number): string {
-  return WORDS[n] ?? String(n);
-}
+import type { ProofType, VerificationCheck } from '../../core/types';
 
 export const MISSION = {
   day: (n: number) => `DAY ${String(n).padStart(3, '0')}`,
   ok: 'OK',
 
-  slot: { quick: 'QUICK WIN', progress: 'PROGRESS', challenge: 'CHALLENGE' } satisfies Record<MissionSlot, string>,
-  label: (slot: string, track: string) => `${slot} · ${track}`,
   meta: (minutes: number, points: number) => `${minutes} MIN · +${points} POINTS`,
 
-  section: {
-    why: 'WHY THIS MATTERS',
-    how: 'HOW TO DO IT',
-    proof: 'PROOF REQUIRED',
-    points: 'POINTS',
-  },
-  step: (i: number) => String(i + 1).padStart(2, '0'),
-
-  proofType: (type: ProofType, timerMinutes?: number): string => {
-    if (type === 'PHOTO_AFTER') return 'A photo of the result';
-    if (type === 'BEFORE_AFTER') return 'Before and after photos';
-    if (type === 'TIMER_AND_PHOTO') return `${timerMinutes ?? 25}-minute timer, then a photo`;
-    return 'One photo';
-  },
-
-  points: {
-    value: (n: number) => `+${n}`,
-    when: 'When the proof is in.',
-    bonus: (count: number, bonus: number) => (count === 2 ? `Prove both today for +${bonus} more.` : `Prove all ${word(count)} today for +${bonus} more.`),
+  proof: 'PROOF',
+  /** The first line under PROOF: how this mission is proven. The mission's own proof line follows it. */
+  method: (type: ProofType, timerMinutes?: number): string => {
+    const n = timerMinutes ?? 25;
+    if (type === 'TIMER_AND_PHOTO') return `Run the ${n}-minute focus timer. When it ends, take a photo.`;
+    if (type === 'TIMER') return `Run the ${n}-minute timer to the end.`;
+    if (type === 'BEFORE_AFTER') return 'Take a photo before you start and one when you’re done.';
+    return 'Take one photo.';
   },
 
   notInPlan: "Not in today's plan. You can prove it on a day it comes up.",
@@ -45,10 +25,12 @@ export const MISSION = {
 
   button: {
     prove: 'Prove it',
-    timer: (clock: string) => `Start the ${clock} timer`,
+    timer: (minutes: number) => `Start ${minutes} min timer`,
     before: 'Take the before photo',
     after: 'Take the after photo',
     proofPhoto: 'Take the proof photo',
+    /** A TIMER mission once its timer has run out: no photo. */
+    markDone: 'Mark it done',
     done: 'Done',
   },
 
@@ -59,17 +41,20 @@ export const MISSION = {
     yes: 'Swap',
     no: 'Cancel',
     noneTitle: 'Nothing else fits today.',
-    noneBody: 'Every other mission for this slot is resting or doesn’t fit your plan. Your swap wasn’t used.',
+    noneBody: 'No other mission in this area fits your plan today. Your swap wasn’t used.',
     limitTitle: 'No swaps left today.',
     limitBody: 'More tomorrow.',
     ok: 'OK',
   },
 
   busy: {
-    /** Another mission's timer: running, paused, or finished and waiting for its photo. No title if that mission is gone. */
-    timerTitle: (title: string | undefined, state: 'running' | 'paused' | 'done') => {
+    /**
+     * Another mission's timer: running, paused, or finished and waiting for its photo
+     * (or, with `photo` false, for Mark it done). No title if that mission is gone.
+     */
+    timerTitle: (title: string | undefined, state: 'running' | 'paused' | 'done', photo = true) => {
       const of = title ? `The timer for ${title}` : 'Another timer';
-      if (state === 'done') return `${of} is done, and its proof photo isn’t in yet.`;
+      if (state === 'done') return photo ? `${of} is done, and its proof photo isn’t in yet.` : `${of} has finished, but that mission isn’t marked done yet.`;
       if (state === 'paused') return `${of} is paused.`;
       return title ? `A timer is running for ${title}.` : 'Another timer is running.';
     },
@@ -84,6 +69,8 @@ export const MISSION = {
     line: 'Phone down. Come back when it rings.',
     paused: 'Paused. The clock stops until you resume.',
     done: 'Time. Take the proof photo.',
+    /** A TIMER mission: the timer is the whole proof. */
+    doneNoPhoto: 'Time. Mark it done.',
     pause: 'Pause',
     resume: 'Resume',
     end: 'End timer',
@@ -113,6 +100,23 @@ export const MISSION = {
   },
 
   checking: 'Checking proof…',
+
+  /** Notes from the on-device checks (core/verify). A failed one is shown on Not counted. */
+  check: {
+    photosIn: 'All photos in.',
+    photoMissing: 'A photo is missing.',
+    stale: (fresh: number) => `Take the photo again. Proof has to be from the last ${fresh} minutes.`,
+    camera: 'Taken just now with the camera.',
+    picked: 'Preview build: picked from files.',
+    order: 'Before, then after.',
+    tooSoon: 'The after photo has to come a few minutes after the before.',
+    timerDone: 'Timer finished.',
+    timerShort: 'Finish the timer first.',
+    photoBeforeTimer: 'Take the photo after the timer.',
+    timerOld: (fresh: number) => `The timer ended more than ${fresh} minutes ago. Run it again and mark it done when it ends.`,
+    newPhoto: 'New photo.',
+    duplicate: 'That photo was already used. Take a new one.',
+  },
   checkFailed: 'That didn’t go through. Nothing was counted. Try again.',
 
   done: {
@@ -125,6 +129,7 @@ export const MISSION = {
     streak: (n: number) => (n === 1 ? 'Streak: 1 day' : `Streak: ${n} days`),
     perfect: 'PERFECT DAY',
     bonus: (n: number) => `+${n} BONUS`,
+    /** Before the checks line when the proof has photos. */
     saved: 'Proof saved.',
   },
 
@@ -148,6 +153,8 @@ export const MISSION = {
   proven: {
     line: (time: string, points: number) => `PROVEN ${time} · +${points} POINTS`,
     focused: (minutes: number) => `${minutes} MIN FOCUSED`,
+    /** A TIMER mission: the timer was the proof. */
+    timed: (minutes: number) => `${minutes} MIN TIMER FINISHED`,
     cleared: 'Photo cleared. The mission stays on your record.',
     stamp: (points: number) => `+${points}`,
   },
@@ -171,8 +178,6 @@ export const MISSION = {
     before: 'Before photo',
     after: 'After photo',
     rewards: 'Opens Rewards',
-    step: (i: number, text: string) => `Step ${i + 1}. ${text}`,
-    points: (n: number) => `${n} points when the proof is in`,
     meta: (minutes: number, points: number) => `${minutes} minutes, ${points} points`,
     balance: (from: number, to: number) => `${from} to ${to} points`,
     /** The proof stamp, read aloud. */
@@ -181,6 +186,11 @@ export const MISSION = {
 
   notify: {
     title: 'unsetld',
-    body: (clock: string) => `${clock} done. Take the proof photo.`,
+    /**
+     * The timer-done alert. Without the mission's proof type it says nothing about a
+     * photo, so it reads right for TIMER missions (no photo) and TIMER_AND_PHOTO alike.
+     */
+    body: (clock: string, type?: ProofType) =>
+      type === 'TIMER_AND_PHOTO' ? `${clock} done. Take the proof photo.` : type === 'TIMER' ? `${clock} done. Open the mission and mark it done.` : `${clock} done. Open the mission to finish it.`,
   },
 } as const;
