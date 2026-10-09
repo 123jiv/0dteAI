@@ -7,8 +7,8 @@ Sources were checked on 2026-10-07: the App Review Guidelines (last updated 2026
 ## What changed in 3.0
 
 - **No strong language.** The quote library, its *Strong language* setting and the "keep lock screen clean" switch are gone. Nothing in the app swears, and `npm run validate` fails on swearing in missions and reminders.
-- **Photo proof** replaces the night check. Photos are taken with the in-app camera, stay on the phone and are checked on the phone.
-- **Rewards** come from points for proven missions, with tiers that can change from unsetld.com's config. There are no XP, ranks or leaderboards.
+- **Photo proof is how a day counts.** The night check is gone: a day goes on record once a mission is proven with the in-app camera. Photos stay on the phone and are checked on the phone.
+- **Rewards** come from points for proven missions, with tiers that can change from unsetld.com's config. The 2.x ranks are gone; levels per track count only your own points, and there are no leaderboards.
 
 ## Age rating and audience
 
@@ -21,7 +21,7 @@ Sources were checked on 2026-10-07: the App Review Guidelines (last updated 2026
   - Social media or messaging: **No**.
   - Unrestricted web access: **No**. Store links open in Safari, never an in-app browser.
 - **Rating:** with these answers the questionnaire is likely to come out below 13+. If App Store Connect lets you choose a higher rating, choose **13+** to match the audience.
-- **What keeps the content safe for teens (Guideline 1.4.5):** missions never urge risky challenges. The validator rejects diets, calorie counting, fasting, weigh-ins, skipping sleep, all-nighters, alcohol, vaping, nicotine, betting, gambling, trading, crypto, supplements and dares, and body photos or weigh-ins as proof. Gym missions are only offered to people who said they have gym access. The Terms of Use say missions are motivation, not medical advice, and to do them within your limits and swap any that don't suit you.
+- **What keeps the content safe for teens (Guideline 1.4.5):** missions never urge risky challenges. `npm run validate` fails on calorie deficits, water or dry fasts, weigh-ins, shirtless, body-check or progress pictures, skipping sleep and all-nighters, alcohol, vaping, nicotine and weed, day or options trading and leverage, casinos, sports betting, lotteries and dares. It lists softer words (diets, fasting, calories, supplements, caffeine, ice baths, crypto, stocks, betting, selfies, mirrors, faces, grades, a bedroom, an address, a location) as warnings to check by hand before shipping. Gym missions are only offered to people who said they have gym access. The Terms of Use say missions are motivation, not medical advice, and to do them within your limits and swap any that don't suit you.
 - **The About you age answer** (13–15, 16–17, 18+) only filters missions on the phone. It isn't an age gate, and it never leaves the phone.
 - **US state app-store age laws** (Texas, Utah, Louisiana): add Apple's Declared Age Range API before launch, and consider limiting real-value rewards to users 18 and over if a lawyer advises it.
 
@@ -39,7 +39,8 @@ Sources were checked on 2026-10-07: the App Review Guidelines (last updated 2026
 
 - Icon, name, subtitle, keywords, screenshots, the preview video and its audio, subscription promo images and in-app event cards must suit every age.
 - Suggested name and subtitle: **UNSETLD: Daily Missions**, **Do the mission. Prove it.** (The 2.x subtitle "One line every morning." is retired.)
-- No prices, discount percentages or "free" in the name, subtitle or screenshots, and nothing that makes the app read as a store.
+- No prices, discount percentages or "free" in the name, subtitle, keywords, description or screenshot captions, and nothing that makes the app read as a store. A screenshot of the Rewards screen shows the tiers as the app does; keep its caption about points.
+- The description says which features need Full Edition (2.3.2): every program, three swaps a day, all ten colorways and up to ten reminders a day.
 
 ## Lock screen, widgets and notifications
 

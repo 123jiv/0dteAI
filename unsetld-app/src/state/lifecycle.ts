@@ -2,7 +2,7 @@ import * as Linking from 'expo-linking';
 import { useEffect, useMemo, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import { create } from 'zustand';
-import { SLOTS_BY_INTENSITY } from '../core/missions';
+import { slotsFor } from '../core/missions';
 import { activeDays, isProven } from '../core/progress';
 import { accessState, dayCount } from '../core/record';
 import { daysAhead } from '../core/reminders';
@@ -175,11 +175,12 @@ export function useSideEffects() {
   const record = useApp(s => s.record);
   const plans = useApp(s => s.plans);
   const intensity = useApp(s => s.profile.intensity);
+  const minutes = useApp(s => s.profile.minutes);
   const salt = useApp(s => s.installSalt);
   const day = useApp(s => s.currentDay);
   const account = useApp(s => s.account.userId);
   const ent = useEntitlements();
-  const perDay = SLOTS_BY_INTENSITY[intensity]?.length ?? 3;
+  const perDay = slotsFor({ intensity, minutes }).length;
   const active = useMemo(() => activeDays(record), [record]);
   const streak = useMemo(() => computeStreak(active, day).current, [active, day]);
 

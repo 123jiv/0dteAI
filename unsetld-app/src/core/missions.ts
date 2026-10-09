@@ -14,6 +14,12 @@ export const SLOTS_BY_INTENSITY: Record<Profile['intensity'], MissionSlot[]> = {
   push: ['quick', 'progress', 'challenge', 'challenge'],
 };
 
+/** The day's slots for a profile: by intensity, and never more than three short ones on a 5–15 minute day. */
+export function slotsFor(profile: Pick<Profile, 'intensity' | 'minutes'>): MissionSlot[] {
+  const slots = SLOTS_BY_INTENSITY[profile.intensity] ?? SLOTS_BY_INTENSITY.lockin;
+  return profile.minutes === 15 ? slots.slice(0, 3) : slots;
+}
+
 /** Total minutes a day's missions should fit in, by the time the user chose. */
 export const DAY_BUDGET: Record<Profile['minutes'], number> = { 15: 20, 30: 45, 60: 90, 90: 150 };
 
@@ -150,9 +156,10 @@ export function chooseForSlot(
         );
         // The time budget is a preference: when nothing fits, take the shortest few in the slot,
         // except for people who said they only have 5–15 minutes, who get an easier slot instead.
+        // Quick wins are short by definition, so the track's own quick wins come before another track's.
         const fits = cands.filter(m => m.minutes <= maxMinutes);
         const shortest = [...cands].sort((a, b) => a.minutes - b.minutes).slice(0, 3);
-        const pool = fits.length ? fits : input.profile.minutes > 15 ? shortest : [];
+        const pool = fits.length ? fits : input.profile.minutes > 15 || s === 'quick' ? shortest : [];
         const chosen = pick(pool, input.history, `${seed}:${s}`);
         if (chosen) return chosen;
       }
@@ -172,7 +179,7 @@ function sameDayBlocked(library: readonly Mission[], m: Mission | undefined): st
 /** The day's plan: the program's missions first, then one mission per slot, within the time budget. */
 export function generatePlan(input: PlanInput): DayPlan {
   const { profile, day, salt } = input;
-  const slots = SLOTS_BY_INTENSITY[profile.intensity];
+  const slots = slotsFor(profile);
   const tracks = slotTracks(profile, slots, day);
   const budget = DAY_BUDGET[profile.minutes];
   const chosen: PlannedMission[] = [];

@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SLOTS_BY_INTENSITY } from '../../core/missions';
+import { slotsFor } from '../../core/missions';
 import { programDay } from '../../core/programs';
 import { activeDays, milestones, type MilestoneKey } from '../../core/progress';
 import { pendingLetter } from '../../core/record';
@@ -234,7 +234,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
   const shownDone = seen.day === day ? seen.ids.length : 0;
   const ready = Boolean(plan);
   const allDone = ready && all > 0 && shownDone >= all;
-  const tomorrow = SLOTS_BY_INTENSITY[profile.intensity]?.length ?? 3;
+  const tomorrow = slotsFor(profile).length;
 
   const prog = program ? PROGRAM_BY_ID[program.id] : undefined;
   const progDay = prog && program ? programDay(prog, program, day) : null;

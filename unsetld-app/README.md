@@ -5,7 +5,7 @@
 UNSETLD 3.0 is a mission app for ages 13–25, from the clothing brand of the same name ("unsettled" minus two letters; *never settle for less*).
 
 - **Choose tracks.** Pick up to three of seven: Focus & Discipline, Fitness & Energy, School & Learning, Money & Career, Skills & Projects, Life Reset, Confidence & Mindset. A few optional questions (school, work, gym, a project, age range) and a pace (time a day, and Start easy / Lock in / Push me) shape what you get.
-- **Daily missions.** Three a day (four on Push me), picked for you from a library of 313: a quick win, real progress and a challenge. One free swap a day, three with Full Edition.
+- **Daily missions.** Three a day (four on Push me), picked for you from a library of 313. On Lock in that's a quick win, real progress and a challenge; Start easy swaps the challenge for a second quick win, and Push me adds a second challenge. One free swap a day, three with Full Edition.
 - **Prove it.** Do it, then prove it with the in-app camera: one photo, a photo of the result, before and after photos, or a focus timer and then a photo. The checks run on the phone and the photo stays there.
 - **Points.** 10 for a quick win, 15 for progress, 25 for a challenge, and 15 more for a perfect day (every mission in the plan proven).
 - **Streak.** Days in a row with at least one proven mission. Off Days: you earn one every 7 days you show up and can bank two; a missed day uses one automatically.
@@ -44,7 +44,7 @@ The whole app runs in the browser. Proof picks a file instead of opening the cam
   - Next day.
   - Jump 6, 23 or 60 days, proving one mission each day. Used in that order from an empty record, each one lands on the day that becomes Day 7, Day 30 and Day 90 once you prove a mission there.
   - Disappear for 15 days: Off Days get used, the streak breaks, and once early access is open it pauses (prove a mission on 7 more days for the comeback letter).
-  - Back to the real today.
+  - Back to the real today, with the record as it was before the first jump (whatever was proven while travelling goes).
 - **Reset**
   - Restart onboarding.
   - Clear the record: missions, points, streak, rewards taken and proof photos on this phone. Settings stay.
@@ -113,7 +113,7 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
   - `group`: missions that overlap ("room-reset", "tomorrow-ready", "phone-setup" ...) share a group, and a day never holds two from one group, including swaps and programs
   - `weight`: how often the planner picks it, relative to 1 (situational missions, like the night before a test, are 0.5)
   - `tags` (1–4), `active`
-  - The validator also enforces the voice and safety rules: no "!", "…", emoji or swearing, no banned hustle words, nothing unsafe for a teen (diets, fasting, skipping sleep, substances, betting, trading, dares), and missions never mention points, discounts or UNSETLD. Words worth a second look for privacy are listed as warnings.
+  - The validator also enforces the voice and safety rules. It fails on "!", "…", emoji, swearing and banned hustle words; on anything unsafe for a teen (calorie deficits, water or dry fasts, weigh-ins and body photos, skipping sleep, alcohol, vaping, nicotine, day or options trading, casinos, sports betting, dares); and on missions that mention points, discount codes, merch or UNSETLD. Words worth a second look for safety or privacy (diets, fasting, supplements, caffeine, crypto, betting, selfies, faces, grades, a bedroom, an address, a location) are listed as warnings.
 - **Programs:** `programs.json`: `id`, `title`, `short`, `days`, `tracks`, `free`, and `plan` (one entry per program day, 1–2 mission ids, no two from one group, no missions that need work, a gym or an age). At least two must be free.
 - **Rewards:** `rewards.json`, the default tiers: free shipping (300), 10% off (600, up to $25), 15% off (1,000, up to $25), and a limited piece that is switched off. Fields: `id`, `title`, `detail`, `type`, `points`, `percent`, `maxOff`, `active`, `availableFrom` / `availableUntil`, `codeValidDays`, `inventory`, `perCollection`. Change them here, or send `rewards` from unsetld.com's config.json to replace the whole list without an update ([docs/ACCESS.md](docs/ACCESS.md)).
 - **Rules:** `rules.json`: perfect-day bonus (15), swaps a day (free 1, Full Edition 3), Off Days (one every 7 active days, up to 2), how fresh a proof photo must be (30 minutes), the gap between before and after photos (120 seconds), and the default photo retention (30 days).
@@ -124,7 +124,7 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
   - Access milestones and letters: `milestones.json`
   - legal pages and How missions work: `legal.json`
   - all UI strings: `copy.ts` and `copy/*.ts`
-- **Widget guide images:** `assets/guide/widget-lock.jpg` and `widget-home.jpg` are stand-ins. Replace them with real screenshots of the Next mission, Today and Streak widgets before launch.
+- **Widget guide:** the in-app guide (`src/screens/WidgetScreen.tsx`) draws the Next mission, Today and Streak widgets from the same copy the real widgets use, on an example day, so there are no screenshots to replace. If a mission it names (`reset-make-the-bed`, `focus-lock-in-25`, `school-10-pages`) is retired, the example drops it.
 
 ### 4. Privacy
 

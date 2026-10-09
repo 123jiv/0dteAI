@@ -421,9 +421,10 @@ APP STORE LISTING (3.0)
 - Description:
   UNSETLD gives you three missions a day for what you're working on: focus, fitness, school, money, skills, a reset or confidence.
   Do each one in real life, then prove it with the camera in the app. Proven missions earn points, keep your streak going and move your levels up.
-  Pick up to three tracks and how much time you have. Swap a mission that doesn't fit. Run a program when you want a push: a 7 Day Lock In, a school reset, a week to build something.
-  Points trade for rewards at unsetld.com. Nothing can be bought.
+  Pick up to three tracks and how much time you have. Swap a mission that doesn't fit. Run a program when you want a push, like the 7 Day Lock In.
+  Points trade for rewards at unsetld.com. Points only come from proven missions; they can't be bought.
   Your proof photos stay on your phone. The checks run on the phone, and they never look at what's in a photo.
+  Full Edition, a subscription or a one-time purchase, adds every program, three swaps a day, all ten colorways and up to ten reminders a day. Missions, proof, points, the streak and rewards are the same on every plan.
   Never settle for less.
 - Screenshots (proof photos show objects, never people, faces, documents or screens with personal details):
   1. Three missions a day, built around your life. (Home with today's missions)
@@ -432,7 +433,7 @@ APP STORE LISTING (3.0)
   4. A streak that means you showed up. (Progress: streak, levels, milestones)
   5. Your next mission, on your lock screen. (lock screen with the Next mission and Streak widgets)
   6. Trade points for rewards at unsetld.com. (Rewards)
-- Never in the listing: prices, discount percentages, "free", or anything that makes the app read as a store.
+- Never in the listing text or screenshot captions: prices, discount percentages, "free", or anything that makes the app read as a store. (Screenshot 6 shows the Rewards screen as it is; its caption stays about points.)
 
 LINE LIBRARY, VOLUME 001
 Numbers are permanent.

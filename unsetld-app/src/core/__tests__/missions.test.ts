@@ -80,6 +80,24 @@ describe('daily missions', () => {
     expect(plan.missions.length).toBe(3);
   });
 
+  it('on a 5–15 minute day: three missions at most, and every chosen track gets one even when its quick wins run long', () => {
+    const lib = [
+      ...Array.from({ length: 4 }, () => m('money', 'quick', { minutes: 5 })),
+      ...Array.from({ length: 4 }, () => m('skills', 'quick', { minutes: 12 })),
+      ...Array.from({ length: 3 }, () => m('money', 'progress')),
+      ...Array.from({ length: 3 }, () => m('skills', 'challenge')),
+      ...Array.from({ length: 3 }, () => m('reset', 'quick', { minutes: 3 })),
+    ];
+    const ids = new Map(lib.map(x => [x.id, x]));
+    for (const day of ['2026-10-09', '2026-10-10', '2026-10-11']) {
+      const plan = generatePlan(input({ library: lib, day, profile: profile({ tracks: ['money', 'skills'], minutes: 15, intensity: 'push' }) }));
+      expect(plan.missions.length).toBe(3);
+      const tracks = new Set(plan.missions.map(p => ids.get(p.missionId)!.track));
+      expect(tracks.has('money') && tracks.has('skills')).toBe(true);
+      expect(plan.missions.every(p => ids.get(p.missionId)!.slot === 'quick')).toBe(true);
+    }
+  });
+
   it('respects requirements: no gym missions without a gym, no work missions without a job, 18+ only when known', () => {
     const p = profile({ gym: null, work: false, age: 'u16' });
     expect(meetsRequirements(['gym'], p)).toBe(false);

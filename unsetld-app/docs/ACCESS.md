@@ -72,7 +72,7 @@ The app reads `https://www.unsetld.com/api/app/config.json` on launch and on eve
 }
 ```
 
-- **`accessEnabled`** (required; a file without it is ignored). `false` (the default until the backend below exists) hides the reward tiers, the redeem flow, your codes, the next-reward line on Home and on the done screen, the Access section on Rewards, the Day 3 note, milestone letters, milestone pages, the Account row and the terms. Missions, proof, points, the streak, levels and "how points are earned" work unchanged. The app never says "coming soon".
+- **`accessEnabled`** (required; a file without it is ignored). `false` (the default until the backend below exists) hides the reward tiers, the redeem flow, your codes, the next-reward line on Home and on the done screen, the Access section on Rewards, the Day 3 note, milestone letters, milestone pages, the Account row (unless someone is already signed in) and the Access terms. Missions, proof, points, the streak, levels and "how points are earned" work unchanged. The app never says "coming soon".
 - **`collection`** is the current collection. Rewards are counted per collection, so when this value changes everyone can take each tier again.
 - **`rewards`** (optional) replaces the app's built-in tiers (`src/content/rewards.json`) as a whole list. Leave it out, or send an empty list, to use the built-in ones. Each entry is checked on the phone and dropped if anything in it is off; repeated ids are dropped too. If no entry is valid, the built-in tiers are used. Fields (`RewardTier` in `src/core/types.ts`):
 

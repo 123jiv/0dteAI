@@ -57,8 +57,8 @@ export const ONBOARDING = {
     } satisfies Record<Profile['minutes'], string>,
     hard: 'How hard?',
     /** Under How hard? when 5–15 is chosen: the day's budget keeps every mission short, Push me included. */
-    shortDay: 'With 5–15 minutes, missions stay short whatever you pick.',
-    a11yShortDay: 'With 5 to 15 minutes, missions stay short whatever you pick.',
+    shortDay: 'With 5–15 minutes, you get up to three short missions a day, whatever you pick.',
+    a11yShortDay: 'With 5 to 15 minutes, you get up to three short missions a day, whatever you pick.',
     intensity: {
       easy: {
         name: 'START EASY',
