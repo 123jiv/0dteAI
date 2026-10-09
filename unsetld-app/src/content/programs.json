@@ -39,7 +39,7 @@
   "tracks": ["school"],
   "free": false,
   "plan": [
-   ["school-check-due", "school-organize-schoolwork"],
+   ["school-term-deadlines", "school-organize-schoolwork"],
    ["school-study-plan", "school-finish-assignment"],
    ["school-review-notes", "school-study-30"],
    ["school-hard-topic"],
