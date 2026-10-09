@@ -1,16 +1,21 @@
 // All editable content lives in JSON next to this file. Edit the JSON, not the code.
-import type { Chapter, ChapterId, Colorway, Line, Milestone, PointsConfig, ReminderPrompt, Task } from '../core/types';
+import type { Chapter, ChapterId, Colorway, Line, Milestone, Mission, PointsConfig, Program, ReminderPrompt, RewardTier, Task, Track, TrackId } from '../core/types';
 import { isShippable, todayCandidates } from '../core/feed';
 import chaptersJson from './chapters.json';
 import colorwaysJson from './colorways.json';
 import legalJson from './legal.json';
 import linesJson from './lines.json';
 import milestonesJson from './milestones.json';
+import missionsJson from './missions.json';
 import pointsJson from './points.json';
+import programsJson from './programs.json';
 import remindersJson from './reminders.json';
+import rewardsJson from './rewards.json';
+import rulesJson from './rules.json';
 import scheduleJson from './schedule.json';
 import standardJson from './standard.json';
 import tasksJson from './tasks.json';
+import tracksJson from './tracks.json';
 
 export const CHAPTERS = chaptersJson as Chapter[];
 export const CHAPTER_BY_ID = Object.fromEntries(CHAPTERS.map(c => [c.id, c])) as Record<ChapterId, Chapter>;
@@ -35,6 +40,18 @@ export const STANDARD_RULES = standardRules.map(r => r.text);
 /** The chapter each preset rule belongs to, so its line and reminders fit it. Written rules have none. */
 export const RULE_CHAPTER: Record<string, ChapterId> = Object.fromEntries(standardRules.map(r => [r.text, r.chapter]));
 export const TASKS = tasksJson as Task[];
+
+// 3.0 missions
+export const TRACKS = tracksJson as Track[];
+export const TRACK_BY_ID = Object.fromEntries(TRACKS.map(t => [t.id, t])) as Record<TrackId, Track>;
+/** The mission library (active missions only). */
+export const MISSIONS = (missionsJson as Mission[]).filter(m => m.active);
+export const MISSION_BY_ID: Record<string, Mission> = Object.fromEntries(MISSIONS.map(m => [m.id, m]));
+export const PROGRAMS = programsJson as Program[];
+export const PROGRAM_BY_ID: Record<string, Program> = Object.fromEntries(PROGRAMS.map(p => [p.id, p]));
+/** Default reward tiers; unsetld.com's config can replace them (store.remote.rewards). */
+export const REWARD_TIERS = rewardsJson as RewardTier[];
+export const RULES = rulesJson;
 
 export interface LegalSection {
   h: string;

@@ -1,0 +1,62 @@
+[
+ {
+  "id": "lock-in-7",
+  "title": "7 Day Lock In",
+  "short": "Seven days of focus blocks and finishing things.",
+  "days": 7,
+  "tracks": [
+   "focus"
+  ],
+  "free": true,
+  "plan": [
+   [
+    "focus-lock-in-25"
+   ],
+   [
+    "focus-win-before-noon"
+   ],
+   [
+    "focus-lock-in-25"
+   ],
+   [
+    "focus-finish-something"
+   ],
+   [
+    "focus-lock-in-25"
+   ],
+   [
+    "focus-plan-tomorrow"
+   ],
+   [
+    "focus-finish-something"
+   ]
+  ]
+ },
+ {
+  "id": "get-organized",
+  "title": "Get Organized",
+  "short": "Five days to reset your room, desk and mornings.",
+  "days": 5,
+  "tracks": [
+   "reset"
+  ],
+  "free": true,
+  "plan": [
+   [
+    "reset-desk"
+   ],
+   [
+    "reset-room-10"
+   ],
+   [
+    "reset-tomorrow-ready"
+   ],
+   [
+    "reset-room-10"
+   ],
+   [
+    "reset-make-the-bed"
+   ]
+  ]
+ }
+]

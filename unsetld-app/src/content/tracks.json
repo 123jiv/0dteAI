@@ -1,0 +1,9 @@
+[
+  { "id": "focus", "name": "FOCUS & DISCIPLINE", "short": "Focus", "scope": "Phone away. Deep work. Finishing things." },
+  { "id": "fitness", "name": "FITNESS & ENERGY", "short": "Fitness", "scope": "Training, moving, sleep, real food." },
+  { "id": "school", "name": "SCHOOL & LEARNING", "short": "School", "scope": "Studying, reading, assignments, tests." },
+  { "id": "money", "name": "MONEY & CAREER", "short": "Money", "scope": "Earning, saving, jobs, your resume." },
+  { "id": "skills", "name": "SKILLS & PROJECTS", "short": "Skills", "scope": "Building, making and shipping your thing." },
+  { "id": "reset", "name": "LIFE RESET", "short": "Reset", "scope": "Your room, your stuff, tomorrow ready." },
+  { "id": "mindset", "name": "CONFIDENCE & MINDSET", "short": "Mindset", "scope": "Decisions made. First steps taken." }
+]

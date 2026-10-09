@@ -1,0 +1,9 @@
+{
+  "perfectDayBonus": 15,
+  "rerolls": { "free": 1, "full": 3 },
+  "offDayEvery": 7,
+  "offDayMax": 2,
+  "proofFreshMinutes": 30,
+  "beforeAfterMinGapSeconds": 120,
+  "proofRetentionDays": 30
+}

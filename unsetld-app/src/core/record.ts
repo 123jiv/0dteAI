@@ -13,7 +13,7 @@ export const ROAD = [7, 90, 365] as const;
 export const PAUSABLE_DAYS: readonly number[] = [7];
 
 export function emptyRecord(): RecordState {
-  return { days: {}, nights: {}, lettersShown: [], patchClaimed: null, work: {}, codes: [] };
+  return { days: {}, nights: {}, lettersShown: [], patchClaimed: null, work: {}, codes: [], missions: {}, bonuses: {}, redemptions: [], legacyPoints: 0 };
 }
 
 export function sortedDays(r: RecordState): DayKey[] {

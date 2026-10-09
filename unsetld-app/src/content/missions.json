@@ -1,0 +1,704 @@
+[
+ {
+  "id": "focus-lock-in-25",
+  "track": "focus",
+  "slot": "progress",
+  "title": "25-Minute Lock In",
+  "short": "Phone in another room. 25 minutes on your most important task.",
+  "why": "One protected block is how the important thing actually moves.",
+  "how": [
+   "Pick the one task that matters most today.",
+   "Put your phone in another room.",
+   "Start the 25:00 timer and stay on that one task."
+  ],
+  "proof": "Your workspace or notes after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 25,
+  "timerMinutes": 25,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "deep-work"
+  ],
+  "active": true
+ },
+ {
+  "id": "focus-win-before-noon",
+  "track": "focus",
+  "slot": "quick",
+  "title": "Get One Win Before Noon",
+  "short": "Finish one thing you've been putting off before 12.",
+  "why": "A win early sets the pace for the rest of the day.",
+  "how": [
+   "Pick something small you keep pushing back.",
+   "Do it before noon."
+  ],
+  "proof": "The finished thing.",
+  "proofType": "PHOTO_AFTER",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 15,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "momentum"
+  ],
+  "active": true
+ },
+ {
+  "id": "focus-plan-tomorrow",
+  "track": "focus",
+  "slot": "quick",
+  "title": "Plan Tomorrow Tonight",
+  "short": "Write your three most important tasks for tomorrow.",
+  "why": "You start faster when the first decision is already made.",
+  "how": [
+   "Before bed, write tomorrow's top three on paper.",
+   "Put the hardest one first."
+  ],
+  "proof": "The written list.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "planning"
+  ],
+  "active": true
+ },
+ {
+  "id": "focus-finish-something",
+  "track": "focus",
+  "slot": "challenge",
+  "title": "Finish Something",
+  "short": "Pick one unfinished task, assignment or project and finish it.",
+  "why": "Half-done things cost you every time you think about them.",
+  "how": [
+   "Pick the one that's closest to done.",
+   "Work until it's finished, not until you're tired."
+  ],
+  "proof": "The finished result.",
+  "proofType": "PHOTO_AFTER",
+  "points": 25,
+  "difficulty": 3,
+  "minutes": 45,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "finishing"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-study-sprint",
+  "track": "school",
+  "slot": "progress",
+  "title": "Study Sprint",
+  "short": "One subject, 25 focused minutes.",
+  "why": "Short, focused sessions beat long, distracted ones.",
+  "how": [
+   "Pick one subject.",
+   "Phone away, notes out.",
+   "Start the 25:00 timer."
+  ],
+  "proof": "Your notes after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 25,
+  "timerMinutes": 25,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "study"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-10-pages",
+  "track": "school",
+  "slot": "quick",
+  "title": "10 Pages",
+  "short": "Read at least 10 pages of a book.",
+  "why": "Ten pages a day is about a book a month.",
+  "how": [
+   "Pick up the book.",
+   "Read 10 pages before anything else."
+  ],
+  "proof": "The page you reached.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 15,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "reading"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-start-before-urgent",
+  "track": "school",
+  "slot": "challenge",
+  "title": "Start Before It's Urgent",
+  "short": "Work 40 minutes on something that isn't due today.",
+  "why": "Starting early is the difference between a draft and a panic.",
+  "how": [
+   "Pick the next big thing due.",
+   "Start the 40:00 timer.",
+   "Get a rough first part done."
+  ],
+  "proof": "The draft or work you got done.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 25,
+  "difficulty": 3,
+  "minutes": 40,
+  "timerMinutes": 40,
+  "requires": [
+   "school"
+  ],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "assignments"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-teach-it-back",
+  "track": "school",
+  "slot": "progress",
+  "title": "Teach It Back",
+  "short": "Write a short explanation of something you learned today.",
+  "why": "If you can explain it simply, you actually know it.",
+  "how": [
+   "Pick one thing from class or a video.",
+   "Explain it in 5 sentences on paper, notes closed."
+  ],
+  "proof": "Your written explanation.",
+  "proofType": "PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 15,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "memory"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-move-20",
+  "track": "fitness",
+  "slot": "progress",
+  "title": "Move for 20",
+  "short": "Walk, run or work out for at least 20 minutes.",
+  "why": "Twenty minutes of moving does more for your energy than another coffee.",
+  "how": [
+   "Pick walk, run or a workout.",
+   "Start the 20:00 timer and go.",
+   "Daylight, a route you know."
+  ],
+  "proof": "Where you moved, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 20,
+  "timerMinutes": 20,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "cardio"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-get-outside",
+  "track": "fitness",
+  "slot": "quick",
+  "title": "Get Outside",
+  "short": "Spend 10 minutes outside.",
+  "why": "Daylight and air reset your head faster than a scroll.",
+  "how": [
+   "Go out the door.",
+   "Stay out 10 minutes."
+  ],
+  "proof": "The view from outside.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "tags": [
+   "outside"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-mobility-reset",
+  "track": "fitness",
+  "slot": "quick",
+  "title": "Mobility Reset",
+  "short": "Stretch or do mobility work for 10 minutes.",
+  "why": "Tight hips and back come from sitting. Ten minutes undoes a lot of it.",
+  "how": [
+   "Clear some floor.",
+   "Start the 10:00 timer and stretch."
+  ],
+  "proof": "Your stretch spot after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 10,
+  "timerMinutes": 10,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "mobility"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-train-today",
+  "track": "fitness",
+  "slot": "challenge",
+  "title": "Train Today",
+  "short": "Do a full 40-minute workout.",
+  "why": "Strength comes from showing up and doing the work, not the perfect plan.",
+  "how": [
+   "Pick your workout: gym or bodyweight.",
+   "Start the 40:00 timer.",
+   "Rest when you need to."
+  ],
+  "proof": "Your workout spot or equipment after.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 25,
+  "difficulty": 3,
+  "minutes": 40,
+  "timerMinutes": 40,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "strength"
+  ],
+  "active": true
+ },
+ {
+  "id": "money-where-it-went",
+  "track": "money",
+  "slot": "quick",
+  "title": "Know Where Your Money Went",
+  "short": "Write down everything you spent today.",
+  "why": "Money disappears in small amounts you don't remember.",
+  "how": [
+   "Think back through the day.",
+   "Write each purchase and add it up."
+  ],
+  "proof": "Your handwritten list. No bank info.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "spending"
+  ],
+  "active": true
+ },
+ {
+  "id": "money-career-skill",
+  "track": "money",
+  "slot": "progress",
+  "title": "Career Skill: 20 Minutes",
+  "short": "Spend 20 minutes learning a skill people pay for.",
+  "why": "Skills compound. Twenty minutes a day adds up fast.",
+  "how": [
+   "Pick one skill: spreadsheets, design, writing, code.",
+   "Start the 20:00 timer and follow one lesson."
+  ],
+  "proof": "Your workspace or course after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 20,
+  "timerMinutes": 20,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "money-apply",
+  "track": "money",
+  "slot": "challenge",
+  "title": "Apply",
+  "short": "Apply for one job, internship or scholarship.",
+  "why": "Every yes started as an application someone almost didn't send.",
+  "how": [
+   "Find one that fits.",
+   "Fill it out and send it.",
+   "Never pay to apply."
+  ],
+  "proof": "The confirmation, private info covered.",
+  "proofType": "PHOTO",
+  "points": 25,
+  "difficulty": 3,
+  "minutes": 45,
+  "requires": [
+   "age16"
+  ],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "tags": [
+   "jobs"
+  ],
+  "active": true
+ },
+ {
+  "id": "money-plan",
+  "track": "money",
+  "slot": "progress",
+  "title": "Money Plan",
+  "short": "Write what you'll save and spend this week.",
+  "why": "A plan on paper beats a guess every time.",
+  "how": [
+   "Write what's coming in this week.",
+   "Write what you'll save first, then what you'll spend."
+  ],
+  "proof": "Your plan on paper. No account numbers.",
+  "proofType": "PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 15,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "saving"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-build-30",
+  "track": "skills",
+  "slot": "progress",
+  "title": "Build for 30",
+  "short": "30 minutes on your project: art, music, code, a brand, anything.",
+  "why": "Projects get built in small sessions, not in your head.",
+  "how": [
+   "Pick the next small piece.",
+   "Start the 30:00 timer.",
+   "Work on it and nothing else."
+  ],
+  "proof": "Your work after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 30,
+  "timerMinutes": 30,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "build"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-ship-something",
+  "track": "skills",
+  "slot": "challenge",
+  "title": "Ship Something",
+  "short": "Finish one small part of your project instead of planning it.",
+  "why": "Finished beats perfect. You can't improve what doesn't exist.",
+  "how": [
+   "Pick one piece you can finish today.",
+   "Finish it."
+  ],
+  "proof": "The finished part.",
+  "proofType": "PHOTO_AFTER",
+  "points": 25,
+  "difficulty": 3,
+  "minutes": 45,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "shipping"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-create-1-thing",
+  "track": "skills",
+  "slot": "quick",
+  "title": "Create 1 Thing",
+  "short": "Make one small thing: a sketch, a beat, a paragraph, a design.",
+  "why": "Making something small every day is how you get good.",
+  "how": [
+   "Set a 15-minute limit.",
+   "Make one thing."
+  ],
+  "proof": "What you made.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 15,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "create"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-improve-yesterday",
+  "track": "skills",
+  "slot": "progress",
+  "title": "Improve Yesterday's Work",
+  "short": "Take something you made and make it better.",
+  "why": "The second pass is where it gets good.",
+  "how": [
+   "Open what you made last.",
+   "Fix the weakest part."
+  ],
+  "proof": "The improved version.",
+  "proofType": "PHOTO_AFTER",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 25,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "iterate"
+  ],
+  "active": true
+ },
+ {
+  "id": "reset-make-the-bed",
+  "track": "reset",
+  "slot": "quick",
+  "title": "Make the Bed",
+  "short": "Make your bed before you leave the room.",
+  "why": "The first thing you finish today. Takes two minutes.",
+  "how": [
+   "Feet on the floor, then the bed.",
+   "Covers up, pillow on top."
+  ],
+  "proof": "The made bed.",
+  "proofType": "PHOTO_AFTER",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 2,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "morning"
+  ],
+  "active": true
+ },
+ {
+  "id": "reset-desk",
+  "track": "reset",
+  "slot": "quick",
+  "title": "Reset Your Desk",
+  "short": "Clear trash, dishes and clutter off your desk.",
+  "why": "Clean the desk. Clear your head.",
+  "how": [
+   "Take the before photo.",
+   "Trash out, dishes back, stuff away."
+  ],
+  "proof": "Before and after of the desk.",
+  "proofType": "BEFORE_AFTER",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "tags": [
+   "desk"
+  ],
+  "active": true
+ },
+ {
+  "id": "reset-room-10",
+  "track": "reset",
+  "slot": "progress",
+  "title": "10-Minute Room Reset",
+  "short": "Clean one part of your room for 10 minutes.",
+  "why": "Ten minutes a day stops it turning into a whole-weekend job.",
+  "how": [
+   "Take the before photo.",
+   "Pick one area.",
+   "Ten minutes, then the after photo."
+  ],
+  "proof": "Before and after of that area.",
+  "proofType": "BEFORE_AFTER",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "room"
+  ],
+  "active": true
+ },
+ {
+  "id": "reset-tomorrow-ready",
+  "track": "reset",
+  "slot": "quick",
+  "title": "Tomorrow Is Ready",
+  "short": "Pack your bag and set out what you need for tomorrow.",
+  "why": "Mornings go wrong the night before.",
+  "how": [
+   "Pack the bag.",
+   "Set out clothes and anything you need."
+  ],
+  "proof": "Your packed bag and setup.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "tags": [
+   "evening"
+  ],
+  "active": true
+ },
+ {
+  "id": "mindset-write-the-move",
+  "track": "mindset",
+  "slot": "quick",
+  "title": "Write the Move",
+  "short": "Write one thing you're avoiding and the first action to start it.",
+  "why": "Avoiding is usually not knowing the first step.",
+  "how": [
+   "Write the thing.",
+   "Write the first action, small enough to do today."
+  ],
+  "proof": "Your written move.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "difficulty": 1,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "avoidance"
+  ],
+  "active": true
+ },
+ {
+  "id": "mindset-make-decision",
+  "track": "mindset",
+  "slot": "progress",
+  "title": "Make the Decision",
+  "short": "Pick something you've been overthinking and write your decision.",
+  "why": "Not deciding is a decision too, just a worse one.",
+  "how": [
+   "Write the choice.",
+   "Write what you're picking and why, in two lines."
+  ],
+  "proof": "Your written decision.",
+  "proofType": "PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "decisions"
+  ],
+  "active": true
+ },
+ {
+  "id": "mindset-small-version",
+  "track": "mindset",
+  "slot": "challenge",
+  "title": "Do the Small Version",
+  "short": "Take the first real step on something you've delayed.",
+  "why": "The small version is how big things actually start.",
+  "how": [
+   "Pick the thing you keep delaying.",
+   "Do the smallest real version of it today."
+  ],
+  "proof": "The result of the first step.",
+  "proofType": "PHOTO_AFTER",
+  "points": 25,
+  "difficulty": 3,
+  "minutes": 30,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "first-step"
+  ],
+  "active": true
+ },
+ {
+  "id": "mindset-ask-for-help",
+  "track": "mindset",
+  "slot": "progress",
+  "title": "Ask for Help",
+  "short": "Ask someone who knows for help with something you're stuck on.",
+  "why": "Asking takes thirty seconds. Being stuck takes weeks.",
+  "how": [
+   "Pick the person: teacher, coach, manager, older friend.",
+   "Ask in person or by message.",
+   "Write down what they said."
+  ],
+  "proof": "Your note of what they said.",
+  "proofType": "PHOTO",
+  "points": 15,
+  "difficulty": 2,
+  "minutes": 15,
+  "requires": [],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "tags": [
+   "asking"
+  ],
+  "active": true
+ }
+]

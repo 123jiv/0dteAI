@@ -1,9 +1,13 @@
 // Proof photos: taken live with the camera, kept inside the app on this phone,
-// never uploaded. The browser preview has no camera, so it picks a file and
-// keeps a small copy in local storage.
+// never uploaded. Each photo is re-encoded on save (which drops EXIF, including
+// any location) and fingerprinted so the same photo can't count twice.
+// The browser preview has no camera, so it picks a file and keeps a small copy
+// in local storage.
 import { Directory, File, Paths } from 'expo-file-system';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
+import { fingerprint } from '../core/proofs';
 import type { DayKey } from '../core/time';
 
 export type Capture = { ok: true; uri: string } | { ok: false; reason: 'cancelled' | 'denied' | 'failed' };
@@ -90,4 +94,55 @@ export function proofImage(uri: string): string | null {
     }
   }
   return uri;
+}
+
+/** Whether proof photos come straight from the camera (false in the browser preview). */
+export const PROOF_FROM_CAMERA = !web;
+
+export interface SavedPhoto {
+  /** What to store on the proof (a file URI, or a web storage key). */
+  uri: string;
+  /** Fingerprint of the saved image. */
+  hash: string;
+}
+
+/**
+ * Saves a captured photo for a mission proof: resized to 1600 px, re-encoded as
+ * JPEG without metadata, stored in the app's own folder, and fingerprinted.
+ * `key` names the file, e.g. "2026-10-09-focus-lock-in-25-after".
+ */
+export async function savePhoto(uri: string, key: string): Promise<SavedPhoto> {
+  const safe = key.replace(/[^a-z0-9-]/gi, '');
+  if (web) {
+    const data = await shrinkForWeb(uri).catch(() => uri);
+    const hash = fingerprint(data);
+    try {
+      globalThis.localStorage?.setItem(`${WEB_PREFIX}${safe}`, data);
+      return { uri: `${WEB_PREFIX}${safe}`, hash };
+    } catch {
+      return { uri: data.length < 200_000 ? data : '', hash };
+    }
+  }
+  const ref = await ImageManipulator.manipulate(uri).resize({ width: 1600 }).renderAsync();
+  const out = await ref.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true });
+  const dir = new Directory(Paths.document, 'proof');
+  dir.create({ intermediates: true, idempotent: true });
+  const dest = new File(dir, `${safe}.jpg`);
+  if (dest.exists) dest.delete();
+  await new File(out.uri).copy(dest);
+  return { uri: dest.uri, hash: fingerprint(out.base64 ?? dest.uri) };
+}
+
+/** Deletes a saved proof photo (retention policy, or a retake). Missing files are fine. */
+export function deletePhoto(uri: string): void {
+  if (!uri) return;
+  try {
+    if (uri.startsWith(WEB_PREFIX)) globalThis.localStorage?.removeItem(uri);
+    else if (!web && uri.startsWith('file:')) {
+      const f = new File(uri);
+      if (f.exists) f.delete();
+    }
+  } catch {
+    // Already gone.
+  }
 }

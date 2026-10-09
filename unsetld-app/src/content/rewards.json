@@ -1,0 +1,6 @@
+[
+  { "id": "free-shipping", "title": "Free shipping", "detail": "On your next UNSETLD order.", "type": "free-shipping", "points": 300, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1 },
+  { "id": "ten-off", "title": "10% off", "detail": "One order at unsetld.com. Up to $25 off.", "type": "discount", "points": 600, "percent": 10, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1 },
+  { "id": "fifteen-off", "title": "15% off", "detail": "One order at unsetld.com. Up to $25 off.", "type": "discount", "points": 1000, "percent": 15, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1 },
+  { "id": "limited-drop", "title": "Limited piece", "detail": "First pick of a limited run, held for you at full price.", "type": "limited", "points": 2000, "active": false, "availableFrom": null, "availableUntil": null, "codeValidDays": 14, "inventory": 0, "perCollection": 1 }
+]

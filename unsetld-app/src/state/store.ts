@@ -4,7 +4,15 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type PersistStorage } from 'zustand/middleware';
 import { AppConfig } from '../config/app';
 import { randomSalt } from '../core/random';
-import { claimCode, completeTask, dayPoints, uncompleteTask } from '../core/points';
+import { claimCode, completeTask, dayPoints, pointsBalance, uncompleteTask } from '../core/points';
+import { completeMission as completeMissionCore } from '../core/complete';
+import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, prunePlans, rerollMission as rerollCore, type MissionHistory } from '../core/missions';
+import { programMissions, programProgress, startProgram as startProgramCore } from '../core/programs';
+import { clearPhotos, photosToClear } from '../core/proofs';
+import { activeDays } from '../core/progress';
+import { balance, redeem } from '../core/rewards';
+import { computeStreak } from '../core/streak';
+import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as startCore, type FocusTimer } from '../core/timer';
 import {
   answerNight,
   claimPatch,
@@ -15,8 +23,8 @@ import {
 } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
-import type { ChapterId, Colorway, PointsConfig, Proof, RecordState, WorkItem, YourLine } from '../core/types';
-import { COLORWAY_BY_ID, COLORWAYS, POINTS, STANDARD_RULES } from '../content';
+import type { ChapterId, Colorway, DayPlan, PointsConfig, Profile, ProgramState, Proof, ProofPhoto, RecordState, RewardTier, TrackId, Verification, WorkItem, YourLine } from '../core/types';
+import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, POINTS, PROGRAM_BY_ID, RULES, STANDARD_RULES } from '../content';
 import { getDayOffset, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
 import { checkTrustedTime } from '../services/trustedTime';
@@ -41,6 +49,10 @@ export interface Settings {
   ownTasks: { id: string; text: string }[];
   /** The day-1 "Swipe up for the next line." hint has done its job. */
   hintDone: boolean;
+  /** Proof photos are cleared after this many days (0 = keep). The mission record stays. */
+  proofRetentionDays: number;
+  /** Tester tools: focus timers run this many times faster (preview and dev builds only). */
+  timerSpeed: number;
 }
 
 export interface Reading {
@@ -69,6 +81,30 @@ export interface Remote {
   /** null until unsetld.com has answered once. */
   accessEnabled: boolean | null;
   collection: string;
+  /** Reward tiers from unsetld.com's config; null = use the defaults in content/rewards.json. */
+  rewards?: RewardTier[] | null;
+}
+
+/** What proving a mission did, for the done screen. */
+export interface MissionResult {
+  points: number;
+  bonus: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  streakBefore: number;
+  streakAfter: number;
+  /** Every mission in today's plan is proven. */
+  perfect: boolean;
+  accepted: boolean;
+}
+
+export type RerollResult = 'ok' | 'none' | 'limit';
+
+/** A before photo waiting for its after (BEFORE_AFTER missions). */
+export interface PendingBefore {
+  missionId: string;
+  day: DayKey;
+  photo: ProofPhoto;
 }
 
 interface State {
@@ -88,6 +124,19 @@ interface State {
   currentDay: DayKey;
   /** Colorway shown while browsing the colorway sheet (not saved). */
   previewColorway: string | null;
+
+  // 3.0 missions
+  profile: Profile;
+  /** Each day's plan, once generated (kept six weeks). */
+  plans: Record<DayKey, DayPlan>;
+  skips: MissionHistory['skips'];
+  timer: FocusTimer | null;
+  pendingBefore: PendingBefore | null;
+  program: ProgramState | null;
+  /** Week start of the last weekly review the user closed. */
+  reviewSeen: DayKey | null;
+  /** Progress milestones whose moment was already shown (core/progress MilestoneKey). */
+  momentsShown: string[];
 
   updateSettings: (patch: Partial<Settings>) => void;
   completeOnboarding: (verified: boolean) => void;
@@ -118,6 +167,26 @@ interface State {
   refreshDay: () => void;
   restore: (salt: string, record: RecordState) => void;
   setRecord: (record: RecordState) => void;
+
+  setProfile: (patch: Partial<Profile>) => void;
+  /** Today's plan, generated the first time it's asked for. */
+  ensurePlan: (day?: DayKey) => DayPlan;
+  /** Rebuilds today's plan after the profile changes, if nothing in it was done or swapped yet. */
+  replanToday: () => void;
+  rerollMission: (index: number) => RerollResult;
+  startTimer: (missionId: string) => void;
+  pauseTimer: () => void;
+  resumeTimer: () => void;
+  cancelTimer: () => void;
+  setPendingBefore: (p: PendingBefore | null) => void;
+  completeMission: (missionId: string, photos: ProofPhoto[], verification: Verification, opts: { verifiedClock: boolean; timerSeconds?: number }) => MissionResult;
+  redeemReward: (tier: RewardTier, minted: { code: string; url: string }) => void;
+  startProgram: (id: string) => void;
+  leaveProgram: () => void;
+  markReviewSeen: (weekStart: DayKey) => void;
+  markMomentShown: (key: string) => void;
+  /** Clears proof photos older than the retention setting. Returns the files to delete. */
+  expireProofPhotos: () => string[];
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -133,6 +202,8 @@ export const DEFAULT_SETTINGS: Settings = {
   ownRule: null,
   ownTasks: [],
   hintDone: false,
+  proofRetentionDays: RULES.proofRetentionDays,
+  timerSpeed: 1,
 };
 
 const EMPTY_READING: Reading = {
@@ -159,16 +230,120 @@ export const useApp = create<State>()(
       currentDay: today(),
       previewColorway: null,
 
+      profile: DEFAULT_PROFILE,
+      plans: {},
+      skips: {},
+      timer: null,
+      pendingBefore: null,
+      program: null,
+      reviewSeen: null,
+      momentsShown: [],
+
+      setProfile: patch => set(s => ({ profile: { ...s.profile, ...patch } })),
+
+      ensurePlan: day => {
+        const d = day ?? today();
+        const have = get().plans[d];
+        if (have) return have;
+        const plan = buildPlan(get(), d);
+        set(s => ({ plans: { ...prunePlans(s.plans, d), [d]: plan } }));
+        return plan;
+      },
+
+      replanToday: () => {
+        const d = today();
+        const s = get();
+        const cur = s.plans[d];
+        const touched = cur && (cur.rerolls > 0 || Object.keys(s.record.missions?.[d] ?? {}).length > 0);
+        if (touched) return;
+        set(st => ({ plans: { ...st.plans, [d]: buildPlan(st, d) } }));
+      },
+
+      rerollMission: index => {
+        const d = today();
+        const s = get();
+        const plan = s.plans[d] ?? get().ensurePlan(d);
+        const limit = s.premium.active ? RULES.rerolls.full : RULES.rerolls.free;
+        if (plan.rerolls >= limit) return 'limit';
+        const old = plan.missions[index];
+        if (!old || s.record.missions?.[d]?.[old.missionId]) return 'none';
+        const next = rerollCore(plan, index, planInput(s, d));
+        if (!next) return 'none';
+        set(st => ({ plans: { ...st.plans, [d]: next }, skips: addSkip(st.skips, old.missionId, d) }));
+        return 'ok';
+      },
+
+      startTimer: missionId => {
+        const m = MISSION_BY_ID[missionId];
+        if (!m?.timerMinutes) return;
+        set(s => ({ timer: startCore(missionId, today(), m.timerMinutes!, Date.now(), Math.max(1, s.settings.timerSpeed || 1)) }));
+      },
+      pauseTimer: () => set(s => (s.timer ? { timer: pauseCore(s.timer, Date.now()) } : {})),
+      resumeTimer: () => set(s => (s.timer ? { timer: resumeCore(s.timer, Date.now()) } : {})),
+      cancelTimer: () => set({ timer: null }),
+      setPendingBefore: p => set({ pendingBefore: p }),
+
+      completeMission: (missionId, photos, verification, opts) => {
+        const d = today();
+        const s = get();
+        const mission = MISSION_BY_ID[missionId];
+        const plan = s.plans[d] ?? null;
+        const before = { balance: balance(s.record), streak: computeStreak(activeDays(s.record), d).current };
+        if (!mission) {
+          return { points: 0, bonus: 0, balanceBefore: before.balance, balanceAfter: before.balance, streakBefore: before.streak, streakAfter: before.streak, perfect: false, accepted: false };
+        }
+        const programId = plan?.missions.find(p => p.missionId === missionId)?.programId;
+        const c = completeMissionCore(s.record, d, plan, mission, photos, verification, {
+          at: Date.now(),
+          verifiedClock: opts.verifiedClock,
+          timerSeconds: opts.timerSeconds,
+          programId,
+        });
+        const accepted = verification.status === 'accepted';
+        let program = s.program;
+        const prog = program ? PROGRAM_BY_ID[program.id] : null;
+        if (accepted && program && prog && programId === program.id) program = programProgress(prog, program, d);
+        set({
+          record: c.record,
+          program,
+          timer: s.timer?.missionId === missionId ? null : s.timer,
+          pendingBefore: s.pendingBefore?.missionId === missionId ? null : s.pendingBefore,
+        });
+        const after = { balance: balance(c.record), streak: computeStreak(activeDays(c.record), d).current };
+        const perfect = !!plan && plan.missions.every(p => c.record.missions[d]?.[p.missionId]?.verification.status === 'accepted');
+        return { points: c.points, bonus: c.bonus, balanceBefore: before.balance, balanceAfter: after.balance, streakBefore: before.streak, streakAfter: after.streak, perfect, accepted };
+      },
+
+      redeemReward: (tier, minted) => set(s => ({ record: redeem(s.record, tier, s.remote.collection, today(), minted) })),
+
+      startProgram: id => {
+        if (!PROGRAM_BY_ID[id]) return;
+        const d = today();
+        set({ program: startProgramCore(id, d) });
+        // Put the program's first day in today's plan if today hasn't been touched yet.
+        get().replanToday();
+      },
+      leaveProgram: () => set({ program: null }),
+      markReviewSeen: weekStart => set({ reviewSeen: weekStart }),
+      markMomentShown: key => set(s => (s.momentsShown.includes(key) ? {} : { momentsShown: [...s.momentsShown, key] })),
+
+      expireProofPhotos: () => {
+        const s = get();
+        const clear = photosToClear(s.record, s.settings.proofRetentionDays, today());
+        if (clear.length) set({ record: clearPhotos(s.record, clear) });
+        return clear.map(c => c.uri);
+      },
+
       updateSettings: patch => set(s => ({ settings: { ...s.settings, ...patch } })),
 
       completeOnboarding: verified => {
         const s = get();
         // Free tier keeps Discipline plus the first other chapter chosen.
         const extra = s.settings.chapters.find(c => c !== 'discipline') ?? 'focus';
-        set({
-          settings: { ...s.settings, onboarded: true, freeChapter: extra },
-          record: recordDay(s.record, today(), verified),
-        });
+        // 3.0: a day goes on record when a mission is proven, not when onboarding ends.
+        void verified;
+        set({ settings: { ...s.settings, onboarded: true, freeChapter: extra } });
+        get().ensurePlan(today());
       },
 
       recordToday: verified => {
@@ -261,8 +436,17 @@ export const useApp = create<State>()(
         remote: s.remote,
         dayOffset: s.dayOffset,
         devSnapshot: s.devSnapshot,
+        profile: s.profile,
+        plans: s.plans,
+        skips: s.skips,
+        timer: s.timer,
+        pendingBefore: s.pendingBefore,
+        program: s.program,
+        reviewSeen: s.reviewSeen,
+        momentsShown: s.momentsShown,
       }),
-      version: 1,
+      version: 2,
+      migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<State>;
         return {
@@ -271,6 +455,7 @@ export const useApp = create<State>()(
           settings: { ...DEFAULT_SETTINGS, ...p.settings },
           reading: { ...EMPTY_READING, ...p.reading },
           record: { ...emptyRecord(), ...p.record },
+          profile: { ...DEFAULT_PROFILE, ...p.profile },
         };
       },
       onRehydrateStorage: () => (state, error) => {
@@ -282,6 +467,52 @@ export const useApp = create<State>()(
     },
   ),
 );
+
+/** Everything the mission generator needs for a day. */
+function planInput(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans' | 'skips' | 'program'>, day: DayKey) {
+  const prog = s.program ? PROGRAM_BY_ID[s.program.id] : null;
+  const ids = prog && s.program ? programMissions(prog, s.program, day) : [];
+  return {
+    library: MISSIONS,
+    profile: s.profile,
+    day,
+    salt: s.installSalt,
+    history: historyFrom(s.record.missions ?? {}, s.plans, s.skips, day),
+    program: prog && ids.length ? { id: prog.id, missionIds: ids } : null,
+  };
+}
+
+function buildPlan(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans' | 'skips' | 'program'>, day: DayKey): DayPlan {
+  return generatePlan(planInput(s, day));
+}
+
+const CHAPTER_TO_TRACK: Record<ChapterId, TrackId> = {
+  discipline: 'focus',
+  focus: 'school',
+  training: 'fitness',
+  money: 'money',
+  confidence: 'mindset',
+  vices: 'reset',
+  stoic: 'mindset',
+};
+
+/**
+ * 2.x → 3.0: chapters become tracks, and the points earned from 2.x tasks (minus
+ * codes already taken) carry over as a starting balance.
+ */
+export function migrateState(p: Partial<State>, version: number): Partial<State> {
+  if (version >= 2) return p;
+  const settings = (p.settings ?? {}) as Partial<Settings>;
+  const chapters = [...(settings.chapters ?? []), settings.freeChapter].filter(Boolean) as ChapterId[];
+  const tracks = [...new Set(chapters.map(c => CHAPTER_TO_TRACK[c]))].slice(0, 3);
+  const record = { ...emptyRecord(), ...p.record } as RecordState;
+  const legacy = Object.keys(record.work ?? {}).length || (record.codes ?? []).length ? pointsBalance(record, POINTS) : 0;
+  return {
+    ...p,
+    profile: { ...DEFAULT_PROFILE, tracks: tracks.length ? tracks : DEFAULT_PROFILE.tracks },
+    record: { ...record, legacyPoints: record.legacyPoints || legacy },
+  };
+}
 
 /**
  * An entry that won't parse is treated as empty, so hydration still finishes
