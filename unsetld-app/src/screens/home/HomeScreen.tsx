@@ -252,7 +252,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
   const week = reviewWeekFor(day);
   const review = week && reviewSeen !== week ? weeklyReview(record, plans, profile, week) : null;
 
-  // Day N: the day you're on, counting only days with a proven mission (so day one reads DAY 001).
+  // Day N: the day you're on, counting only days with a proven mission (so day one reads DAY 1).
   const shownUp = activeDays(record);
   const dayNo = shownUp.size + (shownUp.has(day) ? 0 : 1);
 

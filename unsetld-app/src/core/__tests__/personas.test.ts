@@ -56,6 +56,9 @@ describe('personas', () => {
         // No school missions for someone not in school; no gym missions without a gym.
         if (p.profile.school === false) expect(ms.some(m => m.requires?.includes('school'))).toBe(false);
         if (p.profile.gym !== true) expect(ms.some(m => m.requires?.includes('gym'))).toBe(false);
+        // Missions tied to a school day keep to their days ("Review Today's Notes" never on a Saturday).
+        const weekday = new Date(`${plan.day}T12:00:00`).getDay();
+        for (const m of ms) if (m.days) expect(m.days).toContain(weekday);
       }
       // Days differ.
       const keys = week.map(plan => plan.missions.map(x => x.missionId).sort().join());

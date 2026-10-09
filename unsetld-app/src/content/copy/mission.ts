@@ -5,7 +5,7 @@
 import type { ProofType, VerificationCheck } from '../../core/types';
 
 export const MISSION = {
-  day: (n: number) => `DAY ${String(n).padStart(3, '0')}`,
+  day: (n: number) => `DAY ${n}`,
   ok: 'OK',
 
   meta: (minutes: number, points: number) => `${minutes} MIN · +${points} POINTS`,

@@ -160,6 +160,8 @@ export interface Mission {
   weight?: number;
   /** Morning missions are left out of a plan made after noon. */
   when?: 'morning' | 'evening';
+  /** Days of the week it can be planned (0 = Sunday), for missions tied to a school day. Any day when absent. */
+  days?: number[];
   tags: string[];
   active: boolean;
 }

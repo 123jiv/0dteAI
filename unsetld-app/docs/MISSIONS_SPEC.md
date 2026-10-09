@@ -84,6 +84,7 @@ The library is written in **`scripts/missions/library.py`**, one readable `m(...
 | `group` | missions that overlap share one; a day never holds two from one group |
 | `weight` | how often the planner picks it, relative to 1 (0.1–3) |
 | `when` | `morning` (left out of a plan made from noon on) or `evening` (a label for now; the planner doesn't act on it) |
+| `days` | Days of the week it can be planned, 0 = Sunday. Only for missions tied to a school day: `Review Today's Notes` Monday–Friday, `Finish Tonight's Homework` Sunday–Thursday. Program days skip it on other days. |
 | `tags`, `active` | 1–4 tags; `active: false` retires it |
 
 There is no `slot`, `difficulty`, `why` or `how` any more; the validator rejects them.
@@ -123,7 +124,7 @@ Errors fail the run: every field above; points that don't match the time; `"!"`,
 ## 5. Home (root screen, route `Today`)
 
 Colorway background. Top to bottom:
-- `UNSETLD` (label, left) and `DAY 012` (mono, right: days with a proven mission).
+- `UNSETLD` (label, left) and `DAY 12` (mono, right: days with a proven mission).
 - `12` `DAY STREAK` · `380` `POINTS` (tappable → Rewards). Under the streak, when banked: `1 OFF DAY BANKED`.
 - Next reward line: `220 POINTS TO 10% OFF` (hidden when Access is off).
 - `TODAY` + `0 / 3`; status line: `Three missions today.` · `2 to go.` · `Perfect day. Every mission proven.`
@@ -153,7 +154,7 @@ Your notes or study setup, after the timer.
 Swap this mission
 ```
 
-Close X and `DAY 012` in the nav row. Title, then time and points, then the mission's one sentence (`short`). `PROOF`: a line for the proof type (`Take one photo.` · `Take a photo before you start and one when you're done.` · `Run the 30-minute focus timer. When it ends, take a photo.` · `Run the 30-minute timer to the end.`), then the mission's own proof line. One button: `Start 30 min timer` (TIMER and TIMER_AND_PHOTO), `Take the before photo` (BEFORE_AFTER) or `Prove it` (PHOTO). `Swap this mission` while swaps are left. No WHY THIS MATTERS, no HOW TO DO IT, no steps.
+Close X and `DAY 12` in the nav row. Title, then time and points, then the mission's one sentence (`short`). `PROOF`: a line for the proof type (`Take one photo.` · `Take a photo before you start and one when you're done.` · `Run the 30-minute focus timer. When it ends, take a photo.` · `Run the 30-minute timer to the end.`), then the mission's own proof line. One button: `Start 30 min timer` (TIMER and TIMER_AND_PHOTO), `Take the before photo` (BEFORE_AFTER) or `Prove it` (PHOTO). `Swap this mission` while swaps are left. No WHY THIS MATTERS, no HOW TO DO IT, no steps.
 
 Then:
 1. **Timer** (TIMER and TIMER_AND_PHOTO) — a big mono countdown, the title, `Phone down. Come back when it rings.` `Pause` / `Resume`, `End timer` (asks; ending early earns nothing). It runs on the wall clock while the app is closed, and a local notification fires at zero. At zero: TIMER_AND_PHOTO → `Time. Take the proof photo.` and the camera; TIMER → `Time. Mark it done.` and `Mark it done` (no photo).

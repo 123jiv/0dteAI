@@ -4,7 +4,7 @@
 // and skipped lately, and the time of day. Pure and deterministic: the same library,
 // profile, history and day always give the same plan.
 import { hash32, mulberry32 } from './random';
-import { addDays, dayNumber, diffDays, type DayKey } from './time';
+import { addDays, dayNumber, diffDays, parseDay, type DayKey } from './time';
 import type { DayPlan, Mission, MissionSlot, PlannedMission, Profile, Requirement, TrackId } from './types';
 
 /** An easy mission takes this many minutes or fewer. */
@@ -103,6 +103,7 @@ export function meetsRequirements(requires: readonly Requirement[] | undefined, 
 export function available(m: Mission, input: Pick<PlanInput, 'profile' | 'day' | 'history' | 'hour'>, relaxShown = false): boolean {
   if (!m.active || !meetsRequirements(m.requires, input.profile)) return false;
   if (m.when === 'morning' && (input.hour ?? 0) >= AFTERNOON_HOUR) return false;
+  if (m.days && !m.days.includes(parseDay(input.day).getDay())) return false;
   const { lastDone, lastPlanned, skips } = input.history;
   const done = lastDone[m.id];
   if (done) {
@@ -268,8 +269,9 @@ export function generatePlan(input: PlanInput): DayPlan {
   for (const id of input.program?.missionIds ?? []) {
     const m = byId.get(id);
     if (!m || !m.active || used.has(id)) continue;
-    // Too late for a morning mission; the program day's other missions still move it on.
+    // Too late for a morning mission (or the wrong day of the week); the program day's other missions still move it on.
     if (m.when === 'morning' && (input.hour ?? 0) >= AFTERNOON_HOUR) continue;
+    if (m.days && !m.days.includes(parseDay(day).getDay())) continue;
     let i = slots.findIndex((s, k) => s === sizeOf(m) && !filled.has(k));
     if (i < 0) i = slots.findIndex((_, k) => !filled.has(k));
     if (i < 0) break;

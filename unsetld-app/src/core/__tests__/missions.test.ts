@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import promptsJson from '../../content/reminders.json';
 import { completeMission, provenInPlan } from '../complete';
-import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, meetsRequirements, rerollMission, slotTracks, SLOTS_BY_INTENSITY, type MissionHistory, type PlanInput } from '../missions';
+import { addSkip, available, DEFAULT_PROFILE, generatePlan, historyFrom, meetsRequirements, rerollMission, slotTracks, SLOTS_BY_INTENSITY, type MissionHistory, type PlanInput } from '../missions';
 import { programDay, programMissions, programProgress, startProgram } from '../programs';
 import { clearPhotos, fingerprint, photosToClear, usedHashes } from '../proofs';
 import { activeDays, allDone, completion, isProven, levelFor, levelStart, milestones, photosOf, totals, trackProgress } from '../progress';
@@ -190,6 +190,17 @@ describe('daily missions', () => {
     expect(early.missions.map(p => p.missionId)).toContain(morning.id);
     expect(late.missions.map(p => p.missionId)).not.toContain(morning.id);
     expect(late.missions.find(p => p.missionId === other.id)).toMatchObject({ programId: 'p' });
+  });
+
+  it('keeps a school-day mission to its days of the week', () => {
+    const notes = m('school', 'quick', { days: [1, 2, 3, 4, 5], weight: 3 });
+    const lib = [...LIB, notes];
+    // 2026-10-10 is a Saturday, 2026-10-12 a Monday.
+    expect(available(notes, input({ library: lib, day: '2026-10-10' }))).toBe(false);
+    expect(available(notes, input({ library: lib, day: '2026-10-12' }))).toBe(true);
+    const program = { id: 'p', missionIds: [notes.id] };
+    expect(generatePlan(input({ library: lib, day: '2026-10-10', program })).missions.map(p => p.missionId)).not.toContain(notes.id);
+    expect(generatePlan(input({ library: lib, day: '2026-10-12', program })).missions.map(p => p.missionId)).toContain(notes.id);
   });
 
   it('never puts two missions from one group on the same day, even after a swap', () => {

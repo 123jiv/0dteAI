@@ -87,6 +87,9 @@ for (const m of missions) {
   if (m.group != null && !/^[a-z]+(-[a-z]+)*$/.test(m.group)) e('group must be a lowercase slug');
   if (m.weight != null && !(m.weight >= 0.1 && m.weight <= 3)) e('weight must be 0.1–3');
   if (m.when != null && !['morning', 'evening'].includes(m.when)) e('when must be morning or evening');
+  if (m.days != null && (!Array.isArray(m.days) || m.days.length < 1 || m.days.length > 6 || new Set(m.days).size !== m.days.length || m.days.some(d => !Number.isInteger(d) || d < 0 || d > 6))) {
+    e('days must list 1–6 distinct weekdays, 0 (Sunday) to 6');
+  }
   if (!Array.isArray(m.tags) || m.tags.length < 1 || m.tags.length > 4) e('1–4 tags');
   if (typeof m.active !== 'boolean') e('active must be true or false');
   for (const k of ['slot', 'difficulty', 'why', 'how']) if (k in m) e(`"${k}" is no longer a mission field`);

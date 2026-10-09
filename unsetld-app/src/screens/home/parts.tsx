@@ -39,7 +39,7 @@ function withMotion(run: (reduce: boolean) => void): () => void {
   };
 }
 
-/** UNSETLD on the left, DAY 012 on the right. */
+/** UNSETLD on the left, DAY 12 on the right. */
 export function TopRow({ colorway, days }: { colorway: Colorway; days: number }) {
   return (
     <View style={{ height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -23,7 +23,7 @@ const num = (n: number) => n.toLocaleString('en-US');
 
 export const HOME = {
   brand: 'UNSETLD',
-  day: (n: number) => `DAY ${String(n).padStart(3, '0')}`,
+  day: (n: number) => `DAY ${n}`,
   a11yDay: (n: number) => `Day ${n}`,
   num,
 

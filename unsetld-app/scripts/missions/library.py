@@ -19,7 +19,7 @@ L = []
 
 
 def m(id, track, title, minutes, points, proof_type, short, proof, cooldown=1, *, timer=None, anchor=False,
-      group=None, when=None, requires=None, also=None, weight=None, repeatable=True, tags=None):
+      group=None, when=None, requires=None, also=None, weight=None, repeatable=True, tags=None, days=None):
     assert id.startswith(track + '-'), id
     if proof_type in (T, TP):
         timer = timer or minutes
@@ -40,6 +40,8 @@ def m(id, track, title, minutes, points, proof_type, short, proof, cooldown=1, *
         x['group'] = group
     if when:
         x['when'] = when
+    if days:
+        x['days'] = days
     if weight:
         x['weight'] = weight
     x['tags'] = tags or [track]
@@ -85,6 +87,9 @@ m('discipline-clear-3-small', D, 'Knock Out 3 Small Tasks', 15, 10, P,
 # ── SCHOOL ─────────────────────────────────────────────────────────────────
 S = 'school'
 SC = ['school']
+# 0 = Sunday. Notes come from a class day; homework is due the next morning.
+SCHOOL_DAYS = [1, 2, 3, 4, 5]
+SCHOOL_NIGHTS = [0, 1, 2, 3, 4]
 m('school-study-30', S, 'Study for 30 Minutes', 30, 15, TP,
   'Put your phone away and spend 30 focused minutes studying one subject.',
   'Your notes or study setup, after the timer.', 1, anchor=True, group='study', requires=SC)
@@ -99,10 +104,10 @@ m('school-start-early', S, 'Start an Assignment Early', 30, 15, P,
   group='assignment', requires=SC)
 m('school-tonights-homework', S, "Finish Tonight's Homework", 45, 20, P,
   "Get all of tonight's homework done.", 'Your finished homework, name covered.', 1,
-  group='assignment', requires=SC, anchor=True)
+  group='assignment', requires=SC, anchor=True, days=SCHOOL_NIGHTS)
 m('school-review-notes', S, "Review Today's Notes", 10, 10, P,
   "Go over today's class notes and mark anything you don't understand yet.", 'Your notes with what you marked.', 1,
-  when='evening', requires=SC, anchor=True)
+  when='evening', requires=SC, anchor=True, days=SCHOOL_DAYS)
 m('school-read-chapter', S, 'Read One Chapter', 30, 15, P,
   'Read one full chapter of a textbook or assigned book.', 'The book open to where you finished.', 2,
   group='school-reading', requires=SC)
@@ -220,9 +225,9 @@ m('fitness-pack-meal', F, "Prepare Tomorrow's Meal", 15, 10, P,
   "Make or pack tomorrow's lunch tonight.", 'Your packed meal.', 2, group='meal', when='evening')
 m('fitness-plan-week', F, "Plan This Week's Workouts", 10, 10, P,
   "Write which days you'll train this week, when, and what you'll do.", 'Your training plan.', 6)
-m('fitness-log-workout', F, 'Log Your Workout', 5, 5, P,
-  "Write down every exercise, set, rep and weight from today's workout and circle one to beat next time.",
-  'Your workout log.', 1, when='evening')
+m('fitness-log-workout', F, 'Log Your Last Workout', 5, 5, P,
+  'Write down every exercise, set, rep and weight from your last workout and circle one to beat next time.',
+  'Your workout log.', 1)
 m('fitness-meal-prep', F, 'Meal Prep for the Next 3 Days', 60, 25, P,
   'Cook and pack lunches or dinners for the next 3 days.', 'Your packed meals.', 6, group='meal')
 
@@ -230,7 +235,7 @@ m('fitness-core-10', F, 'Do a 10-Minute Core Workout', 10, 10, T,
   'Planks, side planks, dead bugs and glute bridges for 10 minutes.', 'Run the 10-minute timer to the end.', 2)
 m('fitness-pack-gym-bag', F, 'Pack Your Gym Bag for Tomorrow', 5, 5, P,
   "Pack your shoes, clothes and water tonight for tomorrow's workout.", 'Your packed bag.', 2,
-  group='tomorrow-ready', when='evening')
+  group='tomorrow-ready', when='evening', requires=['gym'])
 
 # ── MONEY ──────────────────────────────────────────────────────────────────
 M = 'money'

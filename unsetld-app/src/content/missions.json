@@ -308,6 +308,13 @@
   "repeatable": true,
   "anchor": true,
   "group": "assignment",
+  "days": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
   "tags": [
    "school"
   ],
@@ -329,6 +336,13 @@
   "repeatable": true,
   "anchor": true,
   "when": "evening",
+  "days": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
   "tags": [
    "school"
   ],
@@ -1114,8 +1128,8 @@
  {
   "id": "fitness-log-workout",
   "track": "fitness",
-  "title": "Log Your Workout",
-  "short": "Write down every exercise, set, rep and weight from today's workout and circle one to beat next time.",
+  "title": "Log Your Last Workout",
+  "short": "Write down every exercise, set, rep and weight from your last workout and circle one to beat next time.",
   "proof": "Your workout log.",
   "proofType": "PHOTO",
   "points": 5,
@@ -1123,7 +1137,6 @@
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
-  "when": "evening",
   "tags": [
    "fitness"
   ],
@@ -1174,7 +1187,9 @@
   "proofType": "PHOTO",
   "points": 5,
   "minutes": 5,
-  "requires": [],
+  "requires": [
+   "gym"
+  ],
   "cooldownDays": 2,
   "repeatable": true,
   "group": "tomorrow-ready",
