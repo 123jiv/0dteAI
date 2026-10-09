@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import type { Mission } from '../core/types';
 import { COLORWAYS, MISSION_BY_ID, TRACK_BY_ID } from '../content';
+import { HOME } from '../content/copy/home';
 import { PLATFORM } from '../content/copy/platform';
 import type { RootProps } from '../navigation/types';
 import { useApp } from '../state/store';
@@ -18,19 +19,20 @@ const TABS: Tab[] = ['lock', 'home'];
 
 // ---------------------------------------------------------------------------
 // The preview: the 3.0 widgets drawn from the same copy the real ones use, on
-// an example day (Make the Bed proven, 25-Minute Lock In next). Drawn rather
+// an example day (Make Your Bed proven, Study for 30 Minutes next). Drawn rather
 // than photographed so it always matches what the widgets say.
 
 /** The example day, in plan order. Missing ids (a library change) drop out. */
-const SAMPLE: Mission[] = ['reset-make-the-bed', 'focus-lock-in-25', 'school-10-pages']
+const SAMPLE: Mission[] = ['discipline-make-your-bed', 'school-study-30', 'fitness-workout']
   .map(id => MISSION_BY_ID[id])
   .filter((m): m is Mission => Boolean(m));
 const NEXT = SAMPLE[1] ?? SAMPLE[0] ?? null;
+/** Next mission: the title, then "School · 30 min · +15" as Home and the real widget show it. */
 const LINE = NEXT
   ? {
-      heading: `${W.next} · ${(TRACK_BY_ID[NEXT.track]?.short ?? '').toUpperCase()}`,
+      heading: W.next,
       title: NEXT.title,
-      meta: W.meta(NEXT.minutes, NEXT.points),
+      meta: HOME.meta(TRACK_BY_ID[NEXT.track]?.short ?? '', NEXT.minutes, NEXT.points, null),
       progress: W.count(1, SAMPLE.length),
     }
   : { heading: W.today, title: W.waiting(3), meta: '', progress: '' };

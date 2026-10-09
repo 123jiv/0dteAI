@@ -5,11 +5,11 @@ import { activeDays } from '../core/progress';
 import { emptyRecord } from '../core/record';
 import { requiredPhotos } from '../core/verify';
 import { addDays, atMinutes, type DayKey } from '../core/time';
-import type { DayPlan, Mission, ProofPhoto, RecordState, Verification } from '../core/types';
+import type { DayPlan, Mission, ProofPhoto, RecordState, Verification, VerificationCheck } from '../core/types';
 import { MISSION_BY_ID, MISSIONS } from '../content';
 import { PLATFORM } from '../content/copy/platform';
 import type { RootProps } from '../navigation/types';
-import { today } from '../services/clock';
+import { now, today } from '../services/clock';
 import { deletePhoto } from '../services/proof';
 import { purchaseMode } from '../services/purchases';
 import { useBalance, useStreak, useTodayMissions } from '../state/missions';
@@ -32,7 +32,7 @@ function Label({ children }: { children: string }) {
 
 let fakeCount = 0;
 
-/** Placeholder photos for a tester proof: no file, a fingerprint no real photo has. */
+/** Placeholder photos for a tester proof: no file, a fingerprint no real photo has. None for a TIMER mission. */
 function fakePhotos(m: Mission, day: DayKey, at: number): ProofPhoto[] {
   fakeCount += 1;
   const kinds = requiredPhotos(m.proofType);
@@ -45,13 +45,23 @@ function fakePhotos(m: Mission, day: DayKey, at: number): ProofPhoto[] {
   }));
 }
 
-function accepted(at: number): Verification {
-  return { status: 'accepted', method: 'on-device', checks: [{ id: 'photos', ok: true, note: D.checkNote }], at };
+/** An accepted proof with the checks its proof type gets: photos, the timer, or both. */
+function accepted(m: Mission, at: number): Verification {
+  const checks: VerificationCheck[] = [];
+  if (requiredPhotos(m.proofType).length) checks.push({ id: 'photos', ok: true, note: D.checkNote });
+  if (m.proofType === 'TIMER' || m.proofType === 'TIMER_AND_PHOTO') checks.push({ id: 'timer', ok: true, note: D.checkNote });
+  return { status: 'accepted', method: 'on-device', checks, at };
 }
+
+/** Seconds the focus timer ran, for the missions that have one. */
+const timerSecondsOf = (m: Mission) => (m.timerMinutes ? m.timerMinutes * 60 : undefined);
 
 const isProven = (r: RecordState, day: DayKey, id: string) => r.missions?.[day]?.[id]?.verification?.status === 'accepted';
 
-/** A past or future day's plan, as the store would build it (no program). */
+/**
+ * A past or future day's plan, as the store would build it from the user's
+ * areas and answers (no program). Today's leaves out morning missions after noon.
+ */
 function planFor(r: RecordState, plans: Record<DayKey, DayPlan>, day: DayKey): DayPlan {
   const s = st();
   return generatePlan({
@@ -60,6 +70,7 @@ function planFor(r: RecordState, plans: Record<DayKey, DayPlan>, day: DayKey): D
     day,
     salt: s.installSalt,
     history: historyFrom(r.missions ?? {}, plans, s.skips, day),
+    hour: day === today() ? now().getHours() : 0,
     program: null,
   });
 }
@@ -73,10 +84,10 @@ function proveInto(r: RecordState, day: DayKey, plan: DayPlan, missionIds: strin
     if (!m || isProven(record, day, id)) return;
     const at = atMinutes(day, 9 * 60 + k * 95).getTime();
     const programId = plan.missions.find(p => p.missionId === id)?.programId;
-    record = completeMission(record, day, plan, m, fakePhotos(m, day, at), accepted(at), {
+    record = completeMission(record, day, plan, m, fakePhotos(m, day, at), accepted(m, at), {
       at,
       verifiedClock: true,
-      timerSeconds: m.timerMinutes ? m.timerMinutes * 60 : undefined,
+      timerSeconds: timerSecondsOf(m),
       programId,
     }).record;
     proven += 1;
@@ -113,9 +124,9 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
       const waiting = st().pendingBefore;
       if (waiting?.missionId === m.id) deletePhoto(waiting.photo.uri);
       const at = Date.now();
-      st().completeMission(m.id, fakePhotos(m, d, at), accepted(at), {
+      st().completeMission(m.id, fakePhotos(m, d, at), accepted(m, at), {
         verifiedClock: false,
-        timerSeconds: m.timerMinutes ? m.timerMinutes * 60 : undefined,
+        timerSeconds: timerSecondsOf(m),
       });
       n += 1;
     }

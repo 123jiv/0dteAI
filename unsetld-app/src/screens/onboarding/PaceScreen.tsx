@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { SLOTS_BY_INTENSITY } from '../../core/missions';
+import { MAIN_MAX_MINUTES, slotsFor } from '../../core/missions';
 import type { MissionSlot, Profile } from '../../core/types';
 import { ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
@@ -15,15 +15,21 @@ const COPY = ONBOARDING.pace;
 const MINUTES: Profile['minutes'][] = [15, 30, 60, 90];
 const INTENSITIES: Profile['intensity'][] = ['easy', 'lockin', 'push'];
 
-/** Bar heights for the day's shape: a quick win is short, a challenge tall. */
-const BAR: Record<MissionSlot, number> = { quick: 6, progress: 11, challenge: 16 };
+/** The glyph's height; an easy mission's bar. */
+const SHAPE_H = 16;
+const EASY_BAR = 6;
 
-/** The day at this intensity, one bar per mission. */
-function DayShape({ slots, on }: { slots: readonly MissionSlot[]; on: boolean }) {
+/**
+ * The day at this time and intensity, one bar per mission: an easy one short,
+ * a focused one tall. A focused bar is as tall as the longest mission the
+ * intensity hands out, so Start easy's are lower than Push me's.
+ */
+function DayShape({ slots, longest, on }: { slots: readonly MissionSlot[]; longest: number; on: boolean }) {
+  const main = Math.round(EASY_BAR + (SHAPE_H - EASY_BAR) * Math.min(1, longest / MAIN_MAX_MINUTES.push));
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 16 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: SHAPE_H }}>
       {slots.map((s, i) => (
-        <View key={i} style={{ width: 5, height: BAR[s], backgroundColor: on ? C.bone : C.ash }} />
+        <View key={i} style={{ width: 5, height: s === 'easy' ? EASY_BAR : main, backgroundColor: on ? C.bone : C.ash }} />
       ))}
     </View>
   );
@@ -82,7 +88,7 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
       <T v="title.m" accessibilityRole="header" style={{ marginTop: 44 }}>
         {COPY.hard}
       </T>
-      {/* The day's time budget wins over intensity: with 5–15 minutes even Push me stays quick. */}
+      {/* The day's time budget wins over intensity: with 5–15 minutes even Push me is three short missions. */}
       {value.minutes === 15 ? (
         <T v="small" color={C.stone} style={{ marginTop: 8 }} accessibilityLabel={COPY.a11yShortDay}>
           {COPY.shortDay}
@@ -97,7 +103,7 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
               key={i}
               role="radio"
               on={on}
-              label={COPY.a11yIntensity(card.name, card.body, card.a11yDay)}
+              label={COPY.a11yIntensity(card.name, card.body)}
               onPress={() => set('intensity', i)}
               style={{ paddingVertical: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -105,7 +111,7 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
                 <T v="button" color={on ? C.bone : C.muted} style={{ flex: 1 }}>
                   {card.name}
                 </T>
-                <DayShape slots={SLOTS_BY_INTENSITY[i]} on={on} />
+                <DayShape slots={slotsFor({ intensity: i, minutes: value.minutes })} longest={MAIN_MAX_MINUTES[i]} on={on} />
               </View>
               <T v="small" color={C.stone} style={{ marginTop: 8, marginLeft: 26 }}>
                 {card.body}

@@ -34,9 +34,13 @@ function renewText(plan: string | null, renews: string | null): string {
   return S.renews(name, `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()}`);
 }
 
-/** How many of the five About you questions have an answer. */
+/** About you asks six things: school, work, business or project, gym, age, and what they're learning. */
+const ABOUT_QUESTIONS = 6;
+
+/** How many of the About you questions have an answer. Learning counts once a skill is picked. */
 function answered(p: Profile): number {
-  return [p.school, p.work, p.gym, p.project, p.age].filter(v => v !== null && v !== undefined).length;
+  const yesNo = [p.school, p.work, p.project, p.gym, p.age].filter(v => v !== null && v !== undefined).length;
+  return yesNo + ((p.skills ?? []).length > 0 ? 1 : 0);
 }
 
 export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
@@ -54,7 +58,7 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
 
   const r = settings.reminders;
   const reminders = r.on ? S.remindersValue(Math.min(r.count, ent.maxReminders), formatTime(r.first), formatTime(r.last)) : S.remindersOff;
-  const tracks = S.tracksValue(profile.tracks.map(t => TRACK_BY_ID[t]?.short).filter((x): x is string => Boolean(x)));
+  const areaNames = profile.tracks.map(t => TRACK_BY_ID[t]?.short).filter((x): x is string => Boolean(x));
   const retention = RETENTION.includes(settings.proofRetentionDays) ? settings.proofRetentionDays : RETENTION[0];
 
   const openColorway = () => navigation.dispatch(StackActions.popTo('Today', { sheet: 'colorway', nonce: newNonce() }));
@@ -110,10 +114,16 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
         </View>
 
         <SectionHeader>{S.sections.plan}</SectionHeader>
-        <SettingsRow first title={S.tracks} value={tracks} onPress={() => navigation.navigate('Tracks', { edit: true })} />
+        <SettingsRow
+          first
+          title={S.tracks}
+          value={S.tracksValue(areaNames)}
+          accessibilityLabel={S.tracksA11y(areaNames)}
+          onPress={() => navigation.navigate('Tracks', { edit: true })}
+        />
         <SettingsRow
           title={S.aboutYou}
-          value={S.aboutValue(answered(profile), 5)}
+          value={S.aboutValue(answered(profile), ABOUT_QUESTIONS)}
           onPress={() => navigation.navigate('AboutYou', { edit: true })}
         />
         <SettingsRow

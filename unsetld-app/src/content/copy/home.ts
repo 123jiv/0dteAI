@@ -1,6 +1,5 @@
 // Home (spec section 5) and the colorway sheet it opens. Every user-facing string for the group.
 // Sentence case, no exclamation marks. Straight quotes become typographic at display time.
-import type { MissionSlot } from '../../core/types';
 
 const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six'];
 
@@ -47,26 +46,28 @@ export const HOME = {
 
   today: {
     label: 'TODAY',
-    count: (done: number, all: number) => `${done} / ${all} COMPLETE`,
-    a11yCount: (done: number, all: number) => `${done} of ${all} complete`,
+    count: (done: number, all: number) => `${done} / ${all}`,
+    a11yCount: (done: number, all: number) => `${done} of ${all} done`,
   },
 
   /** The line under TODAY. */
   status: (done: number, all: number) => {
     if (all === 0) return 'Nothing fits today. Check your plan in Settings.';
-    if (done >= all) return "Perfect day. That's how it's done.";
-    if (done === 0) return all === 1 ? 'One mission. Finish it.' : `${word(all)} missions. Finish them.`;
-    return `${all - done} left. Keep going.`;
+    if (done >= all) return 'Perfect day. Every mission proven.';
+    if (done === 0) return all === 1 ? 'One mission today.' : `${word(all)} missions today.`;
+    return `${all - done} to go.`;
   },
+  /** Said once, after the status line, while a mission can still be swapped. */
+  swapsLeft: (n: number) => (n === 1 ? '1 swap left.' : `${n} swaps left.`),
 
   program: (title: string, day: number, days: number) => `${title} · DAY ${day} OF ${days}`,
   programA11y: (title: string, day: number, days: number) => `${title}, day ${day} of ${days}`,
   programA11yHint: 'Opens Programs',
 
-  slot: { quick: 'QUICK WIN', progress: 'PROGRESS', challenge: 'CHALLENGE' } satisfies Record<MissionSlot, string>,
-  cardLabel: (slot: string, track: string) => `${slot} · ${track}`,
-  meta: (minutes: number, points: number) => `${minutes} MIN · +${points} PTS`,
-  badge: { timer: 'TIMER', beforeAfter: 'BEFORE + AFTER' },
+  /** "School · 30 min · +15", with "Timer" or "Before + after" when the proof needs one. */
+  meta: (area: string, minutes: number, points: number, badge: string | null) =>
+    [area || null, `${minutes} min`, `+${points}`, badge].filter(Boolean).join(' · '),
+  badge: { timer: 'Timer', beforeAfter: 'Before + after' },
 
   action: {
     start: 'START',
@@ -78,17 +79,22 @@ export const HOME = {
   proven: (time: string, points: number) => `PROVEN ${time} · +${points}`,
 
   swap: {
-    button: '↻ Swap',
+    button: 'Swap',
     a11y: (title: string) => `Swap ${title}`,
     left: (n: number) => (n === 0 ? 'No swaps left today' : n === 1 ? '1 swap left today' : `${n} swaps left today`),
     done: (title: string) => `Swapped. ${title} is in.`,
     confirmTitle: (title: string) => `Swap ${title}?`,
-    confirmBody: (left: number) =>
-      `${left === 1 ? 'You have 1 swap left today.' : `You have ${left} swaps left today.`} You won’t see this one again for a while.`,
+    /** `area`: the mission's area, "School". A swap stays in it. */
+    confirmBody: (left: number, area: string) =>
+      [
+        area ? `You’ll get a different ${area} mission, and this one stays away for a while.` : 'You’ll get a different mission, and this one stays away for a while.',
+        left === 1 ? 'This is your last swap today.' : `You have ${left} swaps left today.`,
+      ].join(' '),
     yes: 'Swap',
     no: 'Cancel',
     noneTitle: 'Nothing else fits today.',
-    noneBody: 'Every other mission for this slot is resting or doesn’t fit your plan. Your swap wasn’t used.',
+    noneBody: (area: string) =>
+      `${area ? `Every other ${area} mission` : 'Every other mission'} is resting or doesn’t fit your day. Your swap wasn’t used.`,
     limitTitle: 'No swaps left today.',
     limitFree: 'Full Edition gives you three a day.',
     limitFull: 'Three a day. More tomorrow.',
@@ -123,11 +129,11 @@ export const HOME = {
   },
 
   a11y: {
-    slot: { quick: 'Quick win', progress: 'Progress', challenge: 'Challenge' } satisfies Record<MissionSlot, string>,
-    label: (slot: string, track: string) => (track ? `${slot}, ${track}` : slot),
-    card: (label: string, title: string, rest: string) => `${label}. ${title}. ${rest}`,
-    meta: (minutes: number, points: number, badge: string | null) =>
-      `${minutes} minutes, ${points} points${badge ? `, ${badge.toLowerCase()}` : ''}`,
+    card: (title: string, rest: string) => `${title}. ${rest}`,
+    /** "School, 30 minutes, 15 points, with the focus timer". */
+    meta: (area: string, minutes: number, points: number, badge: string | null) =>
+      [area || null, minutes === 1 ? '1 minute' : `${minutes} minutes`, points === 1 ? '1 point' : `${points} points`, badge].filter(Boolean).join(', '),
+    badge: { timer: 'with the focus timer', beforeAfter: 'before and after photos' },
     proven: (time: string, points: number) => `Proven at ${time}, ${points} points`,
     hint: 'Opens the mission',
     timerRunning: (minutes: number) => `Timer running, ${minutes === 1 ? '1 minute' : `${minutes} minutes`} left`,
@@ -144,6 +150,6 @@ export const HOME = {
     lockedBar: (name: string) => `${name} is part of Full Edition.`,
     seeFull: 'See Full Edition',
     /** Swatch text when there is no plan to borrow a mission title from. */
-    previewFallback: '25-Minute Lock In',
+    previewFallback: 'Study for 30 Minutes',
   },
 } as const;

@@ -1,5 +1,5 @@
-// Pieces shared by the Mission screen's stages: the heading, the sections, the
-// numbered steps, a proof photo with its stamp, and the camera notes.
+// Pieces shared by the Mission screen's stages: the heading, the PROOF block, a
+// proof photo with its stamp, and the camera notes.
 import { Image } from 'expo-image';
 import type { ReactNode } from 'react';
 import { Linking, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
@@ -13,17 +13,16 @@ import { ProofStamp } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
 import { color as C, hairline } from '../../ui/tokens';
 
-/** "QUICK WIN · FOCUS" */
-export function missionLabel(m: Mission): string {
-  return MISSION.label(MISSION.slot[m.slot], TRACK_BY_ID[m.track]?.short ?? '');
+/** The mission's goal area: "School". */
+export function areaName(m: Mission): string {
+  return TRACK_BY_ID[m.track]?.short ?? '';
 }
 
-/** Label, title and the minutes / points row at the top of a mission. */
+/** Title and the minutes / points line at the top of a mission. */
 export function MissionHeading({ mission }: { mission: Mission }) {
   return (
     <View style={{ marginTop: 20 }}>
-      <T v="label">{missionLabel(mission)}</T>
-      <T v="title.xl" accessibilityRole="header" style={{ marginTop: 12 }}>
+      <T v="title.xl" accessibilityRole="header">
         {mission.title}
       </T>
       <T v="mono" style={{ marginTop: 14 }} accessibilityLabel={MISSION.a11y.meta(mission.minutes, mission.points)}>
@@ -36,7 +35,7 @@ export function MissionHeading({ mission }: { mission: Mission }) {
 /** A labelled block under a hairline. */
 export function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <View style={{ marginTop: 28, paddingTop: 16, borderTopWidth: hairline, borderTopColor: C.rule, gap: 10 }}>
+    <View style={{ marginTop: 28, paddingTop: 16, borderTopWidth: hairline, borderTopColor: C.rule, gap: 8 }}>
       <T v="label" accessibilityRole="header">
         {label}
       </T>
@@ -45,41 +44,23 @@ export function Section({ label, children }: { label: string; children: ReactNod
   );
 }
 
-/** HOW TO DO IT: 01, 02, 03 ... */
-export function Steps({ steps }: { steps: readonly string[] }) {
-  return (
-    <View style={{ gap: 12 }}>
-      {steps.map((s, i) => (
-        <View key={`${i}:${s}`} accessible accessibilityLabel={MISSION.a11y.step(i, s)} style={{ flexDirection: 'row', gap: 14 }}>
-          <T v="mono" style={{ width: 20, paddingTop: 4 }}>
-            {MISSION.step(i)}
-          </T>
-          <T v="body" style={{ flex: 1 }}>
-            {s}
-          </T>
-        </View>
-      ))}
-    </View>
-  );
-}
+const same = (a: string, b: string) => {
+  const n = (x: string) => x.trim().toLowerCase().replace(/[’‘]/g, "'").replace(/\.$/, '');
+  return n(a) === n(b);
+};
 
-/** WHY THIS MATTERS, HOW TO DO IT and PROOF REQUIRED. */
-export function MissionSections({ mission }: { mission: Mission }) {
+/** PROOF: how it's proven ("Take one photo."), then what the proof shows, unless that says the same thing. */
+export function ProofBlock({ mission }: { mission: Mission }) {
+  const method = MISSION.method(mission.proofType, mission.timerMinutes);
   return (
-    <>
-      <Section label={MISSION.section.why}>
-        <T v="body">{mission.why}</T>
-      </Section>
-      <Section label={MISSION.section.how}>
-        <Steps steps={mission.how} />
-      </Section>
-      <Section label={MISSION.section.proof}>
-        <T v="body">{mission.proof}</T>
-        <T v="mono" color={C.muted}>
-          {MISSION.proofType(mission.proofType, mission.timerMinutes).toUpperCase()}
+    <Section label={MISSION.proof}>
+      <T v="body">{method}</T>
+      {mission.proof && !same(mission.proof, method) ? (
+        <T v="body" color={C.stone}>
+          {mission.proof}
         </T>
-      </Section>
-    </>
+      ) : null}
+    </Section>
   );
 }
 
@@ -127,6 +108,7 @@ export function ProofFrame({
 
 /** One photo full width, or before and after side by side. */
 export function ProofPhotos({ photos, day, single }: { photos: readonly ProofPhoto[]; day: DayKey; single: string }) {
+  if (photos.length === 0) return null;
   if (photos.length === 1) {
     const p = photos[0];
     return <ProofFrame photo={p} day={day} label={single} a11y={p.kind === 'after' ? MISSION.a11y.after : MISSION.a11y.photo} style={{ width: '100%' }} />;

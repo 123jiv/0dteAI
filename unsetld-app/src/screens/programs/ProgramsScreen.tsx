@@ -53,16 +53,19 @@ function Bar({ value, max }: { value: number; max: number }) {
 
 type MissionState = 'open' | 'proven' | 'swapped' | 'later';
 
-/** One of the program's missions: open it when it's in today's plan, PROVEN once done. */
+/**
+ * One of the program's missions, as Home shows it: the title, then "School ·
+ * 30 min · +15". Opens the mission when it's in today's plan; PROVEN once done.
+ */
 function ProgramMission({ id, state, last, onOpen }: { id: string; state: MissionState; last: boolean; onOpen: () => void }) {
   const m = MISSION_BY_ID[id];
   if (!m) return null;
-  const track = TRACK_BY_ID[m.track]?.short ?? '';
+  const area = TRACK_BY_ID[m.track]?.short ?? '';
   const open = state === 'open';
   return (
     <Pressable
       accessibilityRole={open ? 'button' : undefined}
-      accessibilityLabel={P.missionA11y(m.title, P.missionSaid(track, m.minutes, m.points), state === 'proven' ? P.proven : state === 'swapped' ? P.swappedLabel : undefined)}
+      accessibilityLabel={P.missionA11y(m.title, P.missionSaid(area, m.minutes, m.points), state === 'proven' ? P.proven : state === 'swapped' ? P.swappedLabel : undefined)}
       accessibilityHint={open ? P.openHint : undefined}
       disabled={!open}
       onPress={onOpen}
@@ -80,7 +83,7 @@ function ProgramMission({ id, state, last, onOpen }: { id: string; state: Missio
         <T v="saved" color={state === 'proven' ? C.stone : C.bone}>
           {m.title}
         </T>
-        <T v="mono">{P.missionMeta(track, m.minutes, m.points)}</T>
+        <T v="mono">{P.missionMeta(area, m.minutes, m.points)}</T>
       </View>
       {state === 'proven' ? (
         <T v="label">{P.proven}</T>
@@ -95,9 +98,10 @@ function ProgramMission({ id, state, last, onOpen }: { id: string; state: Missio
   );
 }
 
-/** A program in the list: edition, title, what it is, days and tracks, and Start. */
+/** A program in the list: edition, title, what it is, days and areas ("7 days · School"), and Start. */
 function ProgramRow({ p, active, last, onStart }: { p: Program; active: boolean; last: boolean; onStart: () => void }) {
-  const tracks = p.tracks.map(t => TRACK_BY_ID[t]?.short ?? t);
+  // Areas by their short names; one the app no longer has is left out.
+  const areas = p.tracks.flatMap(t => (TRACK_BY_ID[t] ? [TRACK_BY_ID[t].short] : []));
   return (
     <View
       style={{
@@ -109,7 +113,7 @@ function ProgramRow({ p, active, last, onStart }: { p: Program; active: boolean;
         borderBottomWidth: last ? hairline : 0,
         borderColor: C.rule,
       }}>
-      <View style={{ flex: 1 }} accessible accessibilityLabel={P.rowA11y(p.title, p.short, p.days, tracks, p.free)}>
+      <View style={{ flex: 1 }} accessible accessibilityLabel={P.rowA11y(p.title, p.short, p.days, areas, p.free)}>
         <T v="label" color={p.free ? C.bone : C.stone}>
           {p.free ? P.free : P.full}
         </T>
@@ -120,7 +124,7 @@ function ProgramRow({ p, active, last, onStart }: { p: Program; active: boolean;
           {p.short}
         </T>
         <T v="mono" style={{ marginTop: 10 }}>
-          {P.meta(P.days(p.days), tracks)}
+          {P.meta(P.days(p.days), areas)}
         </T>
       </View>
       {active ? (

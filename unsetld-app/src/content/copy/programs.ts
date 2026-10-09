@@ -15,7 +15,8 @@ export const PROGRAMS_COPY = {
   swapped: 'You swapped it out today. This day comes back tomorrow.',
   swappedLabel: 'SWAPPED OUT',
   proven: 'PROVEN',
-  missionMeta: (track: string, minutes: number, points: number) => `${track.toUpperCase()} · ${minutes} MIN · +${points} PTS`,
+  /** "School · 30 min · +15", the line Home shows under a mission. */
+  missionMeta: (area: string, minutes: number, points: number) => [area || null, `${minutes} min`, `+${points}`].filter(Boolean).join(' · '),
   leave: 'Leave program',
   leaveTitle: (title: string) => `Leave ${title}?`,
   leaveBody: 'The days you proved stay on your record. The program stops here.',
@@ -29,8 +30,9 @@ export const PROGRAMS_COPY = {
 
   // The list
   all: 'ALL PROGRAMS',
-  days: (n: number) => (n === 1 ? '1 DAY' : `${n} DAYS`),
-  meta: (days: string, tracks: string[]) => [days, ...tracks.map(t => t.toUpperCase())].join(' · '),
+  days: (n: number) => (n === 1 ? '1 day' : `${n} days`),
+  /** "7 days · School", with each area the program counts toward. */
+  meta: (days: string, areas: string[]) => [days, ...areas].join(' · '),
   free: 'FREE',
   full: 'FULL EDITION',
   start: 'Start',
@@ -47,7 +49,8 @@ export const PROGRAMS_COPY = {
   missionA11y: (title: string, meta: string, state?: string) => (state ? `${title}. ${meta}. ${state}` : `${title}. ${meta}`),
   openHint: 'Opens the mission',
   progressA11y: (done: number, of: number) => `${done} of ${of} days proven`,
-  rowA11y: (title: string, short: string, days: number, tracks: string[], free: boolean) =>
-    `${title}. ${short} ${days === 1 ? '1 day' : `${days} days`}, ${tracks.join(', ')}. ${free ? 'Free' : 'Full Edition'}.`,
-  missionSaid: (track: string, minutes: number, points: number) => `${track}, ${minutes} minutes, ${points} points`,
+  rowA11y: (title: string, short: string, days: number, areas: string[], free: boolean) =>
+    `${title}. ${short} ${days === 1 ? '1 day' : `${days} days`}, ${areas.join(', ')}. ${free ? 'Free' : 'Full Edition'}.`,
+  missionSaid: (area: string, minutes: number, points: number) =>
+    [area || null, minutes === 1 ? '1 minute' : `${minutes} minutes`, points === 1 ? '1 point' : `${points} points`].filter(Boolean).join(', '),
 } as const;

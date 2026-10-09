@@ -15,7 +15,7 @@ import { Icon } from '../../ui/icons';
 import { InlineLink } from '../../ui/kit';
 import { clockTime } from '../../ui/ProofStamp';
 import { T, useSerifScale } from '../../ui/text';
-import { ease, font, hairline, MARGIN, radius } from '../../ui/tokens';
+import { ease, hairline, MARGIN, radius } from '../../ui/tokens';
 import { Walker } from '../../ui/Walker';
 
 /** Lets the Mission modal slide away before a completion plays on Home. */
@@ -148,8 +148,24 @@ export function ProgressBar({ value, colorway, delay = 0 }: { value: number; col
   );
 }
 
-/** TODAY, the count, the bar and the status line. */
-export function TodayHeader({ colorway, done, all, ready }: { colorway: Colorway; done: number; all: number; ready: boolean }) {
+/**
+ * TODAY, the count, the bar and the status line. `swapsLeft` is said once here,
+ * at the end of the status line, while there are swaps left and a mission to use one on.
+ */
+export function TodayHeader({
+  colorway,
+  done,
+  all,
+  ready,
+  swapsLeft = null,
+}: {
+  colorway: Colorway;
+  done: number;
+  all: number;
+  ready: boolean;
+  swapsLeft?: number | null;
+}) {
+  const status = [HOME.status(done, all), swapsLeft ? HOME.swapsLeft(swapsLeft) : null].filter(Boolean).join(' ');
   return (
     <View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 20 }}>
@@ -167,7 +183,7 @@ export function TodayHeader({ colorway, done, all, ready }: { colorway: Colorway
       </View>
       {ready ? (
         <T v="body" color={colorway.secondary} style={{ marginTop: 14 }}>
-          {HOME.status(done, all)}
+          {status}
         </T>
       ) : null}
     </View>
@@ -261,15 +277,22 @@ function actionSaid(a: CardAction, remaining: number): string | null {
   return null;
 }
 
-function badgeOf(m: Mission): string | null {
-  if (m.proofType === 'TIMER_AND_PHOTO') return HOME.badge.timer;
-  if (m.proofType === 'BEFORE_AFTER') return HOME.badge.beforeAfter;
+/** A word on the meta line only where it changes what the user does: the focus timer, or a before photo first. */
+function badgeOf(m: Mission): { shown: string; said: string } | null {
+  if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') return { shown: HOME.badge.timer, said: HOME.a11y.badge.timer };
+  if (m.proofType === 'BEFORE_AFTER') return { shown: HOME.badge.beforeAfter, said: HOME.a11y.badge.beforeAfter };
   return null;
 }
 
+/** The swap control's hit area: a 44pt square at the card's bottom right, under the button. */
+const SWAP_SIZE = 44;
+/** A card with a swap control is at least this tall, so the control never sits over the button. */
+const SWAP_CARD_MIN = 96;
+
 /**
- * One mission of today's plan. Unproven: label, title, time and points, and a
- * small button (START, the running timer, AFTER PHOTO); a swap row under it.
+ * One mission of today's plan. Unproven: the title, one line with its area,
+ * time and points ("School · 30 min · +15"), and a small button (START, the
+ * running timer, AFTER PHOTO); a quiet Swap under the button.
  * Proven: the title steps back, the proof photo and PROVEN 9:47 AM · +15.
  * `celebrate` changes when it was just proven: a fill sweeps across and the
  * photo settles in (a plain crossfade under Reduce Motion). `arrive` is set on a
@@ -293,7 +316,7 @@ export function MissionCard({
   action: CardAction;
   colorway: Colorway;
   last: boolean;
-  /** The swap row under an unproven card; null hides it. `note` replaces the count right after a swap. */
+  /** The swap control on an unproven card; null hides it. `note` shows under the card right after a swap. */
   swap: { left: number; note: string | null } | null;
   onOpen: () => void;
   onSwap: () => void;
@@ -301,10 +324,7 @@ export function MissionCard({
   arrive?: boolean;
 }) {
   const scale = useSerifScale();
-  const track = TRACK_BY_ID[mission.track]?.short ?? '';
-  const label = track ? HOME.cardLabel(HOME.slot[mission.slot], track.toUpperCase()) : HOME.slot[mission.slot];
-  // Read aloud as words ("Quick win, Focus"), not as a capitalised label with a dot in it.
-  const spoken = HOME.a11y.label(HOME.a11y.slot[mission.slot], track);
+  const area = TRACK_BY_ID[mission.track]?.short ?? '';
   const badge = badgeOf(mission);
   const proven = Boolean(done);
 
@@ -374,8 +394,13 @@ export function MissionCard({
   const thumb = useMemo(() => (photoUri ? proofImage(photoUri) : null), [photoUri]);
   const time = done ? clockTime(done.doneAt) : '';
   const said = done
-    ? HOME.a11y.card(spoken, mission.title, HOME.a11y.proven(time, done.points))
-    : HOME.a11y.card(spoken, mission.title, [HOME.a11y.meta(mission.minutes, mission.points, badge), actionSaid(action, remaining)].filter(Boolean).join('. '));
+    ? HOME.a11y.card(mission.title, HOME.a11y.proven(time, done.points))
+    : HOME.a11y.card(
+        mission.title,
+        [HOME.a11y.meta(area, mission.minutes, mission.points, badge?.said ?? null), actionSaid(action, remaining)].filter(Boolean).join('. '),
+      );
+  // The button sits level with the title's first line.
+  const buttonTop = Math.round((30 * scale - 32) / 2);
 
   return (
     <Animated.View
@@ -405,20 +430,14 @@ export function MissionCard({
         accessibilityHint={HOME.a11y.hint}
         onPress={onOpen}
         style={({ pressed }) => ({
-          paddingTop: 18,
-          paddingBottom: swap ? 6 : 18,
+          paddingVertical: 18,
+          minHeight: swap ? SWAP_CARD_MIN : undefined,
           flexDirection: 'row',
-          alignItems: 'center',
+          alignItems: done ? 'center' : 'flex-start',
           opacity: pressed ? 0.6 : 1,
         })}>
         <View style={{ flex: 1, paddingRight: 16 }}>
-          <T v="label" color={colorway.secondary} numberOfLines={1}>
-            {label}
-          </T>
-          <T
-            v="list"
-            color={proven ? colorway.secondary : colorway.ink}
-            style={{ marginTop: 6, fontSize: 26 * scale, lineHeight: 30 * scale }}>
+          <T v="list" color={proven ? colorway.secondary : colorway.ink} style={{ fontSize: 26 * scale, lineHeight: 30 * scale }}>
             {mission.title}
           </T>
           {done ? (
@@ -426,19 +445,15 @@ export function MissionCard({
               {HOME.proven(time, done.points)}
             </T>
           ) : (
-            <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-              <T v="mono" color={colorway.secondary}>
-                {HOME.meta(mission.minutes, mission.points)}
-              </T>
-              {badge ? (
-                <View style={{ borderWidth: hairline, borderColor: colorway.secondary, paddingHorizontal: 4, paddingVertical: 1 }}>
-                  <T v="mono.s" color={colorway.secondary}>
-                    {badge}
-                  </T>
-                </View>
-              ) : null}
-            </View>
+            <T v="note" color={colorway.secondary} style={[{ marginTop: 6 }, TABULAR]}>
+              {HOME.meta(area, mission.minutes, mission.points, badge?.shown ?? null)}
+            </T>
           )}
+          {swap?.note ? (
+            <T v="note" color={colorway.ink} style={{ marginTop: 6 }}>
+              {swap.note}
+            </T>
+          ) : null}
         </View>
         {done ? (
           // No box without a photo to put in it (a proof from the tester tools, or one cleared off the phone).
@@ -462,6 +477,7 @@ export function MissionCard({
         ) : (
           <View
             style={{
+              marginTop: buttonTop,
               height: 32,
               paddingHorizontal: 12,
               borderRadius: radius.button,
@@ -476,27 +492,28 @@ export function MissionCard({
         )}
       </Pressable>
       {swap ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 6 }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={HOME.swap.a11y(mission.title)}
-            accessibilityHint={swap.note ?? HOME.swap.left(swap.left)}
-            onPress={onSwap}
-            style={({ pressed }) => ({ minHeight: 44, justifyContent: 'center', paddingRight: 12, opacity: pressed ? 0.6 : 1 })}>
-            <T v="small" color={colorway.secondary} style={{ fontFamily: font.sansMedium }}>
-              {HOME.swap.button}
-            </T>
-          </Pressable>
-          <T
-            v="note"
-            color={swap.note ? colorway.ink : colorway.secondary}
-            style={{ flex: 1, opacity: swap.note || swap.left > 0 ? 1 : 0.7 }}
-            numberOfLines={2}
-            accessibilityElementsHidden
-            importantForAccessibility="no">
-            {swap.note ?? HOME.swap.left(swap.left)}
+        // A sibling over the card's bottom right corner (the card's own button sits above it), so it
+        // stays its own control for touch and VoiceOver without adding a row to every card.
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={HOME.swap.a11y(mission.title)}
+          accessibilityHint={swap.note ?? HOME.swap.left(swap.left)}
+          onPress={onSwap}
+          style={({ pressed }) => ({
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            height: SWAP_SIZE,
+            minWidth: SWAP_SIZE + 20,
+            paddingLeft: 12,
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            opacity: pressed ? 0.4 : swap.left > 0 ? 0.85 : 0.5,
+          })}>
+          <T v="note" color={colorway.secondary} numberOfLines={1}>
+            {HOME.swap.button}
           </T>
-        </View>
+        </Pressable>
       ) : null}
     </Animated.View>
   );

@@ -1,5 +1,7 @@
 // The Mission screen (spec sections 6 and 7): what the mission is, then PROVE IT.
+// Detail is deliberately short: title, minutes and points, one instruction, PROOF.
 // Stages: detail → (timer | before photo) → review → checking → done | rejected.
+// A TIMER mission has no photo: when its timer ends, Mark it done goes straight to checking.
 // The timer and a waiting before photo live in the store, so they survive leaving
 // this screen or closing the app; the rest of the flow is local to the screen.
 // The checks run on this phone (core/verify via services/verify) and never look
@@ -12,7 +14,7 @@ import { elapsedSeconds, endsAt, timerDone, type FocusTimer } from '../../core/t
 import type { DayKey } from '../../core/time';
 import type { Mission, ProofPhoto, Verification, VerificationCheck } from '../../core/types';
 import { requiredPhotos } from '../../core/verify';
-import { MISSION_BY_ID, RULES } from '../../content';
+import { MISSION_BY_ID } from '../../content';
 import { MISSION } from '../../content/copy/mission';
 import type { RootProps } from '../../navigation/types';
 import { syncProof } from '../../services/access';
@@ -29,7 +31,7 @@ import { clockTime } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
 import { color as C, hairline } from '../../ui/tokens';
 import { DoneStage } from './DoneStage';
-import { CameraNote, MissionHeading, MissionSections, ProofFrame, ProofPhotos, Section, Steps } from './parts';
+import { CameraNote, MissionHeading, ProofBlock, ProofFrame, ProofPhotos } from './parts';
 import { TimerStage } from './TimerStage';
 
 type Stage =
@@ -82,7 +84,8 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const inPlan = index >= 0;
   const done = record.missions?.[day]?.[missionId];
   const proven = done?.verification?.status === 'accepted' ? done : null;
-  const timerHere: FocusTimer | null = mission?.proofType === 'TIMER_AND_PHOTO' && timer && isOurs(timer) ? timer : null;
+  const timed = mission?.proofType === 'TIMER_AND_PHOTO' || mission?.proofType === 'TIMER';
+  const timerHere: FocusTimer | null = timed && timer && isOurs(timer) ? timer : null;
   const beforeHere: PendingBefore | null = mission?.proofType === 'BEFORE_AFTER' && pending && isOurs(pending) ? pending : null;
   const shownUp = activeDays(record);
   const dayNo = shownUp.size + (shownUp.has(day) ? 0 : 1);
@@ -239,12 +242,13 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     syncTimerDone(useApp.getState().timer, { ask: true });
   };
 
-  /** START THE 25:00 TIMER: one timer runs at a time. */
+  /** START 30 MIN TIMER: one timer runs at a time. */
   const timerPressed = () => {
     const other = useApp.getState().timer;
     if (other && other.missionId !== missionId && other.day === today()) {
       const state = timerDone(other, Date.now()) ? 'done' : other.pausedAt != null ? 'paused' : 'running';
-      showDialog(MISSION.busy.timerTitle(MISSION_BY_ID[other.missionId]?.title, state), MISSION.busy.timerBody, [
+      const that = MISSION_BY_ID[other.missionId];
+      showDialog(MISSION.busy.timerTitle(that?.title, state, that?.proofType !== 'TIMER'), MISSION.busy.timerBody, [
         { label: MISSION.busy.no, cancel: true },
         { label: MISSION.busy.yes, onPress: beginTimer },
       ]);
@@ -304,7 +308,10 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     syncProof(day, accepted.length, points).catch(() => {});
   };
 
-  /** A rejected attempt leaves nothing behind but a before photo that can still be used. */
+  /**
+   * A rejected attempt leaves nothing behind but a before photo that can still be used.
+   * A TIMER mission's timer was its whole proof: it goes, so Try again starts a new one.
+   */
   const reject = (photos: readonly ProofPhoto[], verification: Verification) => {
     const s = useApp.getState();
     const used = usedHashes(s.record);
@@ -313,22 +320,25 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       deletePhoto(p.uri);
       if (p.kind === 'before' && isOurs(s.pendingBefore)) s.setPendingBefore(null);
     }
+    if (mission.proofType === 'TIMER' && isOurs(s.timer)) {
+      s.cancelTimer();
+      cancelTimerDone();
+    }
     unsent.current = [];
     clockCheck.current = null;
     setStage({ kind: 'rejected', checks: verification.checks.filter(c => !c.ok) });
   };
 
-  const submit = async () => {
-    if (stage.kind !== 'review' || submitting.current) return;
+  /** Checks the proof and credits it: the photos from review, or none for a TIMER mission. */
+  const submit = async (photos: ProofPhoto[]) => {
+    if (submitting.current) return;
     submitting.current = true;
-    const photos = stage.photos;
     setStage({ kind: 'checking', photos });
     try {
       const now = Date.now();
       if (today() !== day) return dayOver(photos);
       const s = useApp.getState();
       const t = isOurs(s.timer) ? s.timer : null;
-      const timed = mission.proofType === 'TIMER_AND_PHOTO';
       const timerSeconds = timed ? (t ? Math.min(elapsedSeconds(t, now), t.requiredSeconds) : 0) : undefined;
       const verification = await verifyProof(mission, {
         photos,
@@ -349,15 +359,22 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       pushCount();
       setStage({ kind: 'done', result, verification });
     } catch {
-      // Nothing was credited (the store only changes once everything else has run): back to the photo.
-      setStage({ kind: 'review', photos });
+      // Nothing was credited (the store only changes once everything else has run): back to the
+      // photo, or for a TIMER mission to its finished timer.
+      setStage(photos.length ? { kind: 'review', photos } : { kind: 'detail' });
       showDialog(MISSION.checkFailed, undefined, OK);
     } finally {
       submitting.current = false;
     }
   };
 
-  /** Try again: straight back to the camera when the photo is the next step, else to the mission. */
+  /** TIMER: the timer ran out, so the mission is done. No photo. */
+  const markDone = () => {
+    if (stage.kind !== 'detail') return;
+    void submit([]);
+  };
+
+  /** Try again: straight back to the camera when the photo is the next step, else to the mission (a TIMER mission starts over). */
   const retry = () => {
     // The after photo came too soon after the before: it needs a few minutes yet, so the mission, not the camera.
     const tooSoon = stage.kind === 'rejected' && stage.checks.some(c => c.id === 'order');
@@ -405,6 +422,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
 
   if (stage.kind === 'review' || stage.kind === 'checking') {
     const checking = stage.kind === 'checking';
+    const photos = stage.photos;
     const footer = checking ? (
       <View style={{ minHeight: 106, justifyContent: 'center' }}>
         <T v="body" color={C.stone} align="center" accessibilityLiveRegion="polite">
@@ -413,16 +431,18 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       </View>
     ) : (
       <>
-        <Button title={MISSION.review.submit} onPress={() => void submit()} />
+        <Button title={MISSION.review.submit} onPress={() => void submit(photos)} />
         <TextButton title={MISSION.review.retake} onPress={() => void takeProof()} style={{ marginTop: 8 }} />
       </>
     );
     return (
       <Screen nav={checking ? <NavRow step={MISSION.day(dayNo)} /> : nav} footer={footer}>
-        <View style={{ marginTop: 16 }}>
-          <ProofPhotos photos={stage.photos} day={day} single={mission.title} />
-        </View>
-        <T v="list" style={{ marginTop: 16 }}>
+        {photos.length > 0 ? (
+          <View style={{ marginTop: 16 }}>
+            <ProofPhotos photos={photos} day={day} single={mission.title} />
+          </View>
+        ) : null}
+        <T v="list" style={{ marginTop: photos.length > 0 ? 16 : 24 }}>
           {mission.title}
         </T>
         <T v="note" color={C.stone} style={{ marginTop: 6 }}>
@@ -432,35 +452,37 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     );
   }
 
-  // Proven: the photo, its stamp and the points. Nothing left to do.
+  // Proven: the photo, its stamp and the points (a TIMER mission has no photo). Nothing left to do.
   if (proven) {
     const photos = proven.photos ?? [];
     const kept = photos.some(p => proofImage(p.uri));
+    const minutes = Math.round((proven.timerSeconds ?? 0) / 60);
     return (
       <Screen nav={nav}>
         <MissionHeading mission={mission} />
-        <View style={{ marginTop: 24 }}>
-          {kept ? (
-            photos.length === 1 ? (
-              <ProofFrame photo={photos[0]} day={day} label={MISSION.proven.stamp(proven.points)} a11y={MISSION.a11y.photo} style={{ width: '100%' }} />
+        {photos.length > 0 ? (
+          <View style={{ marginTop: 24 }}>
+            {kept ? (
+              photos.length === 1 ? (
+                <ProofFrame photo={photos[0]} day={day} label={MISSION.proven.stamp(proven.points)} a11y={MISSION.a11y.photo} style={{ width: '100%' }} />
+              ) : (
+                <ProofPhotos photos={photos} day={day} single={MISSION.proven.stamp(proven.points)} />
+              )
             ) : (
-              <ProofPhotos photos={photos} day={day} single={MISSION.proven.stamp(proven.points)} />
-            )
-          ) : (
-            <T v="note" color={C.stone}>
-              {MISSION.proven.cleared}
-            </T>
-          )}
-        </View>
-        <T v="mono" color={C.bone} style={{ marginTop: 14 }}>
+              <T v="note" color={C.stone}>
+                {MISSION.proven.cleared}
+              </T>
+            )}
+          </View>
+        ) : null}
+        <T v="mono" color={C.bone} style={{ marginTop: photos.length > 0 ? 14 : 28 }}>
           {MISSION.proven.line(clockTime(proven.doneAt), proven.points)}
         </T>
-        {proven.timerSeconds ? (
+        {minutes > 0 ? (
           <T v="mono" style={{ marginTop: 6 }}>
-            {MISSION.proven.focused(Math.round(proven.timerSeconds / 60))}
+            {mission.proofType === 'TIMER' ? MISSION.proven.timed(minutes) : MISSION.proven.focused(minutes)}
           </T>
         ) : null}
-        <MissionSections mission={mission} />
       </Screen>
     );
   }
@@ -476,6 +498,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
         onResume={resume}
         onEnd={endTimer}
         onPhoto={() => void takeProof()}
+        onMarkDone={markDone}
       />
     );
   }
@@ -505,25 +528,22 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
         <T v="title.m" style={{ marginTop: 20 }} accessibilityLiveRegion="polite">
           {MISSION.before.saved}
         </T>
-        <Section label={MISSION.section.how}>
-          <Steps steps={mission.how} />
-        </Section>
-        <Section label={MISSION.section.proof}>
-          <T v="body">{mission.proof}</T>
-        </Section>
+        <T v="body" color={C.muted} style={{ marginTop: 12, fontSize: 17, lineHeight: 25 }}>
+          {mission.short}
+        </T>
+        <ProofBlock mission={mission} />
       </Screen>
     );
   }
 
-  // Detail.
-  const primary =
-    mission.proofType === 'TIMER_AND_PHOTO'
-      ? { title: MISSION.button.timer(clockLabel(mission)), onPress: timerPressed }
-      : mission.proofType === 'BEFORE_AFTER'
-        ? { title: MISSION.button.before, onPress: beforePressed }
-        : { title: MISSION.button.prove, onPress: () => void takeProof() };
-  const bonusOpen = inPlan && plan && plan.missions.length > 1 && !record.bonuses?.[day];
-  const usesCamera = mission.proofType !== 'TIMER_AND_PHOTO';
+  // Detail: title, 30 MIN · +15 POINTS, the one instruction, PROOF, then the button.
+  const primary = timed
+    ? { title: MISSION.button.timer(mission.timerMinutes ?? 25), onPress: timerPressed }
+    : mission.proofType === 'BEFORE_AFTER'
+      ? { title: MISSION.button.before, onPress: beforePressed }
+      : { title: MISSION.button.prove, onPress: () => void takeProof() };
+  // The button opens the camera itself (not a timer first).
+  const usesCamera = !timed;
 
   return (
     <Screen
@@ -546,20 +566,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
           {MISSION.notInPlan}
         </T>
       ) : null}
-      <MissionSections mission={mission} />
-      <Section label={MISSION.section.points}>
-        <T v="mono.l" color={C.bone} accessibilityLabel={MISSION.a11y.points(mission.points)}>
-          {MISSION.points.value(mission.points)}
-        </T>
-        <T v="body" color={C.stone}>
-          {bonusOpen ? `${MISSION.points.when} ${MISSION.points.bonus(plan.missions.length, RULES.perfectDayBonus)}` : MISSION.points.when}
-        </T>
-      </Section>
+      <ProofBlock mission={mission} />
     </Screen>
   );
-}
-
-/** "25:00" for the timer button. */
-function clockLabel(m: Mission): string {
-  return `${String(m.timerMinutes ?? 25).padStart(2, '0')}:00`;
 }

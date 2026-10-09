@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import { TRACK_IDS } from '../../core/progress';
+import { DEFAULT_PROFILE } from '../../core/missions';
 import { reviewWeekFor, weeklyReview, weekStart } from '../../core/review';
 import { addDays, diffDays } from '../../core/time';
 import type { TrackId } from '../../core/types';
@@ -84,13 +84,16 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
   const thisWeek = weekStart(today);
   const label = from === thisWeek ? R.thisWeek : from === addDays(thisWeek, -7) ? R.lastWeek : R.week;
   const left = today >= review.from && today < review.to ? diffDays(today, review.to) : 0;
-  // Only tracks the app still knows; everything when none were chosen.
+  // The areas the user chose (only ones the app still knows). With none on record the
+  // plan runs on the default areas, so those are the ones leaning can change.
   const chosen = profile.tracks.filter(id => TRACK_BY_ID[id]);
-  const tracks = chosen.length ? chosen : TRACK_IDS;
+  const tracks = chosen.length ? chosen : DEFAULT_PROFILE.tracks;
   const over = today > review.to;
   const strongest = review.strongest ? TRACK_BY_ID[review.strongest] : null;
   const ignored = review.ignored ? TRACK_BY_ID[review.ignored] : null;
   const priority = profile.priority;
+  // Leaning only counts for an area the plan draws from.
+  const leaning = priority && tracks.includes(priority) ? TRACK_BY_ID[priority] : null;
 
   const lean = (id: TrackId) => {
     selection();
@@ -134,22 +137,27 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
         ) : null}
       </View>
 
-      <Rule style={{ marginTop: 40 }} />
-      <T v="label" accessibilityRole="header" style={{ marginTop: 24 }}>
-        {R.nextLabel}
-      </T>
-      <T v="body" color={C.stone} style={{ marginTop: 8 }}>
-        {R.nextBody}
-      </T>
-      <View accessibilityRole="radiogroup" style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        {tracks.map(id => (
-          <Chip key={id} id={id} on={priority === id} onPress={() => lean(id)} />
-        ))}
-      </View>
-      {priority && TRACK_BY_ID[priority] ? (
-        <T v="note" color={C.stone} style={{ marginTop: 12 }}>
-          {R.leaning(TRACK_BY_ID[priority].short)}
-        </T>
+      {/* Leaning needs more than one area to lean between. */}
+      {tracks.length > 1 ? (
+        <>
+          <Rule style={{ marginTop: 40 }} />
+          <T v="label" accessibilityRole="header" style={{ marginTop: 24 }}>
+            {R.nextLabel}
+          </T>
+          <T v="body" color={C.stone} style={{ marginTop: 8 }}>
+            {R.nextBody}
+          </T>
+          <View accessibilityRole="radiogroup" style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {tracks.map(id => (
+              <Chip key={id} id={id} on={priority === id} onPress={() => lean(id)} />
+            ))}
+          </View>
+          {leaning ? (
+            <T v="note" color={C.stone} style={{ marginTop: 12 }}>
+              {R.leaning(leaning.short)}
+            </T>
+          ) : null}
+        </>
       ) : null}
 
       <T v="letter.sub" style={{ marginTop: 56 }}>

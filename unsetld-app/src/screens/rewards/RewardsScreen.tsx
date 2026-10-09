@@ -1,12 +1,11 @@
 import * as Clipboard from 'expo-clipboard';
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Platform, Pressable, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
-import { SLOT_POINTS } from '../../core/missions';
 import { accessState, milestoneStatus, REOPEN_AFTER, ROAD, roadPosition, type MilestoneStatus } from '../../core/record';
 import { rewardStatus, type RewardStatus } from '../../core/rewards';
 import { shortDate, type DayKey } from '../../core/time';
 import { milestoneNo } from '../../core/typography';
-import type { Milestone, MissionSlot, RewardTier } from '../../core/types';
+import type { Milestone, RewardTier } from '../../core/types';
 import { MILESTONES, REWARD_TIERS, RULES } from '../../content';
 import { REWARDS_COPY } from '../../content/copy/rewards';
 import type { RootProps } from '../../navigation/types';
@@ -24,7 +23,6 @@ import { accessDays, accessRecord } from '../access';
 import { milestoneStatusText } from '../MilestoneScreen';
 
 const R = REWARDS_COPY;
-const SLOTS: MissionSlot[] = ['quick', 'progress', 'challenge'];
 
 /** A 2pt progress bar, bone on rule. */
 function Bar({ value, max, style }: { value: number; max: number; style?: StyleProp<ViewStyle> }) {
@@ -145,10 +143,10 @@ function copyCode(code: string) {
   AccessibilityInfo.announceForAccessibility(R.copied);
 }
 
-/** How points come in: one row per slot, and the perfect-day bonus. */
-function EarnRow({ title, value, note, last }: { title: string; value: string; note?: string; last?: boolean }) {
+/** How points come in: a row per mission length, and the perfect-day bonus. `said` reads the value aloud. */
+function EarnRow({ title, value, said, note, last }: { title: string; value: string; said: string; note?: string; last?: boolean }) {
   return (
-    <View style={[rowStyle(Boolean(last)), { minHeight: 52 }]} accessible accessibilityLabel={note ? `${title}, ${value}. ${note}` : `${title}, ${value}`}>
+    <View style={[rowStyle(Boolean(last)), { minHeight: 52 }]} accessible accessibilityLabel={note ? `${title}, ${said}. ${note}` : `${title}, ${said}`}>
       <View style={{ flex: 1, paddingRight: 12 }}>
         <T v="row">{title}</T>
         {note ? (
@@ -455,13 +453,16 @@ export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
 
         <View style={{ marginTop: 40 }}>
           <T v="label" accessibilityRole="header">
-              {R.earning}
-            </T>
-          <View style={{ marginTop: 8 }}>
-            {SLOTS.map(slot => (
-              <EarnRow key={slot} title={R.earningRows[slot]} value={R.plus(SLOT_POINTS[slot])} />
+            {R.earning}
+          </T>
+          <T v="note" color={C.stone} style={{ marginTop: 8 }}>
+            {R.earningNote}
+          </T>
+          <View style={{ marginTop: 12 }}>
+            {R.earningRows.map(row => (
+              <EarnRow key={row.title} title={row.title} value={row.value} said={row.said} />
             ))}
-            <EarnRow title={R.earningRows.perfect} value={R.plus(RULES.perfectDayBonus)} note={R.perfectNote} last />
+            <EarnRow title={R.perfect} value={R.plus(RULES.perfectDayBonus)} said={R.plusSaid(RULES.perfectDayBonus)} note={R.perfectNote} last />
           </View>
           <T v="note" color={C.stone} style={{ marginTop: 12 }}>
             {R.earnedOnly}

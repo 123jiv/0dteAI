@@ -10,7 +10,7 @@ import { pendingLetter } from '../../core/record';
 import { reviewWeekFor, weeklyReview } from '../../core/review';
 import type { DayKey } from '../../core/time';
 import type { MissionDone, RecordState } from '../../core/types';
-import { MISSION_BY_ID, PROGRAM_BY_ID } from '../../content';
+import { MISSION_BY_ID, PROGRAM_BY_ID, TRACK_BY_ID } from '../../content';
 import { HOME } from '../../content/copy/home';
 import type { RootProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
@@ -193,6 +193,8 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
 
   const swap = (m: TodayMission) => {
     selection();
+    // A swap stays in the mission's area.
+    const area = TRACK_BY_ID[m.mission.track]?.short ?? '';
     if (swapsLeft <= 0) {
       showSwapLimit();
       return;
@@ -212,10 +214,10 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
           AccessibilityInfo.announceForAccessibility(note);
         }
       } else if (result === 'none') {
-        showDialog(HOME.swap.noneTitle, HOME.swap.noneBody, [{ label: HOME.swap.ok, cancel: true }]);
+        showDialog(HOME.swap.noneTitle, HOME.swap.noneBody(area), [{ label: HOME.swap.ok, cancel: true }]);
       } else showSwapLimit();
     };
-    showDialog(HOME.swap.confirmTitle(m.mission.title), HOME.swap.confirmBody(swapsLeft), [
+    showDialog(HOME.swap.confirmTitle(m.mission.title), HOME.swap.confirmBody(swapsLeft, area), [
       { label: HOME.swap.no, cancel: true },
       { label: HOME.swap.yes, onPress: doSwap },
     ]);
@@ -229,6 +231,12 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
     }
     return { kind: 'start' };
   };
+
+  // Busy: its timer is running or its before photo is saved, so it can't be swapped out.
+  const busyWith = (m: TodayMission) =>
+    (timer?.missionId === m.mission.id && timer.day === day) || (pendingBefore?.missionId === m.mission.id && pendingBefore.day === day);
+  // Swaps left are said once, under TODAY, while there's a mission to use one on.
+  const swappable = missions.some(m => !accepted(m.done) && !busyWith(m));
 
   const all = missions.length;
   const shownDone = seen.day === day ? seen.ids.length : 0;
@@ -279,7 +287,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
         ) : null}
 
         <View style={{ marginTop: 40 }}>
-          <TodayHeader colorway={colorway} done={shownDone} all={all} ready={ready} />
+          <TodayHeader colorway={colorway} done={shownDone} all={all} ready={ready} swapsLeft={swappable ? swapsLeft : null} />
         </View>
 
         {prog && progDay ? (
@@ -297,7 +305,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
         <View style={{ marginTop: prog && progDay ? 0 : 20 }}>
           {missions.map((m, i) => {
             const done = accepted(m.done);
-            const busy = (timer?.missionId === m.mission.id && timer.day === day) || (pendingBefore?.missionId === m.mission.id && pendingBefore.day === day);
+            const busy = busyWith(m);
             const isNew = swapped?.missionId === m.mission.id;
             return (
               <MissionCard

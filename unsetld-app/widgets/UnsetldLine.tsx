@@ -19,16 +19,15 @@ import { createWidget, type WidgetEnvironment } from 'expo-widgets';
 
 /**
  * The Next mission widget (kind "UnsetldLine", kept so widgets already placed
- * stay put): the next mission in today's plan that isn't proven yet.
+ * stay put): the next mission in today's plan that isn't proven yet, its title
+ * and the line Home shows under it ("School · 30 min · +15").
  */
 export type LineWidgetProps = {
   /** 'NEXT MISSION', or 'TODAY' when there's no mission to name. */
   label: string;
-  /** Track short name, uppercased ('FOCUS'); '' when there's no mission. */
-  track: string;
-  /** Mission title ('25-Minute Lock In'), or 'Perfect day.' / 'Three missions are waiting.'. Typographic quotes applied. */
+  /** Mission title ('Study for 30 Minutes'), or 'Perfect day.' / 'Three missions are waiting.'. Typographic quotes applied. */
   title: string;
-  /** '25 MIN · +15 PTS', or '3 / 3 PROVEN'; '' when there's nothing to add. */
+  /** 'School · 30 min · +15', or '3 / 3 PROVEN'; '' when there's nothing to add. */
   meta: string;
   /** Today's count, '1 / 3'; '' without a plan. */
   progress: string;
@@ -72,7 +71,6 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
   const label = props.label || 'NEXT MISSION';
   const title = props.title || wordmark;
   const url = props.missionId ? 'unsetld://mission/' + props.missionId : 'unsetld://today';
-  const heading = props.track ? label + ' · ' + props.track : label;
   const walkerImage = (src: string | undefined, width: number, height: number) =>
     src ? (
       <Image
@@ -96,7 +94,7 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
           {walkerImage(props.walkerTemplate, 7, 15)}
           <HStack spacing={0} modifiers={[opacity(0.7)]}>
             <Text modifiers={[font({ size: 10, weight: 'semibold' }), kerning(1), foregroundStyle(white), lineLimit(1)]}>
-              {heading}
+              {label}
             </Text>
           </HStack>
         </HStack>
@@ -111,7 +109,9 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
         </Text>
         {props.meta ? (
           <HStack spacing={0} modifiers={[opacity(0.7)]}>
-            <Text modifiers={[font({ size: 11, design: 'monospaced' }), foregroundStyle(white), lineLimit(1)]}>{props.meta}</Text>
+            <Text modifiers={[font({ size: 11, design: 'monospaced' }), foregroundStyle(white), lineLimit(1), minimumScaleFactor(0.75)]}>
+              {props.meta}
+            </Text>
           </HStack>
         ) : null}
       </VStack>
@@ -132,15 +132,18 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
       {text}
     </Text>
   );
+  // "Organization · 45 min · +20" is the longest line: it shrinks a little before it cuts off.
   const monoText = (text: string, size: number) => (
-    <Text modifiers={[font({ size, design: 'monospaced' }), foregroundStyle(secondary), lineLimit(1)]}>{text}</Text>
+    <Text modifiers={[font({ size, design: 'monospaced' }), foregroundStyle(secondary), lineLimit(1), minimumScaleFactor(0.75)]}>
+      {text}
+    </Text>
   );
 
   const body =
     family === 'systemMedium' ? (
       <VStack alignment="leading" spacing={0} modifiers={[fill, padding({ all: 16 })]}>
         <HStack spacing={8}>
-          {labelText(heading)}
+          {labelText(label)}
           <Spacer />
           {props.progress ? monoText(props.progress, 10) : null}
         </HStack>
@@ -168,7 +171,7 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
           {props.progress ? monoText(props.progress, 10) : null}
         </HStack>
         <Spacer />
-        {labelText(heading)}
+        {labelText(label)}
         <HStack spacing={0} modifiers={[padding({ top: 8 })]}>
           <Text
             modifiers={[
@@ -189,7 +192,7 @@ const UnsetldLine = (props: Partial<LineWidgetProps>, environment: LineEnvironme
       </VStack>
     ) : (
       <VStack alignment="leading" spacing={0} modifiers={[fill, padding({ all: 16 })]}>
-        {labelText(props.track || label)}
+        {labelText(label)}
         <Spacer />
         <Text
           modifiers={[

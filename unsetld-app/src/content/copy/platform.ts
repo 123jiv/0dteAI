@@ -36,8 +36,16 @@ export const PLATFORM = {
       tester: 'TESTER',
     },
 
-    tracks: 'Tracks',
-    tracksValue: (names: string[]) => (names.length ? names.join(', ') : 'None yet'),
+    tracks: 'Areas',
+    /** "School, Fitness, Money"; when that runs long, "Organization and 3 more". */
+    tracksValue: (names: string[]) => {
+      if (!names.length) return 'None yet';
+      const all = names.join(', ');
+      return names.length === 1 || all.length <= 27 ? all : `${names[0]} and ${names.length - 1} more`;
+    },
+    /** VoiceOver hears every area: "Areas, Discipline, School, Fitness and Money". */
+    tracksA11y: (names: string[]) =>
+      `Areas, ${names.length ? (names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`) : 'None yet'}`,
     aboutYou: 'About you',
     aboutValue: (answered: number, all: number) => (answered === 0 ? 'Skipped' : `${answered} of ${all} answered`),
     pace: 'Pace & intensity',

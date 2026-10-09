@@ -195,14 +195,15 @@ function Viewer({ item, width, maxHeight, cleared, onClose }: { item: Item; widt
   const pair = before && after ? [before, after] : null;
   const single = pair ? null : item.cover;
   const half = Math.floor((width - 8) / 2);
-  const track = TRACK_BY_ID[done.track]?.short.toUpperCase() ?? '';
+  // The mission's area, "School". Older records may name an area that's gone: then nothing shows.
+  const area = TRACK_BY_ID[done.track]?.short ?? '';
   const proven = G.proven(clockTime(done.doneAt), shortDate(day), done.points);
   return (
     <View style={[StyleSheet.absoluteFill, { backgroundColor: C.ink }]} accessibilityViewIsModal onAccessibilityEscape={onClose}>
       <NavRow onClose={onClose} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: MARGIN, paddingTop: 16, paddingBottom: insets.bottom + 40 }}>
-        <T v="label">{[PROGRESS.slot[done.slot], track].filter(Boolean).join(' · ')}</T>
-        <T v="title.m" accessibilityRole="header" style={{ marginTop: 8 }}>
+        {area ? <T v="label">{area}</T> : null}
+        <T v="title.m" accessibilityRole="header" style={{ marginTop: area ? 8 : 0 }}>
           {title}
         </T>
         <View style={{ marginTop: 20 }}>

@@ -13,6 +13,7 @@ import { addDays, dayKeyOf, dayStart, widgetDate, type DayKey } from '../core/ti
 import { typo } from '../core/typography';
 import type { Colorway, Mission } from '../core/types';
 import { COLORWAYS, MISSION_BY_ID, TRACK_BY_ID } from '../content';
+import { HOME } from '../content/copy/home';
 import { PLATFORM } from '../content/copy/platform';
 import { getDayOffset } from './clock';
 import type { WidgetInput } from './widgets.types';
@@ -327,7 +328,12 @@ function dayMissions(c: Ctx, day: DayKey): DayMissions {
   return { missions: missions.length ? missions : null };
 }
 
-/** Next mission: the first one in the day's plan that isn't proven yet. */
+/** "School · 30 min · +15": the line under a mission's title, as Home shows it. */
+function missionMeta(m: Pick<Mission, 'track' | 'minutes' | 'points'>): string {
+  return HOME.meta(TRACK_BY_ID[m.track]?.short ?? '', m.minutes, m.points, null);
+}
+
+/** Next mission: the first one in the day's plan that isn't proven yet, its title and "School · 30 min · +15". */
 function lineProps(c: Ctx, day: DayKey): LineWidgetProps {
   const cw = c.input.colorway;
   const base = {
@@ -343,18 +349,17 @@ function lineProps(c: Ctx, day: DayKey): LineWidgetProps {
     walkerTemplate: c.art.walkerTemplate,
   };
   const { missions } = dayMissions(c, day);
-  if (!missions) return { ...base, label: W.today, track: '', title: W.waiting(c.input.perDay), meta: '', progress: '', missionId: '' };
+  if (!missions) return { ...base, label: W.today, title: W.waiting(c.input.perDay), meta: '', progress: '', missionId: '' };
   const proven = missions.filter(m => m.proven).length;
   const progress = W.count(proven, missions.length);
   const next = missions.find(m => !m.proven);
-  if (!next) return { ...base, label: W.today, track: '', title: W.perfect, meta: W.proven(missions.length), progress, missionId: '' };
+  if (!next) return { ...base, label: W.today, title: W.perfect, meta: W.proven(missions.length), progress, missionId: '' };
   const m = next.mission;
   return {
     ...base,
     label: W.next,
-    track: (TRACK_BY_ID[m.track]?.short ?? '').toUpperCase(),
     title: typo(m.title),
-    meta: W.meta(m.minutes, m.points),
+    meta: missionMeta(m),
     progress,
     missionId: m.id,
   };
@@ -395,7 +400,7 @@ function recordProps(c: Ctx, day: DayKey): RecordWidgetProps {
   };
 }
 
-/** Today: the day's missions with a square each, at most three (open ones first when there are four). */
+/** Today: the day's mission titles with a square each, at most three (open ones first when there are four). */
 function standardProps(c: Ctx, day: DayKey): StandardWidgetProps {
   const { missions } = dayMissions(c, day);
   const empty = typo(W.waiting(c.input.perDay));

@@ -2,7 +2,7 @@
 // Every user-facing string for the group.
 import type { MilestoneKey } from '../../core/progress';
 import { parseDay, shortDate, type DayKey } from '../../core/time';
-import type { MissionSlot, Track } from '../../core/types';
+import type { Track } from '../../core/types';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -31,7 +31,7 @@ function weekRange(from: DayKey, to: DayKey): string {
   return `${shortDate(from)} – ${shortDate(to)}`;
 }
 
-/** "Skills & Projects" from "SKILLS & PROJECTS". */
+/** "Discipline" from "DISCIPLINE" (and "Skills & Projects" from an older two-word name). */
 function areaName(t: Pick<Track, 'name'>): string {
   return t.name
     .toLowerCase()
@@ -53,8 +53,6 @@ function soFar(left: number): string {
   return left === 1 ? 'SO FAR · 1 DAY LEFT' : `SO FAR · ${left} DAYS LEFT`;
 }
 
-const SLOT: Record<MissionSlot, string> = { quick: 'QUICK WIN', progress: 'PROGRESS', challenge: 'CHALLENGE' };
-
 /** One per milestone: the big title and one plain sentence. */
 const MOMENTS: Record<MilestoneKey, { title: string; line: string }> = {
   'first-mission': { title: 'FIRST MISSION.', line: 'The first one is proven. Now do it again tomorrow.' },
@@ -72,7 +70,6 @@ export const PROGRESS = {
   weekRange,
   areaName,
   mmss,
-  slot: SLOT,
   /** "Tuesday" */
   weekday: (day: DayKey) => WEEKDAYS[parseDay(day).getDay()],
   days: (n: number) => (n === 1 ? 'day' : 'days'),
@@ -114,6 +111,8 @@ export const PROGRESS = {
 
     levelsLabel: 'LEVELS',
     levelsNote: 'Every proven mission adds its points to its area.',
+    /** Under the note while areas the user didn't pick are left out of the list. */
+    levelsOthers: 'Areas you didn’t pick show up here once you have points in them.',
     level: (n: number) => `LEVEL ${n}`,
     xp: (into: number, span: number) => `${into} / ${span}`,
     a11yLevel: (name: string, level: number, into: number, span: number) =>
@@ -154,12 +153,12 @@ export const PROGRESS = {
     strongest: (name: string) => `Strongest area: ${name}`,
     didntGetTo: (short: string) => `Didn't get to: ${short}.`,
     /** A week with nothing proven: still going, or already over. */
-    empty: 'Nothing proven yet this week. Pick an area below and start with one.',
-    emptyPast: 'Nothing proven that week. Pick an area below and start this week with one.',
+    empty: 'Nothing proven yet this week. One mission today starts it.',
+    emptyPast: 'Nothing proven that week. This week starts with one mission.',
     nextLabel: 'NEXT WEEK',
-    nextBody: 'Pick one area to lean on.',
-    leaning: (short: string) => `${short} takes the progress slot most days.`,
-    a11yChip: (name: string) => `Lean on ${name}`,
+    nextBody: 'Pick one area to focus on.',
+    leaning: (short: string) => `Most days next week include a longer ${short} mission.`,
+    a11yChip: (name: string) => `Focus on ${name}`,
     footer: 'Never settle for less.',
     done: 'Done',
   },

@@ -75,13 +75,17 @@ export const REWARDS_COPY = {
 
   // How points are earned (shown with Access on or off)
   earning: 'HOW POINTS ARE EARNED',
-  earningRows: {
-    quick: 'Quick win',
-    progress: 'Progress',
-    challenge: 'Challenge',
-    perfect: 'Perfect day',
-  },
+  /** By how long a mission takes. `said` is what VoiceOver reads for the points. */
+  earningRows: [
+    { title: 'A few minutes', value: '+5', said: '5 points' },
+    { title: '10–20 minutes', value: '+10', said: '10 points' },
+    { title: '30–45 minutes', value: '+15 to +20', said: '15 to 20 points' },
+    { title: 'An hour', value: '+25', said: '25 points' },
+  ],
+  earningNote: 'The longer a mission takes, the more it’s worth.',
+  perfect: 'Perfect day',
   plus: (n: number) => `+${n}`,
+  plusSaid: (n: number) => (n === 1 ? '1 point' : `${pts(n)} points`),
   perfectNote: 'Every mission in the day proven. On top of the missions.',
 
   // Access (moved here from Record). Day counts are active days.

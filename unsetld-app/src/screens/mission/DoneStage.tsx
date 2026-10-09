@@ -90,6 +90,9 @@ export function DoneStage({
   }, [points, target, rise, fill]);
 
   const rewardLine = goal ? (goal.ready ? MISSION.done.ready(goal.title) : MISSION.done.toReward(goal.need, goal.title)) : null;
+  // "Proof saved." only when there's a photo to save: a TIMER mission's proof is the timer.
+  const checks = MISSION.checked(verification.checks, PROOF_FROM_CAMERA);
+  const checkedLine = mission.proofType === 'TIMER' ? checks : `${MISSION.done.saved} ${checks}`;
   // The first mission proven today (this one is already on the record).
   const firstToday = !Object.values(record.missions?.[day] ?? {}).some(m => m.missionId !== mission.id && m.verification?.status === 'accepted');
 
@@ -146,7 +149,7 @@ export function DoneStage({
       ) : null}
 
       <T v="note" color={C.stone} style={{ marginTop: 32 }}>
-        {`${MISSION.done.saved} ${MISSION.checked(verification.checks, PROOF_FROM_CAMERA)}`}
+        {checkedLine}
       </T>
     </Screen>
   );

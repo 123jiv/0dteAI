@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { Profile, Track, TrackId } from '../../core/types';
 import { TRACK_BY_ID, TRACKS } from '../../content';
-import { ONBOARDING } from '../../content/copy/onboarding';
+import { MAX_AREAS, ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection, warning } from '../../services/haptics';
 import { useApp } from '../../state/store';
@@ -11,10 +11,10 @@ import { T } from '../../ui/text';
 import { color as C, font } from '../../ui/tokens';
 
 const COPY = ONBOARDING.tracks;
-const MAX = 3;
-const GAP = 10;
+const MAX = MAX_AREAS;
+const GAP = 8;
 
-// ── Shared by the three plan screens (Tracks, About you, Pace) ──────────────
+// ── Shared by the three plan screens (Areas, About you, Pace) ───────────────
 
 /**
  * The profile as the screen shows it. Onboarding writes each answer as it is
@@ -45,7 +45,7 @@ export function useProfileDraft(edit: boolean) {
   return { value, change, save };
 }
 
-/** A bordered choice: 1px rule border, bone when chosen. Tiles on Tracks, the intensity cards on Pace. */
+/** A bordered choice: 1px rule border, bone when chosen. Tiles on Areas, the intensity cards on Pace. */
 export function Choice({
   on,
   onPress,
@@ -82,12 +82,13 @@ export function Choice({
   );
 }
 
-/** A square chip: ruled outline, bone fill when chosen. 40 tall, 44 with the slop. */
+/** A square chip: ruled outline, bone fill when chosen. 40 tall, 44 with the slop. A radio, or a checkbox in a pick-any group. */
 export function Chip({
   title,
   on,
   onPress,
   label,
+  role = 'radio',
   style,
   children,
 }: {
@@ -95,12 +96,13 @@ export function Chip({
   on: boolean;
   onPress: () => void;
   label: string;
+  role?: 'radio' | 'checkbox';
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
 }) {
   return (
     <Pressable
-      accessibilityRole="radio"
+      accessibilityRole={role}
       accessibilityLabel={label}
       // aria-checked rather than accessibilityState: react-native-web only reads the former.
       aria-checked={on}
@@ -128,39 +130,49 @@ export function Chip({
   );
 }
 
-// ── Tracks ──────────────────────────────────────────────────────────────────
+// ── Areas ───────────────────────────────────────────────────────────────────
 
+/**
+ * One area: its number and box on top, the name, then the scope line. Two to a
+ * row, so a 375pt phone shows the name on one line and the scope in two or three.
+ */
 function Tile({ track, index, on, dim, onPress }: { track: Track; index: number; on: boolean; dim: boolean; onPress: () => void }) {
   return (
-    <Choice on={on} onPress={onPress} role="checkbox" label={COPY.a11yTile(track.name, track.scope)} style={{ flex: 1, minHeight: 128 }}>
+    <Choice
+      on={on}
+      onPress={onPress}
+      role="checkbox"
+      label={COPY.a11yTile(track.name, track.scope)}
+      style={{ flex: 1, minHeight: 100, padding: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <T v="mono.s" color={on ? C.stone : C.ash}>
           {COPY.tileNo(index)}
         </T>
         <Square on={on} />
       </View>
-      <T v="label" color={on ? C.bone : dim ? C.ash : C.muted} style={{ marginTop: 18 }}>
+      {/* ORGANIZATION is the longest name; at the largest text sizes it shrinks rather than breaking. */}
+      <T v="label" color={on ? C.bone : dim ? C.ash : C.muted} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ marginTop: 12 }}>
         {track.name}
       </T>
-      <T v="small" color={dim ? C.ash : C.stone} style={{ marginTop: 6 }}>
+      <T v="note" color={dim ? C.ash : C.stone} style={{ marginTop: 4 }}>
         {track.scope}
       </T>
     </Choice>
   );
 }
 
-/** Two to a row; the odd one out keeps its column. */
+/** Two to a row; the ninth keeps its column. */
 const ROWS: Track[][] = TRACKS.reduce<Track[][]>((rows, t, i) => {
   if (i % 2 === 0) rows.push([t]);
   else rows[rows.length - 1].push(t);
   return rows;
 }, []);
 
-/** Onboarding step 1, and Settings › Your plan › Tracks: up to three things to work on. */
+/** Onboarding step 1, and Settings › Your plan › Areas: one to four things to work on. */
 export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
   const edit = Boolean(route.params?.edit);
   const { value, change, save } = useProfileDraft(edit);
-  // A saved id the library no longer has would count toward three with no tile to take it off.
+  // A saved id the library no longer has would count toward four with no tile to take it off.
   const chosen = value.tracks.filter(id => TRACK_BY_ID[id]);
   const full = chosen.length >= MAX;
   const [flash] = useState(() => new Animated.Value(1));
@@ -215,7 +227,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
         </View>
       }>
       <PageTitle title={COPY.title} body={COPY.body} />
-      <View style={{ marginTop: 28, gap: GAP }}>
+      <View style={{ marginTop: 24, gap: GAP }}>
         {ROWS.map((row, r) => (
           <View key={row[0].id} style={{ flexDirection: 'row', gap: GAP }}>
             {row.map((t, c) => {

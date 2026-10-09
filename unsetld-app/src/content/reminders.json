@@ -1,9 +1,9 @@
 [
-  {"slot": "morning", "text": "Do the quick one before you open a single app."},
-  {"slot": "morning", "text": "Pick the time you'll do the hardest mission today. Then keep it."},
-  {"slot": "morning", "text": "Start small and start now. The first mission makes the rest easier."},
+  {"slot": "morning", "text": "Do your shortest mission before you open another app."},
+  {"slot": "morning", "text": "Pick a time today for your longest mission, then keep it."},
+  {"slot": "morning", "text": "Start one mission now, before the day fills up."},
   {"slot": "midday", "text": "Half the day is gone. Prove one mission before the afternoon gets away."},
-  {"slot": "midday", "text": "A break coming up is enough time for the quick one."},
+  {"slot": "midday", "text": "A short break is enough time for your shortest mission."},
   {"slot": "midday", "text": "Look at what's left today and start the next one."},
   {"slot": "evening", "text": "Phone in another room until the next mission is proven."},
   {"slot": "evening", "text": "Still time to finish today. Start the shortest one now."},

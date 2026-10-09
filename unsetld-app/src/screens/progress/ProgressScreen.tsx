@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
+import { DEFAULT_PROFILE } from '../../core/missions';
 import { activeDays, completion, milestones, totals, trackProgress, TRACK_IDS, type MilestoneState, type TrackProgress } from '../../core/progress';
 import { weeklyReview, weekStart } from '../../core/review';
 import { computeStreak } from '../../core/streak';
@@ -220,8 +221,14 @@ export function ProgressScreen({ navigation }: RootProps<'Progress'>) {
   const week = weeklyReview(record, plans, profile, ws);
   const weekDone = completion(record, plans, ws, today);
   const levels = trackProgress(record);
-  const chosen = profile.tracks.filter(id => TRACK_IDS.includes(id));
-  const order = [...chosen, ...TRACK_IDS.filter(id => !chosen.includes(id))];
+  // Levels for the areas the user chose (the defaults when none are on record), in their
+  // order, then any other area they have points in, most points first. Nine rows of
+  // LEVEL 1 for areas they never picked would bury the ones that matter.
+  const picked = profile.tracks.filter(id => TRACK_IDS.includes(id));
+  const chosen = picked.length ? picked : DEFAULT_PROFILE.tracks;
+  const others = TRACK_IDS.filter(id => !chosen.includes(id) && levels[id].xp > 0).sort((a, b) => levels[b].xp - levels[a].xp);
+  const order = [...chosen, ...others];
+  const hidden = TRACK_IDS.length - order.length;
   const marks = milestones(record, today);
   const bars = activeBars(active, streak.covered, today);
   const firstActive = [...active].sort()[0];
@@ -304,7 +311,7 @@ export function ProgressScreen({ navigation }: RootProps<'Progress'>) {
       {/* Levels */}
       <Head label={P.levelsLabel} />
       <T v="note" color={C.stone} style={{ marginBottom: 12 }}>
-        {P.levelsNote}
+        {hidden > 0 ? `${P.levelsNote} ${P.levelsOthers}` : P.levelsNote}
       </T>
       <View style={{ borderBottomWidth: hairline, borderBottomColor: C.rule }}>
         {order.map(id => (

@@ -4,27 +4,29 @@
     "sections": [
       {
         "h": "Your missions",
-        "p": "Every day you get three missions from the tracks you chose, four on Push me unless you have only 5–15 minutes a day. They're picked to fit the time you said you have. A day runs from 4:00 AM to 3:59 AM, so a late night counts as the day it started."
+        "p": "Every day you get three missions from the areas you chose: one that takes 15 minutes or less and two that take real focus. Push me adds a third focused one. With only 5–15 minutes a day, all three are short. They're picked to fit your answers and the time you said you have. A day runs from 4:00 AM to 3:59 AM, so a late night counts as the day it started."
       },
       {
         "h": "Swaps",
-        "p": "Don't want one? Swap it for another before you prove it. One swap a day, three with Full Edition. A mission you swap stays away for a few weeks."
+        "p": "Don't want one? Swap it for another from the same area before you prove it. One swap a day, three with Full Edition. A mission you swap stays away for two weeks."
       },
       {
         "h": "Proof",
-        "p": "Do the mission for real, then prove it with the camera in the app: one photo, a photo of the result, a photo before and after, or the focus timer and then a photo. Proof has to be taken in the last 30 minutes, and a photo can only count once."
+        "p": "Do the mission for real, then prove it in the app. Each mission says how: a photo, a photo before and after, the focus timer and then a photo, or the timer on its own. Photos are taken with the camera in the app in the last 30 minutes, and a photo can only count once."
       },
       {
         "h": "What the checks look at",
-        "p": "The checks run on this phone. They look at when and how the photo was taken, never at what's in it. Nobody reviews your photos and no AI looks at them."
+        "p": "The checks run on this phone. They look at when and how the photo was taken and whether the timer ran to the end, never at what's in a photo. Nobody reviews your photos and no AI looks at them."
       },
       {
         "h": "Points",
-        "p": "Each proven mission earns its points once. Points come only from proven missions.",
+        "p": "Each proven mission earns the points shown on it, once. Longer missions earn more. Points come only from proven missions.",
         "list": [
-          "Quick win: 10 points.",
-          "Progress: 15 points.",
-          "Challenge: 25 points.",
+          "5 minutes or less: 5 points.",
+          "10 to 20 minutes: 10 points.",
+          "About 30 minutes: 15 or 20 points.",
+          "About 45 minutes: 20 points.",
+          "An hour: 25 points.",
           "Perfect day, every mission proven: 15 more."
         ]
       },
@@ -38,7 +40,7 @@
       },
       {
         "h": "Levels",
-        "p": "The points from each mission add to its track's level. Milestones mark your first mission, your first perfect day, 7 days, 30 missions and more."
+        "p": "The points from each mission add to its area's level, so you can see where the work is going. Milestones mark your first mission, your first perfect day, 7 days, 30 missions and more."
       },
       {
         "h": "Proof photos",
@@ -89,7 +91,7 @@
       },
       {
         "h": "How points are earned",
-        "p": "Each mission proven in the app earns its points once: 10 for a quick win, 15 for progress, 25 for a challenge, and 15 more when every mission in the day is proven. Proof must be your own photo of that mission, taken with the camera in the app. Points from earlier versions of the app carry over. We may remove points earned through misuse, such as proof that isn't of the mission."
+        "p": "Each mission proven in the app earns the points shown on it once, from 5 to 25 depending on how long it takes, and 15 more when every mission in the day is proven. Proof must be your own: a photo of that mission taken with the camera in the app, or, for a timer mission, the in-app timer run to the end. Points from earlier versions of the app carry over. We may remove points earned through misuse, such as proof that isn't of the mission."
       },
       {
         "h": "Rewards",
@@ -123,7 +125,7 @@
     "sections": [
       {
         "h": "Using UNSETLD",
-        "p": "UNSETLD gives you daily missions, a camera to prove them, points, a streak, levels, programs, reminders and rewards. It is motivation, not medical, financial or professional advice. Do missions within your limits, and swap any that don't suit you."
+        "p": "UNSETLD gives you daily missions, a camera to prove them, points, a streak, levels, programs, reminders and rewards. It isn't medical, financial or professional advice. Do missions within your limits, and swap any that don't suit you."
       },
       {
         "h": "Full Edition",
@@ -165,7 +167,7 @@
       },
       {
         "h": "Proof checks",
-        "p": "Proof is checked on this phone: that the photos were taken just now, in the right order, after the timer, and weren't used before. The checks don't look at what's in a photo. There is no facial recognition, no AI and no one reviewing your photos."
+        "p": "Proof is checked on this phone: that the photos were taken just now, in the right order, after the timer, and weren't used before, and that a timer ran to the end. The checks don't look at what's in a photo. There is no facial recognition, no AI and no one reviewing your photos."
       },
       {
         "h": "What missions ask for",
@@ -173,7 +175,7 @@
       },
       {
         "h": "About you",
-        "p": "Your answers (school, work, gym, a project, your age range) and your tracks only decide which missions you get. They stay on your phone."
+        "p": "Your answers (school, work, gym, a business or project, what you're learning, your age range) and the areas you chose only decide which missions you get. They stay on your phone."
       },
       {
         "h": "If you sign in for rewards or access",
