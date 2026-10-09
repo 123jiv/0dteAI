@@ -1,5 +1,7 @@
 # UNSETLD 2.1: Today (addendum to DESIGN_SPEC.md)
 
+> **3.0 note (9 Oct 2026):** superseded. Today became Home with three daily missions, the task modal became the Mission screen, and the daily line, the three rules, the night check, own tasks, chapters and the 10-points-a-task scheme are retired. See [MISSIONS_SPEC.md](MISSIONS_SPEC.md). This file is kept as a record of 2.1 and 2.2.
+
 This addendum supersedes the parts of `DESIGN_SPEC.md` noted below. Everything else there (tokens, type, colorways, the walker, Record, Access, paywall layout, onboarding look, widgets) still applies.
 
 **Founder decisions (8 Oct 2026)**

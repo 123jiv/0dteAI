@@ -1,34 +1,57 @@
 {
   "record": {
-    "title": "How the record works",
+    "title": "How missions work",
     "sections": [
       {
-        "h": "On record",
-        "p": "A day goes on record when you open the app that day, or open it from a widget or a reminder. One a day. A day runs from 4:00 AM to 3:59 AM, so late nights count."
+        "h": "Your missions",
+        "p": "Every day you get three missions from the tracks you chose, four on Push me. They're picked to fit the time you said you have. A day runs from 4:00 AM to 3:59 AM, so a late night counts as the day it started."
       },
       {
-        "h": "It only goes up",
-        "p": "Missed days don't erase the ones on record."
+        "h": "Swaps",
+        "p": "Don't want one? Swap it for another before you prove it. One swap a day, three with Full Edition. A mission you swap stays away for a few weeks."
       },
       {
-        "h": "The night check",
-        "p": "It's between you and you. Saying Not today keeps the day on record."
+        "h": "Proof",
+        "p": "Do the mission for real, then prove it with the camera in the app: one photo, a photo of the result, a photo before and after, or the focus timer and then a photo. Proof has to be taken in the last 30 minutes, and a photo can only count once."
       },
       {
-        "h": "Today’s work",
-        "p": "Each day's work is your three rules, one task from UNSETLD and up to three of your own. Prove a task with a photo taken in the app; the photo stays on this phone. Each proven task is 10 points, up to 40 a day."
+        "h": "What the checks look at",
+        "p": "The checks run on this phone. They look at when and how the photo was taken, never at what's in it. Nobody reviews your photos and no AI looks at them."
       },
       {
         "h": "Points",
+        "p": "Each proven mission earns its points once. Points come only from proven missions.",
         "list": [
-          "600 points: 10% off one order at unsetld.com.",
-          "1,000 points: 15% off one order at unsetld.com.",
-          "Up to $25 off, one code each collection. Codes work for 30 days."
+          "Quick win: 10 points.",
+          "Progress: 15 points.",
+          "Challenge: 25 points.",
+          "Perfect day, every mission proven: 15 more."
         ]
       },
       {
+        "h": "Your streak",
+        "p": "Your streak is the days in a row you proved at least one mission. Today counts once you prove one. Until then, yesterday's streak stands."
+      },
+      {
+        "h": "Off Days",
+        "p": "Miss a day and an Off Day covers it, so the streak keeps going. You earn one every 7 days you show up. You can bank two."
+      },
+      {
+        "h": "Levels",
+        "p": "The points from each mission add to its track's level. Milestones mark your first mission, your first perfect day, 7 days, 30 missions and more."
+      },
+      {
+        "h": "Proof photos",
+        "p": "Photos stay on this phone. They're deleted after 30 days unless you choose 1 year or Keep in Settings. The mission, its points and your streak stay."
+      },
+      {
         "h": "Access",
+        "p": "Points trade for rewards at unsetld.com, and the days you prove at least one mission open more. What's on offer can change with each collection; Rewards shows what's open now.",
         "list": [
+          "300 points: free shipping on one order.",
+          "600 points: 10% off one order, up to $25 off.",
+          "1,000 points: 15% off one order, up to $25 off.",
+          "One code for each reward each collection. Codes work for 30 days.",
           "Day 7: every UNSETLD drop opens to you 24 hours before the public.",
           "Day 90: a woven patch with your number, free with your next order.",
           "Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked."
@@ -36,45 +59,53 @@
       },
       {
         "h": "Keeping it",
-        "p": "Once early access is open, if 14 days pass with nothing on record, it pauses until you put 7 more days on record. Your count, points and milestones stay."
+        "p": "Once early access is open, if 14 days pass without a proven mission, it pauses until you prove a mission on 7 more days. Your count, points and milestones stay."
       },
       {
         "h": "Limits",
-        "p": "One code each collection. Up to $25 off an order. Codes don't combine with other codes, including the 10% first-order code, and exclude the 365 piece. One patch per person."
+        "p": "One code for each reward each collection, and one code per order. Up to $25 off an order. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece. One patch per person."
       },
       {
         "h": "It can't be bought",
-        "p": "Full Edition doesn't change any of this. Points and access are the same for everyone."
+        "p": "Points and access come only from proven missions. Full Edition doesn't change them, and none of it is for sale."
       },
       {
         "h": "Account",
-        "p": "To use a code or access you need a free account, made with Sign in with Apple, so we can hold your place."
+        "p": "To use a reward or access you need a free account, made with Sign in with Apple, so unsetld.com can hold your place. Your photos stay on this phone."
       }
     ]
   },
   "access": {
-    "title": "Access terms",
-    "updated": "2026-10-07",
+    "title": "Rewards and access terms",
+    "updated": "2026-10-09",
     "sections": [
       {
         "h": "Who can take part",
         "p": "For US residents 13 and over. If you're under 18, get a parent's or guardian's OK before you place an order."
       },
       {
-        "h": "What you can earn",
-        "p": "Access and points are earned in the app. They can't be bought, and Full Edition doesn't change them. Early access opens drops 24 hours before the public from Day 7. The patch is one per person and ships free with an order from Day 90. The 365 piece is sold at full price from Day 365."
+        "h": "No purchase necessary",
+        "p": "Points and access are earned only by proving missions in the app. They can't be bought, and Full Edition doesn't change them."
       },
       {
-        "h": "Points and codes",
-        "p": "Each task proven with a photo is 10 points, up to 40 points a day. Proof must be your own photo of that day's work, taken in the app. 600 points can be traded for 10% off one order, 1,000 points for 15%, up to $25 off. One code each collection. Codes are single use, work for 30 days and are only valid at unsetld.com. We may remove points earned through misuse."
+        "h": "How points are earned",
+        "p": "Each mission proven in the app earns its points once: 10 for a quick win, 15 for progress, 25 for a challenge, and 15 more when every mission in the day is proven. Proof must be your own photo of that mission, taken with the camera in the app. Points from earlier versions of the app carry over. We may remove points earned through misuse, such as proof that isn't of the mission."
+      },
+      {
+        "h": "Rewards",
+        "p": "300 points can be traded for free shipping on one order, 600 points for 10% off one order and 1,000 points for 15% off one order. Discounts take up to $25 off. You can take one code for each reward each collection. Codes are single use, work for 30 days and are only valid at unsetld.com. The rewards on offer, their points and their dates are shown in the app and may change with each collection."
+      },
+      {
+        "h": "Access",
+        "p": "Access counts the days you prove at least one mission. Early access opens drops 24 hours before the public from Day 7. The patch is one per person and ships free with an order from Day 90. The 365 piece is sold at full price from Day 365."
       },
       {
         "h": "Limits",
-        "p": "No cash value. Not transferable. Points and codes can't be sold or exchanged for money. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece."
+        "p": "No cash value. Not transferable. Points, codes and access can't be sold, bought or exchanged for money. One code per order. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece."
       },
       {
         "h": "Pauses",
-        "p": "Once early access is open, if 14 days pass with nothing on record, it pauses until 7 more days are on record. Your count, points and milestones stay."
+        "p": "Once early access is open, if 14 days pass without a proven mission, it pauses until you prove a mission on 7 more days. Your count, points and milestones stay."
       },
       {
         "h": "Changes",
@@ -88,11 +119,11 @@
   },
   "terms": {
     "title": "Terms of Use",
-    "updated": "2026-10-07",
+    "updated": "2026-10-09",
     "sections": [
       {
         "h": "Using UNSETLD",
-        "p": "UNSETLD gives you a daily line, daily tasks, reminders, a night check and a record of the days you showed up. It is motivation, not medical, financial or professional advice."
+        "p": "UNSETLD gives you daily missions, a camera to prove them, points, a streak, levels, programs, reminders and rewards. It is motivation, not medical, financial or professional advice. Do missions within your limits, and swap any that don't suit you."
       },
       {
         "h": "Full Edition",
@@ -104,11 +135,11 @@
       },
       {
         "h": "Access",
-        "p": "Access to the clothing brand is covered by the Access terms in Settings."
+        "p": "Rewards and access to the clothing brand have their own terms, in Settings and on the Rewards screen."
       },
       {
         "h": "Content",
-        "p": "The lines in the app are original to UNSETLD, except attributed quotes, which are public-domain translations. Lines you write yourself stay on your phone."
+        "p": "The missions and everything else in the app are original to UNSETLD. Your proof photos are yours and stay on your phone."
       },
       {
         "h": "Contact",
@@ -118,27 +149,39 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "updated": "2026-10-08",
+    "updated": "2026-10-09",
     "sections": [
       {
         "h": "The short version",
-        "p": "Your record, your standard, proof photos, saved lines and your lines live on your iPhone. There are no ads, no tracking and no analytics SDKs."
+        "p": "Your missions, your answers about you, your streak, points and proof photos live on your iPhone. There are no ads, no tracking and no analytics SDKs."
       },
       {
         "h": "What leaves your phone",
-        "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so Full Edition works across your devices. Time check: the app asks unsetld.com for the current date so days on record stay honest. No identifier is sent. Config: the app reads a small public file from unsetld.com to know whether access is on and when drops open."
+        "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so Full Edition works across your devices. Time check: the app asks unsetld.com for the current date so streaks stay honest. No identifier is sent. Config: the app reads small public files from unsetld.com to know whether rewards and access are on, which rewards are offered and when drops open."
       },
       {
-        "h": "Camera",
-        "p": "The camera is used only when you prove a task. Photos are saved inside the app on this phone and are never uploaded."
+        "h": "Camera and proof photos",
+        "p": "The camera is used only when you prove a mission. Photos are saved inside the app on this iPhone and the app never uploads them. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days unless you choose 1 year or Keep in Settings; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
       },
       {
-        "h": "If you sign in for codes or access",
-        "p": "Signing in with Apple is optional and only needed to use codes and access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you put on record and the days you proved tasks (dates and counts only, never the photos) so we can hold your place and issue single-use codes. We also keep a token from Apple so we can end the Sign in with Apple link when you delete your account. Nothing else."
+        "h": "Proof checks",
+        "p": "Proof is checked on this phone: that the photos were taken just now, in the right order, after the timer, and weren't used before. The checks don't look at what's in a photo. There is no facial recognition, no AI and no one reviewing your photos."
+      },
+      {
+        "h": "What missions ask for",
+        "p": "Missions never ask for photos of your face or body, other people, IDs, addresses, bank details, grades, medical information or private conversations, or for your location. There is no public feed."
+      },
+      {
+        "h": "About you",
+        "p": "Your answers (school, work, gym, a project, your age range) and your tracks only decide which missions you get. They stay on your phone."
+      },
+      {
+        "h": "If you sign in for rewards or access",
+        "p": "Signing in with Apple is optional and only needed to use rewards and access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you proved a mission and each day's number of proven missions and points (dates and numbers only, never photos) so we can hold your place and issue single-use codes. We also keep a token from Apple so we can end the Sign in with Apple link when you delete your account. Nothing else."
       },
       {
         "h": "Notifications",
-        "p": "Reminders and the night check are local notifications scheduled on your phone. Drop alerts are separate, off by default, and only on if you turn them on."
+        "p": "Mission reminders and the focus timer alert are local notifications scheduled on your phone. Drop alerts are separate, off by default, and only on if you turn them on."
       },
       {
         "h": "Store links",
@@ -146,7 +189,7 @@
       },
       {
         "h": "Deleting your data",
-        "p": "Delete the app to remove what's stored on your phone. To delete an access account, open Settings in the app, then Account, then Delete account. We remove the account and what we hold for it, and end the Sign in with Apple link. You can also email unsetldclothing@gmail.com from the address on the account."
+        "p": "Delete the app to remove its data and proof photos from your phone. A copy of your record (missions, points and streak, never photos) is kept in your iPhone's Keychain so a reinstall picks up where you left off; iOS can keep it after the app is deleted, and it's never uploaded. To delete an account, open Settings in the app, then Account, then Delete account. We remove the account and what we hold for it, and end the Sign in with Apple link. You can also email unsetldclothing@gmail.com from the address on the account."
       },
       {
         "h": "Age",

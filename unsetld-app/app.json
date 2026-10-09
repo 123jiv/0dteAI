@@ -41,8 +41,8 @@
           "widgets": [
             {
               "name": "UnsetldLine",
-              "displayName": "Line",
-              "description": "Today’s line, then a new one with each reminder.",
+              "displayName": "Next mission",
+              "description": "The next mission you haven’t proven, with its time and points.",
               "ios": {
                 "supportedFamilies": [
                   "accessoryRectangular",
@@ -55,8 +55,8 @@
             },
             {
               "name": "UnsetldRecord",
-              "displayName": "Record",
-              "description": "Your days on record and this week.",
+              "displayName": "Streak",
+              "description": "Your streak, points and the days you showed up.",
               "ios": {
                 "supportedFamilies": [
                   "systemSmall",
@@ -68,8 +68,8 @@
             },
             {
               "name": "UnsetldStandard",
-              "displayName": "Standard",
-              "description": "Your three rules, where you’ll see them.",
+              "displayName": "Today",
+              "description": "Today’s missions, ticked off as you prove them.",
               "ios": {
                 "supportedFamilies": [
                   "accessoryRectangular"
@@ -96,7 +96,7 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "unsetld uses the camera only when you add proof of the day’s work. Photos stay on your phone.",
+          "cameraPermission": "unsetld uses the camera only when you prove a mission. Photos stay on your phone.",
           "photosPermission": false,
           "microphonePermission": false
         }

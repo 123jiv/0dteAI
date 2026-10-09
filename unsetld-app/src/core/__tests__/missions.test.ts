@@ -417,8 +417,8 @@ describe('rewards', () => {
     // Same price: the bigger discount.
     const twelve: RewardTier = { ...tiers[1], id: 'twelve', percent: 12 };
     expect(nextReward(r700, [tiers[1], twelve], '004', '2026-10-09')!.tier.id).toBe('twelve');
-    // 10% off taken this collection: shipping is the one in reach.
-    const took = redeem(r1200, fifteen, '004', '2026-10-09', { code: 'C', url: 'u' }); // 200 left
+    // 15% off taken leaves 200: nothing is in reach, so the cheapest one out of reach (shipping) is next.
+    const took = redeem(r1200, fifteen, '004', '2026-10-09', { code: 'C', url: 'u' });
     expect(nextReward(took, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, have: 200, need: 100, ready: false });
     const both = redeem({ ...took, legacyPoints: 2000 }, tiers[1], '004', '2026-10-09', { code: 'D', url: 'u' });
     expect(nextReward(both, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, ready: true });

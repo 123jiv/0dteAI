@@ -1,67 +1,84 @@
 # Compliance notes (Apple, TikTok, rewards)
 
-Checked 2026-10-07 against live sources: the App Review Guidelines (last updated 2026-06-08), the App Store Connect age-rating questionnaire, Apple's subscription page, and TikTok's Community Guidelines (effective 2026-09-24). Raw research is in `research/`. This isn't legal advice; have a lawyer review the rewards terms before launch.
+Updated for UNSETLD 3.0 (9 Oct 2026): a missions app for ages 13–25 with photo proof, points and rewards at unsetld.com. The product is specified in [MISSIONS_SPEC.md](MISSIONS_SPEC.md); the reward contract is in [ACCESS.md](ACCESS.md).
 
-## Age rating and swearing
+Sources were checked on 2026-10-07: the App Review Guidelines (last updated 2026-06-08), the App Store Connect age-rating questionnaire, Apple's subscription page, and TikTok's Community Guidelines (effective 2026-09-24). Raw research is in `research/`. This isn't legal advice; have a lawyer review the rewards terms and the Privacy Policy before launch.
 
-- **Rating:** frequent profanity ("fuck", "shit", "bitch") rates the app **13+** on Apple's current scale (12+ on older iOS). Comparable apps ("toxic!", "Brutox") show 13+.
-- **Higher rating:** you may choose **16+** to match the audience; that's my suggestion. 18+ adds age verification in Australia, Brazil and Singapore and shuts out 16–17 year-olds.
-- **What keeps it at 13+:**
-  - Store links open in a browser locked to unsetld.com. A free-roaming in-app browser makes it 16+.
-  - Weed, vape and alcohol mentions stay *infrequent*. Frequent mentions make it 18+.
-  - Sexual or porn-quitting themes stay *infrequent*. Frequent makes it 16+.
-  - "Cut It Off" lines stay motivational, not treatment advice.
-  - No spin wheels or mystery rewards.
-- **Questionnaire answers:** Profanity = Frequent, Health/Wellness = Yes, Contests = Infrequent, User-Generated Content = No, Social Media = No, Unrestricted Web = No.
-- **Guideline 1.1:** casual swearing aimed at the reader's excuses is fine. Never slurs, and never insults about gender, sexuality or race. "Don't be a bitch" is a gray area, so the library keeps "bitch" to two lines, both aimed at the snooze button or couch.
-- **Guideline 1.4.5:** no XP or lines that glorify skipping sleep, extended fasting or training through injury.
+## What changed in 3.0
+
+- **No strong language.** The quote library, its *Strong language* setting and the "keep lock screen clean" switch are gone. Nothing in the app swears, and `npm run validate` fails on swearing in missions and reminders.
+- **Photo proof** replaces the night check. Photos are taken with the in-app camera, stay on the phone and are checked on the phone.
+- **Rewards** come from points for proven missions, with tiers that can change from unsetld.com's config. There are no XP, ranks or leaderboards.
+
+## Age rating and audience
+
+- **Audience:** 13 and up (the Privacy Policy and the rewards terms say so). The app is built for 13–25.
+- **Questionnaire answers:**
+  - Profanity or crude humor: **None**. (The 2.x answer was *Frequent*; drop it.)
+  - Health or wellness topics: **Yes**. Fitness missions cover training, running, stretching, sleep and everyday food habits.
+  - Contests: **None**. Rewards are fixed points thresholds, with no chance, no ranking and no prizes.
+  - User-generated content: **No**. Photos never leave the phone and nobody else sees them.
+  - Social media or messaging: **No**.
+  - Unrestricted web access: **No**. Store links open in Safari, never an in-app browser.
+- **Rating:** with these answers the questionnaire is likely to come out below 13+. If App Store Connect lets you choose a higher rating, choose **13+** to match the audience.
+- **What keeps the content safe for teens (Guideline 1.4.5):** missions never urge risky challenges. The validator rejects diets, calorie counting, fasting, weigh-ins, skipping sleep, all-nighters, alcohol, vaping, nicotine, betting, gambling, trading, crypto, supplements and dares, and body photos or weigh-ins as proof. Gym missions are only offered to people who said they have gym access. The Terms of Use say missions are motivation, not medical advice, and to do them within your limits and swap any that don't suit you.
+- **The About you age answer** (13–15, 16–17, 18+) only filters missions on the phone. It isn't an age gate, and it never leaves the phone.
+- **US state app-store age laws** (Texas, Utah, Louisiana): add Apple's Declared Age Range API before launch, and consider limiting real-value rewards to users 18 and over if a lawyer advises it.
+
+## Photo proof
+
+- **Camera only.** iOS opens the camera, never the photo library (`photosPermission: false` in `app.json`). The camera permission text says what it's for: "unsetld uses the camera only when you prove a mission. Photos stay on your phone." (5.1.1(ii)). The app asks the first time someone opens the camera.
+- **Photos stay on the phone.** They're saved in the app's own folder and never uploaded. Like other app files, they can be part of the user's own iPhone backup.
+- **Metadata is stripped.** Each photo is resized to 1600 px and re-encoded as a new JPEG, which drops EXIF, including location.
+- **Retention.** Photos are deleted after 30 days by default (Settings → Proof photos: 30 days, 1 year or Keep). The mission, its points and its fingerprint stay.
+- **Checks run on the phone and don't look at the content.** They check that the right photos are there, the proof photo is from the last 30 minutes, before and after are at least 2 minutes apart, the focus timer finished first, and the photo was never used before. No AI, no facial recognition, nobody reviewing photos. Copy never says a photo was verified by AI (2.3.1: no misleading claims). If a server-side vision check is ever added (`TaskProofVerifier` in `src/services/verify.ts`), it means uploading photos: update the Privacy Policy, the privacy label and the camera text first.
+- **What missions never ask for:** faces, bodies, other people, IDs, addresses, bank details, grades, medical information, private conversations, a bedroom specifically, or location. There's no public feed and no sharing of proof.
+- **Store screenshots** show proof photos of objects only, never people, faces, documents or screens with personal details.
 
 ## The App Store page must stay clean (2.3.7, 2.3.8)
 
-- Icon, name, subtitle, keywords, screenshots, the preview video and its audio, subscription promo images and in-app event cards must all suit every age, even if the app is rated 16+.
-- Screenshots use **Clean** lines.
-- The description can mention the raw tone in mild words.
+- Icon, name, subtitle, keywords, screenshots, the preview video and its audio, subscription promo images and in-app event cards must suit every age.
+- Suggested name and subtitle: **UNSETLD: Daily Missions**, **Do the mission. Prove it.** (The 2.x subtitle "One line every morning." is retired.)
+- No prices, discount percentages or "free" in the name, subtitle or screenshots, and nothing that makes the app read as a store.
 
-## Lock screen and notifications
+## Lock screen, widgets and notifications
 
-- No Apple rule bans swearing in widgets or notifications. It's still a real problem, because a parent, boss or teacher sees the lock screen.
-- So **"keep lock screen clean"** is on by default. Widgets and reminders then show only Clean lines.
-- **Widgets show only the line, streak and rank.** No "new drop" or "15% off" banners in widgets (4.4, 2.5.16).
-- **Two notification permissions:**
-  - Reminders use the normal prompt.
-  - Drop and discount alerts get their **own opt-in screen** plus an on/off switch, and are never marked Time Sensitive (4.5.4).
-- Widgets and core features must work without notifications enabled (5.1.2(i)).
+- **Widgets show the mission side only:** the next mission (title, track, minutes, points), today's missions with done squares, and the streak with points and the active-days barcode. No drop, discount or reward banners in widgets (2.5.16).
+- **Notification permissions:**
+  - Mission reminders and the focus timer's "done" alert are local notifications and use the normal prompt.
+  - Drop alerts have their own opt-in switch in Settings, are off by default, and are never marked Time Sensitive (4.5.4).
+- Missions, proof, the streak and widgets all work with notifications off.
 
 ## Rewards and money
 
-- **XP only for in-app actions** (3.2.2(x)).
-- **Never** for:
+- **Points only for proven missions** (3.2.2(x)). Never for:
   - App Store ratings or reviews (5.6.3, FTC review rule)
   - turning on notifications, tracking or location (5.1.2(i))
   - installing other apps
   - posting about UNSETLD on social media (that would make posts paid endorsements needing #ad)
-- **Premium** is sold only through in-app purchase via RevenueCat. Everything Premium includes unlocks the moment someone subscribes, never gated by streak or rank (3.1.2(a)).
-- **Clothes** are paid for only through Shopify checkout or Apple Pay (3.1.3(e)). Discount codes for physical goods are fine.
-- **Never sell XP,** codes or "boosts" through in-app purchase. Never create a subscription tier whose main value is merch discounts.
-- **No QR or NFC tag on clothing unlocks Premium** (3.1.1). Tags only add closet items and XP (v2).
-- **Positioning (4.2.2, 4.3(b)):** an app that is mainly a storefront gets rejected, and plain quote-widget apps are a crowded category. Lead with what's different (ranks, missions, streaks, custom lines). Keep perks secondary. Explain the XP-to-perk flow in the App Review notes and give the reviewer a fast way to see a perk unlock.
-- **Leaderboard prizes** turn the program into a contest (5.3): official rules, "Apple is not a sponsor", free entry. If prizes are ever added: adults only, $5,000 total or less (more needs registration in NY/FL), and a W-9 or 1099 above $2,000. **No prizes at launch.**
-- **Use percent-off discount codes,** not store credit or gift cards (gift card law).
-- **Rewards terms** (in the app and on unsetld.com, before launch):
-  - who can join: US, 16+ or 18+
-  - how XP works, the rank thresholds, and the exact perks
-  - "no cash value, not transferable"
-  - code expiry dates and one code per order
-  - your right to change or end the program
-- **US state app-store age laws** (Texas, Utah, Louisiana): add Apple's Declared Age Range API. Consider limiting real-value rewards to users 18+.
+- **No purchase necessary.** Full Edition is sold only through in-app purchase via RevenueCat and never changes points, rewards or Access. Everything it includes (more programs, swaps, colorways, reminders) unlocks the moment someone subscribes, never gated by streak or points (3.1.2(a)).
+- **Never sell points,** codes or boosts through in-app purchase, and never create a subscription tier whose main value is merch discounts (3.1.1).
+- **Clothes** are paid for only through Shopify checkout at unsetld.com, opened in Safari (3.1.3(e)). Discount codes for physical goods are fine.
+- **No cash value.** Points and codes are not transferable and can't be sold, bought or exchanged for money. Codes are percent-off or free shipping, never store credit or gift cards (gift card law).
+- **The tiers** (default, `src/content/rewards.json`): free shipping at 300 points, 10% off at 600 and 15% off at 1,000, each up to $25 off, one code per tier per collection, codes valid 30 days. unsetld.com's config can change them; the server checks every redeem against its own list and its own count of points.
+- **Minors:** rewards are for US residents 13 and over; under 18s need a parent's or guardian's OK to place an order. This is in the in-app rewards terms.
+- **Not a contest.** Fixed thresholds, no chance, no leaderboard. If prizes are ever added, the program becomes a contest (5.3): official rules, "Apple is not a sponsor", free entry, adults only, $5,000 total or less (more needs registration in NY and FL), and a W-9 or 1099 above $2,000. **No prizes at launch.**
+- **Positioning (4.2.2, 4.3(b)):** an app that is mainly a storefront gets rejected. Missions and proof are the product; rewards stay quiet (the Rewards screen and one line on Home and the done screen, never a popup, never in widgets, notifications, the paywall or mission text). In the App Review notes, explain that points come only from missions proven in the app, that nothing can be bought, and that photos stay on the phone. Tester tools aren't in release builds, so show the rewards flow with screenshots or a screen recording from a development build.
+- **Rewards terms** (in the app as `access` in `src/content/legal.json`, and on unsetld.com before launch):
+  - who can take part: US residents 13 and over, a parent's or guardian's OK under 18
+  - no purchase necessary; how points are earned, the tiers and their limits
+  - no cash value, not transferable
+  - code expiry and one code per order
+  - the right to remove points earned through misuse, and to change or end the program with notice
 
 ## Privacy
 
-- **v1:** no accounts. Progress stays on the device and in the user's iCloud.
-  - The app checks the date with unsetld.com.
-  - Apple and RevenueCat process purchases under an anonymous ID.
-  - The "How did you find us?" answer goes to RevenueCat as an anonymous attribute, if you approve.
-- **v2:** adds Sign in with Apple and server-side check-ins. That means privacy-label updates and **in-app account deletion** (5.1.1(v)).
+- **No account needed** for missions, proof, points, the streak or levels. Everything lives on the phone, with a Keychain copy of the record (never photos) so a reinstall keeps the streak and points.
+- **What leaves the phone without an account:** a time check against unsetld.com (no identifier), the public config and drops files, and purchases through Apple and RevenueCat (an anonymous app user ID).
+- **Sign in with Apple** is optional and only for rewards and Access. The server then gets an Apple user ID, an optional relay email, and the dates and counts of proven missions with their points. Never a photo, never the About you answers.
+- **In-app account deletion** (5.1.1(v)): Settings → Account → Delete account removes the account and revokes the Sign in with Apple link.
+- **Privacy label:** no tracking, no ads, no analytics. With sign-in: a user ID, an optional email, and the dates and counts of proven missions, linked to the account, for app functionality. Photos are not collected.
+- **Under 13:** the app isn't directed at children under 13 and doesn't knowingly collect their information; the Privacy Policy says to email for deletion if a child has signed in.
 - **Email** for rewards is always optional; codes show in the app (5.1.1).
 
 ## Paywall (subscriptions page, 3.1.2)
@@ -74,10 +91,12 @@ Checked 2026-10-07 against live sources: the App Review Guidelines (last updated
 
 ## TikTok
 
-- **Swearing:** there's no blanket rule that swearing in captions, on-screen text or audio removes a video from For You. The risk is aiming insults at a real person or a group. Speak to the viewer's excuses.
+- **Swearing:** there's no blanket rule that swearing in captions, on-screen text or audio removes a video from For You. The risk is aiming insults at a real person or a group. The app itself is clean now; keep brand posts aimed at the viewer's excuses, never at people.
 - **Disclosure:** posts from @unsetld or @unsetldclo that push the app, a hoodie or a code need the commercial disclosure setting turned on ("Your brand").
+- **Proof in posts:** show proof photos of objects, the same as the store screenshots: no faces, no minors, no documents or screens with personal details.
 - **Avoid:**
   - reposting clipped motivational speeches (both a For You and a copyright risk)
   - "follow + comment for a code" bait
   - claims like "30 days to shredded"
+  - challenge framing that pushes risk (no all-nighters, fasting or dares), matching the mission rules
 - Use commercial-cleared music on brand posts.

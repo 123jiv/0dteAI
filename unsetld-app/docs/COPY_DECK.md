@@ -1,12 +1,14 @@
 # UNSETLD copy deck
 
+> **3.0 note (9 Oct 2026):** UNSETLD 3.0 supersedes this deck's lines, quotes, chapters, the standard (three rules), the night check, Today, Record and the paywall rows. The 3.0 strings live in `src/content/copy/*.ts` (and `src/content/copy.ts`), specified in [MISSIONS_SPEC.md](MISSIONS_SPEC.md); where they disagree with this file, they win. The App Store listing below is updated for 3.0; the rest of this file is kept as the 2.x record, so check `src/content/copy/` before reusing a string from it.
+
 UNSETLD 2.0: COPY DECK (final wording; build exactly; sentence case; no exclamation marks)
 
 Since 2.1/2.2 the Today screen, task modal and their strings are specified in `TODAY_SPEC.md`; where the two disagree, `TODAY_SPEC.md` and `src/content/copy.ts` win. Daily tasks and lines are written to `docs/research/2026-10-08-everyday-content.md`.
 
 GLOBAL
-- App name (store): UNSETLD: Daily Discipline
-- Subtitle: One line every morning.
+- App name (store, 3.0): UNSETLD: Daily Missions
+- Subtitle (3.0): Do the mission. Prove it.
 - Wordmark: unsetld (lowercase, Cormorant)
 - Notification title: unsetld
 - Brand in prose: UNSETLD
@@ -412,12 +414,25 @@ ERRORS AND EMPTY STATES
 - Code used this collection: USED (row) / One code each collection. The next one opens with the next collection.
 - No toasts anywhere. Confirmations are haptics or inline label swaps.
 
-APP STORE SCREENSHOTS (clean lines only)
-1. One line. Every morning. — reader, Black: Settling rarely feels like a decision. It feels like a normal evening.
-2. On your lock screen. — lock screen with Line widget (Every night you give it is a morning it takes.) and Day 41 inline
-3. Set your own standard. — standard screen
-4. Colorways from the collection. — reader in Sun Fade: That restless feeling isn't a problem. It's an instruction.
-5. Every day, on record. — Record screen
+APP STORE LISTING (3.0)
+- Name: UNSETLD: Daily Missions
+- Subtitle: Do the mission. Prove it.
+- Promotional text: Three missions a day, picked for what you want to improve. Do them for real, prove them with the camera, and keep the streak going.
+- Description:
+  UNSETLD gives you three missions a day for what you're working on: focus, fitness, school, money, skills, a reset or confidence.
+  Do each one in real life, then prove it with the camera in the app. Proven missions earn points, keep your streak going and move your levels up.
+  Pick up to three tracks and how much time you have. Swap a mission that doesn't fit. Run a program when you want a push: a 7 Day Lock In, a school reset, a week to build something.
+  Points trade for rewards at unsetld.com. Nothing can be bought.
+  Your proof photos stay on your phone. The checks run on the phone, and they never look at what's in a photo.
+  Never settle for less.
+- Screenshots (proof photos show objects, never people, faces, documents or screens with personal details):
+  1. Three missions a day, built around your life. (Home with today's missions)
+  2. Do it for real. Prove it with the camera. (a mission page with PROVE IT)
+  3. Every proven mission earns points. (the done screen)
+  4. A streak that means you showed up. (Progress: streak, levels, milestones)
+  5. Your next mission, on your lock screen. (lock screen with the Next mission and Streak widgets)
+  6. Trade points for rewards at unsetld.com. (Rewards)
+- Never in the listing: prices, discount percentages, "free", or anything that makes the app read as a store.
 
 LINE LIBRARY, VOLUME 001
 Numbers are permanent.

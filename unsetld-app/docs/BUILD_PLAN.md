@@ -1,5 +1,7 @@
 # UNSETLD app: build plan
 
+> **3.0 note (9 Oct 2026):** this is the original 1.0 plan, kept for its history. The product is now UNSETLD 3.0, a missions app for ages 13–25 (tracks, daily missions proven with the in-app camera, points, a streak, levels, programs, rewards at unsetld.com), specified in [MISSIONS_SPEC.md](MISSIONS_SPEC.md). The lines, swipe feed, quotes, chapters, night check, XP and ranks described below are retired; for how to run and ship the app, see the [README](../README.md).
+
 **Status:** v1 built (2026-10-07). All phases below are in the code, plus a browser preview. See the README to run it.
 **Updated:** 2026-10-07. Current platforms: iOS 27.0.1, Xcode 27, Expo SDK 57, RevenueCat iOS 5.93.
 

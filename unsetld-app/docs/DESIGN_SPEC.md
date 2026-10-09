@@ -1,5 +1,7 @@
 # UNSETLD design spec (final)
 
+> **3.0 note (9 Oct 2026):** UNSETLD 3.0 is a missions app, specified in [MISSIONS_SPEC.md](MISSIONS_SPEC.md), which wins wherever the two disagree. The reader, the daily line and quotes, chapters, the standard (three rules), the night check, saved lines, your lines, the line share card and strong language are retired, and Record became Progress (Access moved to Rewards). Still current here: tokens, type, colorways, the walker, the Access road and milestone letters, the paywall layout, accounts and purchases. The App Store name, subtitle and age rating below are out of date (3.0 ships no strong language): see the README's App Store section and [COMPLIANCE.md](COMPLIANCE.md).
+
 Winner: A: Editorial Monochrome ("The Book") as the skeleton (reader, IA, product-page paywall, barcode record + access road, monochrome widgets, milestone letters). The build grafts in Direction C's standard and night check, C's cover figure, 'on record' vocabulary and Sun Fade colorway, and the voice guide's plain chapter names. Final name for the build: UNSETLD 2.0, 'one line every morning, and a record of the days you showed up.'
 
 ## Grafts

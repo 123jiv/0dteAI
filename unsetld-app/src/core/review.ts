@@ -32,7 +32,7 @@ export interface WeeklyReview {
   byTrack: Partial<Record<TrackId, number>>;
   /** The track with the most proven missions. */
   strongest: TrackId | null;
-  /** A chosen track with no (or the fewest) missions, while another had some. */
+  /** A chosen track with no proven mission this week, while another had some ("Didn't get to"). */
   ignored: TrackId | null;
 }
 
@@ -63,8 +63,8 @@ export function weeklyReview(r: RecordState, plans: Record<DayKey, DayPlan>, pro
   const strongest = ranked[0]?.[0] ?? null;
   let ignored: TrackId | null = null;
   if (strongest) {
-    const lowest = [...profile.tracks].filter(t => t !== strongest).sort((a, b) => (byTrack[a] ?? 0) - (byTrack[b] ?? 0))[0];
-    if (lowest && (byTrack[lowest] ?? 0) < (byTrack[strongest] ?? 0)) ignored = lowest;
+    // Only a track that got nothing: "Didn't get to" must be true.
+    ignored = profile.tracks.find(t => t !== strongest && !byTrack[t]) ?? null;
   }
   const c = completion(r, plans, from, to);
   return { from, to, missions, planned: c.planned, focusMinutes: Math.floor(seconds / 60), points, perfectDays, activeDays, byTrack, strongest, ignored };
