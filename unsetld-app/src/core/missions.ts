@@ -106,7 +106,7 @@ export function slotTracks(profile: Profile, slots: readonly MissionSlot[], day:
 const EASIER: Record<MissionSlot, MissionSlot | null> = { challenge: 'progress', progress: 'quick', quick: null };
 
 function weight(m: Mission, history: MissionHistory): number {
-  let w = 1;
+  let w = m.weight ?? 1;
   if (!history.lastPlanned[m.id]) w *= 1.5;
   if (m.anchor) w *= 1.4;
   const skip = history.skips[m.id];
@@ -162,6 +162,13 @@ export function chooseForSlot(
   return null;
 }
 
+/** A mission's id plus every other mission in its group: none of them can join a day that has it. */
+function sameDayBlocked(library: readonly Mission[], m: Mission | undefined): string[] {
+  if (!m) return [];
+  if (!m.group) return [m.id];
+  return [m.id, ...library.filter(x => x.group === m.group && x.id !== m.id).map(x => x.id)];
+}
+
 /** The day's plan: the program's missions first, then one mission per slot, within the time budget. */
 export function generatePlan(input: PlanInput): DayPlan {
   const { profile, day, salt } = input;
@@ -173,7 +180,7 @@ export function generatePlan(input: PlanInput): DayPlan {
   let spent = 0;
   const filled = new Set<number>();
 
-  // Program missions take the slot that matches their own (or the last slot).
+  // Program missions take the slot that matches their own (or the first free one).
   const byId = new Map(input.library.map(m => [m.id, m]));
   for (const id of input.program?.missionIds ?? []) {
     const m = byId.get(id);
@@ -183,7 +190,7 @@ export function generatePlan(input: PlanInput): DayPlan {
     if (i < 0) break;
     filled.add(i);
     chosen[i] = { slot: m.slot, missionId: id, programId: input.program!.id };
-    used.add(id);
+    for (const x of sameDayBlocked(input.library, m)) used.add(x);
     spent += m.minutes;
   }
 
@@ -194,7 +201,7 @@ export function generatePlan(input: PlanInput): DayPlan {
     const m = chooseForSlot(input, slot, tracks[i], used, room, `${salt}:${day}:${i}`);
     if (!m) return;
     chosen[i] = { slot: m.slot, missionId: m.id };
-    used.add(m.id);
+    for (const x of sameDayBlocked(input.library, m)) used.add(x);
     spent += m.minutes;
   });
 
@@ -207,7 +214,12 @@ export function rerollMission(plan: DayPlan, index: number, input: PlanInput): D
   if (!current) return null;
   const byId = new Map(input.library.map(m => [m.id, m]));
   const old = byId.get(current.missionId);
-  const exclude = new Set([...plan.missions.map(p => p.missionId), ...plan.replaced]);
+  // The rest of the day stays as it is, so the new mission can't overlap any of it.
+  const exclude = new Set([
+    current.missionId,
+    ...plan.replaced,
+    ...plan.missions.flatMap((p, i) => (i === index ? [] : sameDayBlocked(input.library, byId.get(p.missionId)))),
+  ]);
   const spent = plan.missions.reduce((t, p, i) => (i === index ? t : t + (byId.get(p.missionId)?.minutes ?? 0)), 0);
   const room = Math.max(old?.minutes ?? 15, DAY_BUDGET[input.profile.minutes] - spent);
   const tracks = slotTracks(input.profile, plan.missions.map(p => p.slot), input.day);

@@ -153,6 +153,44 @@ describe('daily missions', () => {
     expect(plan.missions.length).toBe(3);
   });
 
+  it('never puts two missions from one group on the same day, even after a swap', () => {
+    // One track, every quick and progress mission in the same group: only one of them fits a day.
+    const lib = [
+      ...Array.from({ length: 4 }, () => m('reset', 'quick', { group: 'room' })),
+      ...Array.from({ length: 4 }, () => m('reset', 'progress', { group: 'room' })),
+      ...Array.from({ length: 3 }, () => m('reset', 'progress')),
+      ...Array.from({ length: 3 }, () => m('reset', 'challenge')),
+    ];
+    const ids = new Map(lib.map(x => [x.id, x]));
+    const inp = input({ library: lib, profile: profile({ tracks: ['reset'] }) });
+    for (const day of ['2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12']) {
+      const plan = generatePlan({ ...inp, day });
+      const groups = plan.missions.map(p => ids.get(p.missionId)!.group).filter(Boolean);
+      expect(groups.length).toBeLessThanOrEqual(1);
+      let p: DayPlan | null = plan;
+      for (let k = 0; k < 3 && p; k++) {
+        p = rerollMission(p, 2, { ...inp, day });
+        if (p) expect(p.missions.map(x => ids.get(x.missionId)!.group).filter(Boolean).length).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it('picks low-weight (situational) missions less often', () => {
+    const lib = [
+      ...Array.from({ length: 5 }, () => m('school', 'quick', { weight: 0.1 })),
+      ...Array.from({ length: 5 }, () => m('school', 'quick')),
+      ...Array.from({ length: 3 }, () => m('school', 'progress')),
+      ...Array.from({ length: 3 }, () => m('school', 'challenge')),
+    ];
+    const light = new Set(lib.filter(x => x.weight).map(x => x.id));
+    let picked = 0;
+    for (let d = 0; d < 60; d++) {
+      const plan = generatePlan(input({ library: lib, profile: profile({ tracks: ['school'] }), day: addDays('2026-10-01', d), salt: `w${d}` }));
+      if (light.has(plan.missions[0].missionId)) picked++;
+    }
+    expect(picked).toBeLessThan(15);
+  });
+
   it('builds history from proven missions and earlier plans', () => {
     const plans = { '2026-10-08': { day: '2026-10-08', missions: [{ slot: 'quick' as const, missionId: 'a' }], rerolls: 0, replaced: [] } };
     const h = historyFrom({ '2026-10-07': { b: { missionId: 'b' } } }, plans, {}, '2026-10-09');

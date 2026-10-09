@@ -2,7 +2,7 @@
  {
   "id": "lock-in-7",
   "title": "7 Day Lock In",
-  "short": "Seven days of focus blocks and finishing things.",
+  "short": "A week of phone-away focus blocks, ending with one thing finished.",
   "days": 7,
   "tracks": [
    "focus"
@@ -10,24 +10,30 @@
   "free": true,
   "plan": [
    [
+    "focus-mute-the-noise",
     "focus-lock-in-25"
    ],
    [
-    "focus-win-before-noon"
-   ],
-   [
+    "focus-hide-the-distraction",
     "focus-lock-in-25"
    ],
    [
-    "focus-finish-something"
+    "focus-plan-tomorrow-tonight",
+    "focus-one-win-before-noon"
    ],
    [
-    "focus-lock-in-25"
+    "focus-leave-a-next-step",
+    "focus-distraction-pad"
    ],
    [
-    "focus-plan-tomorrow"
+    "focus-lock-in-25",
+    "focus-earn-the-scroll"
    ],
    [
+    "focus-one-hour-one-thing"
+   ],
+   [
+    "focus-plan-tomorrow-tonight",
     "focus-finish-something"
    ]
   ]
@@ -35,7 +41,7 @@
  {
   "id": "get-organized",
   "title": "Get Organized",
-  "short": "Five days to reset your room, desk and mornings.",
+  "short": "Five days to clear your space, your week and your bag.",
   "days": 5,
   "tracks": [
    "reset"
@@ -43,19 +49,183 @@
   "free": true,
   "plan": [
    [
-    "reset-desk"
+    "reset-make-the-bed",
+    "reset-return-every-cup"
    ],
    [
-    "reset-room-10"
+    "reset-bag-dump",
+    "reset-10-minute-room-reset"
    ],
    [
-    "reset-tomorrow-ready"
+    "reset-one-list-for-everything",
+    "reset-map-your-week"
    ],
    [
-    "reset-room-10"
+    "reset-tomorrow-is-ready",
+    "reset-laundry-reset"
    ],
    [
-    "reset-make-the-bed"
+    "reset-full-room-reset"
+   ]
+  ]
+ },
+ {
+  "id": "school-reset",
+  "title": "School Reset",
+  "short": "A week to catch up, see what's due and stop running behind.",
+  "days": 7,
+  "tracks": [
+   "school",
+   "focus"
+  ],
+  "free": false,
+  "plan": [
+   [
+    "school-whats-due",
+    "school-clean-setup"
+   ],
+   [
+    "school-work-back-from-date",
+    "school-study-sprint"
+   ],
+   [
+    "school-reread-yesterdays-notes",
+    "school-redo-what-you-missed"
+   ],
+   [
+    "school-subject-you-avoid"
+   ],
+   [
+    "school-read-the-rubric",
+    "school-start-before-urgent"
+   ],
+   [
+    "school-catch-up-hour"
+   ],
+   [
+    "school-unit-on-one-page",
+    "focus-plan-tomorrow-tonight"
+   ]
+  ]
+ },
+ {
+  "id": "build-something",
+  "title": "Build Something",
+  "short": "Seven days from an idea to one finished thing you can show people.",
+  "days": 7,
+  "tracks": [
+   "skills"
+  ],
+  "free": false,
+  "plan": [
+   [
+    "skills-ten-ideas",
+    "skills-build-30"
+   ],
+   [
+    "skills-five-references",
+    "skills-build-30"
+   ],
+   [
+    "skills-ugly-first-draft"
+   ],
+   [
+    "skills-record-it-fix-two",
+    "skills-build-30"
+   ],
+   [
+    "skills-improve-yesterday",
+    "skills-fix-the-hardest-part"
+   ],
+   [
+    "skills-one-hour-build"
+   ],
+   [
+    "skills-photograph-it",
+    "skills-write-up-one-project"
+   ]
+  ]
+ },
+ {
+  "id": "fitness-base",
+  "title": "Fitness Base",
+  "short": "A week of simple training you can start from anywhere, no gym needed.",
+  "days": 7,
+  "tracks": [
+   "fitness"
+  ],
+  "free": false,
+  "plan": [
+   [
+    "fitness-test-day",
+    "fitness-schedule-3-workouts"
+   ],
+   [
+    "fitness-water-before-phone",
+    "fitness-move-20"
+   ],
+   [
+    "fitness-no-equipment-circuit"
+   ],
+   [
+    "fitness-mobility-reset",
+    "fitness-set-your-bedtime"
+   ],
+   [
+    "fitness-run-walk-intervals"
+   ],
+   [
+    "fitness-core-15",
+    "fitness-phone-down-before-bed"
+   ],
+   [
+    "fitness-mobility-reset",
+    "fitness-beat-your-numbers"
+   ]
+  ]
+ },
+ {
+  "id": "project-mode",
+  "title": "Project Mode",
+  "short": "Ten days to turn a side project into something people can use or buy.",
+  "days": 10,
+  "tracks": [
+   "skills",
+   "money"
+  ],
+  "free": false,
+  "plan": [
+   [
+    "skills-one-page-plan",
+    "skills-cut-to-version-one"
+   ],
+   [
+    "skills-find-the-name"
+   ],
+   [
+    "money-first-batch"
+   ],
+   [
+    "skills-style-sheet"
+   ],
+   [
+    "skills-ship-something"
+   ],
+   [
+    "skills-mock-it-up"
+   ],
+   [
+    "skills-offer-sheet"
+   ],
+   [
+    "skills-photograph-it",
+    "focus-do-the-boring-part"
+   ],
+   [
+    "skills-watch-them-try"
+   ],
+   [
+    "skills-sell-one-thing"
    ]
   ]
  }

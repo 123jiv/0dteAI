@@ -220,6 +220,10 @@ export interface Mission {
   repeatable: boolean;
   /** A useful habit that is meant to come back often (make the bed, plan tomorrow). */
   anchor?: boolean;
+  /** Missions that overlap ("tomorrow-ready", "room-reset") share a group; a day never holds two from one group. */
+  group?: string;
+  /** How often the generator picks it, relative to 1. Situational missions (the night before a test) are lower. */
+  weight?: number;
   tags: string[];
   active: boolean;
 }

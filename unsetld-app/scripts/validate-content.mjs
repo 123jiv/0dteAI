@@ -40,7 +40,7 @@ const SENSITIVE = [
   'account number', 'card number', 'grade', 'grades', 'bedroom', 'address', 'location',
 ];
 // Never in a mission, whatever the context.
-const NEVER = /\b(shirtless|weigh-in|progress pic\w*|body check|before-and-after body|calorie deficit|water fast|dry fast|no sleep|all-nighter|vape|vaping|alcohol|beer|weed|nicotine|options trading|day trading|leverage|casino|sports bet\w*|lottery|dare)\b/i;
+const NEVER = /\b(shirtless|weigh-in|progress pic\w*|body check|before-and-after body|calorie deficit|water fast|dry fast|no sleep|all-nighter|vape|vaping|alcohol|beer|smoke weed|nicotine|options trading|day trading|leverage|casino|sports bet\w*|lottery|dare)\b/i;
 const SWEAR = /\b(damn\w*|hell|shit\w*|piss\w*|fuck\w*)\b/i;
 const EMOJI = /\p{Extended_Pictographic}/u;
 const escape = s => s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -89,6 +89,8 @@ for (const m of missions) {
   if (!(Number.isInteger(m.cooldownDays) && m.cooldownDays >= 1 && m.cooldownDays <= 365)) e('cooldownDays must be 1–365');
   if (typeof m.repeatable !== 'boolean') e('repeatable must be true or false');
   if (m.anchor && (m.cooldownDays > 3 || !m.repeatable)) e('anchors must be repeatable with cooldownDays ≤ 3');
+  if (m.group != null && !/^[a-z]+(-[a-z]+)*$/.test(m.group)) e('group must be a lowercase slug');
+  if (m.weight != null && !(m.weight >= 0.1 && m.weight <= 3)) e('weight must be 0.1–3');
   if (!Array.isArray(m.tags) || m.tags.length < 1 || m.tags.length > 4) e('1–4 tags');
   if (typeof m.active !== 'boolean') e('active must be true or false');
   const text = [m.title, m.short, m.why, ...(m.how ?? []), m.proof].join(' ');
@@ -98,7 +100,7 @@ for (const m of missions) {
   if (SWEAR.test(text)) e('no swearing');
   const never = text.match(NEVER);
   if (never) e(`unsafe for a teen app ("${never[0]}")`);
-  if (/\bunsetld\b|\bpoints?\b|\bdiscount\b|\bbuy (our|a hoodie|merch)\b/i.test(text)) e('missions never sell or mention points');
+  if (/\bunsetld\b|\b(earn|get|worth|\d+) points\b|\bdiscount code\b|\bmerch\b/i.test(text)) e('missions never sell or mention points');
   const sensitive = text.match(sensitiveRe);
   if (sensitive) warnings.push(`${where}: check safety/privacy ("${sensitive[0]}")`);
   const p = perTrack[m.track];
@@ -133,6 +135,8 @@ for (const p of programs) {
       else if (m.requires?.some(r => r !== 'school' && r !== 'project')) e(`day ${i + 1}: "${id}" needs ${m.requires.join(', ')}, which not every user has`);
     }
     if (new Set(day).size !== (day ?? []).length) e(`day ${i + 1} repeats a mission`);
+    const groups = (day ?? []).map(id => byId.get(id)?.group).filter(Boolean);
+    if (new Set(groups).size !== groups.length) e(`day ${i + 1} has two missions from one group`);
   }
 }
 if (programs.filter(p => p.free).length < 2) errors.push('programs.json: at least two programs must be free');
