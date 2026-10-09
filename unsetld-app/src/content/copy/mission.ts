@@ -13,6 +13,7 @@ function word(n: number): string {
 
 export const MISSION = {
   day: (n: number) => `DAY ${String(n).padStart(3, '0')}`,
+  ok: 'OK',
 
   slot: { quick: 'QUICK WIN', progress: 'PROGRESS', challenge: 'CHALLENGE' } satisfies Record<MissionSlot, string>,
   label: (slot: string, track: string) => `${slot} · ${track}`,
@@ -36,7 +37,7 @@ export const MISSION = {
   points: {
     value: (n: number) => `+${n}`,
     when: 'When the proof is in.',
-    bonus: (count: number, bonus: number) => `Prove all ${word(count)} today for +${bonus} more.`,
+    bonus: (count: number, bonus: number) => (count === 2 ? `Prove both today for +${bonus} more.` : `Prove all ${word(count)} today for +${bonus} more.`),
   },
 
   notInPlan: "Not in today's plan. You can prove it on a day it comes up.",
@@ -165,6 +166,10 @@ export const MISSION = {
     before: 'Before photo',
     after: 'After photo',
     rewards: 'Opens Rewards',
+    step: (i: number, text: string) => `Step ${i + 1}. ${text}`,
+    points: (n: number) => `${n} points when the proof is in`,
+    meta: (minutes: number, points: number) => `${minutes} minutes, ${points} points`,
+    balance: (from: number, to: number) => `${from} to ${to} points`,
   },
 
   notify: {

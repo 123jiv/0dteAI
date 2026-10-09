@@ -1,9 +1,38 @@
-// What a milestone's primary action does. Shared by the milestone page and
-// the milestone letter.
-import type { MilestoneId } from '../core/record';
+// What a milestone's primary action does, and the days Access counts. Shared
+// by Rewards, the milestone page and the milestone letter.
+import { activeDays } from '../core/progress';
+import { dayCount, pendingLetter, type Letter, type MilestoneId } from '../core/record';
+import type { DayKey } from '../core/time';
+import type { DayEntry, RecordState } from '../core/types';
 import { claim, openStore, type Perk } from '../services/access';
 import { notificationStatus, requestNotifications, type Drop } from '../services/notifications';
 import { useApp } from '../state/store';
+
+/**
+ * The record as Access sees it: its days are the active days (a mission
+ * proven). Days already on record from 2.x stay counted, so nothing earned
+ * before 3.0 is taken away; since 3.0 a day only goes on record with a proven
+ * mission, so every new day is an active day. Pass this to milestoneStatus,
+ * accessState and pendingLetter so the road, the milestone pages and the
+ * letters agree.
+ */
+export function accessRecord(r: RecordState): RecordState {
+  const active = activeDays(r);
+  if (![...active].some(d => !r.days[d])) return r;
+  const days: Record<string, DayEntry> = { ...r.days };
+  for (const d of active) days[d] ??= { verified: false };
+  return { ...r, days };
+}
+
+/** Days that count toward Access (early access on 7, the patch on 90, the 365 piece). */
+export function accessDays(r: RecordState): number {
+  return dayCount(accessRecord(r));
+}
+
+/** The Access letter to show on Home, if any, counted in active days. */
+export function accessLetter(r: RecordState, today: DayKey): Letter | null {
+  return pendingLetter(accessRecord(r), today);
+}
 
 export type ActionResult = 'done' | 'needs-account' | 'paused' | 'used' | 'network' | 'notifications-off';
 

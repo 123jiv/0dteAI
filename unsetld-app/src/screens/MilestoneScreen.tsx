@@ -1,24 +1,38 @@
 import { useEffect, useState } from 'react';
 import { Linking, View, type StyleProp, type ViewStyle } from 'react-native';
-import { milestoneStatus, type MilestoneId } from '../core/record';
+import { milestoneStatus, type MilestoneId, type MilestoneStatus } from '../core/record';
 import { milestoneNo } from '../core/typography';
 import { MILESTONES } from '../content';
-import { COPY } from '../content/copy';
+import { REWARDS_COPY } from '../content/copy/rewards';
 import type { RootProps } from '../navigation/types';
 import { useDrops } from '../state/lifecycle';
 import { useAccessEnabled, useApp } from '../state/store';
 import { Button, InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C } from '../ui/tokens';
-import { earlyDrop, enableDropAlerts, nextDropChange, runMilestoneAction, type ActionResult } from './access';
+import { accessDays, accessRecord, earlyDrop, enableDropAlerts, nextDropChange, runMilestoneAction, type ActionResult } from './access';
 
-const R = COPY.record.status;
+const R = REWARDS_COPY;
+
+/** OPEN / USED / PAUSED / 12 DAYS: the same words on Rewards and here. */
+export function milestoneStatusText(s: MilestoneStatus): string {
+  switch (s.kind) {
+    case 'open':
+      return R.milestoneStatus.open;
+    case 'used':
+      return R.milestoneStatus.used;
+    case 'paused':
+      return R.milestoneStatus.paused;
+    case 'locked':
+      return R.milestoneStatus.left(s.daysLeft);
+  }
+}
 
 /** No line for 'used': only the patch can be used, and its status then reads USED. */
 export function errorText(r: ActionResult): string | null {
-  if (r === 'paused') return COPY.milestone.pausedError;
-  if (r === 'network') return COPY.milestone.networkError;
-  if (r === 'notifications-off') return COPY.day.permOff;
+  if (r === 'paused') return R.milestone.pausedError;
+  if (r === 'network') return R.milestone.networkError;
+  if (r === 'notifications-off') return R.milestone.notificationsOff;
   return null;
 }
 
@@ -32,13 +46,17 @@ export function ActionError({ result, style }: { result: ActionResult | null; st
         {text}
       </T>
       {result === 'notifications-off' ? (
-        <InlineLink title={COPY.day.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
+        <InlineLink title={R.milestone.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
       ) : null}
     </View>
   );
 }
 
-/** One milestone: what it is, its status, and one action when there is one. */
+/**
+ * One Access milestone (early access, the patch, the 365 piece): what it is,
+ * its status, and one action when there is one. Its days are active days, the
+ * days a mission was proven.
+ */
 export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
   const id = route.params.id as MilestoneId;
   const m = MILESTONES.find(x => x.id === id)!;
@@ -50,7 +68,8 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
   const accessEnabled = useAccessEnabled();
   const [result, setResult] = useState<ActionResult | null>(null);
   const [busy, setBusy] = useState(false);
-  const status = milestoneStatus(record, m, day);
+  const status = milestoneStatus(accessRecord(record), m, day);
+  const proven = accessDays(record);
 
   // Real time for the drop windows, moved on when one opens or closes while this page is up.
   const [now, setNow] = useState(() => Date.now());
@@ -60,9 +79,6 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
     const timer = setTimeout(() => setNow(Date.now()), Math.min(Math.max(0, next - Date.now() + 500), 2 ** 31 - 1));
     return () => clearTimeout(timer);
   }, [drops, now]);
-
-  const statusLabel =
-    status.kind === 'open' ? R.open : status.kind === 'used' ? R.used : status.kind === 'paused' ? R.paused : R.left(status.daysLeft);
 
   // Early access opens the drop that's open early now; with none, it turns on
   // drop alerts (until they're on). Claims need an account.
@@ -88,7 +104,7 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
           {milestoneNo(m.day)}
         </T>
         <T v="label" color={status.kind === 'open' ? C.bone : C.stone}>
-          {statusLabel}
+          {milestoneStatusText(status)}
         </T>
       </View>
       <T v="title.xl" style={{ marginTop: 12 }} accessibilityRole="header">
@@ -97,23 +113,31 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
       <T v="body" style={{ marginTop: 16 }}>
         {m.detail}
       </T>
+      {status.kind === 'locked' ? (
+        <View style={{ marginTop: 24, gap: 8 }} accessible accessibilityLabel={R.milestone.progressA11y(proven, m.day)}>
+          <View style={{ height: 2, backgroundColor: C.rule }}>
+            <View style={{ height: 2, width: `${Math.min(100, (proven / m.day) * 100)}%`, backgroundColor: C.bone }} />
+          </View>
+          <T v="mono">{R.milestone.progress(proven, m.day)}</T>
+        </View>
+      ) : null}
       {status.kind === 'paused' ? (
         <T v="note" color={C.stone} style={{ marginTop: 16 }}>
-          {COPY.record.pausedNote}
+          {R.pausedNote}
         </T>
       ) : null}
       {showAction ? (
         <View style={{ marginTop: 32, gap: 12 }}>
           {needsAccount ? (
             <T v="note" color={C.stone}>
-              {COPY.milestone.signInNote}
+              {R.milestone.signInNote}
             </T>
           ) : null}
-          <Button title={drop ? COPY.milestone.openDrop(drop.collection) : m.action} onPress={act} disabled={busy} />
+          <Button title={drop ? R.milestone.openDrop(drop.collection) : m.action} onPress={act} disabled={busy} />
           <ActionError result={result} />
         </View>
       ) : null}
-      <TextButton title={COPY.milestone.termsLink} align="left" onPress={() => navigation.navigate('Doc', { id: 'access' })} style={{ marginTop: 16 }} />
+      <TextButton title={R.milestone.termsLink} align="left" onPress={() => navigation.navigate('Doc', { id: 'access' })} style={{ marginTop: 16 }} />
     </Screen>
   );
 }

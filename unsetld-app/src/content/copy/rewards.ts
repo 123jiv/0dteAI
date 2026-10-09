@@ -32,6 +32,9 @@ export const REWARDS_COPY = {
   },
   tierA11y: (title: string, points: number, detail: string, status: string) => `${title}, ${pts(points)} points. ${detail} ${status}`,
   signInNote: 'Codes need a free account, so unsetld.com can hold your place. It takes one tap.',
+  signIn: 'Sign in',
+  /** A code whose reward is no longer in the list. */
+  unknownReward: 'Reward',
 
   // Redeem
   confirmTitle: (points: number) => `Trade ${pts(points)} points?`,
@@ -51,6 +54,8 @@ export const REWARDS_COPY = {
   copy: 'Copy',
   copied: 'Copied',
   copyA11y: (code: string) => `Copy code ${code}`,
+  copyCode: 'Copy code',
+  cancel: 'Cancel',
   use: 'Use it at unsetld.com',
   worksUntil: (date: string) => `Works until ${date}. One order.`,
   previewCode: 'Preview build: this code is not real.',
@@ -63,6 +68,8 @@ export const REWARDS_COPY = {
   untilShort: (date: string) => `UNTIL ${date}`,
   expired: 'EXPIRED',
   codeA11y: (title: string, code: string, until: string) => `${title}. Code ${code}. ${until}`,
+  codeHint: 'Copy it or use it at unsetld.com',
+  sheetA11y: 'Your new code',
 
   // How points are earned (shown with Access on or off)
   earning: 'HOW POINTS ARE EARNED',
@@ -80,6 +87,7 @@ export const REWARDS_COPY = {
   details: 'Details',
   accessNote: "Earned with days you prove a mission. It can't be bought.",
   road: (n: number) => (n === 1 ? '1 day proven, on the road to 365' : `${n} days proven, on the road to 365`),
+  daysProven: (n: number) => (n === 1 ? 'DAY PROVEN' : 'DAYS PROVEN'),
   pausedNote: 'Early access is paused. Prove a mission on 7 more days to open it again.',
   milestoneStatus: {
     open: 'OPEN',
@@ -100,5 +108,6 @@ export const REWARDS_COPY = {
     notificationsOff: 'Notifications are off for unsetld.',
     openSettings: 'Open Settings',
     progress: (have: number, need: number) => `${have} / ${need} DAYS PROVEN`,
+    progressA11y: (have: number, need: number) => `${have} of ${need} days proven`,
   },
 } as const;

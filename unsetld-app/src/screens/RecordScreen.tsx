@@ -247,7 +247,7 @@ export function RecordScreen({ navigation }: RootProps<'Record'>) {
         label: R.redeemYes,
         onPress: async () => {
           setCodeError(null);
-          const r = await redeem(tier.points, tier.percent);
+          const r = await redeem({ id: `legacy-${tier.points}`, title: '', detail: '', type: 'discount', points: tier.points, percent: tier.percent, active: true, codeValidDays: 30, perCollection: 1 });
           if (r.ok) {
             useApp.getState().claimCode(tier, { code: r.code, url: r.url });
             light();

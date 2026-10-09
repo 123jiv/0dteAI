@@ -147,7 +147,7 @@ export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
           <View style={{ marginTop: 16, width: w, height: h, borderWidth: hairline, borderColor: C.rule, backgroundColor: C.raise }}>
             <Image source={{ uri: stage.uri }} style={{ width: w, height: h }} contentFit="cover" accessibilityLabel="Your proof photo" />
             <View style={{ position: 'absolute', left: 12, bottom: 12 }}>
-              <ProofStamp day={day} takenAt={stage.takenAt} lineNo={lineNo} />
+              <ProofStamp day={day} takenAt={stage.takenAt} />
             </View>
           </View>
           <T v="list" style={{ marginTop: 16 }}>
@@ -210,7 +210,7 @@ export function TaskScreen({ navigation, route }: RootProps<'Task'>) {
               <View style={{ width: 160, height: 200, borderWidth: hairline, borderColor: C.rule, backgroundColor: C.raise }}>
                 {photo ? <Image source={{ uri: photo }} style={{ width: 160, height: 200 }} contentFit="cover" /> : null}
                 <View style={{ position: 'absolute', left: 6, bottom: 6 }}>
-                  <ProofStamp day={day} takenAt={done.proof.takenAt} lineNo={done.proof.lineNo} small />
+                  <ProofStamp day={day} takenAt={done.proof.takenAt} small />
                 </View>
               </View>
             ) : (

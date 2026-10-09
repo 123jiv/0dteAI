@@ -13,6 +13,7 @@ export const PROGRAMS_COPY = {
   upNext: 'UP NEXT',
   doneToday: "Today's day is proven. The next one comes tomorrow.",
   joinsTomorrow: "Today's missions were already set. This day joins your missions tomorrow.",
+  swapped: 'You swapped it out today. This day comes back tomorrow.',
   lastDayDone: 'Last day proven.',
   proven: 'PROVEN',
   missionMeta: (track: string, minutes: number, points: number) => `${track.toUpperCase()} · ${minutes} MIN · +${points} PTS`,
@@ -44,4 +45,11 @@ export const PROGRAMS_COPY = {
   switchNo: 'Cancel',
   started: 'Day 1 is in your missions today.',
   startsTomorrow: "Today's missions were already set. Day 1 starts tomorrow.",
+  fullNote: 'Full Edition opens every program, and new ones each season.',
+  missionA11y: (title: string, meta: string, state?: string) => (state ? `${title}. ${meta}. ${state}` : `${title}. ${meta}`),
+  openHint: 'Opens the mission',
+  progressA11y: (done: number, of: number) => `${done} of ${of} days proven`,
+  rowA11y: (title: string, short: string, days: number, tracks: string[], free: boolean) =>
+    `${title}. ${short} ${days === 1 ? '1 day' : `${days} days`}, ${tracks.join(', ')}. ${free ? 'Free' : 'Full Edition'}.`,
+  missionSaid: (track: string, minutes: number, points: number) => `${track}, ${minutes} minutes, ${points} points`,
 } as const;

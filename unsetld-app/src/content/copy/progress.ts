@@ -48,6 +48,11 @@ function mmss(seconds: number): string {
   return `${m}:${r < 10 ? '0' : ''}${r}`;
 }
 
+/** "SO FAR · 4 DAYS LEFT" */
+function soFar(left: number): string {
+  return left === 1 ? 'SO FAR · 1 DAY LEFT' : `SO FAR · ${left} DAYS LEFT`;
+}
+
 const SLOT: Record<MissionSlot, string> = { quick: 'QUICK WIN', progress: 'PROGRESS', challenge: 'CHALLENGE' };
 
 /** One per milestone: the big title and one plain sentence. */
@@ -71,6 +76,10 @@ export const PROGRESS = {
   /** "Tuesday" */
   weekday: (day: DayKey) => WEEKDAYS[parseDay(day).getDay()],
   days: (n: number) => (n === 1 ? 'day' : 'days'),
+  /** "1,290" */
+  number: (n: number) => n.toLocaleString('en-US'),
+  /** What VoiceOver reads for a labelled number: "streak, 12 days". */
+  said: (label: string, value: string) => `${label.toLowerCase()}, ${value}`,
   close: 'Close',
   settings: 'Settings',
 
@@ -83,6 +92,8 @@ export const PROGRESS = {
       points: 'POINTS',
       focused: 'FOCUSED',
       week: 'THIS WEEK',
+      /** Unit after the points total: everything earned, before any reward was taken. */
+      earned: 'earned',
       /** Completion this week, "67%"; a dash before anything was planned. */
       percent: (done: number, planned: number) => (planned ? `${Math.round((done / planned) * 100)}%` : '–'),
       a11yWeek: (done: number, planned: number) => (planned ? `This week, ${done} of ${planned} missions proven` : 'This week, nothing planned yet'),
@@ -99,6 +110,7 @@ export const PROGRESS = {
     offBanked: (n: number, max: number) => `${n} OF ${max} BANKED`,
     offExplain: 'Miss a day and an Off Day covers it. You earn one every 7 days you show up. You can bank two.',
     offCovered: (weekday: string) => `An Off Day covered ${weekday}. Streak's still going.`,
+    a11yOff: (n: number, max: number) => `Off Days, ${n} of ${max} banked.`,
 
     levelsLabel: 'LEVELS',
     levelsNote: 'Every proven mission adds its points to its area.',
@@ -111,12 +123,14 @@ export const PROGRESS = {
     milestoneProgress: (n: number, target: number) => `${n} / ${target}`,
     a11yReached: (title: string, date: string) => `${title}. Reached ${date}.`,
     a11yOpen: (title: string, n: number, target: number) => `${title}. ${n} of ${target}.`,
+    a11yReachedHint: 'Opens the moment.',
 
     weekLabel: 'THIS WEEK',
     seeWeek: 'See the week →',
     a11ySeeWeek: 'See the week',
 
     proofRow: 'Proof photos',
+    proofCount: (n: number) => String(n),
     a11yProofRow: (n: number) => (n === 1 ? 'Proof photos, 1 mission' : `Proof photos, ${n} missions`),
   },
 
@@ -134,7 +148,9 @@ export const PROGRESS = {
     thisWeek: 'THIS WEEK',
     lastWeek: 'LAST WEEK',
     week: 'WEEK',
-    soFar: (left: number) => (left === 1 ? 'SO FAR · 1 DAY LEFT' : `SO FAR · ${left} DAYS LEFT`),
+    soFar,
+    /** "5–11 OCT", or "5–11 OCT · SO FAR · 4 DAYS LEFT" while the week is still on. */
+    dates: (range: string, left: number) => (left > 0 ? `${range} · ${soFar(left)}` : range),
     strongest: (name: string) => `Strongest area: ${name}`,
     didntGetTo: (short: string) => `Didn't get to: ${short}.`,
     empty: 'No missions proven this week. Pick an area below and start with one.',
@@ -148,6 +164,8 @@ export const PROGRESS = {
 
   moment: {
     byKey: MOMENTS,
+    /** "REACHED 9 OCT" */
+    reached: (date: string) => `REACHED ${date}`,
     footer: 'Never settle for less.',
     close: 'Close',
     a11yDate: (date: string) => `Reached ${date}`,

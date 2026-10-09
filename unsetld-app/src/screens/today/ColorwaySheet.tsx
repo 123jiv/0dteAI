@@ -1,8 +1,7 @@
 import { Image } from 'expo-image';
 import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
-import { breakBeats, typo } from '../../core/typography';
-import { COLORWAY_BY_ID, COLORWAYS } from '../../content';
-import { COPY } from '../../content/copy';
+import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID } from '../../content';
+import { HOME } from '../../content/copy/home';
 import { selection } from '../../services/haptics';
 import { useApp, useEntitlements } from '../../state/store';
 import { SWATCHES } from '../../ui/colorwayAssets';
@@ -11,10 +10,16 @@ import { Sheet } from '../../ui/Sheet';
 import { T } from '../../ui/text';
 import { color as C, font, hairline, MARGIN } from '../../ui/tokens';
 
-/** Colorway picker. The reader behind it changes live; locked picks revert on close. */
+/**
+ * Colorway picker. Home behind it changes live; locked picks revert on close.
+ * Each swatch shows one of today's mission titles, the way it would read on Home.
+ */
 export function ColorwaySheet({ visible, onClose, onFull }: { visible: boolean; onClose: () => void; onFull: () => void }) {
   const { width } = useWindowDimensions();
   const ent = useEntitlements();
+  const day = useApp(s => s.currentDay);
+  const plan = useApp(s => s.plans[day]);
+  const titles = (plan?.missions ?? []).map(p => MISSION_BY_ID[p.missionId]?.title).filter((t): t is string => Boolean(t));
   const preview = useApp(s => s.previewColorway);
   const setPreview = useApp(s => s.setPreviewColorway);
   const update = useApp(s => s.updateSettings);
@@ -43,13 +48,13 @@ export function ColorwaySheet({ visible, onClose, onFull }: { visible: boolean; 
       onClose={close}
       detent={0.6}
       dim={0.15}
-      accessibilityLabel={COPY.colorway.title}
+      accessibilityLabel={HOME.colorway.title}
       footer={
         lockedPreview ? (
           <View style={{ paddingHorizontal: MARGIN, paddingTop: 12, gap: 12, borderTopWidth: hairline, borderTopColor: C.rule }}>
-            <T v="small">{COPY.colorway.lockedBar(lockedPreview.name)}</T>
+            <T v="small">{HOME.colorway.lockedBar(lockedPreview.name)}</T>
             <Button
-              title={COPY.colorway.seeFull}
+              title={HOME.colorway.seeFull}
               onPress={() => {
                 close();
                 onFull();
@@ -60,17 +65,17 @@ export function ColorwaySheet({ visible, onClose, onFull }: { visible: boolean; 
       }>
       <ScrollView contentContainerStyle={{ paddingHorizontal: MARGIN, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <T v="title.m" style={{ marginTop: 8, marginBottom: 20 }} accessibilityRole="header">
-          {COPY.colorway.title}
+          {HOME.colorway.title}
         </T>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-          {COLORWAYS.map(c => {
+          {COLORWAYS.map((c, i) => {
             const on = c.id === current;
             const locked = !ent.premium && !c.free;
             return (
               <Pressable
                 key={c.id}
                 accessibilityRole="radio"
-                accessibilityLabel={`${c.name}${locked ? ', Full Edition' : ''}`}
+                accessibilityLabel={`${c.name}${locked ? HOME.colorway.lockedA11y : ''}`}
                 accessibilityState={{ selected: on }}
                 onPress={() => pick(c.id)}
                 style={{ width: w }}>
@@ -82,7 +87,7 @@ export function ColorwaySheet({ visible, onClose, onFull }: { visible: boolean; 
                       color={c.ink}
                       style={{ fontFamily: font.serif, fontSize: 15, lineHeight: 17, margin: 12 }}
                       maxFontSizeMultiplier={1}>
-                      {breakBeats(typo(c.previewLine))}
+                      {titles.length ? titles[i % titles.length] : HOME.colorway.previewFallback}
                     </T>
                   </View>
                 </View>
@@ -93,7 +98,7 @@ export function ColorwaySheet({ visible, onClose, onFull }: { visible: boolean; 
                   </T>
                   {locked ? (
                     <T v="mono.s" color={C.stone}>
-                      {COPY.colorway.locked}
+                      {HOME.colorway.locked}
                     </T>
                   ) : null}
                 </View>
