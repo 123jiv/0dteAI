@@ -1,10 +1,11 @@
 // Hooks for the mission screens: today's missions, the streak, points and rewards.
 import { provenInPlan } from '../core/complete';
+import { serves } from '../core/missions';
 import { activeDays } from '../core/progress';
 import { balance, effectiveTiers, nextReward } from '../core/rewards';
 import { computeStreak, type StreakInfo } from '../core/streak';
 import type { DayKey } from '../core/time';
-import type { DayPlan, Mission, MissionDone, PlannedMission, RewardTier } from '../core/types';
+import type { DayPlan, Mission, MissionDone, PlannedMission, RewardTier, TrackId } from '../core/types';
 import { MISSION_BY_ID, REWARD_TIERS, RULES } from '../content';
 import { useApp } from './store';
 
@@ -12,22 +13,35 @@ export interface TodayMission {
   index: number;
   planned: PlannedMission;
   mission: Mission;
+  /** The area it's in the day for (plannedArea): what its row and its swap say. */
+  area: TrackId;
   done: MissionDone | null;
 }
 
+/**
+ * The area a planned mission is in the day for: the one the plan recorded ("Work on Your
+ * Portfolio" picked for Projects says Projects, not Career). Plans from earlier builds have
+ * none: then the first of the user's areas it serves, else its own.
+ */
+export function plannedArea(planned: Pick<PlannedMission, 'area'> | undefined, mission: Pick<Mission, 'track' | 'also'>, tracks: readonly TrackId[]): TrackId {
+  return planned?.area ?? tracks.find(t => serves(mission, t)) ?? mission.track;
+}
+
 /** Today's plan with each mission and its proof (if proven). Missing missions (removed from the library) are skipped. */
-export function missionsOf(plan: DayPlan | undefined, done: Record<string, MissionDone> | undefined): TodayMission[] {
+export function missionsOf(plan: DayPlan | undefined, done: Record<string, MissionDone> | undefined, tracks: readonly TrackId[] = []): TodayMission[] {
   if (!plan) return [];
-  return plan.missions
-    .map((planned, index) => ({ index, planned, mission: MISSION_BY_ID[planned.missionId], done: done?.[planned.missionId] ?? null }))
-    .filter((x): x is TodayMission => Boolean(x.mission));
+  return plan.missions.flatMap((planned, index) => {
+    const mission = MISSION_BY_ID[planned.missionId];
+    return mission ? [{ index, planned, mission, area: plannedArea(planned, mission, tracks), done: done?.[planned.missionId] ?? null }] : [];
+  });
 }
 
 export function useTodayMissions(day: DayKey): { plan: DayPlan | undefined; missions: TodayMission[]; proven: number } {
   const plan = useApp(s => s.plans[day]);
   const done = useApp(s => s.record.missions?.[day]);
   const record = useApp(s => s.record);
-  return { plan, missions: missionsOf(plan, done), proven: provenInPlan(record, plan) };
+  const tracks = useApp(s => s.profile.tracks);
+  return { plan, missions: missionsOf(plan, done, tracks), proven: provenInPlan(record, plan) };
 }
 
 export function useStreak(day: DayKey): StreakInfo {

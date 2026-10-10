@@ -20,7 +20,7 @@ const GAP = 8;
  * The profile as the screen shows it. Onboarding writes each answer as it is
  * given, so going back keeps it. Edit mode (Settings › Your plan) holds the
  * changes until Save, which writes what changed and rebuilds today's plan if
- * nothing in it was proven or swapped yet.
+ * nothing in it was started, proven or swapped yet.
  */
 export function useProfileDraft(edit: boolean) {
   const profile = useApp(s => s.profile);
@@ -175,6 +175,8 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
   // A saved id the library no longer has would count toward four with no tile to take it off.
   const chosen = value.tracks.filter(id => TRACK_BY_ID[id]);
   const full = chosen.length >= MAX;
+  // Every School mission needs a yes to "In school or college?".
+  const schoolOff = value.school === false && chosen.includes('school');
   const [flash] = useState(() => new Animated.Value(1));
 
   const blocked = () => {
@@ -194,6 +196,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
     else {
       selection();
       change({ tracks: [...chosen, id] });
+      if (id === 'school' && value.school === false) AccessibilityInfo.announceForAccessibility(COPY.schoolOff);
     }
   };
 
@@ -214,6 +217,11 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
       nav={<NavRow onBack={edit ? () => navigation.goBack() : undefined} step={edit ? undefined : ONBOARDING.step(1)} />}
       footer={
         <View style={{ gap: 12 }}>
+          {schoolOff ? (
+            <T v="note" color={C.stone} align="center">
+              {COPY.schoolOff}
+            </T>
+          ) : null}
           <Animated.View style={{ opacity: flash, alignItems: 'center' }}>
             <T
               v="mono"

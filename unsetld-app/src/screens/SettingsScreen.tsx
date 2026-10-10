@@ -37,10 +37,13 @@ function renewText(plan: string | null, renews: string | null): string {
 /** About you asks six things: school, work, business or project, gym, age, and what they're learning. */
 const ABOUT_QUESTIONS = 6;
 
+/** How many About you questions there are: High school or college? only follows a yes to school. */
+const aboutQuestions = (p: Profile) => ABOUT_QUESTIONS + (p.school === true ? 1 : 0);
+
 /** How many of the About you questions have an answer. Learning counts once a skill is picked. */
 function answered(p: Profile): number {
   const yesNo = [p.school, p.work, p.project, p.gym, p.age].filter(v => v !== null && v !== undefined).length;
-  return yesNo + ((p.skills ?? []).length > 0 ? 1 : 0);
+  return yesNo + ((p.skills ?? []).length > 0 ? 1 : 0) + (p.school === true && p.schoolLevel ? 1 : 0);
 }
 
 export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
@@ -123,7 +126,7 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
         />
         <SettingsRow
           title={S.aboutYou}
-          value={S.aboutValue(answered(profile), ABOUT_QUESTIONS)}
+          value={S.aboutValue(answered(profile), aboutQuestions(profile))}
           onPress={() => navigation.navigate('AboutYou', { edit: true })}
         />
         <SettingsRow

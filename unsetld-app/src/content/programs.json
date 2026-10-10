@@ -9,7 +9,7 @@
   "plan": [
    ["discipline-plan-tomorrow", "discipline-lock-in-30"],
    ["discipline-top-3", "discipline-lock-in-30"],
-   ["discipline-most-important-first"],
+   ["discipline-most-important-first", "discipline-plan-tomorrow"],
    ["discipline-clear-3-small", "discipline-lock-in-30"],
    ["discipline-avoided-task"],
    ["discipline-lock-in-60"],
@@ -83,7 +83,7 @@
   ]
  },
  {
-  "id": "project-mode",
+  "id": "business-week",
   "title": "Business Week",
   "short": "Seven days of real work on your business: product, customers, content, numbers.",
   "days": 7,
@@ -95,7 +95,7 @@
    ["business-marketing-idea", "business-product"],
    ["business-content"],
    ["business-fix-problem"],
-   ["business-numbers", "business-work-30"],
+   ["business-profit-per-sale", "business-work-30"],
    ["business-work-60"]
   ]
  }

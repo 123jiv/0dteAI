@@ -125,7 +125,8 @@ export const MISSION = {
     balance: (from: number, to: number) => `${from} → ${to} POINTS`,
     toReward: (need: number, title: string) => `${need} POINTS TO ${title.toUpperCase()}`,
     ready: (title: string) => `${title.toUpperCase()} IS READY`,
-    streakFirst: (n: number) => `Day ${n}. Streak's alive.`,
+    /** The first proof of the day. Never "Day N": the nav row's DAY counts days with a proven mission, not the streak. */
+    streakFirst: (n: number) => (n === 1 ? 'Streak started.' : `Streak: ${n} days. Still alive.`),
     streak: (n: number) => (n === 1 ? 'Streak: 1 day' : `Streak: ${n} days`),
     perfect: 'PERFECT DAY',
     bonus: (n: number) => `+${n} BONUS`,

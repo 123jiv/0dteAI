@@ -21,7 +21,11 @@ const warnings = [];
 
 const TRACK_IDS = ['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization'];
 const PROOF = ['PHOTO', 'PHOTO_AFTER', 'BEFORE_AFTER', 'TIMER_AND_PHOTO', 'TIMER'];
-const REQ = ['school', 'work', 'gym', 'project', 'age16', 'age18', 'coding', 'design', 'video', 'writing', 'language', 'music'];
+const SKILLS = ['coding', 'design', 'video', 'writing', 'language', 'music'];
+const REQ = ['school', 'highschool', 'work', 'gym', 'project', 'age16', 'age18', ...SKILLS];
+// What an 18+ user who skipped every About-you question can get: no yes answer or named skill needed.
+const OPEN_TO_ADULT = new Set(['school', 'highschool', 'age16', 'age18']);
+const openToAdult = m => (m.requires ?? []).every(r => OPEN_TO_ADULT.has(r));
 // Points by time: up to 5 min = 5, 6–20 = 10, 21–35 = 15 or 20, 36–59 = 20, 60+ = 25.
 const pointsFor = min => (min <= 5 ? [5] : min <= 20 ? [10] : min <= 35 ? [15, 20] : min < 60 ? [20] : [25]);
 // Motivational talk, therapy-speak and slang: missions say what to do, plainly.
@@ -56,7 +60,7 @@ for (const t of tracks) if (!t.name || !t.short || !t.scope) errors.push(`tracks
 // Missions
 const ids = new Set();
 const titles = new Map();
-const perTrack = Object.fromEntries(TRACK_IDS.map(t => [t, { easy: 0, main: 0, core: 0, timer: 0, before: 0 }]));
+const perTrack = Object.fromEntries(TRACK_IDS.map(t => [t, { easy: 0, main: 0, core: 0, timer: 0, before: 0, openEasy: 0, openFocused: 0 }]));
 for (const m of missions) {
   const where = `mission ${m.id ?? '?'}`;
   const e = msg => errors.push(`${where}: ${msg}`);
@@ -72,6 +76,7 @@ for (const m of missions) {
   if (titles.has(key)) e(`duplicate title "${title}" (also ${titles.get(key)})`);
   titles.set(key, m.id);
   if (!m.short || m.short.length > 120 || !/\.$/.test(m.short)) e(`short must be one sentence of ≤120 characters ending with a full stop: "${m.short}"`);
+  else if ((m.short.match(/[.?!](\s|$)/g) ?? []).length > 1) e(`short must be one sentence (fold a safety note into it): "${m.short}"`);
   if (!m.proof || m.proof.length > 90) e(`proof must be 1–90 characters: "${m.proof}"`);
   if (!PROOF.includes(m.proofType)) e(`bad proofType "${m.proofType}"`);
   if (!(Number.isInteger(m.minutes) && m.minutes >= 1 && m.minutes <= 120)) e('minutes must be 1–120');
@@ -81,6 +86,9 @@ for (const m of missions) {
     else if (m.minutes < m.timerMinutes) e('minutes must be at least timerMinutes');
   } else if (m.timerMinutes != null) e('timerMinutes is only for timed missions');
   if (m.requires != null && (!Array.isArray(m.requires) || m.requires.some(r => !REQ.includes(r)))) e(`bad requires ${JSON.stringify(m.requires)}`);
+  if (m.fits != null && (!Array.isArray(m.fits) || !m.fits.length || new Set(m.fits).size !== m.fits.length || m.fits.some(f => !SKILLS.includes(f)))) {
+    e(`fits must list distinct skills (${SKILLS.join(', ')}): ${JSON.stringify(m.fits)}`);
+  }
   if (!(Number.isInteger(m.cooldownDays) && m.cooldownDays >= 1 && m.cooldownDays <= 365)) e('cooldownDays must be 1–365');
   if (typeof m.repeatable !== 'boolean') e('repeatable must be true or false');
   if (m.anchor && (m.cooldownDays > 3 || !m.repeatable)) e('core habits must be repeatable with cooldownDays ≤ 3');
@@ -109,7 +117,10 @@ for (const m of missions) {
     if (m.anchor) p.core++;
     if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') p.timer++;
     if (m.proofType === 'BEFORE_AFTER') p.before++;
+    if (openToAdult(m) && m.minutes > 15 && m.cooldownDays <= 3) p.openFocused++;
   }
+  // Short days are mostly easy missions (all three at 5–15 minutes, two at 15–30), from the user's areas or ones that also serve them.
+  if (m.active && openToAdult(m) && m.minutes <= 15) for (const t of [m.track, ...(m.also ?? [])]) if (perTrack[t]) perTrack[t].openEasy++;
 }
 const byId = new Map(missions.map(m => [m.id, m]));
 
@@ -137,6 +148,9 @@ for (const p of programs) {
     if (new Set(day).size !== (day ?? []).length) e(`day ${i + 1} repeats a mission`);
     const groups = (day ?? []).map(id => byId.get(id)?.group).filter(Boolean);
     if (new Set(groups).size !== groups.length) e(`day ${i + 1} has two missions from one group`);
+    // The day only moves on once one of its missions is proven: one of them has to fit any time and any day.
+    const ms = (day ?? []).map(id => byId.get(id)).filter(Boolean);
+    if (ms.length && ms.every(m => m.when === 'morning' || m.days)) e(`day ${i + 1} needs a mission that isn't morning-only or tied to weekdays`);
   }
 }
 if (programs.filter(p => p.free).length < 2) errors.push('programs.json: at least two programs must be free');
@@ -180,12 +194,17 @@ for (const p of reminders) {
   if (banned) errors.push(`reminders.json: off-voice ("${banned[0]}"): ${text}`);
 }
 
-console.log('Track          easy  focused  core  timed  before/after');
+// open easy / open focused: what an 18+ user who skipped every About-you question can get (focused: cooldown ≤ 3 days).
+console.log('Track          easy  focused  core  timed  before/after  open easy  open focused');
 for (const t of TRACK_IDS) {
   const p = perTrack[t];
-  console.log(`  ${t.padEnd(12)} ${String(p.easy).padStart(4)}  ${String(p.main).padStart(7)}  ${String(p.core).padStart(4)}  ${String(p.timer).padStart(5)}  ${String(p.before).padStart(12)}`);
+  console.log(
+    `  ${t.padEnd(12)} ${String(p.easy).padStart(4)}  ${String(p.main).padStart(7)}  ${String(p.core).padStart(4)}  ${String(p.timer).padStart(5)}  ${String(p.before).padStart(12)}  ${String(p.openEasy).padStart(9)}  ${String(p.openFocused).padStart(12)}`,
+  );
   if (p.easy < 4 || p.main < 5) warnings.push(`${t}: aim for at least 4 easy and 5 focused missions`);
   if (p.core < 1) warnings.push(`${t}: no core habit (anchor)`);
+  if (p.openEasy < 8) warnings.push(`${t}: ${p.openEasy} easy missions for an 18+ user who skipped About you; short days need at least 8`);
+  if (p.openFocused < 3) warnings.push(`${t}: ${p.openFocused} focused missions with a cooldown of 3 days or less for an 18+ user who skipped About you; focused slots need at least 3`);
 }
 console.log(`Total: ${missions.length} missions, ${programs.length} programs, ${rewards.length} reward tiers`);
 if (warnings.length) {

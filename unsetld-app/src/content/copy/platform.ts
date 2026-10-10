@@ -50,7 +50,8 @@ export const PLATFORM = {
     aboutValue: (answered: number, all: number) => (answered === 0 ? 'Skipped' : `${answered} of ${all} answered`),
     pace: 'Pace & intensity',
     paceValue: (minutes: Profile['minutes'], intensity: Profile['intensity']) => `${MINUTES[minutes] ?? ''} · ${INTENSITY[intensity] ?? ''}`,
-    planNote: "Changes shape tomorrow's missions, and today's too if you haven't proven or swapped one yet.",
+    /** Matches the store's replanToday: today's plan is rebuilt only while nothing in it was started (a timer, a before photo), proven or swapped. */
+    planNote: "Changes shape tomorrow's missions, and today's too if you haven't started, proven or swapped one yet.",
 
     reminders: 'Reminders',
     remindersValue: (n: number, a: string, b: string) => (n === 0 ? 'Off' : `${n} a day, ${a} to ${b}`),

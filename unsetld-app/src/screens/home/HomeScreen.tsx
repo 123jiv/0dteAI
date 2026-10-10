@@ -193,8 +193,8 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
 
   const swap = (m: TodayMission) => {
     selection();
-    // A swap stays in the mission's area.
-    const area = TRACK_BY_ID[m.mission.track]?.short ?? '';
+    // A swap stays in the area the mission is in the day for.
+    const area = TRACK_BY_ID[m.area]?.short ?? '';
     if (swapsLeft <= 0) {
       showSwapLimit();
       return;
@@ -312,6 +312,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
               <MissionCard
                 key={m.mission.id}
                 mission={m.mission}
+                area={m.area}
                 done={done}
                 action={actionFor(m)}
                 colorway={colorway}

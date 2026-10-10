@@ -11,7 +11,7 @@ import { balance } from '../core/rewards';
 import { computeStreak } from '../core/streak';
 import { addDays, dayKeyOf, dayStart, widgetDate, type DayKey } from '../core/time';
 import { typo } from '../core/typography';
-import type { Colorway, Mission } from '../core/types';
+import type { Colorway, Mission, TrackId } from '../core/types';
 import { COLORWAYS, MISSION_BY_ID, TRACK_BY_ID } from '../content';
 import { HOME } from '../content/copy/home';
 import { PLATFORM } from '../content/copy/platform';
@@ -312,8 +312,8 @@ interface Ctx {
 }
 
 interface DayMissions {
-  /** null: the day has no plan yet. */
-  missions: { mission: Mission; proven: boolean }[] | null;
+  /** null: the day has no plan yet. `area`: the one it's in the day for (the plan's; its own on older plans). */
+  missions: { mission: Mission; area: TrackId; proven: boolean }[] | null;
 }
 
 /** A day's planned missions in plan order, each with whether it's proven. */
@@ -321,16 +321,16 @@ function dayMissions(c: Ctx, day: DayKey): DayMissions {
   const plan = c.input.plans[day];
   if (!plan || !plan.missions.length) return { missions: null };
   const done = c.input.record.missions?.[day] ?? {};
-  const missions = plan.missions
-    .map(p => MISSION_BY_ID[p.missionId])
-    .filter((m): m is Mission => Boolean(m))
-    .map(mission => ({ mission, proven: done[mission.id]?.verification?.status === 'accepted' }));
+  const missions = plan.missions.flatMap(p => {
+    const mission = MISSION_BY_ID[p.missionId];
+    return mission ? [{ mission, area: p.area ?? mission.track, proven: done[mission.id]?.verification?.status === 'accepted' }] : [];
+  });
   return { missions: missions.length ? missions : null };
 }
 
-/** "School · 30 min · +15": the line under a mission's title, as Home shows it. */
-function missionMeta(m: Pick<Mission, 'track' | 'minutes' | 'points'>): string {
-  return HOME.meta(TRACK_BY_ID[m.track]?.short ?? '', m.minutes, m.points, null);
+/** "School · 30 min · +15": the line under a mission's title, with the area it's in the day for, as Home shows it. */
+function missionMeta(m: Pick<Mission, 'minutes' | 'points'>, area: TrackId): string {
+  return HOME.meta(TRACK_BY_ID[area]?.short ?? '', m.minutes, m.points, null);
 }
 
 /** Next mission: the first one in the day's plan that isn't proven yet, its title and "School · 30 min · +15". */
@@ -359,7 +359,7 @@ function lineProps(c: Ctx, day: DayKey): LineWidgetProps {
     ...base,
     label: W.next,
     title: typo(m.title),
-    meta: missionMeta(m),
+    meta: missionMeta(m, next.area),
     progress,
     missionId: m.id,
   };

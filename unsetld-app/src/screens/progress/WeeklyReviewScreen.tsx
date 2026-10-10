@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import { DEFAULT_PROFILE, slotsFor } from '../../core/missions';
+import { slotsFor, usableAreas } from '../../core/missions';
 import { reviewWeekFor, weeklyReview, weekStart } from '../../core/review';
 import { addDays, diffDays } from '../../core/time';
 import type { TrackId } from '../../core/types';
-import { TRACK_BY_ID } from '../../content';
+import { MISSIONS, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
@@ -66,7 +66,10 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
   const record = useApp(s => s.record);
   const plans = useApp(s => s.plans);
   const profile = useApp(s => s.profile);
-  const review = weeklyReview(record, plans, profile, from);
+  // The areas the plan draws from: the ones the user chose (the defaults with none on record)
+  // that can get missions with their answers, so never School for someone not in school.
+  const tracks = usableAreas(MISSIONS, profile).filter(id => TRACK_BY_ID[id]);
+  const review = weeklyReview(record, plans, profile, from, tracks);
 
   // Closing the review Home is offering counts as seeing it, however the page is left.
   // Reading this week early from Progress doesn't: Sunday's review still shows.
@@ -84,10 +87,6 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
   const thisWeek = weekStart(today);
   const label = from === thisWeek ? R.thisWeek : from === addDays(thisWeek, -7) ? R.lastWeek : R.week;
   const left = today >= review.from && today < review.to ? diffDays(today, review.to) : 0;
-  // The areas the user chose (only ones the app still knows). With none on record the
-  // plan runs on the default areas, so those are the ones leaning can change.
-  const chosen = profile.tracks.filter(id => TRACK_BY_ID[id]);
-  const tracks = chosen.length ? chosen : DEFAULT_PROFILE.tracks;
   const over = today > review.to;
   const strongest = review.strongest ? TRACK_BY_ID[review.strongest] : null;
   const ignored = review.ignored ? TRACK_BY_ID[review.ignored] : null;

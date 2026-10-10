@@ -1,4 +1,5 @@
 // Programs (MISSIONS_SPEC section 11). Sentence case, no exclamation marks.
+// A program's mission rows use Home's line and its VoiceOver words (HOME.meta, HOME.a11y.meta).
 
 export const PROGRAMS_COPY = {
   title: 'Programs',
@@ -15,8 +16,6 @@ export const PROGRAMS_COPY = {
   swapped: 'You swapped it out today. This day comes back tomorrow.',
   swappedLabel: 'SWAPPED OUT',
   proven: 'PROVEN',
-  /** "School · 30 min · +15", the line Home shows under a mission. */
-  missionMeta: (area: string, minutes: number, points: number) => [area || null, `${minutes} min`, `+${points}`].filter(Boolean).join(' · '),
   leave: 'Leave program',
   leaveTitle: (title: string) => `Leave ${title}?`,
   leaveBody: 'The days you proved stay on your record. The program stops here.',
@@ -51,6 +50,4 @@ export const PROGRAMS_COPY = {
   progressA11y: (done: number, of: number) => `${done} of ${of} days proven`,
   rowA11y: (title: string, short: string, days: number, areas: string[], free: boolean) =>
     `${title}. ${short} ${days === 1 ? '1 day' : `${days} days`}, ${areas.join(', ')}. ${free ? 'Free' : 'Full Edition'}.`,
-  missionSaid: (area: string, minutes: number, points: number) =>
-    [area || null, minutes === 1 ? '1 minute' : `${minutes} minutes`, points === 1 ? '1 point' : `${points} points`].filter(Boolean).join(', '),
 } as const;

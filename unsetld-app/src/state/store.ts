@@ -135,7 +135,7 @@ interface State {
   setProfile: (patch: Partial<Profile>) => void;
   /** Today's plan, generated the first time it's asked for. */
   ensurePlan: (day?: DayKey) => DayPlan;
-  /** Rebuilds today's plan after the profile changes, if nothing in it was done or swapped yet. */
+  /** Rebuilds today's plan after the profile changes, if nothing in it was started, done or swapped yet. */
   replanToday: () => void;
   rerollMission: (index: number) => RerollResult;
   startTimer: (missionId: string) => void;
@@ -198,25 +198,33 @@ export const useApp = create<State>()(
         const d = day ?? today();
         const s = get();
         const have = s.plans[d];
-        if (have && have.missions.every(p => MISSION_BY_ID[p.missionId])) return have;
+        if (have?.missions.length && have.missions.every(p => MISSION_BY_ID[p.missionId])) return have;
         let plan: DayPlan;
         if (!have) plan = buildPlan(s, d);
         else {
-          // A library update removed a planned mission: rebuild an untouched day, otherwise drop it.
-          const touched = have.rerolls > 0 || Object.keys(s.record.missions?.[d] ?? {}).length > 0;
-          plan = touched ? { ...have, missions: have.missions.filter(p => MISSION_BY_ID[p.missionId]) } : buildPlan(s, d);
+          // A library update removed a planned mission, or the day has none: a day that was swapped,
+          // proven or started keeps what's left; an untouched day, or one with nothing left, is
+          // planned again and keeps its swap count.
+          const kept = { ...have, missions: have.missions.filter(p => MISSION_BY_ID[p.missionId]) };
+          if (kept.missions.length && touched(s, kept, d)) plan = kept;
+          else {
+            plan = { ...buildPlan(s, d), rerolls: have.rerolls, replaced: have.replaced };
+            // Still nothing fits: keep the stored day rather than saving it again on every call.
+            if (!plan.missions.length && !have.missions.length) return have;
+          }
         }
-        set(st => ({ plans: { ...prunePlans(st.plans, d), [d]: plan } }));
+        const left = stranded(s, plan);
+        set(st => ({ plans: { ...prunePlans(st.plans, d), [d]: plan }, ...left }));
         return plan;
       },
 
       replanToday: () => {
         const d = today();
         const s = get();
-        const cur = s.plans[d];
-        const touched = cur && (cur.rerolls > 0 || Object.keys(s.record.missions?.[d] ?? {}).length > 0);
-        if (touched) return;
-        set(st => ({ plans: { ...st.plans, [d]: buildPlan(st, d) } }));
+        if (touched(s, s.plans[d], d)) return;
+        const plan = buildPlan(s, d);
+        const left = stranded(s, plan);
+        set(st => ({ plans: { ...st.plans, [d]: plan }, ...left }));
       },
 
       rerollMission: index => {
@@ -330,13 +338,14 @@ export const useApp = create<State>()(
       backToRealToday: () => {
         const snap = get().devSnapshot;
         setDayOffset(0);
-        set({ dayOffset: 0, currentDay: today(), devSnapshot: null, ...(snap ? { record: snap } : {}) });
+        // A snapshot kept by an earlier 4.0 build can still hold 3.0 preview area ids.
+        set({ dayOffset: 0, currentDay: today(), devSnapshot: null, ...(snap ? { record: migrateRecordTracks(snap) } : {}) });
       },
       refreshDay: () => {
         const d = today();
         if (d !== get().currentDay) set({ currentDay: d });
       },
-      restore: (salt, record) => set({ installSalt: salt, record }),
+      restore: (salt, record) => set({ installSalt: salt, record: fromBackup(record) }),
       setRecord: record => set({ record }),
     }),
     {
@@ -364,7 +373,7 @@ export const useApp = create<State>()(
       version: 4,
       migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<State>;
+        const p = withoutUnknownMissions((persisted ?? {}) as Partial<State>);
         return {
           ...current,
           ...p,
@@ -404,6 +413,53 @@ function buildPlan(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
   return generatePlan(planInput(s, day));
 }
 
+/** A running timer or a waiting before photo, for one mission on one day. */
+type Started = { missionId: string; day: DayKey } | null | undefined;
+
+const inPlan = (x: Started, plan: DayPlan) => Boolean(x && x.day === plan.day && plan.missions.some(p => p.missionId === x.missionId));
+
+/** Swapped, proven or started (a timer or a before photo for one of its missions): the day's plan stays. */
+function touched(s: Pick<State, 'record' | 'timer' | 'pendingBefore'>, plan: DayPlan | undefined, day: DayKey): boolean {
+  if (!plan) return false;
+  return plan.rerolls > 0 || Object.keys(s.record.missions?.[day] ?? {}).length > 0 || inPlan(s.timer, plan) || inPlan(s.pendingBefore, plan);
+}
+
+/**
+ * A new plan for a day takes along a timer or a before photo for a mission it no longer holds
+ * (Home has no row for it, so it could never be proven): the notification and the photo go too.
+ */
+function stranded(s: Pick<State, 'timer' | 'pendingBefore'>, plan: DayPlan): Pick<State, 'timer' | 'pendingBefore'> {
+  const keep = (x: Started) => !x || x.day !== plan.day || inPlan(x, plan);
+  const timer = keep(s.timer) ? s.timer : null;
+  const pendingBefore = keep(s.pendingBefore) ? s.pendingBefore : null;
+  if (s.timer && !timer) void cancelTimerDone();
+  if (s.pendingBefore && !pendingBefore) deletePhoto(s.pendingBefore.photo.uri);
+  return { timer, pendingBefore };
+}
+
+/**
+ * A saved timer or before photo for a mission the library no longer has (3.0 preview builds had
+ * other missions) can't be shown or proven: it goes on load, with its notification and its photo.
+ */
+function withoutUnknownMissions(p: Partial<State>): Partial<State> {
+  const gone = (x: Started) => Boolean(x && !MISSION_BY_ID[x.missionId]);
+  const timer = gone(p.timer);
+  const before = gone(p.pendingBefore) ? p.pendingBefore : null;
+  if (!timer && !before) return p;
+  // Afterwards: with synchronous storage this runs while the store is still being created.
+  Promise.resolve().then(() => {
+    if (timer) void cancelTimerDone();
+    if (before) deletePhoto(before.photo.uri);
+  });
+  return { ...p, ...(timer ? { timer: null } : {}), ...(before ? { pendingBefore: null } : {}) };
+}
+
+/** A record from the Keychain backup, which an older build may have written. */
+function fromBackup(r: RecordState): RecordState {
+  const record = { ...emptyRecord(), ...r };
+  return migrateRecordTracks({ ...record, legacyPoints: record.legacyPoints || legacyBalance(record) });
+}
+
 const CHAPTER_TO_TRACK: Record<ChapterId, TrackId> = {
   discipline: 'discipline',
   focus: 'school',
@@ -420,6 +476,21 @@ const KNOWN_TRACK = new Set<string>(['discipline', 'school', 'fitness', 'money',
 const toTrack = (t: string): TrackId | null => (KNOWN_TRACK.has(t) ? (t as TrackId) : OLD_TRACK[t] ?? null);
 
 /**
+ * The area stored on each proven mission, with 3.0 preview builds' ids mapped onto today's.
+ * Used for the saved record, the tester snapshot and the Keychain backup; a current record comes back unchanged.
+ */
+export function migrateRecordTracks(r: RecordState): RecordState {
+  if (!r.missions) return r;
+  const missions = Object.fromEntries(
+    Object.entries(r.missions).map(([d, byId]) => [
+      d,
+      Object.fromEntries(Object.entries(byId ?? {}).map(([id, m]) => [id, m ? { ...m, track: toTrack(m.track) ?? m.track } : m])),
+    ]),
+  );
+  return { ...r, missions };
+}
+
+/**
  * 2.x → 3.0: chapters become tracks, and the points earned from 2.x tasks (minus
  * codes already taken) carry over as a starting balance.
  */
@@ -429,17 +500,16 @@ export function migrateState(p: Partial<State>, version: number): Partial<State>
   if (version >= 2) {
     const profile = (p.profile ?? DEFAULT_PROFILE) as Profile;
     const tracks = [...new Set((profile.tracks ?? []).map(t => toTrack(t)).filter((t): t is TrackId => Boolean(t)))].slice(0, 4);
-    const record = p.record ? { ...emptyRecord(), ...p.record } : undefined;
-    if (record?.missions) {
-      record.missions = Object.fromEntries(
-        Object.entries(record.missions).map(([d, byId]) => [
-          d,
-          Object.fromEntries(Object.entries(byId ?? {}).map(([id, m]) => [id, m ? { ...m, track: toTrack(m.track) ?? m.track } : m])),
-        ]),
-      );
-    }
+    const record = p.record ? migrateRecordTracks({ ...emptyRecord(), ...p.record }) : undefined;
+    // Tester time travel keeps the real record aside; it comes back with "Back to real today".
+    const devSnapshot = p.devSnapshot ? migrateRecordTracks(p.devSnapshot) : undefined;
     const priority = profile.priority ? toTrack(profile.priority) : null;
-    return { ...p, profile: { ...DEFAULT_PROFILE, ...profile, tracks: tracks.length ? tracks : DEFAULT_PROFILE.tracks, priority }, ...(record ? { record } : {}) };
+    return {
+      ...p,
+      profile: { ...DEFAULT_PROFILE, ...profile, tracks: tracks.length ? tracks : DEFAULT_PROFILE.tracks, priority },
+      ...(record ? { record } : {}),
+      ...(devSnapshot ? { devSnapshot } : {}),
+    };
   }
   const settings = (p.settings ?? {}) as { chapters?: ChapterId[]; freeChapter?: ChapterId };
   const chapters = [...(settings.chapters ?? []), settings.freeChapter].filter(Boolean) as ChapterId[];

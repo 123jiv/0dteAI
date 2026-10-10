@@ -23,7 +23,7 @@ import { cameraPermission, capture, deletePhoto, PROOF_FROM_CAMERA, proofImage, 
 import { cancelTimerDone, syncTimerDone } from '../../services/timerNotify';
 import { checkTrustedTime, type TimeCheck } from '../../services/trustedTime';
 import { verifyProof } from '../../services/verify';
-import { useRerollsLeft } from '../../state/missions';
+import { plannedArea, useRerollsLeft } from '../../state/missions';
 import { useApp, useAppActive, type MissionResult, type PendingBefore } from '../../state/store';
 import { showDialog, type ActionOption } from '../../ui/actions';
 import { Button, NavRow, Screen, TextButton } from '../../ui/kit';
@@ -69,6 +69,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const timer = useApp(s => s.timer);
   const pending = useApp(s => s.pendingBefore);
   const swapsLeft = useRerollsLeft(day);
+  const tracks = useApp(s => s.profile.tracks);
   const active = useAppActive();
   const [stage, setStage] = useState<Stage>({ kind: 'detail' });
   const [denied, setDenied] = useState(false);
@@ -499,6 +500,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       <TimerStage
         timer={timerHere}
         mission={mission}
+        area={plannedArea(plan?.missions[index], mission, tracks)}
         nav={nav}
         denied={denied}
         onPause={pause}

@@ -19,8 +19,9 @@ export function startTimer(missionId: string, day: DayKey, minutes: number, now:
   return { missionId, day, requiredSeconds: minutes * 60, startedAt: now, pausedAt: null, pausedMs: 0, speed };
 }
 
+/** Once the time is up there's nothing to pause: the timer stays done (a Pause tap can land just after zero). */
 export function pauseTimer(t: FocusTimer, now: number): FocusTimer {
-  return t.pausedAt ? t : { ...t, pausedAt: now };
+  return t.pausedAt || timerDone(t, now) ? t : { ...t, pausedAt: now };
 }
 
 export function resumeTimer(t: FocusTimer, now: number): FocusTimer {
@@ -40,10 +41,14 @@ export function timerDone(t: FocusTimer, now: number): boolean {
   return elapsedSeconds(t, now) >= t.requiredSeconds;
 }
 
-/** The real time the timer reaches zero (for the "time's up" notification), or null while paused. */
+/**
+ * The real time the timer reaches zero (for the "time's up" notification and the proof), or null
+ * while paused short of it. A timer paused after zero (saved by an earlier build) still ended then.
+ */
 export function endsAt(t: FocusTimer): number | null {
-  if (t.pausedAt) return null;
-  return t.startedAt + t.pausedMs + (t.requiredSeconds * 1000) / t.speed;
+  const end = t.startedAt + t.pausedMs + (t.requiredSeconds * 1000) / t.speed;
+  if (t.pausedAt) return end <= t.pausedAt ? end : null;
+  return end;
 }
 
 export function clock(seconds: number): string {

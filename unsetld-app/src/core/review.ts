@@ -1,5 +1,5 @@
 // The weekly review: what the week added up to, where it went, and one area to lean on next.
-import { completion } from './progress';
+import { completion, TRACK_IDS } from './progress';
 import { addDays, parseDay, type DayKey } from './time';
 import type { DayPlan, Profile, RecordState, TrackId } from './types';
 
@@ -29,14 +29,28 @@ export interface WeeklyReview {
   points: number;
   perfectDays: number;
   activeDays: number;
+  /** Proven missions by the area the day's plan put them in (the mission's own on older plans). */
   byTrack: Partial<Record<TrackId, number>>;
   /** The track with the most proven missions. */
   strongest: TrackId | null;
-  /** A chosen track with no proven mission this week, while another had some ("Didn't get to"). */
+  /**
+   * A chosen track with no proven mission this week, while another had some ("Didn't get to").
+   * Only one that could get missions: never School for someone not in school.
+   */
   ignored: TrackId | null;
 }
 
-export function weeklyReview(r: RecordState, plans: Record<DayKey, DayPlan>, profile: Pick<Profile, 'tracks'>, from: DayKey): WeeklyReview {
+/**
+ * `areas`: the user's areas that can get missions with their answers (core/missions
+ * usableAreas). Left out, every chosen area counts.
+ */
+export function weeklyReview(
+  r: RecordState,
+  plans: Record<DayKey, DayPlan>,
+  profile: Pick<Profile, 'tracks'>,
+  from: DayKey,
+  areas?: readonly TrackId[],
+): WeeklyReview {
   const to = addDays(from, 6);
   let missions = 0;
   let points = 0;
@@ -51,7 +65,9 @@ export function weeklyReview(r: RecordState, plans: Record<DayKey, DayPlan>, pro
       missions += 1;
       points += m.points;
       seconds += m.timerSeconds ?? 0;
-      byTrack[m.track] = (byTrack[m.track] ?? 0) + 1;
+      // The area the plan put it in ("Work on Your Portfolio" for Projects), else its own.
+      const t = plans[d]?.missions?.find(p => p.missionId === m.missionId)?.area ?? m.track;
+      byTrack[t] = (byTrack[t] ?? 0) + 1;
     }
     const bonus = r.bonuses?.[d] ?? 0;
     if (bonus) {
@@ -59,12 +75,14 @@ export function weeklyReview(r: RecordState, plans: Record<DayKey, DayPlan>, pro
       points += bonus;
     }
   }
-  const ranked = (Object.entries(byTrack) as [TrackId, number][]).sort((a, b) => b[1] - a[1]);
+  // An area the app no longer has (an old record's) can't be the strongest: nothing could show it.
+  const ranked = (Object.entries(byTrack) as [TrackId, number][]).filter(([t]) => TRACK_IDS.includes(t)).sort((a, b) => b[1] - a[1]);
   const strongest = ranked[0]?.[0] ?? null;
   let ignored: TrackId | null = null;
   if (strongest) {
-    // Only a track that got nothing: "Didn't get to" must be true.
-    ignored = profile.tracks.find(t => t !== strongest && !byTrack[t]) ?? null;
+    // Only a track that got nothing, and could have: "Didn't get to" must be true and fair.
+    const could = areas ? profile.tracks.filter(t => areas.includes(t)) : profile.tracks;
+    ignored = could.find(t => t !== strongest && !byTrack[t]) ?? null;
   }
   const c = completion(r, plans, from, to);
   return { from, to, missions, planned: c.planned, focusMinutes: Math.floor(seconds / 60), points, perfectDays, activeDays, byTrack, strongest, ignored };

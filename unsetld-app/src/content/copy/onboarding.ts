@@ -27,6 +27,8 @@ export const ONBOARDING = {
     a11yCounter: (n: number) => `${WORDS[n] ?? n} of four chosen`,
     /** A fifth tap. Read out by VoiceOver; the counter flashes on screen. */
     full: 'Four is the most. Take one off first.',
+    /** School chosen after a No to "In school or college?": the answer is changed in About you. */
+    schoolOff: "You said you're not in school, so School won't get missions. Change that in About you.",
     a11yTile: (name: string, scope: string) => `${spoken(name)}. ${scope}`,
     tileNo: (i: number) => String(i + 1).padStart(2, '0'),
   },
@@ -37,6 +39,19 @@ export const ONBOARDING = {
     yes: 'Yes',
     no: 'No',
     school: 'In school or college?',
+    /** Shown after a Yes to school; skipping it leaves both kinds of school mission open. */
+    schoolLevel: 'High school or college?',
+    schoolLevels: { high: 'High school', college: 'College' } satisfies Record<NonNullable<Profile['schoolLevel']>, string>,
+    /**
+     * School is one of the user's areas and they answered No: every School mission needs
+     * a yes, so School comes off their areas when they continue (or save). `last`: School
+     * is their only area, so there's nothing to continue with until they pick another.
+     */
+    schoolConflict: (edit: boolean, last: boolean) =>
+      last
+        ? 'School missions need a yes here. Answer Yes, or pick another area first.'
+        : `School missions need a yes here. ${edit ? 'Save' : 'Continue'} and School comes off your areas.`,
+    changeAreas: 'Change areas',
     work: 'Working?',
     project: 'Building a business or project?',
     projectHint: 'A brand, a channel, an app, art.',
@@ -69,14 +84,31 @@ export const ONBOARDING = {
       90: 'More than 60 minutes',
     } satisfies Record<Profile['minutes'], string>,
     hard: 'How hard?',
-    /** Under How hard? when 5–15 is chosen: the day's budget keeps every mission short, Push me included. */
-    shortDay: 'With 5–15 minutes, you get three short missions a day, whatever you pick.',
-    a11yShortDay: 'With 5 to 15 minutes, you get three short missions a day, whatever you pick.',
+    /**
+     * Under How hard? when the time chosen sets the day's shape (core/missions slotsFor):
+     * with 5–15 or 15–30 minutes every intensity gets the same day.
+     */
+    shortDay: {
+      15: 'With 5–15 minutes, you get three short missions a day, whatever you pick.',
+      30: 'With 15–30 minutes, you get two short missions and one focused one a day, whatever you pick.',
+    },
+    a11yShortDay: {
+      15: 'With 5 to 15 minutes, you get three short missions a day, whatever you pick.',
+      30: 'With 15 to 30 minutes, you get two short missions and one focused one a day, whatever you pick.',
+    },
+    /**
+     * `body` with 30 minutes or more; `later` on a 5–15 or 15–30 day, where every card
+     * gets the same day: what it will do once there's more time.
+     */
     intensity: {
-      easy: { name: 'START EASY', body: 'Three missions a day, shorter ones.' },
-      lockin: { name: 'LOCK IN', body: 'Three missions a day: one easy, two that take real focus.' },
-      push: { name: 'PUSH ME', body: 'Four missions a day, longer sessions.' },
-    } satisfies Record<Profile['intensity'], { name: string; body: string }>,
+      easy: { name: 'START EASY', body: 'Three missions a day, shorter ones.', later: 'With more time a day: three missions, shorter ones.' },
+      lockin: {
+        name: 'LOCK IN',
+        body: 'Three missions a day: one easy, two that take real focus.',
+        later: 'With more time a day: one easy, two that take real focus.',
+      },
+      push: { name: 'PUSH ME', body: 'Four missions a day, longer sessions.', later: 'With more time a day: four missions, longer sessions.' },
+    } satisfies Record<Profile['intensity'], { name: string; body: string; later: string }>,
     a11yIntensity: (name: string, body: string) => `${spoken(name)}. ${body}`,
   },
 

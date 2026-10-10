@@ -39,6 +39,8 @@ function DayShape({ slots, longest, on }: { slots: readonly MissionSlot[]; longe
 export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
   const edit = Boolean(route.params?.edit);
   const { value, change, save } = useProfileDraft(edit);
+  // 5–15 and 15–30 minutes set the day's shape whatever the intensity (slotsFor).
+  const short = value.minutes === 15 || value.minutes === 30 ? value.minutes : null;
 
   /** A tap on the chosen one does nothing: time and intensity always have an answer. */
   const set = <K extends 'minutes' | 'intensity'>(key: K, v: Profile[K]) => {
@@ -88,22 +90,24 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
       <T v="title.m" accessibilityRole="header" style={{ marginTop: 44 }}>
         {COPY.hard}
       </T>
-      {/* The day's time budget wins over intensity: with 5–15 minutes even Push me is three short missions. */}
-      {value.minutes === 15 ? (
-        <T v="small" color={C.stone} style={{ marginTop: 8 }} accessibilityLabel={COPY.a11yShortDay}>
-          {COPY.shortDay}
+      {/* The time chosen wins over intensity: with 5–15 or 15–30 minutes every card gets the same day. */}
+      {short ? (
+        <T v="small" color={C.stone} style={{ marginTop: 8 }} accessibilityLabel={COPY.a11yShortDay[short]}>
+          {COPY.shortDay[short]}
         </T>
       ) : null}
       <View accessibilityRole="radiogroup" accessibilityLabel={COPY.hard} style={{ marginTop: 16, gap: 10 }}>
         {INTENSITIES.map(i => {
           const on = value.intensity === i;
           const card = COPY.intensity[i];
+          // On a short day every card is the same day: the glyphs match, and the words say what the card does with more time.
+          const body = short ? card.later : card.body;
           return (
             <Choice
               key={i}
               role="radio"
               on={on}
-              label={COPY.a11yIntensity(card.name, card.body)}
+              label={COPY.a11yIntensity(card.name, body)}
               onPress={() => set('intensity', i)}
               style={{ paddingVertical: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -111,10 +115,10 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
                 <T v="button" color={on ? C.bone : C.muted} style={{ flex: 1 }}>
                   {card.name}
                 </T>
-                <DayShape slots={slotsFor({ intensity: i, minutes: value.minutes })} longest={MAIN_MAX_MINUTES[i]} on={on} />
+                <DayShape slots={slotsFor({ intensity: i, minutes: value.minutes })} longest={short ? MAIN_MAX_MINUTES.easy : MAIN_MAX_MINUTES[i]} on={on} />
               </View>
               <T v="small" color={C.stone} style={{ marginTop: 8, marginLeft: 26 }}>
-                {card.body}
+                {body}
               </T>
             </Choice>
           );

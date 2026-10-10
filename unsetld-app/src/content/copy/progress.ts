@@ -194,10 +194,14 @@ export const PROGRESS = {
     checked: 'Checked on this phone.',
     a11yThumb: (title: string, date: string) => `${title}, proven ${date}. Opens the photo.`,
     a11yPhoto: (title: string) => `Proof photo for ${title}`,
-    /** A mission no longer in the library: its id, made readable. */
-    fallbackTitle: (missionId: string) => {
-      const words = missionId.split('-').slice(1).join(' ');
-      return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Mission';
+    /**
+     * A mission no longer in the library: its id made readable ("focus-plan-tomorrow-tonight" →
+     * "Plan tomorrow tonight"), else "<area> mission" from the area on the record, else "Mission".
+     */
+    fallbackTitle: (missionId: string, area = '') => {
+      const words = missionId.split('-').slice(1).join(' ').trim();
+      if (words) return words.charAt(0).toUpperCase() + words.slice(1);
+      return area ? `${area} mission` : 'Mission';
     },
   },
 } as const;

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Platform, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clock as mmss, remainingSeconds, timerDone, type FocusTimer } from '../../core/timer';
-import type { Colorway, Mission, MissionDone, ProofPhoto, ProofType } from '../../core/types';
+import type { Colorway, Mission, MissionDone, ProofPhoto, ProofType, TrackId } from '../../core/types';
 import { TRACK_BY_ID } from '../../content';
 import { HOME } from '../../content/copy/home';
 import { soft } from '../../services/haptics';
@@ -279,8 +279,11 @@ function actionSaid(a: CardAction, remaining: number, type: ProofType): string |
   return null;
 }
 
-/** A word on the meta line only where it changes what the user does: the focus timer, or a before photo first. */
-function badgeOf(m: Mission): { shown: string; said: string } | null {
+/**
+ * A word on the meta line only where it changes what the user does: the focus timer, or a
+ * before photo first. Home's rows and the program's rows on Programs.
+ */
+export function badgeOf(m: Pick<Mission, 'proofType'>): { shown: string; said: string } | null {
   if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') return { shown: HOME.badge.timer, said: HOME.a11y.badge.timer };
   if (m.proofType === 'BEFORE_AFTER') return { shown: HOME.badge.beforeAfter, said: HOME.a11y.badge.beforeAfter };
   return null;
@@ -302,6 +305,7 @@ const SWAP_CARD_MIN = 96;
  */
 export function MissionCard({
   mission,
+  area: areaId,
   done,
   action,
   colorway,
@@ -313,6 +317,8 @@ export function MissionCard({
   arrive = false,
 }: {
   mission: Mission;
+  /** The area it's in the day for (the plan's, state/missions plannedArea), not always its own. */
+  area: TrackId;
   /** The accepted proof, or null while it's still to do. */
   done: MissionDone | null;
   action: CardAction;
@@ -326,7 +332,7 @@ export function MissionCard({
   arrive?: boolean;
 }) {
   const scale = useSerifScale();
-  const area = TRACK_BY_ID[mission.track]?.short ?? '';
+  const area = TRACK_BY_ID[areaId]?.short ?? '';
   const badge = badgeOf(mission);
   const proven = Boolean(done);
 

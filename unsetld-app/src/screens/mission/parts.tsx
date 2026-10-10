@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import type { ReactNode } from 'react';
 import { Linking, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { DayKey } from '../../core/time';
-import type { Mission, ProofPhoto } from '../../core/types';
+import type { Mission, ProofPhoto, TrackId } from '../../core/types';
 import { TRACK_BY_ID } from '../../content';
 import { MISSION } from '../../content/copy/mission';
 import { proofImage } from '../../services/proof';
@@ -13,9 +13,9 @@ import { ProofStamp } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
 import { color as C, hairline } from '../../ui/tokens';
 
-/** The mission's goal area: "School". */
-export function areaName(m: Mission): string {
-  return TRACK_BY_ID[m.track]?.short ?? '';
+/** The mission's goal area, "School": the one it's in the day for when given, else its own. */
+export function areaName(m: Mission, area?: TrackId): string {
+  return TRACK_BY_ID[area ?? m.track]?.short ?? '';
 }
 
 /** Title and the minutes / points line at the top of a mission. */

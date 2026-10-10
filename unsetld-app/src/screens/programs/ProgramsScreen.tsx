@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { programDay, programMissions } from '../../core/programs';
-import type { Program } from '../../core/types';
+import type { PlannedMission, Program } from '../../core/types';
 import { MISSION_BY_ID, PROGRAM_BY_ID, PROGRAMS, TRACK_BY_ID } from '../../content';
+import { HOME } from '../../content/copy/home';
 import { PROGRAMS_COPY } from '../../content/copy/programs';
 import type { RootProps } from '../../navigation/types';
 import { light } from '../../services/haptics';
+import { plannedArea } from '../../state/missions';
 import { useApp } from '../../state/store';
+import { badgeOf } from '../home/parts';
 import { showDialog } from '../../ui/actions';
 import { Icon } from '../../ui/icons';
 import { NavRow, Screen, TextButton } from '../../ui/kit';
@@ -55,17 +58,37 @@ type MissionState = 'open' | 'proven' | 'swapped' | 'later';
 
 /**
  * One of the program's missions, as Home shows it: the title, then "School ·
- * 30 min · +15". Opens the mission when it's in today's plan; PROVEN once done.
+ * 30 min · +15" (with Timer or Before + after). `planned`: its place in today's
+ * plan, whose area the line names. Opens the mission when it's in today's plan;
+ * PROVEN once done.
  */
-function ProgramMission({ id, state, last, onOpen }: { id: string; state: MissionState; last: boolean; onOpen: () => void }) {
+function ProgramMission({
+  id,
+  planned,
+  state,
+  last,
+  onOpen,
+}: {
+  id: string;
+  planned: PlannedMission | undefined;
+  state: MissionState;
+  last: boolean;
+  onOpen: () => void;
+}) {
+  const tracks = useApp(s => s.profile.tracks);
   const m = MISSION_BY_ID[id];
   if (!m) return null;
-  const area = TRACK_BY_ID[m.track]?.short ?? '';
+  const area = TRACK_BY_ID[plannedArea(planned, m, tracks)]?.short ?? '';
+  const badge = badgeOf(m);
   const open = state === 'open';
   return (
     <Pressable
       accessibilityRole={open ? 'button' : undefined}
-      accessibilityLabel={P.missionA11y(m.title, P.missionSaid(area, m.minutes, m.points), state === 'proven' ? P.proven : state === 'swapped' ? P.swappedLabel : undefined)}
+      accessibilityLabel={P.missionA11y(
+        m.title,
+        HOME.a11y.meta(area, m.minutes, m.points, badge?.said ?? null),
+        state === 'proven' ? P.proven : state === 'swapped' ? P.swappedLabel : undefined,
+      )}
       accessibilityHint={open ? P.openHint : undefined}
       disabled={!open}
       onPress={onOpen}
@@ -83,7 +106,7 @@ function ProgramMission({ id, state, last, onOpen }: { id: string; state: Missio
         <T v="saved" color={state === 'proven' ? C.stone : C.bone}>
           {m.title}
         </T>
-        <T v="mono">{P.missionMeta(area, m.minutes, m.points)}</T>
+        <T v="mono">{HOME.meta(area, m.minutes, m.points, badge?.shown ?? null)}</T>
       </View>
       {state === 'proven' ? (
         <T v="label">{P.proven}</T>
@@ -161,7 +184,9 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
   useEffect(() => {
     if (gone) useApp.getState().leaveProgram();
   }, [gone]);
-  const finished = Boolean(program?.finishedDay);
+  // Every day proven counts as finished even without a finish date (a state from an earlier
+  // build, or a program that got shorter): Clear, rather than a run with no day to show.
+  const finished = Boolean(program?.finishedDay) || Boolean(current && program && program.doneDays.length >= current.days);
   const running = current && program && !finished ? current : null;
   const n = running && program ? programDay(running, program, day) : null;
 
@@ -260,7 +285,14 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
                   {block.label}
                 </T>
                 {block.ids.map((id, i) => (
-                  <ProgramMission key={id} id={id} state={stateOf(id)} last={i === block.ids.length - 1} onOpen={() => navigation.navigate('Mission', { missionId: id })} />
+                  <ProgramMission
+                    key={id}
+                    id={id}
+                    planned={block.today ? plan?.missions.find(p => p.missionId === id) : undefined}
+                    state={stateOf(id)}
+                    last={i === block.ids.length - 1}
+                    onOpen={() => navigation.navigate('Mission', { missionId: id })}
+                  />
                 ))}
               </View>
             ) : null}

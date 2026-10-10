@@ -61,7 +61,7 @@
   "id": "discipline-lock-in-30",
   "track": "discipline",
   "title": "Lock In for 30 Minutes",
-  "short": "Put your phone in another room and spend 30 minutes on your most important task.",
+  "short": "Put your phone in another room and work on one task for 30 minutes without stopping.",
   "proof": "What you worked on, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 15,
@@ -146,6 +146,25 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "finish-it",
+  "when": "morning",
+  "tags": [
+   "discipline"
+  ],
+  "active": true
+ },
+ {
+  "id": "discipline-finish-unfinished",
+  "track": "discipline",
+  "title": "Finish One Unfinished Task",
+  "short": "Pick one task you started and never finished, and finish it today.",
+  "proof": "The finished task, private details covered.",
+  "proofType": "PHOTO",
+  "points": 15,
+  "minutes": 30,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "finish-it",
   "tags": [
    "discipline"
   ],
@@ -168,6 +187,31 @@
   "repeatable": true,
   "group": "tomorrow-ready",
   "when": "evening",
+  "days": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "tags": [
+   "discipline"
+  ],
+  "active": true
+ },
+ {
+  "id": "discipline-prepare-workspace",
+  "track": "discipline",
+  "title": "Prepare Your Workspace",
+  "short": "Clear your desk and set out only what you need for your next work session.",
+  "proof": "Before and after of your workspace.",
+  "proofType": "BEFORE_AFTER",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "desk",
   "tags": [
    "discipline"
   ],
@@ -203,6 +247,26 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
+  "group": "small-tasks",
+  "tags": [
+   "discipline"
+  ],
+  "active": true
+ },
+ {
+  "id": "discipline-todo-30",
+  "track": "discipline",
+  "title": "Work Through Your To-Do List for 30 Minutes",
+  "short": "Cross off as many tasks on your list as you can in 30 minutes, quickest first.",
+  "proof": "Your list with what you crossed off, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 15,
+  "minutes": 30,
+  "timerMinutes": 30,
+  "requires": [],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "group": "small-tasks",
   "tags": [
    "discipline"
   ],
@@ -444,6 +508,27 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
+  "group": "practice-problems",
+  "tags": [
+   "school"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-practice-5",
+  "track": "school",
+  "title": "Do 5 Practice Problems",
+  "short": "Do 5 practice problems from your hardest class without looking at the answers, then check them.",
+  "proof": "Your worked problems.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "requires": [
+   "school"
+  ],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "practice-problems",
   "tags": [
    "school"
   ],
@@ -462,6 +547,26 @@
    "school"
   ],
   "cooldownDays": 4,
+  "repeatable": true,
+  "group": "flashcards",
+  "tags": [
+   "school"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-memorize-10",
+  "track": "school",
+  "title": "Memorize 10 Terms or Formulas",
+  "short": "Learn 10 terms, formulas or dates for a class until you can write them all from memory.",
+  "proof": "The 10, written from memory.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [
+   "school"
+  ],
+  "cooldownDays": 2,
   "repeatable": true,
   "group": "flashcards",
   "tags": [
@@ -656,7 +761,7 @@
   "id": "school-essay-30",
   "track": "school",
   "title": "Work on Your Essay for 30 Minutes",
-  "short": "Write the next part of your essay or paper for 30 minutes. Fix it later.",
+  "short": "Write the next part of your essay or paper for 30 minutes without stopping to fix it.",
   "proof": "Your draft, after the timer, name covered.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 15,
@@ -704,6 +809,7 @@
   "timerMinutes": 30,
   "requires": [
    "school",
+   "highschool",
    "age16"
   ],
   "cooldownDays": 2,
@@ -719,13 +825,14 @@
   "track": "school",
   "title": "Work on Your College Essay for 30 Minutes",
   "short": "Draft or revise your college application essay for 30 minutes.",
-  "proof": "Your draft on paper or a laptop, after the timer, name covered.",
+  "proof": "Your draft on paper or a computer, after the timer, name covered.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 15,
   "minutes": 30,
   "timerMinutes": 30,
   "requires": [
    "school",
+   "highschool",
    "age16"
   ],
   "cooldownDays": 3,
@@ -747,6 +854,7 @@
   "minutes": 20,
   "requires": [
    "school",
+   "highschool",
    "age16"
   ],
   "cooldownDays": 10,
@@ -781,7 +889,7 @@
   "track": "school",
   "title": "Put This Term's Deadlines in Your Calendar",
   "short": "Go through each syllabus or class page and add every test, paper and due date for the term to one calendar.",
-  "proof": "Your calendar on paper or a laptop, private details covered.",
+  "proof": "Your calendar on paper or a computer, private details covered.",
   "proofType": "PHOTO",
   "points": 15,
   "minutes": 30,
@@ -812,6 +920,26 @@
   "repeatable": true,
   "group": "planning",
   "when": "evening",
+  "tags": [
+   "school"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-check-due",
+  "track": "school",
+  "title": "Check What's Due This Week",
+  "short": "Check your planner or class pages and write down everything due in the next 7 days and anything missing.",
+  "proof": "Your list of what's due. No scores.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [
+   "school"
+  ],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "group": "planning-week",
   "tags": [
    "school"
   ],
@@ -881,12 +1009,52 @@
   "id": "fitness-home-workout",
   "track": "fitness",
   "title": "Do an At-Home Workout",
-  "short": "Push-ups, squats, lunges and planks for 20 minutes at home. No equipment needed.",
+  "short": "Do push-ups, squats, lunges and planks at home for 20 minutes, no equipment needed.",
   "proof": "Your workout spot, right after.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 10,
   "minutes": 20,
   "timerMinutes": 20,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "anchor": true,
+  "group": "workout",
+  "tags": [
+   "fitness"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-bodyweight-10",
+  "track": "fitness",
+  "title": "Do a 10-Minute Bodyweight Workout",
+  "short": "Do squats, push-ups, lunges and planks for 40 seconds each with 20 seconds rest until the timer ends.",
+  "proof": "Run the 10-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 10,
+  "minutes": 10,
+  "timerMinutes": 10,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "anchor": true,
+  "group": "workout",
+  "tags": [
+   "fitness"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-pushups-squats",
+  "track": "fitness",
+  "title": "Do 3 Rounds of Push-ups and Squats",
+  "short": "Do 3 rounds of 10 push-ups and 15 squats, with the push-ups on your knees if you need to.",
+  "proof": "Run the 5-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 5,
+  "minutes": 5,
+  "timerMinutes": 5,
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
@@ -900,7 +1068,7 @@
   "id": "fitness-walk-30",
   "track": "fitness",
   "title": "Walk for 30 Minutes",
-  "short": "Go for a 30-minute walk. Phone stays in your pocket.",
+  "short": "Go for a 30-minute walk with your phone in your pocket.",
   "proof": "Where you walked. No people.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 15,
@@ -917,10 +1085,48 @@
   "active": true
  },
  {
+  "id": "fitness-walk-15",
+  "track": "fitness",
+  "title": "Go for a 15-Minute Walk",
+  "short": "Walk at a brisk pace for 15 minutes with your phone in your pocket.",
+  "proof": "Where you walked. No people.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "timerMinutes": 15,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "cardio",
+  "tags": [
+   "fitness"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-cardio-10",
+  "track": "fitness",
+  "title": "Do 10 Minutes of Cardio at Home",
+  "short": "Do jumping jacks, high knees and mountain climbers for 10 minutes, resting when you need to.",
+  "proof": "Run the 10-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 10,
+  "minutes": 10,
+  "timerMinutes": 10,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "cardio",
+  "tags": [
+   "fitness"
+  ],
+  "active": true
+ },
+ {
   "id": "fitness-run",
   "track": "fitness",
   "title": "Go for a Run",
-  "short": "Run for at least 20 minutes at a pace you can keep. Walk breaks are fine.",
+  "short": "Run for 20 minutes at a pace you can keep, with walk breaks if you need them.",
   "proof": "Your route after the run. No people.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 10,
@@ -1010,7 +1216,7 @@
   "tags": [
    "fitness"
   ],
-  "active": true
+  "active": false
  },
  {
   "id": "fitness-sport-30",
@@ -1103,6 +1309,13 @@
   "repeatable": true,
   "group": "meal",
   "when": "evening",
+  "days": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
   "tags": [
    "fitness"
   ],
@@ -1129,13 +1342,15 @@
   "id": "fitness-log-workout",
   "track": "fitness",
   "title": "Log Your Last Workout",
-  "short": "Write down every exercise, set, rep and weight from your last workout and circle one to beat next time.",
+  "short": "Write down every exercise, set and rep from your last workout, and circle one to beat next time.",
   "proof": "Your workout log.",
   "proofType": "PHOTO",
   "points": 5,
   "minutes": 5,
-  "requires": [],
-  "cooldownDays": 1,
+  "requires": [
+   "gym"
+  ],
+  "cooldownDays": 2,
   "repeatable": true,
   "tags": [
    "fitness"
@@ -1164,7 +1379,7 @@
   "id": "fitness-core-10",
   "track": "fitness",
   "title": "Do a 10-Minute Core Workout",
-  "short": "Planks, side planks, dead bugs and glute bridges for 10 minutes.",
+  "short": "Do planks, side planks, dead bugs and glute bridges for 10 minutes.",
   "proof": "Run the 10-minute timer to the end.",
   "proofType": "TIMER",
   "points": 10,
@@ -1173,6 +1388,26 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "group": "core",
+  "tags": [
+   "fitness"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-plank-5",
+  "track": "fitness",
+  "title": "Do a 5-Minute Plank Set",
+  "short": "Hold planks and side planks for 30 seconds each, resting in between, until the timer ends.",
+  "proof": "Run the 5-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 5,
+  "minutes": 5,
+  "timerMinutes": 5,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "core",
   "tags": [
    "fitness"
   ],
@@ -1294,7 +1529,7 @@
   "track": "money",
   "title": "Create a Simple Budget",
   "short": "Write your money in, your fixed costs, what you save and what is left to spend.",
-  "proof": "Your budget on paper or a laptop. No account details.",
+  "proof": "Your budget on paper or a computer. No account details.",
   "proofType": "PHOTO",
   "points": 15,
   "minutes": 30,
@@ -1310,14 +1545,14 @@
  {
   "id": "money-cut-expense",
   "track": "money",
-  "title": "Cancel or Lower One Recurring Cost",
-  "short": "Cancel or downgrade one subscription or regular cost you don't need.",
-  "proof": "A note of what you cut and what it saves each month.",
+  "title": "Research One Way to Cut a Recurring Cost",
+  "short": "Pick one subscription or regular cost and find a cheaper plan, a student deal or a way to drop it.",
+  "proof": "Your notes with what it would save each month.",
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 15,
   "requires": [],
-  "cooldownDays": 14,
+  "cooldownDays": 30,
   "repeatable": true,
   "tags": [
    "money"
@@ -1335,7 +1570,7 @@
   "minutes": 20,
   "timerMinutes": 20,
   "requires": [],
-  "cooldownDays": 5,
+  "cooldownDays": 2,
   "repeatable": true,
   "group": "money-learning",
   "tags": [
@@ -1354,9 +1589,63 @@
   "minutes": 20,
   "timerMinutes": 20,
   "requires": [],
-  "cooldownDays": 10,
+  "cooldownDays": 7,
   "repeatable": true,
   "group": "money-learning",
+  "tags": [
+   "money"
+  ],
+  "active": true
+ },
+ {
+  "id": "money-read-20",
+  "track": "money",
+  "title": "Read About Personal Finance for 20 Minutes",
+  "short": "Read a personal finance book or guide for 20 minutes and write down one thing you will do.",
+  "proof": "Your notes, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 20,
+  "timerMinutes": 20,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "money-learning",
+  "tags": [
+   "money"
+  ],
+  "active": true
+ },
+ {
+  "id": "money-compare-prices",
+  "track": "money",
+  "title": "Compare Prices Before You Buy",
+  "short": "Before your next planned purchase, find the same thing in three places and write the prices down.",
+  "proof": "Your three prices on paper.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 20,
+  "requires": [],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "tags": [
+   "money"
+  ],
+  "active": true
+ },
+ {
+  "id": "money-month-review",
+  "track": "money",
+  "title": "Review Last Month's Spending",
+  "short": "Add up last month's spending by category and circle the two you'll spend less on.",
+  "proof": "Your totals on paper. No bank details.",
+  "proofType": "PHOTO",
+  "points": 15,
+  "minutes": 30,
+  "requires": [],
+  "cooldownDays": 25,
+  "repeatable": true,
+  "group": "money-review",
   "tags": [
    "money"
   ],
@@ -1367,7 +1656,7 @@
   "track": "money",
   "title": "Put Money Into Savings",
   "short": "Put any amount into savings today, even five dollars.",
-  "proof": "A note of the amount and your new total.",
+  "proof": "A note of the amount you put in. No bank details.",
   "proofType": "PHOTO",
   "points": 5,
   "minutes": 5,
@@ -1438,10 +1727,49 @@
   "active": true
  },
  {
+  "id": "money-plan-paycheck",
+  "track": "money",
+  "title": "Plan Your Next Paycheck",
+  "short": "Before payday, write how much of it goes to bills, savings and spending.",
+  "proof": "Your plan on paper. No bank details.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [
+   "work"
+  ],
+  "cooldownDays": 7,
+  "repeatable": true,
+  "group": "money-plan",
+  "tags": [
+   "money"
+  ],
+  "active": true
+ },
+ {
+  "id": "money-bills-due",
+  "track": "money",
+  "title": "List Your Payments Due This Week",
+  "short": "Write down every bill and subscription that comes out in the next 7 days, and when.",
+  "proof": "Your list. No account details.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [
+   "age18"
+  ],
+  "cooldownDays": 6,
+  "repeatable": true,
+  "tags": [
+   "money"
+  ],
+  "active": true
+ },
+ {
   "id": "money-sell-unused",
   "track": "money",
   "title": "Sell One Thing You Don't Use",
-  "short": "List one thing you don't use for sale at a fair price. Under 18, a parent posts it.",
+  "short": "List one thing you don't use for sale at a fair price, and have a parent post it if you're under 18.",
   "proof": "The item with its price written on paper next to it.",
   "proofType": "PHOTO",
   "points": 15,
@@ -1464,7 +1792,7 @@
   "points": 10,
   "minutes": 20,
   "requires": [],
-  "cooldownDays": 14,
+  "cooldownDays": 30,
   "repeatable": true,
   "tags": [
    "money"
@@ -1495,7 +1823,7 @@
   "track": "career",
   "title": "Apply to One Job",
   "short": "Find one job you want and send a complete application.",
-  "proof": "The confirmation on a laptop, personal details covered.",
+  "proof": "The confirmation on a computer, or the role and date written down. Details covered.",
   "proofType": "PHOTO",
   "points": 20,
   "minutes": 30,
@@ -1504,6 +1832,7 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
+  "anchor": true,
   "group": "apply",
   "tags": [
    "career"
@@ -1515,7 +1844,7 @@
   "track": "career",
   "title": "Apply to One Internship",
   "short": "Find one internship you want and send a complete application.",
-  "proof": "The confirmation on a laptop, personal details covered.",
+  "proof": "The confirmation on a computer, or the role and date written down. Details covered.",
   "proofType": "PHOTO",
   "points": 20,
   "minutes": 30,
@@ -1549,6 +1878,24 @@
   "active": true
  },
  {
+  "id": "career-find-one",
+  "track": "career",
+  "title": "Find One Opportunity to Apply For",
+  "short": "Find one job, internship or program you're old enough for and write down the link and the deadline.",
+  "proof": "Your note of what it is and the deadline.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "opportunities",
+  "tags": [
+   "career"
+  ],
+  "active": true
+ },
+ {
   "id": "career-research-internships",
   "track": "career",
   "title": "Research Internships for 20 Minutes",
@@ -1573,16 +1920,19 @@
   "id": "career-improve-resume",
   "track": "career",
   "title": "Improve Your Resume",
-  "short": "Spend 30 minutes making your resume clearer and stronger.",
+  "short": "Spend 30 minutes making your resume clearer and stronger, or start one if you don't have one yet.",
   "proof": "Your updated resume, contact details covered.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 15,
   "minutes": 30,
   "timerMinutes": 30,
-  "requires": [],
+  "requires": [
+   "age16"
+  ],
   "cooldownDays": 5,
   "repeatable": true,
   "group": "resume",
+  "weight": 2,
   "tags": [
    "career"
   ],
@@ -1597,7 +1947,9 @@
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 10,
-  "requires": [],
+  "requires": [
+   "age16"
+  ],
   "cooldownDays": 4,
   "repeatable": true,
   "group": "resume",
@@ -1610,16 +1962,34 @@
   "id": "career-first-resume",
   "track": "career",
   "title": "Write the First Draft of Your Resume",
-  "short": "Write a one-page resume: school, work, projects and skills. Short is fine.",
+  "short": "Write a one-page resume with your school, work, projects and skills, even if it's short.",
   "proof": "Your draft, contact details covered.",
   "proofType": "PHOTO",
-  "points": 20,
-  "minutes": 45,
+  "points": 15,
+  "minutes": 30,
   "requires": [],
   "cooldownDays": 365,
   "repeatable": false,
   "group": "resume",
-  "weight": 0.5,
+  "weight": 2,
+  "tags": [
+   "career"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-resume-list",
+  "track": "career",
+  "title": "List What Could Go on Your Resume",
+  "short": "List every job, team, club, project, award and skill you have, with the dates.",
+  "proof": "Your list.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 30,
+  "repeatable": true,
+  "group": "resume",
   "tags": [
    "career"
   ],
@@ -1630,7 +2000,7 @@
   "track": "career",
   "title": "Improve Your LinkedIn",
   "short": "Update one part of your LinkedIn: headline, about, experience or skills.",
-  "proof": "The updated section on a laptop, photo and name out of frame.",
+  "proof": "The updated section on a computer, or the new text written down. No photo or name.",
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 20,
@@ -1649,7 +2019,7 @@
   "track": "career",
   "title": "Work on Your Portfolio",
   "short": "Add or improve one piece in your portfolio.",
-  "proof": "Your portfolio on a laptop, or the piece you added.",
+  "proof": "Your portfolio on a computer, or the piece you added.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 20,
   "minutes": 30,
@@ -1661,7 +2031,30 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
-  "anchor": true,
+  "weight": 0.6,
+  "fits": [
+   "coding",
+   "design",
+   "video",
+   "writing"
+  ],
+  "tags": [
+   "career"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-goal",
+  "track": "career",
+  "title": "Write Down Your Career Goal",
+  "short": "Write the job you want next, when you want it by and the next three steps to get there.",
+  "proof": "Your goal on paper.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 30,
+  "repeatable": true,
   "tags": [
    "career"
   ],
@@ -1701,6 +2094,29 @@
   "cooldownDays": 1,
   "repeatable": true,
   "anchor": true,
+  "group": "skill-session",
+  "tags": [
+   "career"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-skill-15",
+  "track": "career",
+  "title": "Spend 15 Minutes Learning a Career Skill",
+  "short": "Spend 15 minutes on a skill employers pay for, like spreadsheets, writing, sales or a trade.",
+  "proof": "Your notes or what you made, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "timerMinutes": 15,
+  "also": [
+   "skills"
+  ],
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "skill-session",
   "tags": [
    "career"
   ],
@@ -1757,6 +2173,48 @@
   ],
   "cooldownDays": 5,
   "repeatable": true,
+  "group": "interview",
+  "tags": [
+   "career"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-interview-one",
+  "track": "career",
+  "title": "Practice One Interview Question",
+  "short": "Answer one common interview question out loud, then write your best answer in three lines.",
+  "proof": "Your answer, written down.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [
+   "age16"
+  ],
+  "cooldownDays": 4,
+  "repeatable": true,
+  "group": "interview",
+  "weight": 0.6,
+  "tags": [
+   "career"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-introduction",
+  "track": "career",
+  "title": "Write Your 30-Second Introduction",
+  "short": "Write three sentences on who you are, what you're good at and what you want next, for interviews.",
+  "proof": "Your introduction, written down.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [
+   "age16"
+  ],
+  "cooldownDays": 30,
+  "repeatable": true,
+  "group": "interview",
   "tags": [
    "career"
   ],
@@ -1767,11 +2225,13 @@
   "track": "career",
   "title": "Complete Part of an Application",
   "short": "Finish one section of a job, college or scholarship application.",
-  "proof": "The finished section on a laptop, personal details covered.",
+  "proof": "The finished section on a computer, or what you finished written down.",
   "proofType": "PHOTO",
   "points": 15,
   "minutes": 30,
-  "requires": [],
+  "requires": [
+   "age16"
+  ],
   "cooldownDays": 3,
   "repeatable": true,
   "tags": [
@@ -1796,6 +2256,7 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
+  "group": "project-session",
   "tags": [
    "career"
   ],
@@ -1832,8 +2293,9 @@
   "requires": [
    "work"
   ],
-  "cooldownDays": 21,
+  "cooldownDays": 30,
   "repeatable": true,
+  "weight": 0.3,
   "tags": [
    "career"
   ],
@@ -1844,15 +2306,16 @@
   "track": "career",
   "title": "Update Your Application Tracker",
   "short": "List every job and internship you've applied to with its status and next step.",
-  "proof": "Your tracker on paper or a laptop. No contact details.",
+  "proof": "Your tracker on paper or a computer. No contact details.",
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 15,
   "requires": [
    "age16"
   ],
-  "cooldownDays": 7,
+  "cooldownDays": 14,
   "repeatable": true,
+  "weight": 0.3,
   "tags": [
    "career"
   ],
@@ -1912,6 +2375,7 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
+  "group": "skill-session",
   "weight": 0.6,
   "tags": [
    "career"
@@ -1959,7 +2423,7 @@
   "id": "business-work-60",
   "track": "business",
   "title": "Work on Your Business for 60 Minutes",
-  "short": "One focused hour on your business. Phone away, one task at a time.",
+  "short": "Put your phone away and spend one focused hour on your business, one task at a time.",
   "proof": "What you got done, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 25,
@@ -1978,8 +2442,8 @@
   "id": "business-content",
   "track": "business",
   "title": "Create One Piece of Content",
-  "short": "Make one post, video or graphic for your business.",
-  "proof": "Your setup or draft, or the finished piece on a laptop.",
+  "short": "Make one post, video or graphic for your business or project.",
+  "proof": "Your setup or draft, or the finished piece on a computer.",
   "proofType": "PHOTO",
   "points": 15,
   "minutes": 30,
@@ -2004,7 +2468,9 @@
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 15,
-  "requires": [],
+  "requires": [
+   "project"
+  ],
   "cooldownDays": 1,
   "repeatable": true,
   "tags": [
@@ -2017,11 +2483,13 @@
   "track": "business",
   "title": "Improve Your Website",
   "short": "Improve one part of your website or online shop: a page, the copy, the photos or the prices.",
-  "proof": "The improved page on a laptop.",
+  "proof": "The updated page on a computer, or what you changed written down.",
   "proofType": "PHOTO",
   "points": 15,
   "minutes": 30,
-  "requires": [],
+  "requires": [
+   "project"
+  ],
   "cooldownDays": 4,
   "repeatable": true,
   "tags": [
@@ -2106,11 +2574,13 @@
   "track": "business",
   "title": "Improve One Product Page",
   "short": "Improve the description, photos or price on one product page.",
-  "proof": "The updated page on a laptop.",
+  "proof": "The updated page on a computer, or what you changed written down.",
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 20,
-  "requires": [],
+  "requires": [
+   "project"
+  ],
   "cooldownDays": 5,
   "repeatable": true,
   "weight": 0.7,
@@ -2179,11 +2649,13 @@
   "track": "business",
   "title": "Update Your Business Numbers",
   "short": "Write down this week's sales, costs and profit.",
-  "proof": "Your numbers on paper or a laptop. No account details.",
+  "proof": "Your numbers on paper or a computer. No account details.",
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 15,
-  "requires": [],
+  "requires": [
+   "project"
+  ],
   "cooldownDays": 6,
   "repeatable": true,
   "tags": [
@@ -2286,6 +2758,110 @@
   "active": true
  },
  {
+  "id": "business-ideas",
+  "track": "business",
+  "title": "Write Down 10 Business Ideas",
+  "short": "List 10 things people around you would pay for that you could make, sell or do.",
+  "proof": "Your list of ten.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "requires": [],
+  "cooldownDays": 14,
+  "repeatable": true,
+  "tags": [
+   "business"
+  ],
+  "active": true
+ },
+ {
+  "id": "business-pick-idea",
+  "track": "business",
+  "title": "Pick One Business Idea and Plan It",
+  "short": "Pick one idea and write who it is for, what you would charge and your first three steps.",
+  "proof": "Your plan on paper.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 20,
+  "requires": [],
+  "cooldownDays": 14,
+  "repeatable": true,
+  "tags": [
+   "business"
+  ],
+  "active": true
+ },
+ {
+  "id": "business-pitch",
+  "track": "business",
+  "title": "Write Your One-Sentence Pitch",
+  "short": "Write one sentence that says what you sell, who it's for and why they'd pick you.",
+  "proof": "Your sentence on paper.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 14,
+  "repeatable": true,
+  "tags": [
+   "business"
+  ],
+  "active": true
+ },
+ {
+  "id": "business-month-goal",
+  "track": "business",
+  "title": "Set This Month's Business Goal",
+  "short": "Write one goal for this month, like your first sale or a number of customers, and the first step toward it.",
+  "proof": "Your goal on paper.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 25,
+  "repeatable": true,
+  "tags": [
+   "business"
+  ],
+  "active": true
+ },
+ {
+  "id": "business-learn-concept",
+  "track": "business",
+  "title": "Learn One Business Concept",
+  "short": "Learn one idea such as profit margin, pricing or getting customers, and write it in your own words.",
+  "proof": "Your notes, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "timerMinutes": 15,
+  "requires": [],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "tags": [
+   "business"
+  ],
+  "active": true
+ },
+ {
+  "id": "business-read-10",
+  "track": "business",
+  "title": "Read 10 Pages of a Business Book",
+  "short": "Read 10 pages of a book about starting or running a business.",
+  "proof": "The book open to where you stopped.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "reading",
+  "tags": [
+   "business"
+  ],
+  "active": true
+ },
+ {
   "id": "business-review-request",
   "track": "business",
   "title": "Ask a Happy Customer for a Review",
@@ -2328,7 +2904,7 @@
   "id": "projects-build-60",
   "track": "projects",
   "title": "Build Your Project for 60 Minutes",
-  "short": "One focused hour on your project. Phone away.",
+  "short": "Put your phone away and spend one focused hour building your project.",
   "proof": "What you built, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 25,
@@ -2336,6 +2912,25 @@
   "timerMinutes": 60,
   "requires": [],
   "cooldownDays": 2,
+  "repeatable": true,
+  "group": "project-session",
+  "tags": [
+   "projects"
+  ],
+  "active": true
+ },
+ {
+  "id": "projects-work-10",
+  "track": "projects",
+  "title": "Work on Your Project for 10 Minutes",
+  "short": "Open your project and get one small piece of it done in 10 minutes.",
+  "proof": "What you did, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "timerMinutes": 10,
+  "requires": [],
+  "cooldownDays": 1,
   "repeatable": true,
   "group": "project-session",
   "tags": [
@@ -2392,6 +2987,7 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "group": "project-fix",
   "tags": [
    "projects"
   ],
@@ -2409,6 +3005,9 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "fits": [
+   "design"
+  ],
   "tags": [
    "projects"
   ],
@@ -2426,6 +3025,9 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "fits": [
+   "writing"
+  ],
   "tags": [
    "projects"
   ],
@@ -2444,6 +3046,9 @@
   "cooldownDays": 3,
   "repeatable": true,
   "group": "video",
+  "fits": [
+   "video"
+  ],
   "tags": [
    "projects"
   ],
@@ -2454,7 +3059,7 @@
   "track": "projects",
   "title": "Edit One Video",
   "short": "Edit one video from start to finished export.",
-  "proof": "The finished edit on a laptop, or your clip list ticked off on paper.",
+  "proof": "The finished edit on a computer, or your clip list ticked off on paper.",
   "proofType": "PHOTO",
   "points": 20,
   "minutes": 45,
@@ -2462,6 +3067,9 @@
   "cooldownDays": 3,
   "repeatable": true,
   "group": "video",
+  "fits": [
+   "video"
+  ],
   "tags": [
    "projects"
   ],
@@ -2514,6 +3122,27 @@
   "requires": [],
   "cooldownDays": 5,
   "repeatable": true,
+  "group": "planning",
+  "tags": [
+   "projects"
+  ],
+  "active": true
+ },
+ {
+  "id": "projects-plan-tomorrow",
+  "track": "projects",
+  "title": "Plan Tomorrow's Project Work",
+  "short": "Write the one thing you'll get done on your project tomorrow and when you'll do it.",
+  "proof": "Your plan.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "planning",
+  "when": "evening",
+  "weight": 0.6,
   "tags": [
    "projects"
   ],
@@ -2561,7 +3190,7 @@
   "track": "projects",
   "title": "Launch a Version People Can Use",
   "short": "Put a working version of your project where someone else can use it: a link, a listing or a demo.",
-  "proof": "The live version on a laptop.",
+  "proof": "The live version on a computer, or the link and what it does written down.",
   "proofType": "PHOTO",
   "points": 25,
   "minutes": 60,
@@ -2585,6 +3214,7 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "group": "project-fix",
   "tags": [
    "projects"
   ],
@@ -2595,12 +3225,50 @@
   "track": "projects",
   "title": "Back Up Your Project Files",
   "short": "Copy your project files to a second place: a cloud folder or a drive.",
-  "proof": "The backup folder on a laptop.",
+  "proof": "The backup folder on a computer.",
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 10,
   "requires": [],
   "cooldownDays": 14,
+  "repeatable": true,
+  "tags": [
+   "projects"
+  ],
+  "active": true
+ },
+ {
+  "id": "projects-learn-15",
+  "track": "projects",
+  "title": "Learn One Thing Your Project Needs",
+  "short": "Spend 15 minutes learning the one tool or technique your next step needs.",
+  "proof": "Your notes, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "timerMinutes": 15,
+  "also": [
+   "skills"
+  ],
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "tags": [
+   "projects"
+  ],
+  "active": true
+ },
+ {
+  "id": "projects-describe",
+  "track": "projects",
+  "title": "Write Your Project's Description",
+  "short": "Write a short description of what your project is, who it's for and what it does.",
+  "proof": "Your description.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 30,
   "repeatable": true,
   "tags": [
    "projects"
@@ -2670,7 +3338,7 @@
   "track": "skills",
   "title": "Practice Coding for 30 Minutes",
   "short": "Write code for 30 minutes: an exercise, a small feature or a bug fix.",
-  "proof": "Your code on a laptop, after the timer.",
+  "proof": "Your code on a computer, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 15,
   "minutes": 30,
@@ -2680,6 +3348,7 @@
   ],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "skill-session",
   "tags": [
    "skills"
@@ -2701,6 +3370,7 @@
   ],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "skill-session",
   "tags": [
    "skills"
@@ -2712,7 +3382,7 @@
   "track": "skills",
   "title": "Practice Editing for 30 Minutes",
   "short": "Spend 30 minutes editing: cuts, pacing, color or sound on real footage.",
-  "proof": "Your timeline on a laptop, or your edit notes, after the timer.",
+  "proof": "Your timeline on a computer, or your edit notes, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 15,
   "minutes": 30,
@@ -2722,6 +3392,7 @@
   ],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "skill-session",
   "tags": [
    "skills"
@@ -2743,6 +3414,7 @@
   ],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "skill-session",
   "tags": [
    "skills"
@@ -2764,6 +3436,8 @@
   ],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
+  "group": "language",
   "tags": [
    "skills"
   ],
@@ -2784,6 +3458,113 @@
   ],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
+  "group": "skill-session",
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-coding-15",
+  "track": "skills",
+  "title": "Solve One Coding Problem",
+  "short": "Solve one coding exercise from start to finish without looking at the answer.",
+  "proof": "Your code on a computer.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "requires": [
+   "coding"
+  ],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "group": "skill-session",
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-design-copy",
+  "track": "skills",
+  "title": "Recreate One Design You Like",
+  "short": "Copy one poster, layout or logo you like as closely as you can, to learn how it's made.",
+  "proof": "Your copy.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "requires": [
+   "design"
+  ],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "anchor": true,
+  "group": "skill-session",
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-writing-200",
+  "track": "skills",
+  "title": "Write 200 Words",
+  "short": "Write 200 words of something you're working on without stopping to fix it.",
+  "proof": "Your 200 words.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 15,
+  "requires": [
+   "writing"
+  ],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "group": "skill-session",
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-language-words",
+  "track": "skills",
+  "title": "Learn 10 New Words",
+  "short": "Learn 10 new words in the language you're learning until you can write them from memory.",
+  "proof": "The 10 words, written from memory.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [
+   "language"
+  ],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "group": "language",
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-scales-10",
+  "track": "skills",
+  "title": "Practice Scales and Technique for 10 Minutes",
+  "short": "Play scales and technique exercises on your instrument for 10 minutes, slowly and cleanly.",
+  "proof": "Run the 10-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 10,
+  "minutes": 10,
+  "timerMinutes": 10,
+  "requires": [
+   "music"
+  ],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
   "group": "skill-session",
   "tags": [
    "skills"
@@ -2863,6 +3644,80 @@
   "active": true
  },
  {
+  "id": "skills-practice-10",
+  "track": "skills",
+  "title": "Practice Your Skill for 10 Minutes",
+  "short": "Spend 10 focused minutes practicing the skill you're learning, without a tutorial.",
+  "proof": "What you practiced, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "timerMinutes": 10,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "skill-session",
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-notes-learned",
+  "track": "skills",
+  "title": "Take Notes on Something You Learned Today",
+  "short": "Write one thing you learned today in your own words, with an example.",
+  "proof": "Your note.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-plan-practice",
+  "track": "skills",
+  "title": "Plan Tomorrow's Practice",
+  "short": "Write what you'll practice tomorrow, for how long and when.",
+  "proof": "Your plan.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "planning",
+  "when": "evening",
+  "weight": 0.6,
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-short-lesson",
+  "track": "skills",
+  "title": "Watch One Short Lesson and Try It",
+  "short": "Watch one short lesson on the skill you are learning and try what it shows right away.",
+  "proof": "What you tried.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "skill-session",
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
   "id": "skills-typing",
   "track": "skills",
   "title": "Practice Typing for 15 Minutes",
@@ -2886,7 +3741,7 @@
   "track": "skills",
   "title": "Learn One Spreadsheet Skill",
   "short": "Learn one spreadsheet skill such as formulas, sorting or charts, and use it once.",
-  "proof": "What you made on a laptop, after the timer.",
+  "proof": "What you made on a computer, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 10,
   "minutes": 20,
@@ -2914,6 +3769,25 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "group": "skill-review",
+  "tags": [
+   "skills"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-quiz-yourself",
+  "track": "skills",
+  "title": "Test Yourself on Last Week's Lessons",
+  "short": "Write down what you remember from last week's lessons without looking, then check your notes.",
+  "proof": "What you wrote, checked against your notes.",
+  "proofType": "PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "requires": [],
+  "cooldownDays": 5,
+  "repeatable": true,
+  "group": "skill-review",
   "tags": [
    "skills"
   ],
@@ -2931,6 +3805,7 @@
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
+  "group": "skill-session",
   "weight": 0.5,
   "tags": [
    "skills"
@@ -2946,6 +3821,9 @@
   "proofType": "BEFORE_AFTER",
   "points": 10,
   "minutes": 15,
+  "also": [
+   "discipline"
+  ],
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
@@ -2983,6 +3861,9 @@
   "proofType": "BEFORE_AFTER",
   "points": 10,
   "minutes": 10,
+  "also": [
+   "discipline"
+  ],
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
@@ -3005,6 +3886,7 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
+  "group": "desk",
   "tags": [
    "organization"
   ],
@@ -3054,7 +3936,7 @@
   "points": 15,
   "minutes": 30,
   "requires": [],
-  "cooldownDays": 4,
+  "cooldownDays": 3,
   "repeatable": true,
   "group": "laundry",
   "tags": [
@@ -3124,6 +4006,9 @@
   "proofType": "BEFORE_AFTER",
   "points": 10,
   "minutes": 10,
+  "also": [
+   "discipline"
+  ],
   "requires": [],
   "cooldownDays": 7,
   "repeatable": true,
@@ -3166,6 +4051,13 @@
   "repeatable": true,
   "group": "tomorrow-ready",
   "when": "evening",
+  "days": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
   "tags": [
    "organization"
   ],
@@ -3180,6 +4072,9 @@
   "proofType": "BEFORE_AFTER",
   "points": 10,
   "minutes": 15,
+  "also": [
+   "discipline"
+  ],
   "requires": [],
   "cooldownDays": 14,
   "repeatable": true,
@@ -3198,6 +4093,9 @@
   "proofType": "BEFORE_AFTER",
   "points": 10,
   "minutes": 15,
+  "also": [
+   "discipline"
+  ],
   "requires": [],
   "cooldownDays": 14,
   "repeatable": true,
@@ -3248,7 +4146,7 @@
   "id": "organization-bathroom",
   "track": "organization",
   "title": "Clean the Bathroom",
-  "short": "Clean the sink, toilet, shower and floor. Never mix cleaning products.",
+  "short": "Clean the sink, toilet, shower and floor, and never mix cleaning products.",
   "proof": "Before and after of the sink, shot from above.",
   "proofType": "BEFORE_AFTER",
   "points": 15,
@@ -3266,7 +4164,7 @@
   "track": "organization",
   "title": "Put Your Week Into a Calendar",
   "short": "Add every class, shift, practice and deadline for the next 7 days to one calendar.",
-  "proof": "Your calendar on paper or a laptop, private details covered.",
+  "proof": "Your calendar on paper or a computer, private details covered.",
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 15,
@@ -3306,7 +4204,7 @@
   "points": 15,
   "minutes": 30,
   "requires": [],
-  "cooldownDays": 7,
+  "cooldownDays": 3,
   "repeatable": true,
   "tags": [
    "organization"
@@ -3323,7 +4221,7 @@
   "points": 15,
   "minutes": 30,
   "requires": [],
-  "cooldownDays": 7,
+  "cooldownDays": 3,
   "repeatable": true,
   "group": "room",
   "tags": [

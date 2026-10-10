@@ -5,7 +5,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { clock, remainingSeconds, timerDone, type FocusTimer } from '../../core/timer';
-import type { Mission } from '../../core/types';
+import type { Mission, TrackId } from '../../core/types';
 import { MISSION } from '../../content/copy/mission';
 import { Button, Screen, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
@@ -15,6 +15,7 @@ import { areaName, Bar, CameraNote } from './parts';
 export function TimerStage({
   timer,
   mission,
+  area,
   nav,
   denied,
   onPause,
@@ -25,6 +26,8 @@ export function TimerStage({
 }: {
   timer: FocusTimer;
   mission: Mission;
+  /** The area it's in today's plan for. */
+  area?: TrackId;
   nav: ReactNode;
   denied: boolean;
   onPause: () => void;
@@ -80,7 +83,7 @@ export function TimerStage({
     <Screen nav={nav} scroll={false} contentStyle={{ justifyContent: 'center' }} footer={footer}>
       <View onLayout={e => setBoxW(e.nativeEvent.layout.width)}>
         <T v="mono.s" align="center">
-          {areaName(mission).toUpperCase()}
+          {areaName(mission, area).toUpperCase()}
         </T>
         <T
           v="mono.l"

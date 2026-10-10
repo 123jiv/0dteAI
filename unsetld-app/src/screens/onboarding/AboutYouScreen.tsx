@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { AccessibilityInfo, View } from 'react-native';
 import type { Profile, SkillId } from '../../core/types';
+import { TRACK_BY_ID } from '../../content';
 import { ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
@@ -13,6 +14,7 @@ const COPY = ONBOARDING.about;
 
 type YesNoKey = 'school' | 'work' | 'project' | 'gym';
 type Age = NonNullable<Profile['age']>;
+type SchoolLevel = NonNullable<Profile['schoolLevel']>;
 
 const YES_NO: { key: YesNoKey; question: string; hint?: string }[] = [
   { key: 'school', question: COPY.school },
@@ -21,6 +23,7 @@ const YES_NO: { key: YesNoKey; question: string; hint?: string }[] = [
   { key: 'gym', question: COPY.gym },
 ];
 const AGES: Age[] = ['u16', '16to17', '18plus'];
+const SCHOOL_LEVELS: SchoolLevel[] = ['high', 'college'];
 /** The order the chips show in, and the order a profile keeps them in. */
 const SKILLS: SkillId[] = ['coding', 'design', 'video', 'writing', 'language', 'music'];
 
@@ -61,9 +64,26 @@ export function AboutYouScreen({ navigation, route }: RootProps<'AboutYou'>) {
   const { value, change, save } = useProfileDraft(edit);
   const skills = value.skills ?? [];
 
-  const pick = <K extends YesNoKey | 'age'>(key: K, v: Profile[K]) => {
+  // School is one of their areas, but they're not in school: every School mission needs a yes.
+  // Continue (or Save) takes School off their areas; when it's the only one, they pick another first.
+  const conflict = value.school === false && value.tracks.includes('school');
+  const others = value.tracks.filter(t => t !== 'school' && TRACK_BY_ID[t]);
+  const stuck = conflict && others.length === 0;
+  const conflictNote = COPY.schoolConflict(edit, stuck);
+  /** School off the areas, and the week's lean with it, when the answers rule it out. */
+  const settled = (): Partial<Profile> =>
+    conflict ? { tracks: value.tracks.filter(t => t !== 'school'), priority: value.priority === 'school' ? null : value.priority } : {};
+
+  const pick = <K extends YesNoKey | 'age' | 'schoolLevel'>(key: K, v: Profile[K]) => {
     selection();
-    change({ [key]: value[key] === v ? null : v } as Partial<Profile>);
+    const answer = value[key] === v ? null : v;
+    const patch = { [key]: answer } as Partial<Profile>;
+    // High school or college only follows a yes.
+    if (key === 'school' && answer !== true && value.schoolLevel != null) patch.schoolLevel = null;
+    change(patch);
+    if (key === 'school' && answer === false && value.tracks.includes('school')) {
+      AccessibilityInfo.announceForAccessibility(COPY.schoolConflict(edit, others.length === 0));
+    }
   };
 
   /** Pick any: a tap adds the skill, a second tap takes it off. None picked is []. */
@@ -73,7 +93,14 @@ export function AboutYouScreen({ navigation, route }: RootProps<'AboutYou'>) {
     change({ skills: SKILLS.filter(s => next.includes(s)) });
   };
 
-  const next = () => navigation.navigate('Pace');
+  const next = () => {
+    if (stuck) return;
+    if (conflict) change(settled());
+    navigation.navigate('Pace');
+  };
+
+  /** Back to the areas: in onboarding the step before this one; in edit mode the Areas screen, then back here. */
+  const changeAreas = () => (edit ? navigation.navigate('Tracks', { edit: true }) : navigation.goBack());
 
   return (
     <Screen
@@ -82,25 +109,51 @@ export function AboutYouScreen({ navigation, route }: RootProps<'AboutYou'>) {
         edit ? (
           <Button
             title={ONBOARDING.save}
+            disabled={stuck}
             onPress={() => {
-              save();
+              save(settled());
               navigation.goBack();
             }}
           />
         ) : (
           <View>
-            <Button title={ONBOARDING.continue} onPress={next} />
-            <TextButton title={COPY.skip} style={{ marginTop: 8 }} onPress={next} />
+            <Button title={ONBOARDING.continue} disabled={stuck} onPress={next} />
+            {/* Skipping keeps the answers given so far, so it can't step past School with nothing left. */}
+            {stuck ? null : <TextButton title={COPY.skip} style={{ marginTop: 8 }} onPress={next} />}
           </View>
         )
       }>
       <PageTitle title={COPY.title} body={COPY.body} />
       <View style={{ marginTop: 28 }}>
         {YES_NO.map(q => (
-          <Question key={q.key} question={q.question} hint={q.hint}>
-            <Chip title={COPY.yes} label={COPY.a11yChip(q.question, COPY.yes)} on={value[q.key] === true} onPress={() => pick(q.key, true)} />
-            <Chip title={COPY.no} label={COPY.a11yChip(q.question, COPY.no)} on={value[q.key] === false} onPress={() => pick(q.key, false)} />
-          </Question>
+          <View key={q.key}>
+            <Question question={q.question} hint={q.hint}>
+              <Chip title={COPY.yes} label={COPY.a11yChip(q.question, COPY.yes)} on={value[q.key] === true} onPress={() => pick(q.key, true)} />
+              <Chip title={COPY.no} label={COPY.a11yChip(q.question, COPY.no)} on={value[q.key] === false} onPress={() => pick(q.key, false)} />
+            </Question>
+            {q.key === 'school' && value.school === true ? (
+              <Question question={COPY.schoolLevel}>
+                {SCHOOL_LEVELS.map(l => (
+                  <Chip
+                    key={l}
+                    title={COPY.schoolLevels[l]}
+                    label={COPY.a11yChip(COPY.schoolLevel, COPY.schoolLevels[l])}
+                    on={value.schoolLevel === l}
+                    onPress={() => pick('schoolLevel', l)}
+                    style={{ paddingHorizontal: 10 }}
+                  />
+                ))}
+              </Question>
+            ) : null}
+            {q.key === 'school' && conflict ? (
+              <View style={{ paddingBottom: 14, gap: 2 }}>
+                <T v="note" color={C.stone}>
+                  {conflictNote}
+                </T>
+                {stuck ? <TextButton title={COPY.changeAreas} align="left" onPress={changeAreas} /> : null}
+              </View>
+            ) : null}
+          </View>
         ))}
         <Question question={COPY.age}>
           {AGES.map(a => (
