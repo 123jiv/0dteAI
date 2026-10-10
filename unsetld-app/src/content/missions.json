@@ -1232,7 +1232,6 @@
   "cooldownDays": 3,
   "repeatable": true,
   "group": "workout",
-  "weight": 0.3,
   "tags": [
    "fitness"
   ],
@@ -4008,7 +4007,6 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
-  "weight": 0.4,
   "tags": [
    "organization"
   ],
@@ -4048,7 +4046,13 @@
   "repeatable": true,
   "group": "tomorrow-ready",
   "when": "evening",
-  "weight": 0.5,
+  "days": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
   "tags": [
    "organization"
   ],

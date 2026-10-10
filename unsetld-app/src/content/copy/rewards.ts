@@ -36,6 +36,8 @@ export const REWARDS_COPY = {
   signIn: 'Sign in',
   /** A code whose reward is no longer in the list. */
   unknownReward: 'Reward',
+  /** Rewards that were taken out of the list, so codes already taken keep their name. */
+  retiredRewards: { 'free-shipping': 'Free shipping' } as Record<string, string>,
 
   // Redeem
   confirmTitle: (points: number) => `Trade ${pts(points)} points?`,

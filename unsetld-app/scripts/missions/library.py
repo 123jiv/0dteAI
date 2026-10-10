@@ -250,7 +250,7 @@ m("fitness-bike-30", F, "Bike for 30 Minutes", 30, 15, TP,
   group="cardio", active=False)
 m('fitness-sport-30', F, 'Practice Your Sport for 30 Minutes', 30, 15, TP,
   'Work on the skills of your sport for 30 minutes: drills, shots, footwork.', 'Where you practiced. No people.', 3,
-  group='workout', weight=0.3)
+  group='workout')
 m('fitness-stretch-10', F, 'Stretch for 10 Minutes', 10, 10, T,
   'Stretch your hips, legs, back and shoulders for 10 minutes.', 'Run the 10-minute timer to the end.', 1,
   group='stretch', anchor=True)
@@ -673,14 +673,13 @@ m('organization-put-away-laundry', O, 'Put Away Your Laundry', 10, 10, P,
 m('organization-dishes', O, 'Do the Dishes', 15, 10, P,
   'Wash, dry and put away the dishes.', 'The empty sink.', 3)
 m("organization-trash", O, "Take Out Your Trash", 5, 5, P,
-  "Empty your trash and recycling and take them out.", "The empty bin.", 3,
-  weight=0.4)
+  "Empty your trash and recycling and take them out.", "The empty bin.", 3)
 m('organization-bag', O, 'Clean Out Your Backpack or Work Bag', 10, 10, BA,
   'Empty your bag, throw out the trash and pack back only what you need.', 'Before and after, cards turned over.', 7,
   also=['discipline'])
 m("organization-clothes-tomorrow", O, "Lay Out Your Clothes for Tomorrow", 5, 5, P,
   "Pick and lay out tomorrow's clothes tonight.", "Your clothes, laid out.", 1,
-  group="tomorrow-ready", when="evening", weight=0.5)
+  group="tomorrow-ready", when="evening", days=WEEKNIGHTS)
 m('organization-pack-bag', O, 'Pack Your Bag for Tomorrow', 5, 5, P,
   'Pack everything you need for tomorrow and put your bag by the door.', 'Your packed bag.', 1,
   group='tomorrow-ready', when='evening', days=WEEKNIGHTS)

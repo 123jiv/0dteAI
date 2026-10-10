@@ -309,7 +309,7 @@ export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const sorted = [...tiers].sort((a, b) => a.points - b.points);
-  const titleOf = (id: string) => (tiers.find(t => t.id === id) ?? REWARD_TIERS.find(t => t.id === id))?.title ?? R.unknownReward;
+  const titleOf = (id: string) => (tiers.find(t => t.id === id) ?? REWARD_TIERS.find(t => t.id === id))?.title ?? R.retiredRewards[id] ?? R.unknownReward;
   const codes: CodeItem[] = [
     ...(record.redemptions ?? []).map((r, i) => ({ key: `r${i}:${r.code}`, title: titleOf(r.rewardId), code: r.code, url: r.url, day: r.day, expires: r.expires })),
     ...(record.codes ?? []).map((c, i) => ({ key: `c${i}:${c.code}`, title: R.legacyTitle(c.percent), code: c.code, url: c.url, day: c.day, expires: c.expires })),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import rewardsJson from '../../content/rewards.json';
 import { parseRewards, parseRewardTier } from '../rewards';
+import type { RewardTier } from '../types';
 
 const good = {
   id: 'ten-off',
@@ -87,5 +88,13 @@ describe("unsetld.com's reward config", () => {
 
   it('accepts the shipped defaults as they are', () => {
     expect(parseRewards(rewardsJson)).toEqual(rewardsJson);
+  });
+});
+
+describe('default tiers', () => {
+  it('are discounts only (free shipping was taken out); anything else is switched off', () => {
+    const on = (rewardsJson as RewardTier[]).filter(t => t.active);
+    expect(on.length).toBeGreaterThan(0);
+    for (const t of on) expect(t.type).toBe('discount');
   });
 });

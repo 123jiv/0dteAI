@@ -2,7 +2,7 @@
 
 Updated for 3.0 (9 Oct 2026). Everything is earned by proving missions, and none of it can be bought. Full Edition doesn't change any of it.
 
-- **Proven missions earn points; points become rewards.** Each mission proven with the in-app camera earns its points (quick win 10, progress 15, challenge 25), plus 15 when every mission in the day's plan is proven. Points trade for single-use codes at unsetld.com: free shipping, 10% off, 15% off.
+- **Proven missions earn points; points become rewards.** Each mission proven in the app earns its points (5 to 25, by how long it takes), plus 15 when every mission in the day's plan is proven. Points trade for single-use discount codes at unsetld.com: 10% off and 15% off.
 - **Days with a proven mission open Access.** A day counts once at least one mission is proven that day. Those days open early access (Day 7), the patch (Day 90) and the 365 piece (Day 365). Days on record from 2.x carry over.
 
 The app has to make sense for someone who never buys a hoodie, so rewards stay quiet: the Rewards screen, one line on Home and on the done screen after a proof (never a popup), milestone letters and milestone pages. They never appear in widgets, notifications, the paywall or mission text.
@@ -30,7 +30,6 @@ The default tiers:
 
 | Reward | Points | What | Limits |
 |---|---|---|---|
-| Free shipping (`free-shipping`) | 300 | Free shipping on one order | One each collection, code works 30 days |
 | 10% off (`ten-off`) | 600 | 10% off one order | Up to $25 off, one each collection, 30 days |
 | 15% off (`fifteen-off`) | 1,000 | 15% off one order | Up to $25 off, one each collection, 30 days |
 | Limited piece (`limited-drop`) | 2,000 | First pick of a limited run at full price | Switched off (`active: false`) |
@@ -56,7 +55,7 @@ The default tiers:
 
 ## Why this costs little
 
-A perfect day on Lock in is 65 points (10 + 15 + 25 + 15), so free shipping takes about 5 perfect days, 10% off about 10, 15% off about 16, and all three about 30 perfect days in one collection, which few people keep up. The worst case per person per collection is free shipping on one order plus two codes worth at most $25 each, one patch ever, and early access, which costs nothing. Assume 4 collections a year and that 15–20% of active users take a percentage code each collection. Then 1,000 active users cost at most about 1,000 × 20% × 4 × $50 = **$40,000 of discount a year** plus shipping, and only against full-price orders those people chose to place. In practice it's far less, because most people don't buy every collection. Tiers and points can be changed from the config without an app update.
+A typical perfect day on Lock in with 30–60 minutes is about 55 points (5 + 15 + 20, plus the 15 bonus), so 10% off takes about 11 perfect days, 15% off about 18, and both about 29 perfect days in one collection, which few people keep up. The worst case per person per collection is two codes worth at most $25 each, one patch ever, and early access, which costs nothing. Assume 4 collections a year and that 15–20% of active users take a percentage code each collection. Then 1,000 active users cost at most about 1,000 × 20% × 4 × $50 = **$40,000 of discount a year**, and only against full-price orders those people chose to place. In practice it's far less, because most people don't buy every collection. Tiers and points can be changed from the config without an app update.
 
 ## Feature flag and reward config
 
@@ -67,7 +66,6 @@ The app reads `https://www.unsetld.com/api/app/config.json` on launch and on eve
   "accessEnabled": false,
   "collection": "004",
   "rewards": [
-    { "id": "free-shipping", "title": "Free shipping", "detail": "On your next UNSETLD order.", "type": "free-shipping", "points": 300, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1 }
   ]
 }
 ```
@@ -137,7 +135,7 @@ The app shows each redeem error in plain words: `used` "You took this one this c
 
 Minting codes (Shopify Admin API): single use, usage limit 1, `combinesWith` nothing, valid for the tier's `codeValidDays` (30 by default). Return `https://www.unsetld.com/discount/{CODE}`, which applies it at checkout.
 - **`discount`:** a percentage code. Shopify percentage codes can't cap at `maxOff` by themselves. Either enforce the cap with a small **Shopify Discount Function** that applies `min(percent × subtotal, maxOff)`, or mint a fixed-amount code worth `min(percent × the cart, maxOff)` at redeem time.
-- **`free-shipping`:** a free-shipping code for one order.
+- **`free-shipping`:** a free-shipping code for one order. Not in the default tiers (taken out in 3.0); a past code keeps its name on the Rewards screen.
 - **`limited`, `early-access`, `drop`:** not offered by default. Before switching one on in the config, build its handling here (for example a reserved cart link like the patch claim below) and decrement `inventory`.
 
 Claims by `perk`:
