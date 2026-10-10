@@ -282,6 +282,8 @@ function weight(m: Mission, input: Pick<PlanInput, 'history' | 'day' | 'profile'
     if (m.requires?.some(r => (skills as readonly string[]).includes(r))) w *= 2;
     if (m.fits?.length) w *= m.fits.some(s => skills.includes(s)) ? 1.5 : 0.25;
   }
+  // Internship searches are for students: someone working and not in school gets job missions instead.
+  if (input.profile.work === true && input.profile.school !== true && m.tags?.includes('internship') && !m.tags.includes('job')) w *= 0.2;
   const shown = input.history.lastPlanned[m.id];
   if (!shown) w *= 1.3;
   else {

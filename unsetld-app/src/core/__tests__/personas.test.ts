@@ -209,6 +209,16 @@ describe('the founder personas, from the goal they typed', () => {
     }
   });
 
+  it("doesn't send someone working and out of school to look for internships", () => {
+    const e = PERSONAS.find(p => p.key === 'E')!.profile;
+    const internshipOnly = (id: string) => {
+      const t = BY_ID.get(id)!.tags ?? [];
+      return t.includes('internship') && !t.includes('job');
+    };
+    const weeks = [0, 1, 2, 3].flatMap(k => simulateWeek(e, addDays('2026-10-12', k * 7), 7));
+    expect(weeks.flatMap(p => p.missions).filter(x => internshipOnly(x.missionId)).length).toBeLessThanOrEqual(1);
+  });
+
   it('missions made for one medium (Film One Video) wait for a user who named it', () => {
     const builder: Profile = { ...DEFAULT_PROFILE, tracks: ['projects', 'discipline'], project: true, skills: [], age: '18plus', minutes: 60 };
     const medium = (id: string) => Boolean(BY_ID.get(id)!.fits?.length);
