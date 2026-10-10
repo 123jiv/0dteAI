@@ -152,3 +152,120 @@ export function completion(r: RecordState, plans: Record<DayKey, DayPlan>, from:
   }
   return { done, planned: Math.max(planned, done) };
 }
+
+// ---------------------------------------------------------------------------------------------
+// 3.1 Progress (docs/UX_REDESIGN.md §7–8): what the Progress tab, Achievements, Stats and Proof
+// history show. Built on the functions above; none of them change.
+
+/**
+ * How a day of the week reads on Progress: proven (a mission proven), covered (an Off Day kept
+ * the streak), missed, today (nothing proven yet), today-proven, ahead (later this week) and
+ * before (before the first day anything was proven: nothing to have missed yet).
+ */
+export type WeekDayKind = 'proven' | 'covered' | 'missed' | 'today' | 'today-proven' | 'ahead' | 'before';
+
+export interface WeekDay {
+  day: DayKey;
+  kind: WeekDayKind;
+}
+
+/** The seven days from `monday`, each with how it reads. `covered`: days an Off Day covered (computeStreak). */
+export function weekDays(active: ReadonlySet<DayKey>, covered: readonly DayKey[], today: DayKey, monday: DayKey): WeekDay[] {
+  const first = [...active].sort()[0] ?? null;
+  const off = new Set(covered);
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = addDays(monday, i);
+    let kind: WeekDayKind;
+    if (day === today) kind = active.has(day) ? 'today-proven' : 'today';
+    else if (day > today) kind = 'ahead';
+    else if (active.has(day)) kind = 'proven';
+    else if (off.has(day)) kind = 'covered';
+    else kind = first && day > first ? 'missed' : 'before';
+    return { day, kind };
+  });
+}
+
+export interface AreaProgress extends TrackProgress {
+  /** Time put in: the focus timer's seconds where it ran, else the mission's minutes. */
+  seconds: number;
+}
+
+/**
+ * Levels (trackProgress: XP is mission points, no second currency) with the time put into each
+ * area. `minutesOf` gives a mission's minutes (retired ones included); a mission no longer in the
+ * library and without a timer adds no time.
+ */
+export function areaProgress(r: RecordState, minutesOf: (missionId: string) => number | undefined): Record<TrackId, AreaProgress> {
+  const levels = trackProgress(r);
+  const out = Object.fromEntries(TRACK_IDS.map(t => [t, { ...levels[t], seconds: 0 }])) as Record<TrackId, AreaProgress>;
+  for (const m of allDone(r)) {
+    if (!isProven(m) || !KNOWN_TRACKS.has(m.track)) continue;
+    const timer = typeof m.timerSeconds === 'number' && Number.isFinite(m.timerSeconds) && m.timerSeconds > 0 ? m.timerSeconds : 0;
+    const minutes = minutesOf(m.missionId);
+    out[m.track].seconds += timer || (typeof minutes === 'number' && minutes > 0 ? minutes * 60 : 0);
+  }
+  return out;
+}
+
+/**
+ * The areas Progress shows, in order: the ones the user chose that can get missions (in their
+ * order), then any other area with points, most points first. An area the user chose but can't
+ * get missions in (School for someone not in school) shows only once it has points.
+ */
+export function areasShown(chosen: readonly TrackId[], usable: readonly TrackId[], levels: Record<TrackId, Pick<TrackProgress, 'xp'>>): TrackId[] {
+  const known = (t: TrackId) => KNOWN_TRACKS.has(t);
+  const first = chosen.filter(t => known(t) && (usable.includes(t) || levels[t].xp > 0));
+  const rest = TRACK_IDS.filter(t => !first.includes(t) && levels[t].xp > 0).sort((a, b) => levels[b].xp - levels[a].xp);
+  return [...new Set([...first, ...rest])];
+}
+
+/** Achievements: the milestones reached, oldest first, then the next `count` to reach. */
+export function achievementsView(ms: readonly MilestoneState[], count = 3): { reached: MilestoneState[]; next: MilestoneState[] } {
+  const reached = ms.filter(m => m.reached).sort((a, b) => (a.reached! < b.reached! ? -1 : a.reached! > b.reached! ? 1 : 0));
+  return { reached, next: ms.filter(m => !m.reached).slice(0, count) };
+}
+
+/** What a proof tile shows: the photo (`cover`), a timer, or neither (an entry saved without either). */
+export type ProofTile = 'photo' | 'timer' | 'none';
+
+export interface ProofEntry {
+  /** `${day}:${missionId}`, unique on the record. */
+  key: string;
+  day: DayKey;
+  done: MissionDone;
+  /** The photo on the grid: the after photo of a pair, else the only one. Its uri is '' once the retention setting cleared it. */
+  cover: ProofPhoto | null;
+  tile: ProofTile;
+}
+
+export interface ProofMonth {
+  /** 'YYYY-MM' */
+  month: string;
+  /** Days that month with a proven mission. */
+  activeDays: number;
+  /** Missions proven that month (one entry each). */
+  missions: number;
+  /** Newest first. */
+  entries: ProofEntry[];
+}
+
+/**
+ * Proof history: every proven mission, by month, newest first. A photo cleared by the retention
+ * setting keeps its entry (uri ''), so the history never breaks; a timer-only proof is a timer
+ * tile. Old entries without verification are not proven and don't show.
+ */
+export function proofMonths(r: RecordState): ProofMonth[] {
+  const byMonth = new Map<string, ProofEntry[]>();
+  const done = allDone(r).filter(isProven).reverse();
+  for (const { day, ...m } of done) {
+    const photos = photosOf(m);
+    const cover = photos.find(p => p.kind !== 'before') ?? photos[0] ?? null;
+    const timer = typeof m.timerSeconds === 'number' && m.timerSeconds > 0;
+    const entry: ProofEntry = { key: `${day}:${m.missionId}`, day, done: { ...m, photos }, cover, tile: cover ? 'photo' : timer ? 'timer' : 'none' };
+    const month = day.slice(0, 7);
+    const list = byMonth.get(month);
+    if (list) list.push(entry);
+    else byMonth.set(month, [entry]);
+  }
+  return [...byMonth.entries()].map(([month, entries]) => ({ month, activeDays: new Set(entries.map(e => e.day)).size, missions: entries.length, entries }));
+}

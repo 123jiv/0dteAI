@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IS_PREVIEW } from '../config/app';
+import { FEATURES, type Feature } from '../core/features';
 import { formatMoney, perMonth, savingsPercent } from '../core/pricing';
+import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
+import { COLORWAYS, PROGRAMS, RULES } from '../content';
 import { PLATFORM } from '../content/copy/platform';
 import type { RootProps } from '../navigation/types';
 import { selection } from '../services/haptics';
@@ -10,14 +13,28 @@ import { scheduleTrialReminder } from '../services/notifications';
 import { getPlans, purchase, restore, type Plan, type PlanKind } from '../services/purchases';
 import { useApp } from '../state/store';
 import { showDialog } from '../ui/actions';
+import { Card, SectionLabel } from '../ui/blocks';
 import { Icon } from '../ui/icons';
 import { Button, Square, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
-import { color as C, font, hairline, MARGIN } from '../ui/tokens';
+import { color as C, font, GAP, MARGIN, radius } from '../ui/tokens';
 
 const P = PLATFORM.paywall;
 
-/** Full Edition, set like a product page. Prices always come from StoreKit. */
+/** What each UNSETLD+ feature in core/features adds, in numbers from the content (rules, plans, colorways). */
+const ADDS: Partial<Record<Feature, () => string>> = {
+  extraSwaps: () => P.adds.extraSwaps(RULES.rerolls.free, RULES.rerolls.full),
+  allPlans: () => P.adds.allPlans(PROGRAMS.length),
+  colorways: () => P.adds.colorways(COLORWAYS.length),
+  extraReminders: () => P.adds.extraReminders(FREE_MAX_REMINDERS, FULL_MAX_REMINDERS),
+};
+/** The UNSETLD+ side of core/features, in its order. Moving a feature there moves its row here. */
+const PLUS_ROWS = (Object.keys(FEATURES) as Feature[])
+  .filter(f => FEATURES[f] === 'plus')
+  .map(f => ADDS[f]?.())
+  .filter((x): x is string => Boolean(x));
+
+/** UNSETLD+, set like a product page. Prices always come from the store (services/purchases). */
 export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
   const insets = useSafeAreaInsets();
   const setPremium = useApp(s => s.setPremium);
@@ -115,95 +132,104 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
     <View style={{ flex: 1, backgroundColor: C.ink }}>
       <View style={{ marginTop: insets.top + 8, height: 44, paddingHorizontal: MARGIN - 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Pressable accessibilityRole="button" accessibilityLabel={PLATFORM.a11y.close} onPress={close} style={{ width: 44, height: 44, justifyContent: 'center', paddingLeft: 6 }}>
-          <Icon name="close" size={24} />
+          <Icon name="close" size={24} color={C.stone} />
         </Pressable>
         <TextButton title={P.restore} onPress={doRestore} style={{ paddingHorizontal: 10 }} />
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: MARGIN, paddingBottom: insets.bottom + 24 }} showsVerticalScrollIndicator={false}>
-        <T v="label" style={{ marginTop: 24 }}>
-          {P.label}
-        </T>
-        <T v="title.xl" style={{ marginTop: 12 }} accessibilityRole="header">
+        <T v="title.xl" style={{ marginTop: 20 }} accessibilityRole="header">
           {P.title}
         </T>
         <T v="body" color={C.stone} style={{ marginTop: 12 }}>
           {P.description}
         </T>
 
-        <View style={{ marginTop: 28, borderBottomWidth: hairline, borderBottomColor: C.rule }}>
-          {P.spec.map(([k, v]) => (
-            <View key={k} style={{ minHeight: 40, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', borderTopWidth: hairline, borderTopColor: C.rule }}>
-              <T v="label" style={{ width: 104 }}>
-                {k}
-              </T>
-              <T v="small" style={{ flex: 1 }}>
-                {v}
-              </T>
-            </View>
-          ))}
+        <View style={{ marginTop: GAP.block }}>
+          <SectionLabel>{P.addsLabel}</SectionLabel>
+          <Card style={{ gap: 14 }}>
+            {PLUS_ROWS.map(line => (
+              <View key={line} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+                <View style={{ marginTop: 1 }}>
+                  <Icon name="check" size={18} color={C.bone} />
+                </View>
+                <T v="body" style={{ flex: 1 }}>
+                  {line}
+                </T>
+              </View>
+            ))}
+          </Card>
         </View>
-        <T v="note" color={C.stone} style={{ marginTop: 12 }}>
-          {P.freeNote}
-        </T>
 
-        <View accessibilityRole="radiogroup" style={{ marginTop: 28 }}>
-          {rows.map((r, i) => {
-            const p = plans?.find(x => x.kind === r.kind);
-            const on = kind === r.kind;
-            return (
-              <Pressable
-                key={r.kind}
-                accessibilityRole="radio"
-                // aria-checked rather than accessibilityState: react-native-web only reads the former.
-                aria-checked={on}
-                accessibilityLabel={P.a11yPlan(r.name, p ? p.priceString : P.a11yLoading, P.a11yUnit[r.kind], r.sub)}
-                onPress={() => {
-                  if (!on) selection();
-                  setKind(r.kind);
-                }}
-                style={{
-                  minHeight: 64,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderTopWidth: i === 0 ? 0 : hairline,
-                  borderBottomWidth: i === rows.length - 1 ? hairline : 0,
-                  borderColor: C.rule,
-                  paddingVertical: 10,
-                }}>
-                <Square on={on} />
-                <View style={{ flex: 1, marginLeft: 16 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-                    <T v="row" style={{ fontSize: 17 }} color={on ? C.bone : C.muted}>
-                      {r.name}
+        <View style={{ marginTop: GAP.block }}>
+          <SectionLabel>{P.freeLabel}</SectionLabel>
+          <T v="small" color={C.muted}>
+            {P.free}
+          </T>
+        </View>
+
+        <View accessibilityRole="radiogroup" accessibilityLabel={P.planLabel} style={{ marginTop: GAP.section - 4 }}>
+          <SectionLabel>{P.planLabel}</SectionLabel>
+          <View style={{ gap: GAP.tight }}>
+            {rows.map(r => {
+              const p = plans?.find(x => x.kind === r.kind);
+              const on = kind === r.kind;
+              return (
+                <Pressable
+                  key={r.kind}
+                  accessibilityRole="radio"
+                  // aria-checked rather than accessibilityState: react-native-web only reads the former.
+                  aria-checked={on}
+                  accessibilityLabel={P.a11yPlan(r.name, p ? p.priceString : P.a11yLoading, P.a11yUnit[r.kind], r.sub)}
+                  onPress={() => {
+                    if (!on) selection();
+                    setKind(r.kind);
+                  }}
+                  style={({ pressed }) => ({
+                    minHeight: 68,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: radius.card,
+                    borderWidth: 1,
+                    borderColor: on ? C.bone : 'transparent',
+                    backgroundColor: pressed ? C.cardPressed : C.card,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                  })}>
+                  <Square on={on} />
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+                      <T v="row" style={{ fontSize: 17 }} color={on ? C.bone : C.muted}>
+                        {r.name}
+                      </T>
+                      {r.kind === 'annual' && save ? (
+                        <T v="note" color={C.stone}>
+                          {P.save(save)}
+                        </T>
+                      ) : null}
+                    </View>
+                    <T v="note" color={C.stone}>
+                      {r.sub}
                     </T>
-                    {r.kind === 'annual' && save ? (
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+                      <T v="price" color={on ? C.bone : C.muted}>
+                        {p ? p.priceString : P.loading}
+                      </T>
                       <T v="note" color={C.stone}>
-                        {P.save(save)}
+                        {P.unit[r.kind]}
+                      </T>
+                    </View>
+                    {r.kind === 'annual' && p ? (
+                      <T v="fine" color={C.stone}>
+                        {P.perMonth(formatMoney(perMonth(p.price), p.currencyCode))}
                       </T>
                     ) : null}
                   </View>
-                  <T v="note" color={C.stone}>
-                    {r.sub}
-                  </T>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-                    <T v="price" color={on ? C.bone : C.muted}>
-                      {p ? p.priceString : P.loading}
-                    </T>
-                    <T v="note" color={C.stone}>
-                      {P.unit[r.kind]}
-                    </T>
-                  </View>
-                  {r.kind === 'annual' && p ? (
-                    <T v="fine" color={C.stone}>
-                      {P.perMonth(formatMoney(perMonth(p.price), p.currencyCode))}
-                    </T>
-                  ) : null}
-                </View>
-              </Pressable>
-            );
-          })}
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         {failed ? (

@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, Platform, Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID } from '../../content';
 import { HOME } from '../../content/copy/home';
 import { selection } from '../../services/haptics';
@@ -10,11 +11,68 @@ import { Sheet } from '../../ui/Sheet';
 import { T } from '../../ui/text';
 import { color as C, font, hairline, MARGIN } from '../../ui/tokens';
 
+/** The sheet's closing slide (ui/Sheet), and a frame to spare. */
+const CLOSE_MS = 280;
+
 /**
- * Colorway picker. Home behind it changes live; locked picks revert on close.
- * Each swatch shows one of today's mission titles, the way it would read on Home.
+ * Colorway picker (You › Appearance opens it over Today). Today behind it changes live, the
+ * tab bar included; locked picks revert on close. Each swatch shows one of today's mission
+ * titles, the way it would read on Today. It sits in a transparent modal so it covers the tab
+ * bar, and anything it opens (the paywall) waits until that modal is gone.
  */
 export function ColorwaySheet({ visible, onClose, onFull }: { visible: boolean; onClose: () => void; onFull: () => void }) {
+  // The modal stays up for the sheet's closing slide.
+  const [shown, setShown] = useState(visible);
+  if (visible && !shown) setShown(true);
+  useEffect(() => {
+    if (visible || !shown) return;
+    const t = setTimeout(() => setShown(false), CLOSE_MS);
+    return () => clearTimeout(t);
+  }, [visible, shown]);
+  // What to open once the modal is down: on iOS when it says it's dismissed (presenting a
+  // screen while a modal is still going away fails there), elsewhere as soon as it's hidden.
+  const after = useRef<(() => void) | null>(null);
+  const gone = useCallback(() => {
+    const run = after.current;
+    after.current = null;
+    run?.();
+  }, []);
+  useEffect(() => {
+    if (shown) return;
+    if (Platform.OS !== 'ios') {
+      gone();
+      return;
+    }
+    // In case onDismiss never comes.
+    const t = setTimeout(gone, 600);
+    return () => clearTimeout(t);
+  }, [shown, gone]);
+
+  return (
+    <Modal
+      visible={shown}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={() => {
+        // Android back: same as closing the sheet, so a locked preview doesn't stay on.
+        useApp.getState().setPreviewColorway(null);
+        onClose();
+      }}
+      onDismiss={Platform.OS === 'ios' ? gone : undefined}>
+      <ColorwayPicker
+        visible={visible}
+        onClose={onClose}
+        onFull={() => {
+          after.current = onFull;
+        }}
+      />
+    </Modal>
+  );
+}
+
+function ColorwayPicker({ visible, onClose, onFull }: { visible: boolean; onClose: () => void; onFull: () => void }) {
   const { width } = useWindowDimensions();
   const ent = useEntitlements();
   const day = useApp(s => s.currentDay);
@@ -93,7 +151,7 @@ export function ColorwaySheet({ visible, onClose, onFull }: { visible: boolean; 
                 </View>
                 {/* Name, and the lock under it: side by side they don't fit a 159-wide swatch. */}
                 <View style={{ marginTop: 12, gap: 2 }}>
-                  <T v="label" color={on ? C.bone : C.stone} numberOfLines={1}>
+                  <T v="kicker" color={on ? C.bone : C.stone} numberOfLines={1}>
                     {c.name}
                   </T>
                   {locked ? (

@@ -4,11 +4,11 @@
     "sections": [
       {
         "h": "Your missions",
-        "p": "Every day you get three missions from the areas you chose. With 30 minutes or more a day, one takes 15 minutes or less and two take real focus; Push me adds a third focused one. With 15–30 minutes, two are short and one is focused. With 5–15 minutes, all three are short. They're picked to fit your answers and the time you said you have. A day runs from 4:00 AM to 3:59 AM, so a late night counts as the day it started."
+        "p": "Every day you get three missions from the areas you chose. How long they run follows the time you said you have: with 15 minutes all three are short; with 30, two are short and one takes real focus; with 45, one is short and two take real focus; with an hour or more, intensity decides, and Push me adds a fourth. They're picked to fit your answers, what you're working toward and this week's focus. A day runs from 4:00 AM to 3:59 AM, so a late night counts as the day it started."
       },
       {
         "h": "Swaps",
-        "p": "Don't want one? Swap it before you prove it, and you get another mission from the same area when one fits today. One swap a day, three with Full Edition. A mission you swap stays away for a week, or three weeks after you swap it a third time in a month. An everyday habit like Study for 30 Minutes or Complete Your Workout comes back after a couple of days."
+        "p": "Don't want one? Swap it before you prove it, and you get another mission from the same area when one fits today. One swap a day, three with UNSETLD+. A mission you swap stays away for a week, or three weeks after you swap it a third time in a month. An everyday habit like Study for 30 Minutes or Complete Your Workout comes back after a couple of days."
       },
       {
         "h": "Proof",
@@ -40,20 +40,26 @@
       },
       {
         "h": "Levels",
-        "p": "The points from each mission add to its area's level, so you can see where the work is going. Milestones mark your first mission, your first perfect day, 7 days, 30 missions and more."
+        "p": "The points from each mission add to its area's level, so you can see where the work is going. Achievements mark your first mission, your first perfect day, 7 days, 30 missions and more."
       },
       {
         "h": "Proof photos",
-        "p": "Photos stay on this phone. They're deleted after 30 days unless you choose 1 year or Keep in Settings. The mission, its points and your streak stay."
+        "p": "Photos stay on this phone. They're deleted after 30 days unless you choose 1 year or Keep under Proof photos in You. The mission, its points and your streak stay."
       },
       {
-        "h": "Access",
-        "p": "Points trade for rewards at unsetld.com, and the days you prove at least one mission open more. What's on offer can change with each collection; Rewards shows what's open now.",
+        "h": "Rewards",
+        "p": "Points trade for rewards at unsetld.com. What's on offer can change with each collection; Rewards shows what's open now.",
         "list": [
           "300 points: 5% off one order, up to $25 off.",
           "600 points: 10% off one order, up to $25 off.",
           "1,000 points: 15% off one order, up to $25 off.",
-          "One code for each reward each collection. Codes work for 30 days.",
+          "One code for each reward each collection. Codes work for 30 days."
+        ]
+      },
+      {
+        "h": "UNSETLD status",
+        "p": "Status is separate from points: it counts the days you prove at least one mission, and spending points never lowers it.",
+        "list": [
           "Day 7: every UNSETLD drop opens to you 24 hours before the public.",
           "Day 90: a woven patch with your number, free with your next order.",
           "Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked."
@@ -69,7 +75,7 @@
       },
       {
         "h": "It can't be bought",
-        "p": "Points and access come only from proven missions. Full Edition doesn't change them, and none of it is for sale."
+        "p": "Points and status come only from proven missions. UNSETLD+ doesn't change them, and none of it is for sale."
       },
       {
         "h": "Account",
@@ -78,8 +84,8 @@
     ]
   },
   "access": {
-    "title": "Rewards and access terms",
-    "updated": "2026-10-09",
+    "title": "Rewards and status terms",
+    "updated": "2026-10-10",
     "sections": [
       {
         "h": "Who can take part",
@@ -87,7 +93,7 @@
       },
       {
         "h": "No purchase necessary",
-        "p": "Points and access are earned only by proving missions in the app. They can't be bought, and Full Edition doesn't change them."
+        "p": "Points and status are earned only by proving missions in the app. They can't be bought, and UNSETLD+ doesn't change them."
       },
       {
         "h": "How points are earned",
@@ -98,12 +104,12 @@
         "p": "300 points can be traded for 5% off one order, 600 points for 10% off one order and 1,000 points for 15% off one order, each up to $25 off. You can take one code for each reward each collection. Codes are single use, work for 30 days and are only valid at unsetld.com. The rewards on offer, their points and their dates are shown in the app and may change with each collection."
       },
       {
-        "h": "Access",
-        "p": "Access counts the days you prove at least one mission. Early access opens drops 24 hours before the public from Day 7. The patch is one per person and ships free with an order from Day 90. The 365 piece is sold at full price from Day 365."
+        "h": "UNSETLD status",
+        "p": "Status counts the days you prove at least one mission. Early access opens drops 24 hours before the public from Day 7. The patch is one per person and ships free with an order from Day 90. The 365 piece is sold at full price from Day 365."
       },
       {
         "h": "Limits",
-        "p": "No cash value. Not transferable. Points, codes and access can't be sold, bought or exchanged for money. One code per order. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece."
+        "p": "No cash value. Not transferable. Points, codes and status can't be sold, bought or exchanged for money. One code per order. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece."
       },
       {
         "h": "Pauses",
@@ -121,23 +127,23 @@
   },
   "terms": {
     "title": "Terms of Use",
-    "updated": "2026-10-09",
+    "updated": "2026-10-10",
     "sections": [
       {
         "h": "Using UNSETLD",
-        "p": "UNSETLD gives you daily missions, a camera to prove them, points, a streak, levels, programs, reminders and rewards. It isn't medical, financial or professional advice. Do missions within your limits, and swap any that don't suit you."
+        "p": "UNSETLD gives you daily missions, a camera to prove them, points, a streak, levels, plans, reminders and rewards. It isn't medical, financial or professional advice. Do missions within your limits, and swap any that don't suit you."
       },
       {
-        "h": "Full Edition",
-        "p": "Full Edition is sold through Apple as an auto-renewing subscription (yearly or monthly) or a one-time lifetime purchase. Payment is charged to your Apple ID at confirmation of purchase, or when a free trial ends. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings, your name, Subscriptions. Any unused part of a free trial ends when you buy a subscription."
+        "h": "UNSETLD+",
+        "p": "UNSETLD+ is sold through Apple as an auto-renewing subscription (yearly or monthly) or a one-time lifetime purchase. Payment is charged to your Apple ID at confirmation of purchase, or when a free trial ends. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings, your name, Subscriptions. Any unused part of a free trial ends when you buy a subscription."
       },
       {
         "h": "Apple's standard terms",
         "p": "Apple's Licensed Application End User License Agreement (apple.com/legal/internet-services/itunes/dev/stdeula) also applies."
       },
       {
-        "h": "Access",
-        "p": "Rewards and access to the clothing brand have their own terms, in Settings and on the Rewards screen."
+        "h": "Rewards and status",
+        "p": "Rewards and UNSETLD status have their own terms, in You and on the Rewards screen."
       },
       {
         "h": "Content",
@@ -151,7 +157,7 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "updated": "2026-10-09",
+    "updated": "2026-10-10",
     "sections": [
       {
         "h": "The short version",
@@ -159,11 +165,11 @@
       },
       {
         "h": "What leaves your phone",
-        "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so Full Edition works across your devices. Time check: the app asks unsetld.com for the current date so streaks stay honest. No identifier is sent. Config: the app reads small public files from unsetld.com to know whether rewards and access are on, which rewards are offered and when drops open."
+        "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so UNSETLD+ works across your devices. Time check: the app asks unsetld.com for the current date so streaks stay honest. No identifier is sent. Config: the app reads small public files from unsetld.com to know whether rewards are on, which rewards and status tiers are offered and when drops open."
       },
       {
         "h": "Camera and proof photos",
-        "p": "The camera is used only when you prove a mission. Photos are saved inside the app on this iPhone and the app never uploads them. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days unless you choose 1 year or Keep in Settings; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
+        "p": "The camera is used only when you prove a mission. Photos are saved inside the app on this iPhone and the app never uploads them. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days unless you choose 1 year or Keep under Proof photos in You; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
       },
       {
         "h": "Proof checks",
@@ -175,7 +181,7 @@
       },
       {
         "h": "About you",
-        "p": "Your answers (school, work, gym, a business or project, what you're learning, your age range) and the areas you chose only decide which missions you get. They stay on your phone."
+        "p": "Your answers (school, work, gym, a business or project, what you're learning, your age range), what you're working toward, this week's focus and the areas you chose only decide which missions you get. They stay on your phone."
       },
       {
         "h": "If you sign in for rewards or access",
@@ -191,7 +197,7 @@
       },
       {
         "h": "Deleting your data",
-        "p": "Delete the app to remove its data and proof photos from your phone. A copy of your record (missions, points and streak, never photos) is kept in your iPhone's Keychain so a reinstall picks up where you left off; iOS can keep it after the app is deleted, and it's never uploaded. To delete an account, open Settings in the app, then Account, then Delete account. We remove the account and what we hold for it, and end the Sign in with Apple link. You can also email unsetldclothing@gmail.com from the address on the account."
+        "p": "Delete the app to remove its data and proof photos from your phone. A copy of your record (missions, points and streak, never photos) is kept in your iPhone's Keychain so a reinstall picks up where you left off; iOS can keep it after the app is deleted, and it's never uploaded. To delete an account, open You in the app, then Account, then Delete account. We remove the account and what we hold for it, and end the Sign in with Apple link. You can also email unsetldclothing@gmail.com from the address on the account."
       },
       {
         "h": "Age",

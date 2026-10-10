@@ -2,23 +2,22 @@ import { useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { Profile, Track, TrackId } from '../../core/types';
 import { TRACK_BY_ID, TRACKS } from '../../content';
-import { MAX_AREAS, ONBOARDING } from '../../content/copy/onboarding';
+import { MAX_AREAS, MIN_AREAS, ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection, warning } from '../../services/haptics';
 import { useApp } from '../../state/store';
 import { Button, NavRow, PageTitle, Screen, Square, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
-import { color as C, font } from '../../ui/tokens';
+import { color as C, font, GAP, radius } from '../../ui/tokens';
 
 const COPY = ONBOARDING.tracks;
 const MAX = MAX_AREAS;
-const GAP = 8;
 
-// ── Shared by the three plan screens (Areas, About you, Pace) ───────────────
+// ── Shared by the onboarding screens (Areas, About you, Time, Goal) ─────────
 
 /**
  * The profile as the screen shows it. Onboarding writes each answer as it is
- * given, so going back keeps it. Edit mode (Settings › Your plan) holds the
+ * given, so going back keeps it. Edit mode (You › Your goals) holds the
  * changes until Save, which writes what changed and rebuilds today's plan if
  * nothing in it was started, proven or swapped yet.
  */
@@ -45,7 +44,19 @@ export function useProfileDraft(edit: boolean) {
   return { value, change, save };
 }
 
-/** A bordered choice: 1px rule border, bone when chosen. Tiles on Areas, the intensity cards on Pace. */
+/**
+ * The fewest areas a save may leave: two, or one for someone whose saved profile
+ * already has one (earlier versions allowed it). Onboarding always asks for two.
+ */
+export function useMinAreas(edit: boolean): number {
+  const saved = useApp(s => s.profile.tracks.filter(id => TRACK_BY_ID[id]).length);
+  return edit ? Math.max(1, Math.min(MIN_AREAS, saved)) : MIN_AREAS;
+}
+
+/**
+ * A choice on a raised card: a bone edge when chosen, nothing around it when not.
+ * The area tiles, the time tiles and the intensity cards.
+ */
 export function Choice({
   on,
   onPress,
@@ -70,10 +81,11 @@ export function Choice({
       onPress={onPress}
       style={({ pressed }) => [
         {
+          borderRadius: radius.card,
           borderWidth: 1,
-          borderColor: on ? C.bone : C.rule,
-          backgroundColor: pressed ? C.raise : 'transparent',
-          padding: 14,
+          borderColor: on ? C.bone : 'transparent',
+          backgroundColor: pressed ? C.cardPressed : C.card,
+          padding: 16,
         },
         style,
       ]}>
@@ -82,7 +94,7 @@ export function Choice({
   );
 }
 
-/** A square chip: ruled outline, bone fill when chosen. 40 tall, 44 with the slop. A radio, or a checkbox in a pick-any group. */
+/** A small answer chip: outlined, bone fill when chosen. 40 tall, 44 with the slop. A radio, or a checkbox in a pick-any group. */
 export function Chip({
   title,
   on,
@@ -96,7 +108,7 @@ export function Chip({
   on: boolean;
   onPress: () => void;
   label: string;
-  role?: 'radio' | 'checkbox';
+  role?: 'radio' | 'checkbox' | 'button';
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
 }) {
@@ -105,7 +117,7 @@ export function Chip({
       accessibilityRole={role}
       accessibilityLabel={label}
       // aria-checked rather than accessibilityState: react-native-web only reads the former.
-      aria-checked={on}
+      aria-checked={role === 'button' ? undefined : on}
       onPress={onPress}
       hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
       style={({ pressed }) => [
@@ -115,9 +127,10 @@ export function Chip({
           paddingHorizontal: 14,
           alignItems: 'center',
           justifyContent: 'center',
+          borderRadius: radius.button,
           borderWidth: 1,
           borderColor: on ? C.bone : C.ruleStrong,
-          backgroundColor: on ? C.bone : pressed ? C.raise : 'transparent',
+          backgroundColor: on ? C.bone : pressed ? C.cardPressed : 'transparent',
         },
         style,
       ]}>
@@ -132,29 +145,18 @@ export function Chip({
 
 // ── Areas ───────────────────────────────────────────────────────────────────
 
-/**
- * One area: its number and box on top, the name, then the scope line. Two to a
- * row, so a 375pt phone shows the name on one line and the scope in two or three.
- */
-function Tile({ track, index, on, dim, onPress }: { track: Track; index: number; on: boolean; dim: boolean; onPress: () => void }) {
+/** One area: its name in serif, the box, and the scope line under it. Two to a row. */
+function Tile({ track, on, dim, onPress }: { track: Track; on: boolean; dim: boolean; onPress: () => void }) {
   return (
-    <Choice
-      on={on}
-      onPress={onPress}
-      role="checkbox"
-      label={COPY.a11yTile(track.name, track.scope)}
-      style={{ flex: 1, minHeight: 100, padding: 12 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <T v="mono.s" color={on ? C.stone : C.ash}>
-          {COPY.tileNo(index)}
+    <Choice on={on} onPress={onPress} role="checkbox" label={COPY.a11yTile(track.name, track.scope)} style={{ flex: 1, minHeight: 104, padding: 14 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        {/* Organization is the longest name; at the largest text sizes it shrinks rather than breaking. */}
+        <T v="saved" color={dim ? C.ash : C.bone} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ flexShrink: 1 }}>
+          {track.short}
         </T>
         <Square on={on} />
       </View>
-      {/* ORGANIZATION is the longest name; at the largest text sizes it shrinks rather than breaking. */}
-      <T v="label" color={on ? C.bone : dim ? C.ash : C.muted} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ marginTop: 12 }}>
-        {track.name}
-      </T>
-      <T v="note" color={dim ? C.ash : C.stone} style={{ marginTop: 4 }}>
+      <T v="note" color={dim ? C.ash : C.stone} style={{ marginTop: 6 }}>
         {track.scope}
       </T>
     </Choice>
@@ -168,18 +170,22 @@ const ROWS: Track[][] = TRACKS.reduce<Track[][]>((rows, t, i) => {
   return rows;
 }, []);
 
-/** Onboarding step 1, and Settings › Your plan › Areas: one to four things to work on. */
+/** Onboarding step 1, and You › Areas: two to four things to work on. */
 export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
   const edit = Boolean(route.params?.edit);
   const { value, change, save } = useProfileDraft(edit);
+  const min = useMinAreas(edit);
   // A saved id the library no longer has would count toward four with no tile to take it off.
   const chosen = value.tracks.filter(id => TRACK_BY_ID[id]);
   const full = chosen.length >= MAX;
   // Every School mission needs a yes to "In school or college?". Onboarding goes on to About you,
-  // where the answer can still change; Settings saves straight away, so there School stays off.
+  // where the answer can still change; edit mode saves straight away, so there School stays off.
   const schoolOff = value.school === false && chosen.includes('school');
   const schoolNote = edit ? COPY.schoolOffEdit : COPY.schoolOff;
-  const stuck = edit && schoolOff && chosen.length === 1;
+  /** What a save keeps: in edit mode School comes off while the answer is No. */
+  const kept = edit && schoolOff ? chosen.filter(t => t !== 'school') : chosen;
+  const enough = kept.length >= min;
+  const stuck = edit && schoolOff && !enough;
   const [flash] = useState(() => new Animated.Value(1));
 
   const blocked = () => {
@@ -204,12 +210,11 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
   };
 
   const done = () => {
-    if (stuck) return;
-    const tracks = edit && schoolOff ? chosen.filter(t => t !== 'school') : chosen;
+    if (!enough) return;
     // A week's lean on a track that's no longer chosen goes with it.
-    const priority = value.priority && tracks.includes(value.priority) ? value.priority : null;
+    const priority = value.priority && kept.includes(value.priority) ? value.priority : null;
     if (edit) {
-      save({ tracks, priority });
+      save({ tracks: kept, priority });
       navigation.goBack();
     } else {
       if (priority !== value.priority || chosen.length !== value.tracks.length) change({ tracks: chosen, priority });
@@ -221,14 +226,14 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
     <Screen
       nav={<NavRow onBack={edit ? () => navigation.goBack() : undefined} step={edit ? undefined : ONBOARDING.step(1)} />}
       footer={
-        <View style={{ gap: 12 }}>
+        <View style={{ gap: 10 }}>
           {schoolOff ? (
             <T v="note" color={C.stone} align="center">
               {schoolNote}
             </T>
           ) : null}
           {stuck ? <TextButton title={COPY.aboutYou} onPress={() => navigation.navigate('AboutYou', { edit: true })} /> : null}
-          <Animated.View style={{ opacity: flash, alignItems: 'center' }}>
+          <Animated.View style={{ opacity: flash, alignItems: 'center', gap: 4 }}>
             <T
               v="mono"
               color={full ? C.bone : C.stone}
@@ -236,20 +241,25 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
               accessibilityLiveRegion="polite">
               {COPY.counter(chosen.length)}
             </T>
+            {!schoolOff && kept.length > 0 && kept.length === min - 1 ? (
+              <T v="note" color={C.stone}>
+                {edit ? COPY.oneMoreEdit : COPY.oneMore}
+              </T>
+            ) : null}
           </Animated.View>
-          <Button title={edit ? ONBOARDING.save : ONBOARDING.continue} disabled={chosen.length === 0 || stuck} onPress={done} />
+          <Button title={edit ? ONBOARDING.save : ONBOARDING.continue} disabled={!enough} onPress={done} />
         </View>
       }>
-      <PageTitle title={COPY.title} body={COPY.body} />
-      <View style={{ marginTop: 24, gap: GAP }}>
-        {ROWS.map((row, r) => (
-          <View key={row[0].id} style={{ flexDirection: 'row', gap: GAP }}>
-            {/* Each tile sits in a bare half-width cell: a bordered, padded tile beside an empty spacer would take the wider share. */}
-            {row.map((t, c) => {
+      <PageTitle title={COPY.title} body={edit && min < MIN_AREAS ? COPY.bodyEdit : COPY.body} />
+      <View style={{ marginTop: 24, gap: GAP.tight }}>
+        {ROWS.map(row => (
+          <View key={row[0].id} style={{ flexDirection: 'row', gap: GAP.tight }}>
+            {/* Each tile sits in a bare half-width cell, so a lone ninth tile keeps its column. */}
+            {row.map(t => {
               const on = chosen.includes(t.id);
               return (
                 <View key={t.id} style={{ flex: 1 }}>
-                  <Tile track={t} index={r * 2 + c} on={on} dim={full && !on} onPress={() => toggle(t.id)} />
+                  <Tile track={t} on={on} dim={full && !on} onPress={() => toggle(t.id)} />
                 </View>
               );
             })}

@@ -6,10 +6,10 @@ import { COLORWAYS, MISSION_BY_ID, TRACK_BY_ID } from '../content';
 import { HOME } from '../content/copy/home';
 import { PLATFORM } from '../content/copy/platform';
 import type { RootProps } from '../navigation/types';
-import { useApp } from '../state/store';
-import { Button, NavRow, PageTitle, Screen, Segmented, TextButton } from '../ui/kit';
+import { Card, SectionLabel } from '../ui/blocks';
+import { NavRow, PageTitle, Screen, Segmented } from '../ui/kit';
 import { T } from '../ui/text';
-import { color as C, hairline, MARGIN, type TextVariant } from '../ui/tokens';
+import { color as C, GAP, hairline, MARGIN, radius, type TextVariant } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
 
 const G = PLATFORM.widgetGuide;
@@ -234,82 +234,64 @@ function HomePreview({ s }: { s: number }) {
   );
 }
 
-/** O6 (the last onboarding step), and Settings › Add a widget. */
-export function WidgetScreen({ navigation, route }: RootProps<'Widget'>) {
-  const guide = Boolean(route.params?.guide);
+/** You › Widgets: how to add one, and what each shows. Not part of onboarding any more. */
+export function WidgetScreen({ navigation }: RootProps<'Widget'>) {
   const { width } = useWindowDimensions();
   const [tab, setTab] = useState<Tab>('lock');
   const steps = tab === 'lock' ? G.lockSteps : G.homeSteps;
   const w = Math.max(0, width - MARGIN * 2);
   /** The picture is the top of a phone screen 390 points wide, drawn at w. */
   const s = w / 390;
-  const h = Math.round(430 * s);
-
-  // Onboarding ends here: today's plan is built, then Home opens under the paywall.
-  const finish = () => {
-    if (guide) return navigation.goBack();
-    useApp.getState().completeOnboarding(false);
-    navigation.reset({ index: 1, routes: [{ name: 'Main' }, { name: 'Paywall', params: { from: 'onboarding' } }] });
-  };
+  // The lock screen's widgets sit under the clock; below them is only wallpaper, so that picture is shorter.
+  const h = Math.round((tab === 'lock' ? 330 : 430) * s);
 
   return (
-    <Screen
-      nav={<NavRow onBack={() => navigation.goBack()} step={guide ? undefined : G.step} />}
-      footer={
-        guide ? undefined : (
-          <View>
-            <Button title={G.done} onPress={finish} />
-            <TextButton title={G.later} onPress={finish} style={{ marginTop: 8 }} />
-          </View>
-        )
-      }>
-      <PageTitle title={guide ? G.pageTitle : G.title} body={G.body} />
+    <Screen nav={<NavRow onBack={() => navigation.goBack()} />}>
+      <PageTitle title={G.title} body={G.body} />
       <Segmented
         options={TABS}
         value={tab}
         onChange={setTab}
         labels={{ lock: G.tabs[0], home: G.tabs[1] }}
-        style={{ marginTop: 20 }}
+        style={{ marginTop: GAP.block }}
       />
       <View
         accessible
         accessibilityRole="image"
         accessibilityLabel={tab === 'lock' ? G.a11yLock : G.a11yHome}
-        style={{ marginTop: 16, width: w, height: h, borderWidth: hairline, borderColor: C.rule, overflow: 'hidden', backgroundColor: C.raise }}>
+        style={{ marginTop: 16, width: w, height: h, borderRadius: radius.card, overflow: 'hidden', backgroundColor: C.raise }}>
         <LinearGradient colors={WALLPAPER} style={StyleSheet.absoluteFill} />
         {tab === 'lock' ? <LockPreview s={s} /> : <HomePreview s={s} />}
       </View>
-      <View style={{ marginTop: 20, borderBottomWidth: hairline, borderBottomColor: C.rule }}>
-        {steps.map((step, i) => (
-          <View key={step} style={{ minHeight: 44, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', borderTopWidth: hairline, borderTopColor: C.rule }}>
-            <T v="mono" style={{ width: 32 }}>
-              {String(i + 1).padStart(2, '0')}
-            </T>
-            <T v="body" style={{ flex: 1 }}>
-              {step}
-            </T>
-          </View>
-        ))}
+
+      <View style={{ marginTop: GAP.section }}>
+        <SectionLabel>{G.stepsLabel}</SectionLabel>
+        <Card style={{ gap: 14 }}>
+          {steps.map((step, i) => (
+            <View key={step} style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+              <T v="mono" style={{ width: 32, marginTop: 4 }}>
+                {String(i + 1).padStart(2, '0')}
+              </T>
+              <T v="body" style={{ flex: 1 }}>
+                {step}
+              </T>
+            </View>
+          ))}
+        </Card>
       </View>
 
-      <T v="label" style={{ marginTop: 32, marginBottom: 8 }}>
-        {G.kindsLabel}
-      </T>
-      <View style={{ borderBottomWidth: hairline, borderBottomColor: C.rule }}>
-        {G.kinds.map(k => (
-          <View
-            key={k.name}
-            accessible
-            accessibilityLabel={`${k.name}. ${k.body}`}
-            style={{ paddingVertical: 12, borderTopWidth: hairline, borderTopColor: C.rule, gap: 4 }}>
-            <T v="label" color={C.bone}>
-              {k.name}
-            </T>
-            <T v="small" color={C.stone}>
-              {k.body}
-            </T>
-          </View>
-        ))}
+      <View style={{ marginTop: GAP.section }}>
+        <SectionLabel>{G.kindsLabel}</SectionLabel>
+        <View style={{ gap: GAP.tight }}>
+          {G.kinds.map(k => (
+            <Card key={k.name} accessibilityLabel={`${k.name}. ${k.body}`}>
+              <T v="saved">{k.name}</T>
+              <T v="small" color={C.stone} style={{ marginTop: 4 }}>
+                {k.body}
+              </T>
+            </Card>
+          ))}
+        </View>
       </View>
     </Screen>
   );

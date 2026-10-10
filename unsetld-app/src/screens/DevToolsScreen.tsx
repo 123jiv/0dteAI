@@ -15,18 +15,36 @@ import { purchaseMode } from '../services/purchases';
 import { useBalance, useStreak, useTodayMissions } from '../state/missions';
 import { useAccessEnabled, useApp } from '../state/store';
 import { showDialog } from '../ui/actions';
-import { Button, Footnote, NavRow, PageTitle, Screen, SettingsRow, Toggle } from '../ui/kit';
+import { Card } from '../ui/blocks';
+import { Button, NavRow, PageTitle, Screen, Toggle } from '../ui/kit';
 import { T } from '../ui/text';
-import { color as C, MARGIN } from '../ui/tokens';
+import { color as C, GAP } from '../ui/tokens';
 
 const D = PLATFORM.devTools;
 const st = useApp.getState;
 
 function Label({ children }: { children: string }) {
   return (
-    <T v="label" style={{ marginTop: 32, marginBottom: 12 }}>
+    <T v="kicker" color={C.stone} accessibilityRole="header" style={{ marginTop: GAP.section - 4, marginBottom: 12 }}>
       {children}
     </T>
+  );
+}
+
+/** A switch with its words and an optional note under them. The switch carries the label. */
+function Flag({ title, note, value, onChange }: { title: string; note?: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 }}>
+      <View style={{ flex: 1 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <T v="row">{title}</T>
+        {note ? (
+          <T v="note" color={C.stone} style={{ marginTop: 2 }}>
+            {note}
+          </T>
+        ) : null}
+      </View>
+      <Toggle label={title} value={value} onChange={onChange} />
+    </View>
   );
 }
 
@@ -229,26 +247,16 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
       </View>
 
       <Label>{D.flags}</Label>
-      <View style={{ marginHorizontal: -MARGIN }}>
-        <SettingsRow
-          first
+      <Card padding={0} style={{ paddingHorizontal: 18, paddingVertical: 4 }}>
+        <Flag
           title={D.full}
-          chevron={false}
-          right={<Toggle label={D.full} value={premium} onChange={v => st().setPremium({ active: v, plan: v ? 'annual' : null })} />}
+          note={purchaseMode !== 'preview' ? D.fullNote : undefined}
+          value={premium}
+          onChange={v => st().setPremium({ active: v, plan: v ? 'annual' : null })}
         />
-        {purchaseMode !== 'preview' ? <Footnote style={{ paddingBottom: 8 }}>{D.fullNote}</Footnote> : null}
-        <SettingsRow
-          title={D.fast}
-          chevron={false}
-          right={<Toggle label={D.fast} value={timerSpeed > 1} onChange={v => st().updateSettings({ timerSpeed: v ? 60 : 1 })} />}
-        />
-        <Footnote style={{ paddingBottom: 8 }}>{D.fastNote}</Footnote>
-        <SettingsRow
-          title={D.access}
-          chevron={false}
-          right={<Toggle label={D.access} value={accessEnabled} onChange={v => st().setRemote({ accessEnabled: v })} />}
-        />
-      </View>
+        <Flag title={D.fast} note={D.fastNote} value={timerSpeed > 1} onChange={v => st().updateSettings({ timerSpeed: v ? 60 : 1 })} />
+        <Flag title={D.access} value={accessEnabled} onChange={v => st().setRemote({ accessEnabled: v })} />
+      </Card>
 
       <Label>{D.missions}</Label>
       <View style={{ gap: 12 }}>

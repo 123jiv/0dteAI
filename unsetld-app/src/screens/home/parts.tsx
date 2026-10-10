@@ -1,24 +1,23 @@
-// The pieces of Home (spec section 5): the stats, today's header and bar, the
-// mission cards, the weekly review card, the Day 3 Access note and the bottom bar.
+// The pieces of Today (docs/UX_REDESIGN.md §3, §4): the top row, streak and points, the next
+// reward, the weekly focus card, the TODAY header, the mission cards, the active plan, the
+// Plans row and the weekly review card. Colorway backgrounds: every surface and colour here
+// comes from the colorway (surfacesFor), never the ink-page tokens.
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Platform, Pressable, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clock as mmss, remainingSeconds, timerDone, type FocusTimer } from '../../core/timer';
 import type { Colorway, Mission, MissionDone, ProofPhoto, ProofType, TrackId } from '../../core/types';
 import { TRACK_BY_ID } from '../../content';
+import { FOCUS } from '../../content/copy/focus';
 import { HOME } from '../../content/copy/home';
-import { soft } from '../../services/haptics';
 import { proofImage } from '../../services/proof';
+import { Card, Meter, ProofMeta } from '../../ui/blocks';
 import { Icon } from '../../ui/icons';
-import { InlineLink } from '../../ui/kit';
 import { clockTime } from '../../ui/ProofStamp';
-import { T, useSerifScale } from '../../ui/text';
-import { ease, hairline, MARGIN, radius } from '../../ui/tokens';
-import { Walker } from '../../ui/Walker';
+import { T } from '../../ui/text';
+import { color as C, ease, GAP, radius } from '../../ui/tokens';
 
-/** Lets the Mission modal slide away before a completion plays on Home. */
+/** Lets the Mission modal slide away before a completion plays on Today. */
 export const ARRIVE_DELAY = 350;
 
 /** The browser preview has no native animation driver; asking for it there only logs a warning. */
@@ -39,11 +38,21 @@ function withMotion(run: (reduce: boolean) => void): () => void {
   };
 }
 
+/**
+ * A card's surface on a colorway (brief §2): translucent bone on dark colorways, translucent
+ * ink on light ones, so the colorway shows through. `quiet` is a proven card's, a step back.
+ */
+export function surfacesFor(colorway: Colorway): { card: string; pressed: string; quiet: string } {
+  return colorway.statusBar === 'light'
+    ? { card: 'rgba(237,233,227,0.07)', pressed: 'rgba(237,233,227,0.12)', quiet: 'rgba(237,233,227,0.035)' }
+    : { card: 'rgba(10,10,10,0.06)', pressed: 'rgba(10,10,10,0.11)', quiet: 'rgba(10,10,10,0.03)' };
+}
+
 /** UNSETLD on the left, DAY 12 on the right. */
 export function TopRow({ colorway, days }: { colorway: Colorway; days: number }) {
   return (
     <View style={{ height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-      <T v="label" color={colorway.secondary} accessibilityRole="header">
+      <T v="kicker" color={colorway.ink} accessibilityRole="header" style={{ letterSpacing: 3 }}>
         {HOME.brand}
       </T>
       <T v="mono" color={colorway.secondary} accessibilityLabel={HOME.a11yDay(days)}>
@@ -53,187 +62,227 @@ export function TopRow({ colorway, days }: { colorway: Colorway; days: number })
   );
 }
 
-/** Streak (with Off Days banked) on the left, points on the right (opens Rewards). */
-export function StatsHeader({
-  colorway,
-  streak,
-  offDays,
-  points,
-  onPoints,
-}: {
-  colorway: Colorway;
-  streak: number;
-  offDays: number;
-  points: number;
-  onPoints: () => void;
-}) {
+/** A serif number with its unit after it on the same baseline: "12 day streak", "380 pts". */
+function Figure({ value, unit, colorway, align = 'left' }: { value: string; unit: string; colorway: Colorway; align?: 'left' | 'right' }) {
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <View accessible accessibilityLabel={HOME.stats.a11yStreak(streak, offDays)} style={{ flexShrink: 1, paddingRight: 16 }}>
-        <T v="title.xl" color={colorway.ink} style={TABULAR}>
-          {String(streak)}
-        </T>
-        <T v="label" color={colorway.secondary} style={{ marginTop: 4 }}>
-          {HOME.stats.streak}
-        </T>
-        {offDays > 0 ? (
-          <T v="mono" color={colorway.secondary} style={{ marginTop: 8 }}>
-            {HOME.stats.offDays(offDays)}
-          </T>
-        ) : null}
-      </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={HOME.stats.a11yPoints(points)}
-        accessibilityHint={HOME.stats.a11yPointsHint}
-        onPress={onPoints}
-        hitSlop={8}
-        style={({ pressed }) => ({ alignItems: 'flex-end', minHeight: 44, opacity: pressed ? 0.6 : 1 })}>
-        <T v="title.xl" color={colorway.ink} align="right" style={TABULAR}>
-          {HOME.num(points)}
-        </T>
-        <T v="label" color={colorway.secondary} align="right" style={{ marginTop: 4 }}>
-          {HOME.stats.points}
-        </T>
-      </Pressable>
+    <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: align === 'right' ? 'flex-end' : 'flex-start', gap: 6 }}>
+      <T v="stat" color={colorway.ink} style={TABULAR}>
+        {value}
+      </T>
+      <T v="meta" color={colorway.secondary}>
+        {unit}
+      </T>
     </View>
   );
 }
 
-/** "150 POINTS TO 10% OFF" or "10% OFF IS READY". A quiet line, never a popup. */
-export function NextRewardLine({
+/**
+ * Streak on the left, points on the right (opens Rewards). No zeros: with no streak the left
+ * says what starts one, and with no points yet (Day 1) the right is empty.
+ */
+export function StatsRow({
+  colorway,
+  streak,
+  points,
+  firstDay,
+  onPoints,
+}: {
+  colorway: Colorway;
+  streak: number;
+  points: number;
+  /** Nothing proven on any day before today. */
+  firstDay: boolean;
+  onPoints: () => void;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, minHeight: 36 }}>
+      {streak > 0 ? (
+        <View accessible accessibilityLabel={HOME.stats.a11yStreak(streak)}>
+          <Figure value={String(streak)} unit={HOME.stats.streak} colorway={colorway} />
+        </View>
+      ) : (
+        <T v="saved" color={colorway.ink} style={{ flexShrink: 1 }}>
+          {firstDay ? HOME.stats.first : HOME.stats.restart}
+        </T>
+      )}
+      {points > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={HOME.stats.a11yPoints(points)}
+          accessibilityHint={HOME.stats.a11yPointsHint}
+          onPress={onPoints}
+          hitSlop={8}
+          style={({ pressed }) => ({ minHeight: 44, justifyContent: 'flex-end', opacity: pressed ? 0.6 : 1 })}>
+          <Figure value={HOME.num(points)} unit={HOME.stats.points} colorway={colorway} align="right" />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/** NEXT REWARD, a meter and "220 pts to 10% off" (or "10% off is ready"). Opens Rewards. */
+export function NextReward({
   colorway,
   title,
+  have,
+  points,
   need,
   ready,
+  first,
   onPress,
 }: {
   colorway: Colorway;
   title: string;
+  have: number;
+  /** What the reward costs. */
+  points: number;
   need: number;
   ready: boolean;
+  /** Day 1: said as the first reward. */
+  first: boolean;
   onPress: () => void;
 }) {
+  const line = ready ? HOME.reward.ready(title) : first ? HOME.reward.first(need, title) : HOME.reward.toGo(need, title);
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={ready ? HOME.reward.a11yReady(title) : HOME.reward.a11yToGo(need, title)}
       accessibilityHint={HOME.reward.a11yHint}
       onPress={onPress}
-      hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
-      style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 20, justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
-      <T v="mono" color={colorway.secondary}>
-        {ready ? HOME.reward.ready(title) : HOME.reward.toGo(need, title)}
+      style={({ pressed }) => ({ paddingVertical: 4, opacity: pressed ? 0.6 : 1 })}>
+      <T v="kicker" color={colorway.secondary}>
+        {HOME.reward.label}
+      </T>
+      <View style={{ marginTop: 12 }}>
+        <Meter value={ready ? points : have} max={points} color={colorway.ink} track={colorway.rule} height={3} />
+      </View>
+      <T v="meta" color={ready ? colorway.ink : colorway.secondary} style={{ marginTop: 10 }}>
+        {line}
       </T>
     </Pressable>
   );
 }
 
-/** The 2px bar under TODAY. It fills to its new value once Home is back in view. */
-export function ProgressBar({ value, colorway, delay = 0 }: { value: number; colorway: Colorway; delay?: number }) {
-  const v = Math.max(0, Math.min(1, value));
-  const [a] = useState(() => new Animated.Value(v));
-  useEffect(
-    () =>
-      withMotion(reduce => {
-        if (reduce) a.setValue(v);
-        else Animated.timing(a, { toValue: v, duration: 600, delay, easing: ease.out, useNativeDriver: false }).start();
-      }),
-    [a, v, delay],
-  );
+/**
+ * "What matters most this week?": once a week (Monday to Saturday), from the user's second active
+ * day on, until they pick one or say "Not this week". The card opens WeeklyFocus; "Not this week" is its own
+ * control over the card's bottom right (a sibling, so it isn't a button inside a button).
+ */
+export function FocusCard({ colorway, onOpen, onSkip }: { colorway: Colorway; onOpen: () => void; onSkip: () => void }) {
+  const s = surfacesFor(colorway);
   return (
-    <View style={{ height: 2, backgroundColor: colorway.rule, overflow: 'hidden' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Animated.View style={{ height: 2, backgroundColor: colorway.ink, width: a.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
+    <View>
+      <Card surface={s.card} pressed={s.pressed} onPress={onOpen} accessibilityLabel={FOCUS.promptA11y} accessibilityHint={FOCUS.promptHint}>
+        <T v="saved" color={colorway.ink}>
+          {FOCUS.prompt}
+        </T>
+        <T v="meta" color={colorway.secondary} style={{ marginTop: 6 }}>
+          {FOCUS.promptBody}
+        </T>
+        <View style={{ marginTop: 14, height: 20, flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <T v="meta" color={colorway.ink}>
+            {FOCUS.promptGo}
+          </T>
+          <Icon name="chevron-right" size={16} color={colorway.ink} />
+        </View>
+      </Card>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={FOCUS.skipA11y}
+        onPress={onSkip}
+        style={({ pressed }) => ({
+          position: 'absolute',
+          right: 0,
+          // Level with the card's last row: padding 18 + half its 20 = 28 from the bottom.
+          bottom: 28 - 22,
+          height: 44,
+          paddingHorizontal: 18,
+          justifyContent: 'center',
+          opacity: pressed ? 0.5 : 1,
+        })}>
+        <T v="meta" color={colorway.secondary}>
+          {FOCUS.skip}
+        </T>
+      </Pressable>
     </View>
   );
 }
 
 /**
- * TODAY, the count, the bar and the status line. `swapsLeft` is said once here,
- * at the end of the status line, while there are swaps left and a mission to use one on.
+ * TODAY and the count. Under it, this week's focus when one is set (opens WeeklyFocus), and on
+ * a perfect day "Perfect day." with Share today.
  */
 export function TodayHeader({
   colorway,
   done,
   all,
   ready,
-  swapsLeft = null,
+  focus,
+  onFocus,
+  perfect,
+  onShare,
 }: {
   colorway: Colorway;
   done: number;
   all: number;
   ready: boolean;
-  swapsLeft?: number | null;
+  /** "Work on my business", or null. */
+  focus: string | null;
+  onFocus: () => void;
+  perfect: boolean;
+  onShare: () => void;
 }) {
-  const status = [HOME.status(done, all), swapsLeft ? HOME.swapsLeft(swapsLeft) : null].filter(Boolean).join(' ');
   return (
     <View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 20 }}>
-        <T v="label" color={colorway.secondary} accessibilityRole="header">
+        <T v="kicker" color={colorway.secondary} accessibilityRole="header">
           {HOME.today.label}
         </T>
         {ready && all > 0 ? (
-          <T v="mono" color={colorway.secondary} accessibilityLabel={HOME.today.a11yCount(done, all)}>
+          <T v="mono" color={perfect ? colorway.ink : colorway.secondary} accessibilityLabel={HOME.today.a11yCount(done, all)}>
             {HOME.today.count(done, all)}
           </T>
         ) : null}
       </View>
-      <View style={{ marginTop: 10 }}>
-        <ProgressBar value={all ? done / all : 0} colorway={colorway} delay={ARRIVE_DELAY} />
-      </View>
-      {ready ? (
-        <T v="body" color={colorway.secondary} style={{ marginTop: 14 }}>
-          {status}
-        </T>
+      {perfect ? (
+        <View style={{ marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <T v="saved" color={colorway.ink}>
+            {HOME.today.perfect}
+          </T>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={HOME.today.share}
+            accessibilityHint={HOME.today.a11yShareHint}
+            onPress={onShare}
+            hitSlop={8}
+            style={({ pressed }) => ({ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, opacity: pressed ? 0.6 : 1 })}>
+            <Icon name="share" size={16} color={colorway.ink} />
+            <T v="meta" color={colorway.ink}>
+              {HOME.today.share}
+            </T>
+          </Pressable>
+        </View>
+      ) : null}
+      {focus ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={FOCUS.current(focus)}
+          accessibilityHint={FOCUS.currentHint}
+          onPress={onFocus}
+          hitSlop={{ top: 8, bottom: 8 }}
+          style={({ pressed }) => ({ alignSelf: 'flex-start', marginTop: perfect ? 0 : 6, minHeight: 28, justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
+          <T v="meta" color={colorway.secondary} numberOfLines={1}>
+            {FOCUS.current(focus)}
+          </T>
+        </Pressable>
       ) : null}
     </View>
   );
 }
 
 /**
- * "7 DAY LOCK IN · DAY 3 OF 7", while a program runs. Opens Programs. It has a
- * rule above; the first mission card's rule closes it below.
- */
-export function ProgramBanner({
-  colorway,
-  title,
-  day,
-  days,
-  onPress,
-}: {
-  colorway: Colorway;
-  title: string;
-  day: number;
-  days: number;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={HOME.programA11y(title, day, days)}
-      accessibilityHint={HOME.programA11yHint}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        minHeight: 48,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderTopWidth: hairline,
-        borderColor: colorway.rule,
-        opacity: pressed ? 0.6 : 1,
-      })}>
-      <T v="label" color={colorway.ink} style={{ flex: 1 }} numberOfLines={1}>
-        {HOME.program(title.toUpperCase(), day, days)}
-      </T>
-      <View style={{ marginRight: -6 }}>
-        <Icon name="chevron-right" size={20} color={colorway.secondary} />
-      </View>
-    </Pressable>
-  );
-}
-
-/**
  * What the button on an unproven card says: START, the focus timer counting
- * down (`live` while Home is in view and the app is open), TAKE PHOTO or MARK
+ * down (`live` while Today is in view and the app is open), TAKE PHOTO or MARK
  * DONE once it ends, or AFTER PHOTO.
  */
 export type CardAction = { kind: 'start' } | { kind: 'timer'; timer: FocusTimer; live: boolean } | { kind: 'after' };
@@ -279,29 +328,66 @@ function actionSaid(a: CardAction, remaining: number, type: ProofType): string |
   return null;
 }
 
-/**
- * A word on the meta line only where it changes what the user does: the focus timer, or a
- * before photo first. Home's rows and the program's rows on Programs.
- */
-export function badgeOf(m: Pick<Mission, 'proofType'>): { shown: string; said: string } | null {
-  if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') return { shown: HOME.badge.timer, said: HOME.a11y.badge.timer };
-  if (m.proofType === 'BEFORE_AFTER') return { shown: HOME.badge.beforeAfter, said: HOME.a11y.badge.beforeAfter };
-  return null;
+/** "30 min · [icons] Timer + photo · +15 pts". Wraps after a dot at large text sizes. */
+function MetaRow({ mission, colorway }: { mission: Mission; colorway: Colorway }) {
+  const dot = (
+    <T v="meta" color={colorway.secondary} style={{ marginHorizontal: 6 }}>
+      ·
+    </T>
+  );
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', rowGap: 4 }}>
+      <T v="meta" color={colorway.secondary}>
+        {HOME.card.minutes(mission.minutes)}
+      </T>
+      {dot}
+      <ProofMeta type={mission.proofType} color={colorway.secondary} />
+      {dot}
+      <T v="meta" color={colorway.secondary}>
+        {HOME.card.points(mission.points)}
+      </T>
+    </View>
+  );
 }
 
-/** The swap control's hit area: a 44pt square at the card's bottom right, under the button. */
-const SWAP_SIZE = 44;
-/** A card with a swap control is at least this tall, so the control never sits over the button. */
-const SWAP_CARD_MIN = 96;
+/**
+ * The small filled button on a card. Drawn only: the whole card is the control. Ink on the
+ * colorway; its label is the page colour on dark colorways and bone on light ones, where the
+ * page colour (a mid grey on Concrete) would be muddy on ink.
+ */
+function CardButton({ label, colorway }: { label: string; colorway: Colorway }) {
+  const text = colorway.statusBar === 'dark' ? C.bone : colorway.bg;
+  return (
+    <View
+      style={{
+        height: 32,
+        minWidth: 76,
+        paddingHorizontal: 14,
+        borderRadius: radius.button,
+        backgroundColor: colorway.ink,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+      <T v="button" color={text} style={[{ fontSize: 11, lineHeight: 14, letterSpacing: 1.8 }, TABULAR]} numberOfLines={1}>
+        {label}
+      </T>
+    </View>
+  );
+}
+
+/** The swap control's spot: over the card's bottom left, level with the button. */
+const SWAP_HEIGHT = 48;
+/** Card padding (18) + half the button (16) = the button's centre from the card's bottom. */
+const BUTTON_CENTRE = 18 + 16;
 
 /**
- * One mission of today's plan. Unproven: the title, one line with its area,
- * time and points ("School · 30 min · +15"), and a small button (START, the
- * running timer, AFTER PHOTO); a quiet Swap under the button.
- * Proven: the title steps back, the proof photo and PROVEN 9:47 AM · +15.
- * `celebrate` changes when it was just proven: a fill sweeps across and the
- * photo settles in (a plain crossfade under Reduce Motion). `arrive` is set on a
- * card that just came in from a swap: it fades in.
+ * One mission of today's plan (brief §4). Unproven: the area as a kicker, the serif title,
+ * the meta row (time · proof · points) and the small button (START or the live state), with
+ * a quiet Swap while swaps are left. Proven: the card steps back, "✓ Proven 9:47 AM · +15"
+ * and the proof thumbnail. The whole card opens the mission.
+ * `celebrate` changes when it was just proven: the surface brightens once and the thumbnail
+ * fades in. `hold` keeps a just-proven card's thumbnail hidden until that plays. `arrive` is
+ * set on a card that just came in from a swap: it fades up into place.
  */
 export function MissionCard({
   mission,
@@ -309,11 +395,11 @@ export function MissionCard({
   done,
   action,
   colorway,
-  last,
   swap,
   onOpen,
   onSwap,
   celebrate = 0,
+  hold = false,
   arrive = false,
 }: {
   mission: Mission;
@@ -323,68 +409,46 @@ export function MissionCard({
   done: MissionDone | null;
   action: CardAction;
   colorway: Colorway;
-  last: boolean;
-  /** The swap control on an unproven card; null hides it. `note` shows under the card right after a swap. */
-  swap: { left: number; note: string | null } | null;
+  /** The swap control on an unproven card while swaps are left; null hides it. `left` is said in its hint. */
+  swap: { left: number } | null;
   onOpen: () => void;
   onSwap: () => void;
   celebrate?: number;
+  hold?: boolean;
   arrive?: boolean;
 }) {
-  const scale = useSerifScale();
   const area = TRACK_BY_ID[areaId]?.short ?? '';
-  const badge = badgeOf(mission);
-  const proven = Boolean(done);
+  const s = surfacesFor(colorway);
 
-  // Celebration: sweep 0→1 is the fill's width, glow its strength, settle the photo coming in.
-  const [sweep] = useState(() => new Animated.Value(0));
+  // A just-proven card: the surface brightens and fades back, the thumbnail fades in. Opacity
+  // only, so it plays the same under Reduce Motion. Set before paint so nothing flashes.
   const [glow] = useState(() => new Animated.Value(0));
   const [settle] = useState(() => new Animated.Value(1));
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!celebrate) return;
-    let haptic: ReturnType<typeof setTimeout> | undefined;
-    const stop = withMotion(reduce => {
-      if (reduce) {
-        sweep.setValue(1);
-        glow.setValue(0);
-        settle.setValue(1);
+    glow.setValue(0);
+    settle.setValue(0);
+    Animated.sequence([
+      Animated.delay(ARRIVE_DELAY),
+      Animated.parallel([
         Animated.sequence([
-          Animated.delay(ARRIVE_DELAY),
-          Animated.timing(glow, { toValue: 1, duration: 240, easing: ease.out, useNativeDriver: false }),
-          Animated.timing(glow, { toValue: 0, duration: 600, easing: ease.in, useNativeDriver: false }),
-        ]).start();
-        return;
-      }
-      sweep.setValue(0);
-      glow.setValue(1);
-      settle.setValue(0);
-      Animated.sequence([
-        Animated.delay(ARRIVE_DELAY),
-        Animated.parallel([
-          Animated.timing(sweep, { toValue: 1, duration: 460, easing: ease.out, useNativeDriver: false }),
-          Animated.sequence([
-            Animated.delay(240),
-            Animated.timing(settle, { toValue: 1, duration: 380, easing: ease.out, useNativeDriver: false }),
-          ]),
+          Animated.timing(glow, { toValue: 1, duration: 220, easing: ease.out, useNativeDriver: false }),
+          Animated.timing(glow, { toValue: 0, duration: 700, easing: ease.in, useNativeDriver: false }),
         ]),
-        Animated.timing(glow, { toValue: 0, duration: 620, easing: ease.in, useNativeDriver: false }),
-      ]).start();
-      haptic = setTimeout(soft, ARRIVE_DELAY + 460);
-    });
+        Animated.timing(settle, { toValue: 1, duration: 420, delay: 160, easing: ease.out, useNativeDriver: false }),
+      ]),
+    ]).start();
     return () => {
-      stop();
-      if (haptic) clearTimeout(haptic);
-      sweep.stopAnimation();
       glow.stopAnimation();
       settle.stopAnimation();
       glow.setValue(0);
       settle.setValue(1);
     };
-  }, [celebrate, sweep, glow, settle]);
+  }, [celebrate, glow, settle]);
 
   // A card swapped in fades up into place (under Reduce Motion it only fades in).
   const [enter] = useState(() => new Animated.Value(arrive ? 0 : 1));
-  const [lift] = useState(() => new Animated.Value(arrive ? 6 : 0));
+  const [lift] = useState(() => new Animated.Value(arrive ? 8 : 0));
   useEffect(() => {
     if (!arrive) return;
     return withMotion(reduce => {
@@ -402,123 +466,104 @@ export function MissionCard({
   const thumb = useMemo(() => (photoUri ? proofImage(photoUri) : null), [photoUri]);
   const time = done ? clockTime(done.doneAt) : '';
   const said = done
-    ? HOME.a11y.card(mission.title, HOME.a11y.proven(time, done.points))
+    ? HOME.a11y.card(mission.title, HOME.a11y.proven(area, time, done.points))
     : HOME.a11y.card(
         mission.title,
-        [HOME.a11y.meta(area, mission.minutes, mission.points, badge?.said ?? null), actionSaid(action, remaining, mission.proofType)].filter(Boolean).join('. '),
+        [HOME.a11y.cardMeta(area, mission.minutes, mission.points, mission.proofType), actionSaid(action, remaining, mission.proofType)]
+          .filter(Boolean)
+          .join('. '),
       );
-  // The button sits level with the title's first line.
-  const buttonTop = Math.round((30 * scale - 32) / 2);
 
-  return (
-    <Animated.View
-      style={{
-        opacity: enter,
-        transform: [{ translateY: lift }],
-        borderTopWidth: hairline,
-        borderBottomWidth: last ? hairline : 0,
-        borderColor: colorway.rule,
-        overflow: 'hidden',
-      }}>
-      <Animated.View
-        style={{
-          pointerEvents: 'none',
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: sweep.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
-          backgroundColor: colorway.ink,
-          opacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.1] }),
-        }}
-      />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={said}
-        accessibilityHint={HOME.a11y.hint}
-        onPress={onOpen}
-        style={({ pressed }) => ({
-          paddingVertical: 18,
-          minHeight: swap ? SWAP_CARD_MIN : undefined,
-          flexDirection: 'row',
-          alignItems: done ? 'center' : 'flex-start',
-          opacity: pressed ? 0.6 : 1,
-        })}>
-        <View style={{ flex: 1, paddingRight: 16 }}>
-          <T v="list" color={proven ? colorway.secondary : colorway.ink} style={{ fontSize: 26 * scale, lineHeight: 30 * scale }}>
+  let body: ReactNode;
+  if (done) {
+    body = (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <T v="kicker" color={colorway.secondary}>
+            {area}
+          </T>
+          <T v="list" color={colorway.secondary} style={{ marginTop: 6 }}>
             {mission.title}
           </T>
-          {done ? (
-            <T v="mono" color={colorway.secondary} style={{ marginTop: 8 }}>
+          <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Icon name="check" size={15} color={colorway.ink} />
+            <T v="meta" color={colorway.secondary} style={TABULAR}>
               {HOME.proven(time, done.points)}
             </T>
-          ) : (
-            <T v="note" color={colorway.secondary} style={[{ marginTop: 6 }, TABULAR]}>
-              {HOME.meta(area, mission.minutes, mission.points, badge?.shown ?? null)}
-            </T>
-          )}
-          {swap?.note ? (
-            <T v="note" color={colorway.ink} style={{ marginTop: 6 }}>
-              {swap.note}
-            </T>
-          ) : null}
-        </View>
-        {done ? (
-          // No box without a photo to put in it (a proof from the tester tools, or one cleared off the phone).
-          thumb ? (
-            <Animated.View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={{
-                width: 28,
-                height: 35,
-                backgroundColor: colorway.rule,
-                borderWidth: hairline,
-                borderColor: colorway.rule,
-                overflow: 'hidden',
-                opacity: settle,
-                transform: [{ scale: settle.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }],
-              }}>
-              <Image source={{ uri: thumb }} style={{ width: 28, height: 35 }} contentFit="cover" accessibilityLabel={HOME.a11y.provenThumb} />
-            </Animated.View>
-          ) : null
-        ) : (
-          <View
-            style={{
-              marginTop: buttonTop,
-              height: 32,
-              paddingHorizontal: 12,
-              borderRadius: radius.button,
-              backgroundColor: colorway.ink,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <T v="button" color={colorway.bg} style={[{ fontSize: 11, lineHeight: 14, letterSpacing: 1.8 }, TABULAR]} numberOfLines={1}>
-              {actionLabel(action, remaining, mission.proofType)}
-            </T>
           </View>
-        )}
-      </Pressable>
-      {swap ? (
-        // A sibling over the card's bottom right corner (the card's own button sits above it), so it
-        // stays its own control for touch and VoiceOver without adding a row to every card.
+        </View>
+        {/* No box without a photo to put in it (a timer-only proof, or one cleared off the phone). */}
+        {thumb ? (
+          <Animated.View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={{ width: 48, height: 60, borderRadius: 6, overflow: 'hidden', backgroundColor: colorway.rule, opacity: hold ? 0 : settle }}>
+            <Image source={{ uri: thumb }} style={{ width: 48, height: 60 }} contentFit="cover" accessibilityLabel={HOME.a11y.provenThumb} />
+          </Animated.View>
+        ) : null}
+      </View>
+    );
+  } else {
+    body = (
+      <>
+        <T v="kicker" color={colorway.secondary}>
+          {area}
+        </T>
+        <T v="list" color={colorway.ink} style={{ marginTop: 6 }}>
+          {mission.title}
+        </T>
+        <View style={{ marginTop: 8 }}>
+          <MetaRow mission={mission} colorway={colorway} />
+        </View>
+        <View style={{ marginTop: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
+          <CardButton label={actionLabel(action, remaining, mission.proofType)} colorway={colorway} />
+        </View>
+      </>
+    );
+  }
+
+  return (
+    <Animated.View style={{ opacity: enter, transform: [{ translateY: lift }] }}>
+      <Card
+        surface={done ? s.quiet : s.card}
+        pressed={s.pressed}
+        onPress={onOpen}
+        accessibilityLabel={said}
+        accessibilityHint={HOME.a11y.hint}
+        style={{ overflow: 'hidden' }}>
+        <Animated.View
+          style={{
+            pointerEvents: 'none',
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: colorway.ink,
+            opacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.08] }),
+          }}
+        />
+        {body}
+      </Card>
+      {swap && !done ? (
+        // A sibling over the card's bottom left, level with the button, so it stays its own
+        // control for touch and VoiceOver (not a button inside the card's button).
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={HOME.swap.a11y(mission.title)}
-          accessibilityHint={swap.note ?? HOME.swap.left(swap.left)}
+          accessibilityHint={HOME.swap.left(swap.left)}
           onPress={onSwap}
           style={({ pressed }) => ({
             position: 'absolute',
-            right: 0,
-            bottom: 0,
-            height: SWAP_SIZE,
-            minWidth: SWAP_SIZE + 20,
-            paddingLeft: 12,
-            alignItems: 'flex-end',
+            left: 0,
+            bottom: BUTTON_CENTRE - SWAP_HEIGHT / 2,
+            height: SWAP_HEIGHT,
+            paddingLeft: 18,
+            paddingRight: 20,
             justifyContent: 'center',
-            opacity: pressed ? 0.4 : swap.left > 0 ? 0.85 : 0.5,
+            opacity: pressed ? 0.5 : 1,
           })}>
-          <T v="note" color={colorway.secondary} numberOfLines={1}>
+          <T v="meta" color={colorway.secondary} numberOfLines={1}>
             {HOME.swap.button}
           </T>
         </Pressable>
@@ -527,150 +572,119 @@ export function MissionCard({
   );
 }
 
-/** YOUR WEEK: what the week added up to. Sunday to Tuesday, until it's closed. */
-export function WeeklyCard({
+/** ACTIVE PLAN: the plan's title, the day it's on and Continue. Opens Plans. */
+export function ActivePlanCard({
   colorway,
-  missions,
-  focusMinutes,
+  title,
+  day,
+  days,
   onPress,
 }: {
   colorway: Colorway;
-  missions: number;
-  focusMinutes: number;
+  title: string;
+  day: number;
+  days: number;
   onPress: () => void;
 }) {
-  const summary = HOME.week.summary(missions, focusMinutes);
+  const s = surfacesFor(colorway);
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={HOME.week.a11y(summary)}
-      accessibilityHint={HOME.week.a11yHint}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        borderWidth: hairline,
-        borderColor: colorway.rule,
-        paddingHorizontal: 20,
-        paddingVertical: 20,
-        gap: 8,
-        opacity: pressed ? 0.6 : 1,
-      })}>
-      <T v="label" color={colorway.secondary}>
-        {HOME.week.label}
+    <Card surface={s.card} pressed={s.pressed} onPress={onPress} accessibilityLabel={HOME.plan.a11y(title, day, days)} accessibilityHint={HOME.plan.a11yHint}>
+      <T v="kicker" color={colorway.secondary}>
+        {HOME.plan.label}
       </T>
-      <T v="list" color={colorway.ink}>
-        {summary}
+      <T v="list" color={colorway.ink} style={{ marginTop: 6 }}>
+        {title}
       </T>
-      <T v="body" color={colorway.secondary} style={{ marginTop: 4 }}>
-        {HOME.week.link}
-      </T>
-    </Pressable>
+      <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <T v="meta" color={colorway.secondary} style={TABULAR}>
+          {HOME.plan.day(day, days)}
+        </T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <T v="meta" color={colorway.ink}>
+            {HOME.plan.go}
+          </T>
+          <Icon name="chevron-right" size={16} color={colorway.ink} />
+        </View>
+      </View>
+    </Card>
   );
 }
 
-/** The once-only note on Day 3: what showing up opens. */
-export function AccessNote({ colorway, onRewards }: { colorway: Colorway; onRewards: () => void }) {
-  return (
-    <View style={{ gap: 8 }}>
-      <T v="label" color={colorway.secondary}>
-        {HOME.access.label}
-      </T>
-      <T v="body" color={colorway.ink}>
-        {HOME.access.body}
-      </T>
-      <InlineLink title={HOME.access.link} color={colorway.ink} onPress={onRewards} />
-    </View>
-  );
-}
-
-function BarItem({ label, onPress, colorway, children }: { label: string; onPress: () => void; colorway: Colorway; children?: ReactNode }) {
+/** No plan running: one quiet row to Plans, after the missions. No rule, no card. */
+export function PlansRow({ colorway, onPress }: { colorway: Colorway; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={`${HOME.plan.link}. ${HOME.plan.linkDetail}`}
       onPress={onPress}
-      style={({ pressed }) => ({
-        height: 44,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 4,
-        marginRight: 10,
-        flexShrink: 1,
-        opacity: pressed ? 0.6 : 1,
-      })}>
-      {children}
-      {/* Capped below the usual 1.3x so the three labels and the colorway icon still fit a 375pt phone. */}
-      <T v="small" color={colorway.secondary} numberOfLines={1} maxFontSizeMultiplier={1.15}>
-        {label}
-      </T>
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, gap: 12, opacity: pressed ? 0.6 : 1 })}>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <T v="row" color={colorway.ink}>
+          {HOME.plan.link}
+        </T>
+        <T v="note" color={colorway.secondary} style={{ marginTop: 2 }}>
+          {HOME.plan.linkDetail}
+        </T>
+      </View>
+      <Icon name="chevron-right" size={18} color={colorway.secondary} />
     </Pressable>
   );
 }
 
 /**
- * The fixed bar: Progress (with the walker), Programs, Rewards, and the
- * colorway icon. Solid colorway ground, with a fade above it. `nudge` changes
- * when a mission was just proven: the walker takes a step.
+ * YOUR WEEK: what the week added up to. Sunday to Tuesday, until it's closed; on Monday and
+ * Tuesday (`last`) it's the week before, and says so.
  */
-export function BottomBar({
+export function WeeklyCard({
   colorway,
-  nudge,
-  onProgress,
-  onPrograms,
-  onRewards,
-  onColorway,
+  missions,
+  focusMinutes,
+  last,
+  onPress,
 }: {
   colorway: Colorway;
-  nudge: number;
-  onProgress: () => void;
-  onPrograms: () => void;
-  onRewards: () => void;
-  onColorway: () => void;
+  missions: number;
+  focusMinutes: number;
+  last: boolean;
+  onPress: () => void;
 }) {
-  const insets = useSafeAreaInsets();
-  // The bar sits over the list, so it needs a solid ground on every colorway (plates included).
-  const barBg = colorway.bgEnd ?? colorway.bg;
-  const [step] = useState(() => new Animated.Value(0));
-  useEffect(() => {
-    if (!nudge) return;
-    return withMotion(reduce => {
-      // Reduce Motion: no translate, so the walker stays put.
-      if (reduce) return;
-      Animated.sequence([
-        Animated.delay(ARRIVE_DELAY + 300),
-        Animated.timing(step, { toValue: 3, duration: 200, easing: ease.out, useNativeDriver: NATIVE }),
-        Animated.timing(step, { toValue: 0, duration: 200, easing: ease.in, useNativeDriver: NATIVE }),
-      ]).start();
-    });
-  }, [nudge, step]);
+  const s = surfacesFor(colorway);
+  const summary = HOME.week.summary(missions, focusMinutes);
   return (
-    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, pointerEvents: 'box-none' }}>
-      <LinearGradient colors={[`${barBg}00`, barBg]} style={{ height: colorway.kind === 'plate' ? 48 : 32, pointerEvents: 'none' }} />
-      <View
-        style={{
-          backgroundColor: barBg,
-          paddingLeft: MARGIN - 4,
-          paddingRight: MARGIN - 12,
-          paddingBottom: insets.bottom + 8,
-          height: insets.bottom + 52,
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}>
-        <BarItem label={HOME.bar.progress} onPress={onProgress} colorway={colorway}>
-          <Animated.View style={{ marginRight: 8, transform: [{ translateX: step }] }}>
-            <Walker height={22} color={colorway.ink} lapelColor={colorway.secondary} />
-          </Animated.View>
-        </BarItem>
-        <BarItem label={HOME.bar.programs} onPress={onPrograms} colorway={colorway} />
-        <BarItem label={HOME.bar.rewards} onPress={onRewards} colorway={colorway} />
-        <View style={{ flex: 1 }} />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={HOME.bar.colorway}
-          onPress={onColorway}
-          style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
-          <Icon name="colorway" size={18} color={colorway.secondary} />
-        </Pressable>
+    <Card surface={s.card} pressed={s.pressed} onPress={onPress} accessibilityLabel={HOME.week.a11y(summary, last)} accessibilityHint={HOME.week.a11yHint}>
+      <T v="kicker" color={colorway.secondary}>
+        {last ? HOME.week.lastLabel : HOME.week.label}
+      </T>
+      <T v="list" color={colorway.ink} style={{ marginTop: 6 }}>
+        {summary}
+      </T>
+      <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+        <T v="meta" color={colorway.ink}>
+          {HOME.week.link}
+        </T>
+        <Icon name="chevron-right" size={16} color={colorway.ink} />
       </View>
-    </View>
+    </Card>
+  );
+}
+
+/** No mission fits the day (every area ruled out by the answers): say so, and where to change it. */
+export function NothingFits({ colorway, onPress }: { colorway: Colorway; onPress: () => void }) {
+  const s = surfacesFor(colorway);
+  return (
+    <Card surface={s.card} pressed={s.pressed} onPress={onPress} accessibilityLabel={`${HOME.today.noneTitle} ${HOME.today.noneBody}`}>
+      <T v="saved" color={colorway.ink}>
+        {HOME.today.noneTitle}
+      </T>
+      <T v="meta" color={colorway.secondary} style={{ marginTop: 6 }}>
+        {HOME.today.noneBody}
+      </T>
+      <View style={{ marginTop: GAP.card, flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+        <T v="meta" color={colorway.ink}>
+          {HOME.today.noneAction}
+        </T>
+        <Icon name="chevron-right" size={16} color={colorway.ink} />
+      </View>
+    </Card>
   );
 }

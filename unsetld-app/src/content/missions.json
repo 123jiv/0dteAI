@@ -8,13 +8,19 @@
   "proofType": "PHOTO",
   "points": 5,
   "minutes": 3,
+  "also": [
+   "organization"
+  ],
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
   "anchor": true,
   "when": "morning",
   "tags": [
-   "discipline"
+   "discipline",
+   "routine",
+   "habits",
+   "morning"
   ],
   "active": true
  },
@@ -32,8 +38,12 @@
   "repeatable": true,
   "anchor": true,
   "group": "planning",
+  "weight": 1.5,
   "tags": [
-   "discipline"
+   "discipline",
+   "routine",
+   "habits",
+   "planning"
   ],
   "active": true
  },
@@ -53,14 +63,17 @@
   "group": "planning",
   "when": "morning",
   "tags": [
-   "discipline"
+   "discipline",
+   "routine",
+   "planning",
+   "morning"
   ],
   "active": true
  },
  {
   "id": "discipline-lock-in-30",
   "track": "discipline",
-  "title": "Lock In for 30 Minutes",
+  "title": "Put Your Phone Away and Work for 30 Minutes",
   "short": "Put your phone in another room and work on one task for 30 minutes without stopping.",
   "proof": "What you worked on, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
@@ -72,8 +85,12 @@
   "repeatable": true,
   "anchor": true,
   "group": "deep-work",
+  "weight": 1.5,
   "tags": [
-   "discipline"
+   "discipline",
+   "focus",
+   "habits",
+   "phone"
   ],
   "active": true
  },
@@ -91,15 +108,18 @@
   "cooldownDays": 1,
   "repeatable": true,
   "group": "deep-work",
+  "weight": 1.2,
   "tags": [
-   "discipline"
+   "discipline",
+   "focus",
+   "phone"
   ],
   "active": true
  },
  {
   "id": "discipline-lock-in-60",
   "track": "discipline",
-  "title": "Lock In for 60 Minutes",
+  "title": "Put Your Phone Away and Work for 60 Minutes",
   "short": "Phone in another room, one hour on the work that matters most to you.",
   "proof": "What you got done, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
@@ -111,7 +131,9 @@
   "repeatable": true,
   "group": "deep-work",
   "tags": [
-   "discipline"
+   "discipline",
+   "focus",
+   "phone"
   ],
   "active": true
  },
@@ -128,8 +150,11 @@
   "cooldownDays": 3,
   "repeatable": true,
   "group": "finish-it",
+  "weight": 1.2,
   "tags": [
-   "discipline"
+   "discipline",
+   "habits",
+   "focus"
   ],
   "active": true
  },
@@ -148,7 +173,10 @@
   "group": "finish-it",
   "when": "morning",
   "tags": [
-   "discipline"
+   "discipline",
+   "focus",
+   "routine",
+   "habits"
   ],
   "active": true
  },
@@ -166,7 +194,8 @@
   "repeatable": true,
   "group": "finish-it",
   "tags": [
-   "discipline"
+   "discipline",
+   "habits"
   ],
   "active": true
  },
@@ -195,7 +224,9 @@
    4
   ],
   "tags": [
-   "discipline"
+   "discipline",
+   "routine",
+   "planning"
   ],
   "active": true
  },
@@ -225,31 +256,34 @@
   "proof": "Your week on one page, private details covered.",
   "proofType": "PHOTO",
   "points": 10,
-  "minutes": 15,
+  "minutes": 20,
   "requires": [],
   "cooldownDays": 6,
   "repeatable": true,
   "group": "planning-week",
   "tags": [
-   "discipline"
+   "discipline",
+   "planning",
+   "routine"
   ],
   "active": true
  },
  {
   "id": "discipline-clear-3-small",
   "track": "discipline",
-  "title": "Knock Out 3 Small Tasks",
+  "title": "Finish 3 Small Tasks",
   "short": "Do three small things you keep leaving: a reply, a form, a quick errand.",
   "proof": "Your list with all three crossed off.",
   "proofType": "PHOTO",
   "points": 10,
-  "minutes": 15,
+  "minutes": 20,
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
   "group": "small-tasks",
   "tags": [
-   "discipline"
+   "discipline",
+   "habits"
   ],
   "active": true
  },
@@ -267,8 +301,36 @@
   "cooldownDays": 3,
   "repeatable": true,
   "group": "small-tasks",
+  "weight": 0.8,
   "tags": [
-   "discipline"
+   "discipline",
+   "habits",
+   "focus"
+  ],
+  "active": true
+ },
+ {
+  "id": "discipline-read-not-scroll",
+  "track": "discipline",
+  "title": "Read for 20 Minutes Instead of Scrolling",
+  "short": "Put your phone in another room and read a book for 20 minutes.",
+  "proof": "The book open to where you stopped, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 20,
+  "timerMinutes": 20,
+  "also": [
+   "skills"
+  ],
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "reading",
+  "tags": [
+   "discipline",
+   "reading",
+   "habits",
+   "phone"
   ],
   "active": true
  },
@@ -289,8 +351,38 @@
   "repeatable": true,
   "anchor": true,
   "group": "study",
+  "weight": 3,
   "tags": [
+   "school",
+   "study",
+   "grades",
+   "gpa"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-study-10",
+  "track": "school",
+  "title": "Study for 10 Minutes",
+  "short": "Put your phone away and study one subject for 10 focused minutes.",
+  "proof": "Your notes or study setup, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "timerMinutes": 10,
+  "requires": [
    "school"
+  ],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "anchor": true,
+  "group": "study",
+  "weight": 1.5,
+  "tags": [
+   "school",
+   "study",
+   "grades",
+   "gpa"
   ],
   "active": true
  },
@@ -311,7 +403,10 @@
   "repeatable": true,
   "group": "study",
   "tags": [
-   "school"
+   "school",
+   "study",
+   "grades",
+   "gpa"
   ],
   "active": true
  },
@@ -331,8 +426,12 @@
   "repeatable": true,
   "anchor": true,
   "group": "assignment",
+  "weight": 2,
   "tags": [
-   "school"
+   "school",
+   "homework",
+   "grades",
+   "gpa"
   ],
   "active": true
  },
@@ -352,7 +451,8 @@
   "repeatable": true,
   "group": "assignment",
   "tags": [
-   "school"
+   "school",
+   "homework"
   ],
   "active": true
  },
@@ -379,8 +479,12 @@
    3,
    4
   ],
+  "weight": 1.5,
   "tags": [
-   "school"
+   "school",
+   "homework",
+   "grades",
+   "gpa"
   ],
   "active": true
  },
@@ -388,11 +492,11 @@
   "id": "school-review-notes",
   "track": "school",
   "title": "Review Today's Notes",
-  "short": "Go over today's class notes and mark anything you don't understand yet.",
+  "short": "Read over today's class notes and mark anything you don't understand yet.",
   "proof": "Your notes with what you marked.",
   "proofType": "PHOTO",
-  "points": 10,
-  "minutes": 10,
+  "points": 5,
+  "minutes": 5,
   "requires": [
    "school"
   ],
@@ -408,7 +512,9 @@
    5
   ],
   "tags": [
-   "school"
+   "school",
+   "study",
+   "notes"
   ],
   "active": true
  },
@@ -428,7 +534,8 @@
   "repeatable": true,
   "group": "school-reading",
   "tags": [
-   "school"
+   "school",
+   "reading"
   ],
   "active": true
  },
@@ -446,9 +553,12 @@
   ],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "school-reading",
   "tags": [
-   "school"
+   "school",
+   "reading",
+   "homework"
   ],
   "active": true
  },
@@ -469,7 +579,11 @@
   "repeatable": true,
   "group": "hard-subject",
   "tags": [
-   "school"
+   "school",
+   "study",
+   "grades",
+   "gpa",
+   "exam"
   ],
   "active": true
  },
@@ -489,8 +603,12 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "hard-subject",
+  "weight": 1.2,
   "tags": [
-   "school"
+   "school",
+   "study",
+   "grades",
+   "gpa"
   ],
   "active": true
  },
@@ -508,9 +626,15 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
+  "anchor": true,
   "group": "practice-problems",
+  "weight": 1.2,
   "tags": [
-   "school"
+   "school",
+   "test",
+   "exam",
+   "grades",
+   "problems"
   ],
   "active": true
  },
@@ -530,7 +654,10 @@
   "repeatable": true,
   "group": "practice-problems",
   "tags": [
-   "school"
+   "school",
+   "test",
+   "exam",
+   "problems"
   ],
   "active": true
  },
@@ -550,7 +677,10 @@
   "repeatable": true,
   "group": "flashcards",
   "tags": [
-   "school"
+   "school",
+   "test",
+   "exam",
+   "flashcards"
   ],
   "active": true
  },
@@ -570,7 +700,10 @@
   "repeatable": true,
   "group": "flashcards",
   "tags": [
-   "school"
+   "school",
+   "test",
+   "exam",
+   "flashcards"
   ],
   "active": true
  },
@@ -591,7 +724,34 @@
   "repeatable": true,
   "group": "flashcards",
   "tags": [
+   "school",
+   "test",
+   "exam",
+   "flashcards"
+  ],
+  "active": true
+ },
+ {
+  "id": "school-flashcards-10",
+  "track": "school",
+  "title": "Review Flashcards for 10 Minutes",
+  "short": "Go through one set of flashcards and put aside the ones you miss to go over again.",
+  "proof": "Your flashcards, after the timer.",
+  "proofType": "TIMER_AND_PHOTO",
+  "points": 10,
+  "minutes": 10,
+  "timerMinutes": 10,
+  "requires": [
    "school"
+  ],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "flashcards",
+  "tags": [
+   "school",
+   "test",
+   "exam",
+   "flashcards"
   ],
   "active": true
  },
@@ -611,7 +771,8 @@
   "cooldownDays": 2,
   "repeatable": true,
   "tags": [
-   "school"
+   "school",
+   "homework"
   ],
   "active": true
  },
@@ -630,9 +791,15 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
+  "anchor": true,
   "group": "study",
+  "weight": 1.2,
   "tags": [
-   "school"
+   "school",
+   "study",
+   "test",
+   "exam",
+   "grades"
   ],
   "active": true
  },
@@ -652,7 +819,9 @@
   "cooldownDays": 5,
   "repeatable": true,
   "tags": [
-   "school"
+   "school",
+   "test",
+   "exam"
   ],
   "active": true
  },
@@ -671,7 +840,8 @@
   "cooldownDays": 5,
   "repeatable": true,
   "tags": [
-   "school"
+   "school",
+   "notes"
   ],
   "active": true
  },
@@ -689,8 +859,10 @@
   ],
   "cooldownDays": 3,
   "repeatable": true,
+  "weight": 0.7,
   "tags": [
-   "school"
+   "school",
+   "notes"
   ],
   "active": true
  },
@@ -710,7 +882,9 @@
   "repeatable": true,
   "group": "planning-week",
   "tags": [
-   "school"
+   "school",
+   "planning",
+   "exam"
   ],
   "active": true
  },
@@ -731,7 +905,10 @@
   "group": "assignment",
   "weight": 0.3,
   "tags": [
-   "school"
+   "school",
+   "homework",
+   "grades",
+   "gpa"
   ],
   "active": true
  },
@@ -753,7 +930,8 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "school"
+   "school",
+   "organize"
   ],
   "active": true
  },
@@ -772,8 +950,11 @@
   ],
   "cooldownDays": 3,
   "repeatable": true,
+  "weight": 0.8,
   "tags": [
-   "school"
+   "school",
+   "homework",
+   "writing"
   ],
   "active": true
  },
@@ -791,9 +972,11 @@
   ],
   "cooldownDays": 7,
   "repeatable": true,
-  "weight": 0.6,
+  "weight": 0.5,
   "tags": [
-   "school"
+   "school",
+   "test",
+   "exam"
   ],
   "active": true
  },
@@ -814,9 +997,12 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
-  "weight": 0.7,
+  "weight": 0.6,
   "tags": [
-   "school"
+   "school",
+   "test",
+   "exam",
+   "college"
   ],
   "active": true
  },
@@ -839,7 +1025,9 @@
   "repeatable": true,
   "weight": 0.5,
   "tags": [
-   "school"
+   "school",
+   "college",
+   "writing"
   ],
   "active": true
  },
@@ -859,9 +1047,10 @@
   ],
   "cooldownDays": 10,
   "repeatable": true,
-  "weight": 0.6,
+  "weight": 0.5,
   "tags": [
-   "school"
+   "school",
+   "college"
   ],
   "active": true
  },
@@ -879,8 +1068,11 @@
   ],
   "cooldownDays": 5,
   "repeatable": true,
+  "weight": 0.8,
   "tags": [
-   "school"
+   "school",
+   "test",
+   "exam"
   ],
   "active": true
  },
@@ -899,8 +1091,10 @@
   "cooldownDays": 60,
   "repeatable": true,
   "group": "planning-week",
+  "weight": 0.6,
   "tags": [
-   "school"
+   "school",
+   "planning"
   ],
   "active": true
  },
@@ -921,15 +1115,16 @@
   "group": "planning",
   "when": "evening",
   "tags": [
-   "school"
+   "school",
+   "planning"
   ],
   "active": true
  },
  {
   "id": "school-check-due",
   "track": "school",
-  "title": "Check What's Due This Week",
-  "short": "Check your planner or class pages and write down everything due in the next 7 days and anything missing.",
+  "title": "Write Down Everything Due This Week",
+  "short": "Check your planner and class pages and list every assignment and test due in the next 7 days.",
   "proof": "Your list of what's due. No scores.",
   "proofType": "PHOTO",
   "points": 5,
@@ -937,11 +1132,12 @@
   "requires": [
    "school"
   ],
-  "cooldownDays": 3,
+  "cooldownDays": 5,
   "repeatable": true,
   "group": "planning-week",
   "tags": [
-   "school"
+   "school",
+   "planning"
   ],
   "active": true
  },
@@ -949,18 +1145,23 @@
   "id": "fitness-workout",
   "track": "fitness",
   "title": "Complete Your Workout",
-  "short": "Do your planned workout from start to finish.",
+  "short": "Do your planned workout from start to finish, at the gym or at home.",
   "proof": "Where you trained, right after. No people.",
   "proofType": "PHOTO",
   "points": 20,
-  "minutes": 45,
+  "minutes": 30,
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
   "anchor": true,
   "group": "workout",
+  "weight": 2,
   "tags": [
-   "fitness"
+   "fitness",
+   "workout",
+   "gym",
+   "strength",
+   "muscle"
   ],
   "active": true
  },
@@ -968,11 +1169,11 @@
   "id": "fitness-gym",
   "track": "fitness",
   "title": "Go to the Gym",
-  "short": "Go to the gym and do a full session.",
+  "short": "Go to the gym and train for at least 30 minutes.",
   "proof": "The equipment you used, after your session. No people.",
   "proofType": "PHOTO",
   "points": 20,
-  "minutes": 45,
+  "minutes": 30,
   "requires": [
    "gym"
   ],
@@ -982,7 +1183,11 @@
   "group": "workout",
   "weight": 2,
   "tags": [
-   "fitness"
+   "fitness",
+   "gym",
+   "workout",
+   "strength",
+   "muscle"
   ],
   "active": true
  },
@@ -1000,8 +1205,12 @@
   "cooldownDays": 1,
   "repeatable": true,
   "group": "workout",
+  "weight": 0.8,
   "tags": [
-   "fitness"
+   "fitness",
+   "workout",
+   "strength",
+   "muscle"
   ],
   "active": true
  },
@@ -1018,10 +1227,12 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
-  "anchor": true,
   "group": "workout",
   "tags": [
-   "fitness"
+   "fitness",
+   "workout",
+   "strength",
+   "home"
   ],
   "active": true
  },
@@ -1041,7 +1252,10 @@
   "anchor": true,
   "group": "workout",
   "tags": [
-   "fitness"
+   "fitness",
+   "workout",
+   "strength",
+   "home"
   ],
   "active": true
  },
@@ -1059,8 +1273,12 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "workout",
+  "weight": 0.7,
   "tags": [
-   "fitness"
+   "fitness",
+   "workout",
+   "strength",
+   "home"
   ],
   "active": true
  },
@@ -1079,8 +1297,12 @@
   "repeatable": true,
   "anchor": true,
   "group": "cardio",
+  "weight": 1.3,
   "tags": [
-   "fitness"
+   "fitness",
+   "walk",
+   "cardio",
+   "outside"
   ],
   "active": true
  },
@@ -1098,8 +1320,12 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "cardio",
+  "weight": 0.8,
   "tags": [
-   "fitness"
+   "fitness",
+   "walk",
+   "cardio",
+   "outside"
   ],
   "active": true
  },
@@ -1117,8 +1343,11 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "cardio",
+  "weight": 0.7,
   "tags": [
-   "fitness"
+   "fitness",
+   "cardio",
+   "home"
   ],
   "active": true
  },
@@ -1136,8 +1365,12 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "cardio",
+  "weight": 1.2,
   "tags": [
-   "fitness"
+   "fitness",
+   "run",
+   "cardio",
+   "endurance"
   ],
   "active": true
  },
@@ -1155,8 +1388,12 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "cardio",
+  "weight": 1.3,
   "tags": [
-   "fitness"
+   "fitness",
+   "cardio",
+   "run",
+   "endurance"
   ],
   "active": true
  },
@@ -1175,7 +1412,10 @@
   "repeatable": true,
   "group": "cardio",
   "tags": [
-   "fitness"
+   "fitness",
+   "walk",
+   "cardio",
+   "phone"
   ],
   "active": true
  },
@@ -1195,7 +1435,9 @@
   "group": "cardio",
   "weight": 0.6,
   "tags": [
-   "fitness"
+   "fitness",
+   "cardio",
+   "outside"
   ],
   "active": true
  },
@@ -1232,8 +1474,12 @@
   "cooldownDays": 3,
   "repeatable": true,
   "group": "workout",
+  "weight": 0.1,
   "tags": [
-   "fitness"
+   "fitness",
+   "sport",
+   "training",
+   "niche"
   ],
   "active": true
  },
@@ -1252,8 +1498,34 @@
   "repeatable": true,
   "anchor": true,
   "group": "stretch",
+  "weight": 1.2,
   "tags": [
-   "fitness"
+   "fitness",
+   "stretch",
+   "mobility",
+   "recovery"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-stretch-5",
+  "track": "fitness",
+  "title": "Stretch for 5 Minutes",
+  "short": "Stretch your legs, hips and back for 5 minutes, holding each stretch for 30 seconds.",
+  "proof": "Run the 5-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 5,
+  "minutes": 5,
+  "timerMinutes": 5,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "stretch",
+  "tags": [
+   "fitness",
+   "stretch",
+   "mobility",
+   "recovery"
   ],
   "active": true
  },
@@ -1271,8 +1543,12 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "stretch",
+  "weight": 0.8,
   "tags": [
-   "fitness"
+   "fitness",
+   "mobility",
+   "stretch",
+   "recovery"
   ],
   "active": true
  },
@@ -1289,8 +1565,12 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "meal",
+  "weight": 0.8,
   "tags": [
-   "fitness"
+   "fitness",
+   "meal",
+   "food",
+   "cooking"
   ],
   "active": true
  },
@@ -1316,7 +1596,33 @@
    4
   ],
   "tags": [
-   "fitness"
+   "fitness",
+   "meal",
+   "food",
+   "planning"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-breakfast",
+  "track": "fitness",
+  "title": "Get Tomorrow's Breakfast Ready",
+  "short": "Set out or make tomorrow's breakfast tonight so you don't skip it.",
+  "proof": "Your breakfast, ready for the morning.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "meal",
+  "when": "evening",
+  "weight": 0.8,
+  "tags": [
+   "fitness",
+   "meal",
+   "food",
+   "routine"
   ],
   "active": true
  },
@@ -1332,8 +1638,10 @@
   "requires": [],
   "cooldownDays": 6,
   "repeatable": true,
+  "group": "planning-week",
   "tags": [
-   "fitness"
+   "fitness",
+   "planning"
   ],
   "active": true
  },
@@ -1351,8 +1659,10 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
+  "weight": 0.5,
   "tags": [
-   "fitness"
+   "fitness",
+   "tracking"
   ],
   "active": true
  },
@@ -1369,8 +1679,12 @@
   "cooldownDays": 6,
   "repeatable": true,
   "group": "meal",
+  "weight": 0.6,
   "tags": [
-   "fitness"
+   "fitness",
+   "meal",
+   "food",
+   "cooking"
   ],
   "active": true
  },
@@ -1388,8 +1702,11 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "core",
+  "weight": 0.1,
   "tags": [
-   "fitness"
+   "fitness",
+   "core",
+   "niche"
   ],
   "active": true
  },
@@ -1407,8 +1724,11 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "core",
+  "weight": 0.1,
   "tags": [
-   "fitness"
+   "fitness",
+   "core",
+   "niche"
   ],
   "active": true
  },
@@ -1428,8 +1748,31 @@
   "repeatable": true,
   "group": "tomorrow-ready",
   "when": "evening",
+  "weight": 0.5,
   "tags": [
-   "fitness"
+   "fitness",
+   "planning"
+  ],
+  "active": true
+ },
+ {
+  "id": "fitness-plan-tomorrow",
+  "track": "fitness",
+  "title": "Plan Tomorrow's Workout",
+  "short": "Write what you'll do in tomorrow's workout: the exercises, sets and reps, or how far you'll go.",
+  "proof": "Your written plan.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "planning",
+  "when": "evening",
+  "weight": 0.5,
+  "tags": [
+   "fitness",
+   "planning"
   ],
   "active": true
  },
@@ -1447,8 +1790,11 @@
   "repeatable": true,
   "anchor": true,
   "when": "evening",
+  "weight": 1.5,
   "tags": [
-   "money"
+   "money",
+   "budget",
+   "spending"
   ],
   "active": true
  },
@@ -1460,13 +1806,17 @@
   "proof": "Your totals on paper. No bank details.",
   "proofType": "PHOTO",
   "points": 10,
-  "minutes": 15,
+  "minutes": 20,
   "requires": [],
   "cooldownDays": 6,
   "repeatable": true,
   "group": "money-review",
+  "weight": 1.3,
   "tags": [
-   "money"
+   "money",
+   "budget",
+   "save",
+   "spending"
   ],
   "active": true
  },
@@ -1483,8 +1833,12 @@
   "cooldownDays": 6,
   "repeatable": true,
   "group": "money-plan",
+  "weight": 1.2,
   "tags": [
-   "money"
+   "money",
+   "budget",
+   "planning",
+   "spending"
   ],
   "active": true
  },
@@ -1501,7 +1855,10 @@
   "cooldownDays": 30,
   "repeatable": true,
   "tags": [
-   "money"
+   "money",
+   "save",
+   "savings",
+   "goal"
   ],
   "active": true
  },
@@ -1519,7 +1876,10 @@
   "repeatable": true,
   "group": "money-plan",
   "tags": [
-   "money"
+   "money",
+   "save",
+   "savings",
+   "budget"
   ],
   "active": true
  },
@@ -1536,8 +1896,11 @@
   "cooldownDays": 30,
   "repeatable": true,
   "group": "money-plan",
+  "weight": 1.2,
   "tags": [
-   "money"
+   "money",
+   "budget",
+   "save"
   ],
   "active": true
  },
@@ -1554,7 +1917,10 @@
   "cooldownDays": 30,
   "repeatable": true,
   "tags": [
-   "money"
+   "money",
+   "save",
+   "savings",
+   "spending"
   ],
   "active": true
  },
@@ -1573,7 +1939,8 @@
   "repeatable": true,
   "group": "money-learning",
   "tags": [
-   "money"
+   "money",
+   "finance"
   ],
   "active": true
  },
@@ -1592,7 +1959,9 @@
   "repeatable": true,
   "group": "money-learning",
   "tags": [
-   "money"
+   "money",
+   "budget",
+   "finance"
   ],
   "active": true
  },
@@ -1610,8 +1979,11 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "money-learning",
+  "weight": 0.8,
   "tags": [
-   "money"
+   "money",
+   "finance",
+   "reading"
   ],
   "active": true
  },
@@ -1627,8 +1999,11 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
+  "weight": 0.6,
   "tags": [
-   "money"
+   "money",
+   "save",
+   "spending"
   ],
   "active": true
  },
@@ -1646,7 +2021,10 @@
   "repeatable": true,
   "group": "money-review",
   "tags": [
-   "money"
+   "money",
+   "budget",
+   "save",
+   "spending"
   ],
   "active": true
  },
@@ -1662,8 +2040,11 @@
   "requires": [],
   "cooldownDays": 7,
   "repeatable": true,
+  "weight": 1.2,
   "tags": [
-   "money"
+   "money",
+   "save",
+   "savings"
   ],
   "active": true
  },
@@ -1682,7 +2063,9 @@
   "cooldownDays": 90,
   "repeatable": true,
   "tags": [
-   "money"
+   "money",
+   "save",
+   "savings"
   ],
   "active": true
  },
@@ -1701,8 +2084,10 @@
   ],
   "cooldownDays": 14,
   "repeatable": true,
+  "weight": 0.6,
   "tags": [
-   "money"
+   "money",
+   "college"
   ],
   "active": true
  },
@@ -1721,7 +2106,8 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "money"
+   "money",
+   "work"
   ],
   "active": true
  },
@@ -1741,7 +2127,11 @@
   "repeatable": true,
   "group": "money-plan",
   "tags": [
-   "money"
+   "money",
+   "budget",
+   "save",
+   "savings",
+   "work"
   ],
   "active": true
  },
@@ -1760,7 +2150,9 @@
   "cooldownDays": 6,
   "repeatable": true,
   "tags": [
-   "money"
+   "money",
+   "budget",
+   "planning"
   ],
   "active": true
  },
@@ -1776,8 +2168,11 @@
   "requires": [],
   "cooldownDays": 14,
   "repeatable": true,
+  "weight": 0.5,
   "tags": [
-   "money"
+   "money",
+   "savings",
+   "declutter"
   ],
   "active": true
  },
@@ -1793,8 +2188,10 @@
   "requires": [],
   "cooldownDays": 30,
   "repeatable": true,
+  "weight": 0.6,
   "tags": [
-   "money"
+   "money",
+   "earn"
   ],
   "active": true
  },
@@ -1812,8 +2209,11 @@
   ],
   "cooldownDays": 60,
   "repeatable": true,
+  "weight": 0.5,
   "tags": [
-   "money"
+   "money",
+   "savings",
+   "save"
   ],
   "active": true
  },
@@ -1833,8 +2233,11 @@
   "repeatable": true,
   "anchor": true,
   "group": "apply",
+  "weight": 1.5,
   "tags": [
-   "career"
+   "career",
+   "job",
+   "apply"
   ],
   "active": true
  },
@@ -1853,15 +2256,18 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "apply",
+  "weight": 0.9,
   "tags": [
-   "career"
+   "career",
+   "internship",
+   "apply"
   ],
   "active": true
  },
  {
   "id": "career-find-opportunities",
   "track": "career",
-  "title": "Find Three Opportunities",
+  "title": "Find 3 Jobs or Internships to Apply For",
   "short": "Find three jobs, internships, programs or competitions you're old enough for, and save each link and deadline.",
   "proof": "Your list of three with deadlines.",
   "proofType": "PHOTO",
@@ -1871,26 +2277,31 @@
   "cooldownDays": 4,
   "repeatable": true,
   "group": "opportunities",
+  "weight": 1.2,
   "tags": [
-   "career"
+   "career",
+   "job",
+   "internship"
   ],
   "active": true
  },
  {
   "id": "career-find-one",
   "track": "career",
-  "title": "Find One Opportunity to Apply For",
+  "title": "Find One Job or Internship to Apply For",
   "short": "Find one job, internship or program you're old enough for and write down the link and the deadline.",
   "proof": "Your note of what it is and the deadline.",
   "proofType": "PHOTO",
-  "points": 10,
-  "minutes": 10,
+  "points": 5,
+  "minutes": 5,
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
   "group": "opportunities",
   "tags": [
-   "career"
+   "career",
+   "job",
+   "internship"
   ],
   "active": true
  },
@@ -1911,7 +2322,8 @@
   "repeatable": true,
   "group": "opportunities",
   "tags": [
-   "career"
+   "career",
+   "internship"
   ],
   "active": true
  },
@@ -1931,9 +2343,12 @@
   "cooldownDays": 5,
   "repeatable": true,
   "group": "resume",
-  "weight": 2,
+  "weight": 3,
   "tags": [
-   "career"
+   "career",
+   "resume",
+   "job",
+   "internship"
   ],
   "active": true
  },
@@ -1953,7 +2368,8 @@
   "repeatable": true,
   "group": "resume",
   "tags": [
-   "career"
+   "career",
+   "resume"
   ],
   "active": true
  },
@@ -1970,9 +2386,10 @@
   "cooldownDays": 365,
   "repeatable": false,
   "group": "resume",
-  "weight": 2,
+  "weight": 0.4,
   "tags": [
-   "career"
+   "career",
+   "resume"
   ],
   "active": true
  },
@@ -1989,8 +2406,10 @@
   "cooldownDays": 30,
   "repeatable": true,
   "group": "resume",
+  "weight": 0.6,
   "tags": [
-   "career"
+   "career",
+   "resume"
   ],
   "active": true
  },
@@ -2009,7 +2428,9 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "linkedin",
+   "job"
   ],
   "active": true
  },
@@ -2038,7 +2459,8 @@
    "writing"
   ],
   "tags": [
-   "career"
+   "career",
+   "portfolio"
   ],
   "active": true
  },
@@ -2055,7 +2477,9 @@
   "cooldownDays": 30,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "goal",
+   "planning"
   ],
   "active": true
  },
@@ -2071,8 +2495,10 @@
   "requires": [],
   "cooldownDays": 7,
   "repeatable": true,
+  "weight": 0.8,
   "tags": [
-   "career"
+   "career",
+   "research"
   ],
   "active": true
  },
@@ -2095,7 +2521,9 @@
   "anchor": true,
   "group": "skill-session",
   "tags": [
-   "career"
+   "career",
+   "learn",
+   "skill"
   ],
   "active": true
  },
@@ -2117,7 +2545,9 @@
   "repeatable": true,
   "group": "skill-session",
   "tags": [
-   "career"
+   "career",
+   "learn",
+   "skill"
   ],
   "active": true
  },
@@ -2136,7 +2566,9 @@
   "cooldownDays": 4,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "network",
+   "internship"
   ],
   "active": true
  },
@@ -2153,7 +2585,8 @@
   "cooldownDays": 5,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "research"
   ],
   "active": true
  },
@@ -2173,8 +2606,11 @@
   "cooldownDays": 5,
   "repeatable": true,
   "group": "interview",
+  "weight": 1.2,
   "tags": [
-   "career"
+   "career",
+   "interview",
+   "job"
   ],
   "active": true
  },
@@ -2195,7 +2631,8 @@
   "group": "interview",
   "weight": 0.6,
   "tags": [
-   "career"
+   "career",
+   "interview"
   ],
   "active": true
  },
@@ -2215,7 +2652,8 @@
   "repeatable": true,
   "group": "interview",
   "tags": [
-   "career"
+   "career",
+   "interview"
   ],
   "active": true
  },
@@ -2234,7 +2672,10 @@
   "cooldownDays": 3,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "apply",
+   "job",
+   "internship"
   ],
   "active": true
  },
@@ -2257,7 +2698,11 @@
   "repeatable": true,
   "group": "project-session",
   "tags": [
-   "career"
+   "career",
+   "resume",
+   "build",
+   "project",
+   "coding"
   ],
   "active": true
  },
@@ -2276,7 +2721,9 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "job",
+   "apply"
   ],
   "active": true
  },
@@ -2294,9 +2741,11 @@
   ],
   "cooldownDays": 30,
   "repeatable": true,
-  "weight": 0.3,
+  "weight": 0.1,
   "tags": [
-   "career"
+   "career",
+   "work",
+   "niche"
   ],
   "active": true
  },
@@ -2314,9 +2763,11 @@
   ],
   "cooldownDays": 14,
   "repeatable": true,
-  "weight": 0.3,
+  "weight": 0.4,
   "tags": [
-   "career"
+   "career",
+   "job",
+   "apply"
   ],
   "active": true
  },
@@ -2335,7 +2786,9 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "work",
+   "resume"
   ],
   "active": true
  },
@@ -2352,7 +2805,8 @@
   "cooldownDays": 30,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "research"
   ],
   "active": true
  },
@@ -2375,9 +2829,11 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "skill-session",
-  "weight": 0.6,
+  "weight": 0.1,
   "tags": [
-   "career"
+   "career",
+   "certification",
+   "niche"
   ],
   "active": true
  },
@@ -2394,7 +2850,9 @@
   "cooldownDays": 10,
   "repeatable": true,
   "tags": [
-   "career"
+   "career",
+   "skill",
+   "research"
   ],
   "active": true
  },
@@ -2413,8 +2871,14 @@
   "repeatable": true,
   "anchor": true,
   "group": "business-session",
+  "weight": 2,
   "tags": [
-   "business"
+   "business",
+   "brand",
+   "clothing",
+   "shop",
+   "sell",
+   "customers"
   ],
   "active": true
  },
@@ -2433,7 +2897,12 @@
   "repeatable": true,
   "group": "business-session",
   "tags": [
-   "business"
+   "business",
+   "brand",
+   "clothing",
+   "shop",
+   "sell",
+   "customers"
   ],
   "active": true
  },
@@ -2455,8 +2924,12 @@
   "cooldownDays": 1,
   "repeatable": true,
   "anchor": true,
+  "weight": 1.2,
   "tags": [
-   "business"
+   "business",
+   "brand",
+   "content",
+   "clothing"
   ],
   "active": true
  },
@@ -2475,7 +2948,10 @@
   "cooldownDays": 1,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "brand",
+   "content",
+   "customers"
   ],
   "active": true
  },
@@ -2494,7 +2970,11 @@
   "cooldownDays": 4,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "shop",
+   "sell",
+   "website",
+   "brand"
   ],
   "active": true
  },
@@ -2512,7 +2992,9 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "brand",
+   "research"
   ],
   "active": true
  },
@@ -2530,8 +3012,12 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
+  "weight": 1.2,
   "tags": [
-   "business"
+   "business",
+   "customers",
+   "sell",
+   "sales"
   ],
   "active": true
  },
@@ -2550,8 +3036,13 @@
   ],
   "cooldownDays": 2,
   "repeatable": true,
+  "weight": 1.3,
   "tags": [
-   "business"
+   "business",
+   "product",
+   "clothing",
+   "brand",
+   "build"
   ],
   "active": true
  },
@@ -2588,9 +3079,12 @@
   ],
   "cooldownDays": 5,
   "repeatable": true,
-  "weight": 0.7,
   "tags": [
-   "business"
+   "business",
+   "shop",
+   "sell",
+   "product",
+   "clothing"
   ],
   "active": true
  },
@@ -2609,14 +3103,15 @@
   "anchor": true,
   "group": "planning",
   "tags": [
-   "business"
+   "business",
+   "planning"
   ],
   "active": true
  },
  {
   "id": "business-marketing-idea",
   "track": "business",
-  "title": "Create One Marketing Idea",
+  "title": "Try One New Way to Get Customers",
   "short": "Come up with one new way to get customers and do the first step today.",
   "proof": "What you made, or a note of what you did.",
   "proofType": "PHOTO",
@@ -2626,7 +3121,10 @@
   "cooldownDays": 3,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "customers",
+   "marketing",
+   "sell"
   ],
   "active": true
  },
@@ -2645,14 +3143,16 @@
   "cooldownDays": 1,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "customers",
+   "sell"
   ],
   "active": true
  },
  {
   "id": "business-numbers",
   "track": "business",
-  "title": "Update Your Business Numbers",
+  "title": "Add Up This Week's Sales and Costs",
   "short": "Write down this week's sales, costs and profit.",
   "proof": "Your numbers on paper or a computer. No account details.",
   "proofType": "PHOTO",
@@ -2664,14 +3164,16 @@
   "cooldownDays": 6,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "sales",
+   "profit"
   ],
   "active": true
  },
  {
   "id": "business-idea-to-real",
   "track": "business",
-  "title": "Turn One Idea Into Something Real",
+  "title": "Make a Rough First Version of One Idea",
   "short": "Make a rough first version of one idea: a sample, a mockup, a page or a price list.",
   "proof": "What you made.",
   "proofType": "PHOTO",
@@ -2684,7 +3186,10 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "product",
+   "build",
+   "launch"
   ],
   "active": true
  },
@@ -2703,7 +3208,9 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "customers",
+   "product"
   ],
   "active": true
  },
@@ -2722,7 +3229,10 @@
   "cooldownDays": 3,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "customers",
+   "sell",
+   "sales"
   ],
   "active": true
  },
@@ -2741,7 +3251,9 @@
   "cooldownDays": 10,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "customers",
+   "research"
   ],
   "active": true
  },
@@ -2758,7 +3270,10 @@
   "cooldownDays": 21,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "pricing",
+   "profit",
+   "sell"
   ],
   "active": true
  },
@@ -2778,7 +3293,9 @@
   "repeatable": true,
   "weight": 2,
   "tags": [
-   "business"
+   "business",
+   "ideas",
+   "starting"
   ],
   "active": true
  },
@@ -2798,7 +3315,10 @@
   "repeatable": true,
   "weight": 2,
   "tags": [
-   "business"
+   "business",
+   "ideas",
+   "starting",
+   "planning"
   ],
   "active": true
  },
@@ -2815,7 +3335,9 @@
   "cooldownDays": 14,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "brand",
+   "pitch"
   ],
   "active": true
  },
@@ -2832,7 +3354,9 @@
   "cooldownDays": 25,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "goal",
+   "planning"
   ],
   "active": true
  },
@@ -2849,8 +3373,10 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
+  "weight": 0.8,
   "tags": [
-   "business"
+   "business",
+   "learning"
   ],
   "active": true
  },
@@ -2869,7 +3395,9 @@
   "anchor": true,
   "group": "reading",
   "tags": [
-   "business"
+   "business",
+   "reading",
+   "book"
   ],
   "active": true
  },
@@ -2888,7 +3416,9 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "business"
+   "business",
+   "customers",
+   "reviews"
   ],
   "active": true
  },
@@ -2907,8 +3437,16 @@
   "repeatable": true,
   "anchor": true,
   "group": "project-session",
+  "weight": 2,
   "tags": [
-   "projects"
+   "projects",
+   "build",
+   "project",
+   "app",
+   "coding",
+   "code",
+   "programming",
+   "launch"
   ],
   "active": true
  },
@@ -2927,7 +3465,14 @@
   "repeatable": true,
   "group": "project-session",
   "tags": [
-   "projects"
+   "projects",
+   "build",
+   "project",
+   "app",
+   "coding",
+   "code",
+   "programming",
+   "launch"
   ],
   "active": true
  },
@@ -2947,7 +3492,9 @@
   "anchor": true,
   "group": "project-session",
   "tags": [
-   "projects"
+   "projects",
+   "build",
+   "project"
   ],
   "active": true
  },
@@ -2967,7 +3514,10 @@
   "group": "project-session",
   "weight": 0.5,
   "tags": [
-   "projects"
+   "projects",
+   "build",
+   "project",
+   "phone"
   ],
   "active": true
  },
@@ -2983,8 +3533,14 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "weight": 1.3,
   "tags": [
-   "projects"
+   "projects",
+   "build",
+   "app",
+   "coding",
+   "code",
+   "launch"
   ],
   "active": true
  },
@@ -3002,7 +3558,11 @@
   "repeatable": true,
   "group": "project-fix",
   "tags": [
-   "projects"
+   "projects",
+   "app",
+   "coding",
+   "code",
+   "build"
   ],
   "active": true
  },
@@ -3022,7 +3582,9 @@
    "design"
   ],
   "tags": [
-   "projects"
+   "projects",
+   "design",
+   "brand"
   ],
   "active": true
  },
@@ -3042,7 +3604,8 @@
    "writing"
   ],
   "tags": [
-   "projects"
+   "projects",
+   "writing"
   ],
   "active": true
  },
@@ -3063,7 +3626,9 @@
    "video"
   ],
   "tags": [
-   "projects"
+   "projects",
+   "video",
+   "content"
   ],
   "active": true
  },
@@ -3084,7 +3649,10 @@
    "video"
   ],
   "tags": [
-   "projects"
+   "projects",
+   "video",
+   "editing",
+   "content"
   ],
   "active": true
  },
@@ -3101,7 +3669,9 @@
   "cooldownDays": 4,
   "repeatable": true,
   "tags": [
-   "projects"
+   "projects",
+   "launch",
+   "project"
   ],
   "active": true
  },
@@ -3119,7 +3689,9 @@
   "repeatable": true,
   "weight": 0.5,
   "tags": [
-   "projects"
+   "projects",
+   "build",
+   "project"
   ],
   "active": true
  },
@@ -3137,7 +3709,8 @@
   "repeatable": true,
   "group": "planning",
   "tags": [
-   "projects"
+   "projects",
+   "planning"
   ],
   "active": true
  },
@@ -3155,9 +3728,27 @@
   "repeatable": true,
   "group": "planning",
   "when": "evening",
-  "weight": 0.6,
   "tags": [
-   "projects"
+   "projects",
+   "planning"
+  ],
+  "active": true
+ },
+ {
+  "id": "projects-ideas-3",
+  "track": "projects",
+  "title": "Write 3 Ideas to Improve Your Project",
+  "short": "Write three ways to make your project better and circle the one you'll do next.",
+  "proof": "Your list with one circled.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "tags": [
+   "projects",
+   "ideas"
   ],
   "active": true
  },
@@ -3177,7 +3768,9 @@
   "cooldownDays": 5,
   "repeatable": true,
   "tags": [
-   "projects"
+   "projects",
+   "build",
+   "project"
   ],
   "active": true
  },
@@ -3194,7 +3787,9 @@
   "cooldownDays": 5,
   "repeatable": true,
   "tags": [
-   "projects"
+   "projects",
+   "feedback",
+   "launch"
   ],
   "active": true
  },
@@ -3210,8 +3805,12 @@
   "requires": [],
   "cooldownDays": 14,
   "repeatable": true,
+  "weight": 0.8,
   "tags": [
-   "projects"
+   "projects",
+   "launch",
+   "app",
+   "project"
   ],
   "active": true
  },
@@ -3229,7 +3828,9 @@
   "repeatable": true,
   "group": "project-fix",
   "tags": [
-   "projects"
+   "projects",
+   "app",
+   "coding"
   ],
   "active": true
  },
@@ -3242,11 +3843,15 @@
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 10,
-  "requires": [],
+  "requires": [
+   "building"
+  ],
   "cooldownDays": 14,
   "repeatable": true,
+  "weight": 0.6,
   "tags": [
-   "projects"
+   "projects",
+   "files"
   ],
   "active": true
  },
@@ -3267,7 +3872,9 @@
   "cooldownDays": 2,
   "repeatable": true,
   "tags": [
-   "projects"
+   "projects",
+   "learn",
+   "coding"
   ],
   "active": true
  },
@@ -3283,8 +3890,10 @@
   "requires": [],
   "cooldownDays": 30,
   "repeatable": true,
+  "weight": 0.6,
   "tags": [
-   "projects"
+   "projects",
+   "launch"
   ],
   "active": true
  },
@@ -3303,8 +3912,12 @@
   "repeatable": true,
   "anchor": true,
   "group": "skill-session",
+  "weight": 1.2,
   "tags": [
-   "skills"
+   "skills",
+   "learn",
+   "practice",
+   "skill"
   ],
   "active": true
  },
@@ -3323,7 +3936,9 @@
   "anchor": true,
   "group": "skill-session",
   "tags": [
-   "skills"
+   "skills",
+   "learn",
+   "course"
   ],
   "active": true
  },
@@ -3342,7 +3957,9 @@
   "repeatable": true,
   "group": "skill-session",
   "tags": [
-   "skills"
+   "skills",
+   "practice",
+   "skill"
   ],
   "active": true
  },
@@ -3363,8 +3980,14 @@
   "repeatable": true,
   "anchor": true,
   "group": "skill-session",
+  "weight": 1.5,
   "tags": [
-   "skills"
+   "skills",
+   "coding",
+   "code",
+   "programming",
+   "app",
+   "practice"
   ],
   "active": true
  },
@@ -3385,8 +4008,11 @@
   "repeatable": true,
   "anchor": true,
   "group": "skill-session",
+  "weight": 1.5,
   "tags": [
-   "skills"
+   "skills",
+   "design",
+   "practice"
   ],
   "active": true
  },
@@ -3407,8 +4033,12 @@
   "repeatable": true,
   "anchor": true,
   "group": "skill-session",
+  "weight": 1.5,
   "tags": [
-   "skills"
+   "skills",
+   "video",
+   "editing",
+   "practice"
   ],
   "active": true
  },
@@ -3429,8 +4059,11 @@
   "repeatable": true,
   "anchor": true,
   "group": "skill-session",
+  "weight": 1.5,
   "tags": [
-   "skills"
+   "skills",
+   "writing",
+   "practice"
   ],
   "active": true
  },
@@ -3451,8 +4084,11 @@
   "repeatable": true,
   "anchor": true,
   "group": "language",
+  "weight": 1.5,
   "tags": [
-   "skills"
+   "skills",
+   "language",
+   "practice"
   ],
   "active": true
  },
@@ -3473,8 +4109,11 @@
   "repeatable": true,
   "anchor": true,
   "group": "skill-session",
+  "weight": 1.5,
   "tags": [
-   "skills"
+   "skills",
+   "music",
+   "practice"
   ],
   "active": true
  },
@@ -3486,7 +4125,7 @@
   "proof": "Your code on a computer.",
   "proofType": "PHOTO",
   "points": 10,
-  "minutes": 15,
+  "minutes": 20,
   "requires": [
    "coding"
   ],
@@ -3495,7 +4134,11 @@
   "anchor": true,
   "group": "skill-session",
   "tags": [
-   "skills"
+   "skills",
+   "coding",
+   "code",
+   "programming",
+   "practice"
   ],
   "active": true
  },
@@ -3507,7 +4150,7 @@
   "proof": "Your copy.",
   "proofType": "PHOTO",
   "points": 10,
-  "minutes": 15,
+  "minutes": 20,
   "requires": [
    "design"
   ],
@@ -3516,7 +4159,9 @@
   "anchor": true,
   "group": "skill-session",
   "tags": [
-   "skills"
+   "skills",
+   "design",
+   "practice"
   ],
   "active": true
  },
@@ -3537,7 +4182,9 @@
   "anchor": true,
   "group": "skill-session",
   "tags": [
-   "skills"
+   "skills",
+   "writing",
+   "practice"
   ],
   "active": true
  },
@@ -3558,7 +4205,9 @@
   "anchor": true,
   "group": "language",
   "tags": [
-   "skills"
+   "skills",
+   "language",
+   "practice"
   ],
   "active": true
  },
@@ -3580,7 +4229,9 @@
   "anchor": true,
   "group": "skill-session",
   "tags": [
-   "skills"
+   "skills",
+   "music",
+   "practice"
   ],
   "active": true
  },
@@ -3596,8 +4247,11 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "weight": 0.8,
   "tags": [
-   "skills"
+   "skills",
+   "learn",
+   "notes"
   ],
   "active": true
  },
@@ -3614,7 +4268,10 @@
   "cooldownDays": 3,
   "repeatable": true,
   "tags": [
-   "skills"
+   "skills",
+   "build",
+   "practice",
+   "project"
   ],
   "active": true
  },
@@ -3633,7 +4290,10 @@
   "anchor": true,
   "group": "reading",
   "tags": [
-   "skills"
+   "skills",
+   "reading",
+   "book",
+   "learn"
   ],
   "active": true
  },
@@ -3652,7 +4312,9 @@
   "repeatable": true,
   "group": "reading",
   "tags": [
-   "skills"
+   "skills",
+   "reading",
+   "book"
   ],
   "active": true
  },
@@ -3671,7 +4333,9 @@
   "repeatable": true,
   "group": "skill-session",
   "tags": [
-   "skills"
+   "skills",
+   "practice",
+   "skill"
   ],
   "active": true
  },
@@ -3689,7 +4353,9 @@
   "repeatable": true,
   "group": "skill-review",
   "tags": [
-   "skills"
+   "skills",
+   "learn",
+   "notes"
   ],
   "active": true
  },
@@ -3707,9 +4373,30 @@
   "repeatable": true,
   "group": "planning",
   "when": "evening",
-  "weight": 0.6,
+  "weight": 0.8,
   "tags": [
-   "skills"
+   "skills",
+   "planning"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-one-technique",
+  "track": "skills",
+  "title": "Learn One New Shortcut or Technique",
+  "short": "Learn one shortcut, command or technique for the skill you're learning and use it once.",
+  "proof": "A note of what you learned, or it in use on a computer.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "tags": [
+   "skills",
+   "learn",
+   "practice",
+   "skill"
   ],
   "active": true
  },
@@ -3727,7 +4414,9 @@
   "repeatable": true,
   "group": "skill-session",
   "tags": [
-   "skills"
+   "skills",
+   "learn",
+   "practice"
   ],
   "active": true
  },
@@ -3744,9 +4433,11 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
-  "weight": 0.5,
+  "weight": 0.1,
   "tags": [
-   "skills"
+   "skills",
+   "typing",
+   "niche"
   ],
   "active": true
  },
@@ -3766,8 +4457,11 @@
   "requires": [],
   "cooldownDays": 5,
   "repeatable": true,
+  "weight": 0.1,
   "tags": [
-   "skills"
+   "skills",
+   "spreadsheets",
+   "niche"
   ],
   "active": true
  },
@@ -3786,7 +4480,9 @@
   "group": "skill-review",
   "weight": 0.5,
   "tags": [
-   "skills"
+   "skills",
+   "learn",
+   "notes"
   ],
   "active": true
  },
@@ -3805,7 +4501,9 @@
   "group": "skill-review",
   "weight": 0.5,
   "tags": [
-   "skills"
+   "skills",
+   "learn",
+   "notes"
   ],
   "active": true
  },
@@ -3824,7 +4522,9 @@
   "group": "skill-session",
   "weight": 0.5,
   "tags": [
-   "skills"
+   "skills",
+   "practice",
+   "skill"
   ],
   "active": true
  },
@@ -3845,8 +4545,12 @@
   "repeatable": true,
   "anchor": true,
   "group": "room",
+  "weight": 1.5,
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "organize",
+   "room"
   ],
   "active": true
  },
@@ -3857,14 +4561,17 @@
   "short": "Floor clear, surfaces clear, bed made, trash and dishes out.",
   "proof": "Before and after.",
   "proofType": "BEFORE_AFTER",
-  "points": 20,
-  "minutes": 45,
+  "points": 15,
+  "minutes": 30,
   "requires": [],
   "cooldownDays": 7,
   "repeatable": true,
   "group": "room",
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "organize",
+   "room"
   ],
   "active": true
  },
@@ -3885,8 +4592,12 @@
   "repeatable": true,
   "anchor": true,
   "group": "desk",
+  "weight": 1.3,
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "organize",
+   "desk"
   ],
   "active": true
  },
@@ -3904,7 +4615,9 @@
   "repeatable": true,
   "group": "desk",
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "organize"
   ],
   "active": true
  },
@@ -3921,7 +4634,9 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "organization"
+   "organization",
+   "organize",
+   "declutter"
   ],
   "active": true
  },
@@ -3938,7 +4653,10 @@
   "cooldownDays": 10,
   "repeatable": true,
   "tags": [
-   "organization"
+   "organization",
+   "organize",
+   "clothes",
+   "declutter"
   ],
   "active": true
  },
@@ -3955,8 +4673,12 @@
   "cooldownDays": 3,
   "repeatable": true,
   "group": "laundry",
+  "weight": 1.2,
   "tags": [
-   "organization"
+   "organization",
+   "laundry",
+   "clean",
+   "chores"
   ],
   "active": true
  },
@@ -3974,7 +4696,10 @@
   "repeatable": true,
   "group": "laundry",
   "tags": [
-   "organization"
+   "organization",
+   "laundry",
+   "organize",
+   "chores"
   ],
   "active": true
  },
@@ -3990,8 +4715,11 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
+  "weight": 0.7,
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "chores"
   ],
   "active": true
  },
@@ -4008,7 +4736,9 @@
   "cooldownDays": 3,
   "repeatable": true,
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "chores"
   ],
   "active": true
  },
@@ -4028,7 +4758,10 @@
   "cooldownDays": 7,
   "repeatable": true,
   "tags": [
-   "organization"
+   "organization",
+   "organize",
+   "clean",
+   "bag"
   ],
   "active": true
  },
@@ -4054,7 +4787,10 @@
    4
   ],
   "tags": [
-   "organization"
+   "organization",
+   "routine",
+   "clothes",
+   "planning"
   ],
   "active": true
  },
@@ -4080,7 +4816,10 @@
    4
   ],
   "tags": [
-   "organization"
+   "organization",
+   "routine",
+   "planning",
+   "bag"
   ],
   "active": true
  },
@@ -4101,7 +4840,10 @@
   "repeatable": true,
   "group": "computer",
   "tags": [
-   "organization"
+   "organization",
+   "organize",
+   "files",
+   "computer"
   ],
   "active": true
  },
@@ -4122,7 +4864,10 @@
   "repeatable": true,
   "group": "computer",
   "tags": [
-   "organization"
+   "organization",
+   "organize",
+   "files",
+   "computer"
   ],
   "active": true
  },
@@ -4134,12 +4879,14 @@
   "proof": "Before and after.",
   "proofType": "BEFORE_AFTER",
   "points": 10,
-  "minutes": 20,
+  "minutes": 15,
   "requires": [],
   "cooldownDays": 10,
   "repeatable": true,
   "tags": [
-   "organization"
+   "organization",
+   "organize",
+   "notes"
   ],
   "active": true
  },
@@ -4157,9 +4904,11 @@
   ],
   "cooldownDays": 14,
   "repeatable": true,
-  "weight": 0.3,
+  "weight": 0.1,
   "tags": [
-   "organization"
+   "organization",
+   "car",
+   "niche"
   ],
   "active": true
  },
@@ -4175,8 +4924,11 @@
   "requires": [],
   "cooldownDays": 10,
   "repeatable": true,
+  "weight": 0.6,
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "chores"
   ],
   "active": true
  },
@@ -4194,7 +4946,10 @@
   "repeatable": true,
   "group": "planning-week",
   "tags": [
-   "organization"
+   "organization",
+   "planning",
+   "organize",
+   "routine"
   ],
   "active": true
  },
@@ -4210,8 +4965,11 @@
   "requires": [],
   "cooldownDays": 14,
   "repeatable": true,
+  "weight": 0.1,
   "tags": [
-   "organization"
+   "organization",
+   "repair",
+   "niche"
   ],
   "active": true
  },
@@ -4227,8 +4985,11 @@
   "requires": [],
   "cooldownDays": 3,
   "repeatable": true,
+  "weight": 0.6,
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "chores"
   ],
   "active": true
  },
@@ -4246,7 +5007,10 @@
   "repeatable": true,
   "group": "room",
   "tags": [
-   "organization"
+   "organization",
+   "clean",
+   "organize",
+   "declutter"
   ],
   "active": true
  },
@@ -4264,7 +5028,10 @@
   "repeatable": true,
   "group": "computer",
   "tags": [
-   "organization"
+   "organization",
+   "organize",
+   "email",
+   "computer"
   ],
   "active": true
  }

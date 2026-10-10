@@ -15,10 +15,14 @@ export function mondayOf(day: DayKey): DayKey {
   return addDays(day, -((dow + 6) % 7));
 }
 
+/** The focus set for the week starting `week` (a Monday), this week's or one picked ahead on Sunday. */
+export function focusFor(profile: Pick<Profile, 'focus' | 'nextFocus'>, week: DayKey): WeeklyFocus | null {
+  return [profile.focus, profile.nextFocus].find(f => f?.week === week) ?? null;
+}
+
 /** The weekly focus, if it's set for the week `day` is in. */
-export function activeFocus(profile: Pick<Profile, 'focus'>, day: DayKey): WeeklyFocus | null {
-  const f = profile.focus;
-  return f && f.week === mondayOf(day) ? f : null;
+export function activeFocus(profile: Pick<Profile, 'focus' | 'nextFocus'>, day: DayKey): WeeklyFocus | null {
+  return focusFor(profile, mondayOf(day));
 }
 
 /** What each weekly focus leans the plan toward: an area to lead with, missions and tags to favour. */
@@ -107,14 +111,16 @@ export interface Lean {
   goalAreas: TrackId[];
   /** Missions the weekly focus names. */
   ids: ReadonlySet<string>;
-  /** Tags from the focus and the goal. */
-  tags: ReadonlySet<string>;
+  /** Tags from the weekly focus (or what was typed for "Something else"). */
+  focusTags: ReadonlySet<string>;
+  /** Tags from the goal. A mission matching both the focus and the goal gets both leans. */
+  goalTags: ReadonlySet<string>;
 }
 
-const NO_LEAN: Lean = { focusArea: null, goalAreas: [], ids: new Set(), tags: new Set() };
+const NO_LEAN: Lean = { focusArea: null, goalAreas: [], ids: new Set(), focusTags: new Set(), goalTags: new Set() };
 const leanCache = new Map<string, Lean>();
 
-export function leanFor(profile: Pick<Profile, 'focus' | 'goal'>, day: DayKey): Lean {
+export function leanFor(profile: Pick<Profile, 'focus' | 'nextFocus' | 'goal'>, day: DayKey): Lean {
   const focus = activeFocus(profile, day);
   const goal = profile.goal ?? '';
   if (!focus && !goal.trim()) return NO_LEAN;
@@ -128,7 +134,8 @@ export function leanFor(profile: Pick<Profile, 'focus' | 'goal'>, day: DayKey): 
     focusArea: known?.area ?? typed?.areas[0] ?? null,
     goalAreas: fromGoal.areas,
     ids: new Set(known?.ids ?? []),
-    tags: new Set([...(known?.tags ?? []), ...(typed?.tags ?? []), ...fromGoal.tags]),
+    focusTags: new Set([...(known?.tags ?? []), ...(typed?.tags ?? [])]),
+    goalTags: new Set(fromGoal.tags),
   };
   if (leanCache.size > 50) leanCache.clear();
   leanCache.set(key, lean);
@@ -222,6 +229,11 @@ export function learnFrom(
   return { ignored, swappedKinds, preferShort, stepUp, timeOfDay };
 }
 
+/** Does the week's focus or the goal point at this mission (by id or tag)? */
+export function leansTo(m: Mission, lean: Lean): boolean {
+  return lean.ids.has(m.id) || (m.tags ?? []).some(t => lean.focusTags.has(t) || lean.goalTags.has(t));
+}
+
 /**
  * The personal part of a mission's weight in a slot for `area`: the weekly focus and the goal
  * favour their missions; what the user did lately turns down what they swap or leave and turns
@@ -229,8 +241,11 @@ export function learnFrom(
  */
 export function personalWeight(m: Mission, area: TrackId, lean: Lean, adapt: Adaptation): number {
   let w = 1;
+  const tags = m.tags ?? [];
+  // The week's focus first (a mission it names, else one of its tags); the goal's tags on top.
   if (lean.ids.has(m.id)) w *= 2;
-  else if ((m.tags ?? []).some(t => lean.tags.has(t))) w *= 1.6;
+  else if (tags.some(t => lean.focusTags.has(t))) w *= 1.7;
+  if (tags.some(t => lean.goalTags.has(t))) w *= 1.5;
   const ignored = adapt.ignored[m.id] ?? 0;
   if (ignored) w *= Math.max(0.4, Math.pow(0.75, ignored));
   let kinds = 1;

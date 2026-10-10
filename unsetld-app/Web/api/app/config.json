@@ -2,9 +2,14 @@
   "accessEnabled": false,
   "collection": "004",
   "rewards": [
-    { "id": "five-off", "title": "5% off", "detail": "One order at unsetld.com. Up to $25 off.", "type": "discount", "points": 300, "percent": 5, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1 },
-    { "id": "ten-off", "title": "10% off", "detail": "One order at unsetld.com. Up to $25 off.", "type": "discount", "points": 600, "percent": 10, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1 },
-    { "id": "fifteen-off", "title": "15% off", "detail": "One order at unsetld.com. Up to $25 off.", "type": "discount", "points": 1000, "percent": 15, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1 },
-    { "id": "limited-drop", "title": "Limited piece", "detail": "First pick of a limited run, held for you at full price.", "type": "limited", "points": 2000, "active": false, "availableFrom": null, "availableUntil": null, "codeValidDays": 14, "inventory": 0, "perCollection": 1 }
+    { "id": "five-off", "title": "5% off", "detail": "One order at unsetld.com.", "type": "discount", "points": 300, "percent": 5, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1, "minimumPurchase": null, "redemptionCooldownDays": null, "oneTimeOnly": false },
+    { "id": "ten-off", "title": "10% off", "detail": "One order at unsetld.com.", "type": "discount", "points": 600, "percent": 10, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1, "minimumPurchase": null, "redemptionCooldownDays": null, "oneTimeOnly": false },
+    { "id": "fifteen-off", "title": "15% off", "detail": "One order at unsetld.com.", "type": "discount", "points": 1000, "percent": 15, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1, "minimumPurchase": null, "redemptionCooldownDays": null, "oneTimeOnly": false },
+    { "id": "limited-drop", "title": "Limited piece", "detail": "First pick of a limited run, held for you at full price.", "type": "limited", "points": 2000, "active": false, "availableFrom": null, "availableUntil": null, "codeValidDays": 14, "inventory": 0, "perCollection": 1, "minimumPurchase": null, "redemptionCooldownDays": null, "oneTimeOnly": false }
+  ],
+  "status": [
+    { "id": "early-access", "day": 7, "title": "Early access", "short": "Every drop opens to you 24 hours early.", "detail": "Every UNSETLD drop opens to you 24 hours before the public. When a drop is announced, open it from here.", "active": true },
+    { "id": "patch", "day": 90, "title": "The patch", "short": "Numbered. Free with your next order.", "detail": "A woven UNSETLD patch with your number. It ships free with your next order. One per person.", "active": true },
+    { "id": "piece-365", "day": 365, "title": "The 365 piece", "short": "Made only for people who reach a year.", "detail": "A numbered piece made only for people who reach a year. Sold at full price. Never restocked.", "active": true }
   ]
 }

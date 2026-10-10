@@ -2,7 +2,7 @@
  {
   "id": "lock-in-7",
   "title": "7 Day Lock In",
-  "short": "A week of phone-away work sessions and finishing what you start.",
+  "short": "Build seven days of consistency.",
   "days": 7,
   "tracks": ["discipline"],
   "free": true,
@@ -19,7 +19,7 @@
  {
   "id": "get-organized",
   "title": "Get Organized",
-  "short": "Five days to clean up your room, your stuff and your files.",
+  "short": "Five days to clear your space and your files.",
   "days": 5,
   "tracks": ["organization"],
   "free": true,
@@ -34,7 +34,7 @@
  {
   "id": "school-reset",
   "title": "School Reset",
-  "short": "A week to get on top of every class: plan, catch up, study.",
+  "short": "Get organized, catch up, and get ahead.",
   "days": 7,
   "tracks": ["school"],
   "free": false,
@@ -51,7 +51,7 @@
  {
   "id": "build-something",
   "title": "Build Something",
-  "short": "Seven days of building your project, ending with something you publish.",
+  "short": "Seven days toward shipping something real.",
   "days": 7,
   "tracks": ["projects"],
   "free": false,
@@ -67,8 +67,8 @@
  },
  {
   "id": "fitness-base",
-  "title": "Fitness Base",
-  "short": "A week of workouts and cardio you can start from anywhere, no gym needed.",
+  "title": "Fitness Reset",
+  "short": "Build momentum again.",
   "days": 7,
   "tracks": ["fitness"],
   "free": false,
@@ -79,13 +79,13 @@
    ["fitness-home-workout"],
    ["fitness-mobility-10", "fitness-outside-20"],
    ["fitness-balanced-meal", "fitness-home-workout"],
-   ["fitness-core-10", "fitness-run"]
+   ["fitness-bodyweight-10", "fitness-run"]
   ]
  },
  {
   "id": "business-week",
   "title": "Business Week",
-  "short": "Seven days of real work on your business: product, customers, your pitch, numbers.",
+  "short": "Seven days of meaningful work on your business.",
   "days": 7,
   "tracks": ["business"],
   "free": false,

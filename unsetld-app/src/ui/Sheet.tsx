@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Animated, Pressable, StyleSheet, useWindowDimensions, View, type GestureResponderEvent } from 'react-native';
+import { Animated, Modal, Pressable, StyleSheet, useWindowDimensions, View, type GestureResponderEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { color as C, ease, radius } from './tokens';
 
@@ -14,6 +14,12 @@ interface Props {
   /** Fixed bar pinned to the bottom of the sheet. */
   footer?: ReactNode;
   accessibilityLabel?: string;
+  /**
+   * Draw it in a transparent modal, over everything (the tab bar included). For sheets opened
+   * from a tab screen whose content doesn't navigate; one that does needs its own modal that
+   * waits for the dismissal first (today/ColorwaySheet).
+   */
+  modal?: boolean;
 }
 
 /**
@@ -21,7 +27,7 @@ interface Props {
  * a grabber, drag the grabber down or tap outside to close. Renders over the
  * whole screen, so place it at the screen's root.
  */
-export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, accessibilityLabel }: Props) {
+export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, accessibilityLabel, modal = false }: Props) {
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const sheetH = Math.round(height * detent);
@@ -60,7 +66,7 @@ export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, 
 
   if (!mounted) return null;
   const scrim = y.interpolate({ inputRange: [0, sheetH], outputRange: [dim, 0], extrapolate: 'clamp' });
-  return (
+  const sheet = (
     <View style={[StyleSheet.absoluteFill, { pointerEvents: visible ? 'box-none' : 'none' }]} accessibilityViewIsModal>
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#000', opacity: scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" accessibilityRole="button" />
@@ -86,5 +92,12 @@ export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, 
         {footer ? <View style={{ paddingBottom: insets.bottom + 12, backgroundColor: C.raise }}>{footer}</View> : null}
       </Animated.View>
     </View>
+  );
+  if (!modal) return sheet;
+  // Up for as long as the sheet is mounted, closing slide included.
+  return (
+    <Modal visible transparent animationType="none" statusBarTranslucent navigationBarTranslucent onRequestClose={onClose}>
+      {sheet}
+    </Modal>
   );
 }

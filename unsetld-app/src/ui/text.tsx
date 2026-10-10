@@ -38,7 +38,8 @@ export function T({ v, color, style, align, children, ...rest }: Props) {
           letterSpacing: (spec.letterSpacing ?? 0) * s,
           color: color ?? (v === 'label' || v.startsWith('mono') ? C.stone : C.bone),
           textTransform: spec.uppercase ? 'uppercase' : undefined,
-          fontVariant: spec.tabular ? ['lining-nums', 'tabular-nums'] : undefined,
+          // Cormorant's default old-style figures read "10" as "IO": serif text uses lining figures everywhere.
+          fontVariant: spec.tabular ? ['lining-nums', 'tabular-nums'] : spec.serif ? ['lining-nums'] : undefined,
           textAlign: align,
         },
         style,

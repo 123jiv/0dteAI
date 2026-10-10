@@ -1,10 +1,11 @@
-// What a milestone's primary action does, and the days Access counts. Shared
-// by Rewards, the milestone page and the milestone letter.
+// What a status tier's primary action does, the status tiers in effect, and the
+// days Access counts. Shared by Rewards, Status, the milestone page and the letter.
 import { activeDays } from '../core/progress';
-import { dayCount, pendingLetter, type Letter, type MilestoneId } from '../core/record';
+import { dayCount, type Letter, type MilestoneId } from '../core/record';
+import { effectiveStatus, pendingStatusLetter } from '../core/rewards';
 import type { DayKey } from '../core/time';
-import type { DayEntry, RecordState } from '../core/types';
-import { claim, openStore, type Perk } from '../services/access';
+import type { DayEntry, RecordState, StatusTier } from '../core/types';
+import { claim, openStore, STATUS_DEFAULTS, type Perk } from '../services/access';
 import { notificationStatus, requestNotifications, type Drop } from '../services/notifications';
 import { useApp } from '../state/store';
 
@@ -24,14 +25,39 @@ export function accessRecord(r: RecordState): RecordState {
   return { ...r, days };
 }
 
-/** Days that count toward Access (early access on 7, the patch on 90, the 365 piece). */
+/** Days that count toward UNSETLD status (active days; the tiers' days come from the status config). */
 export function accessDays(r: RecordState): number {
   return dayCount(accessRecord(r));
 }
 
-/** The Access letter to show on Home, if any, counted in active days. */
-export function accessLetter(r: RecordState, today: DayKey): Letter | null {
-  return pendingLetter(accessRecord(r), today);
+/**
+ * The status tiers in effect: unsetld.com's `status` list when it sent one, else
+ * content/milestones.json; switched-on ones only, by day.
+ */
+export function statusTiers(remote: readonly StatusTier[] | null | undefined): StatusTier[] {
+  return effectiveStatus(STATUS_DEFAULTS, remote);
+}
+
+export function useStatusTiers(): StatusTier[] {
+  return statusTiers(useApp(s => s.remote.status));
+}
+
+/** A status tier by id, in effect or else built in (an old link to one the config switched off still opens). */
+export function findStatus(tiers: readonly StatusTier[], id: string): StatusTier | null {
+  return tiers.find(t => t.id === id) ?? STATUS_DEFAULTS.find(t => t.id === id) ?? null;
+}
+
+/**
+ * The status letter to show on Home, if any, counted in active days, at the tiers'
+ * own days (the same letter as core/record pendingLetter with the built-in tiers).
+ */
+export function accessLetter(r: RecordState, today: DayKey, tiers: readonly StatusTier[] = statusTiers(useApp.getState().remote.status)): Letter | null {
+  return pendingStatusLetter(accessRecord(r), today, tiers);
+}
+
+/** The active days early access opens at (drop alerts), from the status tiers in effect; null when it's switched off. */
+export function earlyAccessDay(tiers: readonly StatusTier[]): number | null {
+  return tiers.find(t => t.id === 'early-access')?.day ?? null;
 }
 
 export type ActionResult = 'done' | 'needs-account' | 'paused' | 'used' | 'network' | 'notifications-off';

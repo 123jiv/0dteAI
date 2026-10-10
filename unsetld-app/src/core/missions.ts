@@ -3,7 +3,7 @@
 // situation (school, work, business, gym, age, skills), their time, what they did
 // and skipped lately, and the time of day. Pure and deterministic: the same library,
 // profile, history and day always give the same plan.
-import { leanFor, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
+import { leanFor, leansTo, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
 import { hash32, mulberry32 } from './random';
 import { addDays, DAY_START_HOUR, dayNumber, diffDays, parseDay, type DayKey } from './time';
 import type { DayPlan, Mission, MissionSlot, PlannedMission, Profile, Requirement, SkillId, TrackId } from './types';
@@ -295,9 +295,12 @@ function pick(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day
   const core = cands.filter(m => m.anchor && m.track === track);
   const rest = cands.filter(m => !(m.anchor && m.track === track));
   if (core.length && rest.length) {
-    // When every core habit on offer was in yesterday's plan, today leans on the rest of the area.
+    // Day 1 (nothing planned before) is all core habits where there are any: the first list
+    // should be the staples, not luck. After that, when every core habit on offer was in
+    // yesterday's plan, today leans on the rest of the area.
     const yesterday = addDays(input.day, -1);
-    const share = core.some(m => input.history.lastPlanned[m.id] !== yesterday) ? CORE_SHARE : CORE_SHARE / 2;
+    const firstDay = Object.keys(input.history.lastPlanned).length === 0;
+    const share = firstDay ? 1 : core.some(m => input.history.lastPlanned[m.id] !== yesterday) ? CORE_SHARE : CORE_SHARE / 2;
     const useCore = mulberry32(hash32(`${seed}:core`))() < share;
     return pickWeighted(useCore ? core : rest, input, track, seed);
   }
@@ -366,11 +369,17 @@ export function chooseForSlot(
   const named = input.profile.skills ?? [];
   const offMedium = (m: Mission) => named.length > 0 && Boolean(m.fits?.length) && !m.fits!.some(x => named.includes(x));
 
+  // A niche mission (a plank set, typing practice) only when the area has nothing else that
+  // fits, unless the week's focus or the goal points at it.
+  const lean = leanFor(input.profile, input.day);
+  const niche = (m: Mission) => Boolean(m.tags?.includes('niche')) && !leansTo(m, lean);
+
   const tryAreas = (list: readonly TrackId[], size: MissionSlot, relaxShown: boolean, ignoreSkips: boolean, cap: number): SlotPick | null => {
     for (const area of list) {
       const all = input.library.filter(m => serves(m, area) && fits(m, size, cap) && available(m, input, relaxShown, ignoreSkips));
       const onMedium = all.filter(m => !offMedium(m));
-      const cands = onMedium.length ? onMedium : all;
+      const usual = (onMedium.length ? onMedium : all).filter(m => !niche(m));
+      const cands = usual.length ? usual : onMedium.length ? onMedium : all;
       const m = pick(cands, input, area, `${seed}:${size}:${area}`);
       if (m) return { mission: m, area };
     }

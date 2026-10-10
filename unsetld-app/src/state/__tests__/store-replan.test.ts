@@ -216,3 +216,48 @@ describe('focus timer', () => {
     expect(v.status).toBe('accepted');
   });
 });
+
+describe('the weekly focus', () => {
+  // Sunday 11 Oct 2026: the week of Monday 5 Oct ends; next week starts Monday 12 Oct.
+  const SUNDAY = new Date(2026, 9, 11, 18, 0, 0);
+  const SUN = '2026-10-11';
+  const sundayPlan = { ...PLAN, day: SUN };
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(SUNDAY);
+  });
+
+  it("picked on Sunday for next week, it keeps this week's focus and Sunday's missions until Monday", async () => {
+    const focus = { week: '2026-10-05', id: 'gym' as const };
+    const { useApp } = await load({ profile: { ...PROFILE, focus }, plans: { [SUN]: sundayPlan } });
+    const { activeFocus } = await import('../../core/personalize');
+    useApp.getState().refreshDay();
+    useApp.getState().setFocus({ week: '2026-10-12', id: 'business' });
+    const s = useApp.getState();
+    expect(ids(s.plans[SUN])).toEqual(ids(sundayPlan));
+    expect(activeFocus(s.profile, SUN)).toEqual(focus);
+    expect(activeFocus(s.profile, '2026-10-12')?.id).toBe('business');
+    // Taking it back on Sunday clears next week's only.
+    s.setFocus(null, '2026-10-12');
+    expect(activeFocus(useApp.getState().profile, '2026-10-12')).toBeNull();
+    expect(activeFocus(useApp.getState().profile, SUN)).toEqual(focus);
+  });
+
+  it("set for this week, it replans an untouched today and replaces one picked ahead for it", async () => {
+    vi.setSystemTime(new Date(2026, 9, 12, 9, 0, 0));
+    const { useApp } = await load({ profile: { ...PROFILE, nextFocus: { week: '2026-10-12', id: 'business' } }, plans: {} });
+    const { activeFocus } = await import('../../core/personalize');
+    useApp.getState().refreshDay();
+    useApp.getState().setFocus({ week: '2026-10-12', id: 'gym' });
+    const s = useApp.getState();
+    expect(activeFocus(s.profile, '2026-10-12')?.id).toBe('gym');
+    expect(s.profile.nextFocus).toBeNull();
+    expect(s.plans['2026-10-12']?.missions.some(p => p.area === 'fitness')).toBe(true);
+  });
+
+  it('the retired weekly priority is cleared when the store moves to v6', async () => {
+    const { useApp } = await load({ profile: { ...PROFILE, priority: 'school' } });
+    expect(useApp.getState().profile.priority).toBeNull();
+  });
+});

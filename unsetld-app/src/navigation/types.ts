@@ -2,7 +2,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { MilestoneKey } from '../core/progress';
-import type { Letter, MilestoneId } from '../core/record';
+import type { Letter } from '../core/record';
 import type { DayKey } from '../core/time';
 import type { DocId } from '../content';
 
@@ -62,7 +62,8 @@ export type RootParams = {
   Doc: { id: DocId };
   /** The same page presented as a sheet (from the paywall, which is itself a modal). */
   DocSheet: { id: DocId };
-  Milestone: { id: MilestoneId };
+  /** A status tier's page: one of the app's own (MilestoneId) or a display-only tier from the config. */
+  Milestone: { id: string };
   Letter: { letter: Letter };
   DevTools: undefined;
 };

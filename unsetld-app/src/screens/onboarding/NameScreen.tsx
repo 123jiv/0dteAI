@@ -161,18 +161,15 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
           </Text>
         </Animated.View>
 
-        <View style={{ marginTop: 20 }}>
+        <View style={{ marginTop: 16 }}>
           {COPY.o1.defs.map((d, i) => (
             <Animated.View
               key={d}
               style={{
-                minHeight: 52,
-                paddingVertical: 8,
+                minHeight: 44,
+                paddingVertical: 6,
                 flexDirection: 'row',
-                alignItems: 'center',
-                borderTopWidth: hairline,
-                borderBottomWidth: i === COPY.o1.defs.length - 1 ? hairline : 0,
-                borderColor: C.rule,
+                alignItems: 'baseline',
                 opacity: rows[i + 1],
               }}>
               <T v="mono" style={{ width: 32 }}>

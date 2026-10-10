@@ -1,55 +1,67 @@
-// Programs (MISSIONS_SPEC section 11). Sentence case, no exclamation marks.
-// A program's mission rows use Home's line and its VoiceOver words (HOME.meta, HOME.a11y.meta).
+// Plans (docs/UX_REDESIGN.md section 10; "programs" in code and content). Sentence case, no
+// exclamation marks. Kickers are written in sentence case: the kicker style sets them in capitals,
+// and VoiceOver reads the words, not the letters.
+
+const num = (n: number) => n.toLocaleString('en-US');
 
 export const PROGRAMS_COPY = {
-  title: 'Programs',
-  body: 'A few days with a plan. A program day moves on when you prove one of its missions, so missing a day never fails it.',
+  title: 'Plans',
+  body: 'Guided runs of five to seven days. A day moves on when you prove one of its missions.',
 
-  // The active program
-  active: 'YOUR PROGRAM',
-  dayOf: (n: number, of: number) => `DAY ${n} OF ${of}`,
-  dayOfA11y: (n: number, of: number) => `Day ${n} of ${of}`,
-  today: 'TODAY',
-  tomorrow: 'TOMORROW',
+  // The active plan
+  active: 'Active plan',
+  dayOf: (n: number, of: number) => `Day ${n} of ${of}`,
+  progressA11y: (done: number, of: number) => `${done} of ${of} days proven`,
+  today: 'Today',
+  /** Today's day is proven: the next one, by its number. */
+  tomorrowDay: (n: number) => `Tomorrow · Day ${n}`,
+  tomorrow: 'Tomorrow',
+  /** "Today · Projects": the label above the missions, naming their area when they share one. */
+  label: (when: string, area: string) => `${when} · ${area}`,
   doneToday: "Today's day is proven. The next one comes tomorrow.",
   joinsTomorrow: "Today's missions were already set. This day joins your missions tomorrow.",
   swapped: 'You swapped it out today. This day comes back tomorrow.',
-  swappedLabel: 'SWAPPED OUT',
-  proven: 'PROVEN',
-  leave: 'Leave program',
+  started: 'Day 1 is in your missions today.',
+  startsTomorrow: "Today's missions were already set. Day 1 starts tomorrow.",
+  leave: 'Leave plan',
   leaveTitle: (title: string) => `Leave ${title}?`,
-  leaveBody: 'The days you proved stay on your record. The program stops here.',
+  leaveBody: 'The days you proved stay on your record. The plan stops here.',
   leaveYes: 'Leave',
   leaveNo: 'Stay',
 
-  // A finished program
-  finished: 'FINISHED',
+  // A plan mission row: "School · 30 min · Timer + photo · +15 pts", like a mission card on Today.
+  minutes: (n: number) => `${n} min`,
+  points: (n: number) => `+${num(n)} pts`,
+  proven: 'Proven',
+  swappedOut: 'Swapped out',
+  missionA11y: (title: string, area: string, minutes: number, points: number, proof: string, state?: string) =>
+    `${title}. ${area}, ${minutes === 1 ? '1 minute' : `${minutes} minutes`}, ${points === 1 ? '1 point' : `${num(points)} points`}, ${proof}.${state ? ` ${state}.` : ''}`,
+  openHint: 'Opens the mission',
+
+  // A finished plan
+  finished: 'Finished',
   finishedLine: (days: number) => `${days} days, each one proven.`,
   clear: 'Clear',
 
   // The list
-  all: 'ALL PROGRAMS',
+  /** Above the free plans when a plan card sits above them. */
+  more: 'More plans',
+  plus: 'With UNSETLD+',
   days: (n: number) => (n === 1 ? '1 day' : `${n} days`),
-  /** "7 days · School", with each area the program counts toward. */
+  /** "7 days · Discipline", with each area the plan counts toward. */
   meta: (days: string, areas: string[]) => [days, ...areas].join(' · '),
-  free: 'FREE',
-  full: 'FULL EDITION',
   start: 'Start',
-  running: 'ACTIVE',
   startA11y: (title: string) => `Start ${title}`,
-  lockedA11y: (title: string) => `${title} is part of Full Edition`,
+  plusA11y: (title: string) => `Start ${title}. Comes with UNSETLD+`,
+  cardA11y: (title: string, short: string, days: number, areas: string[]) => `${title}. ${short} ${days === 1 ? '1 day' : `${days} days`}, ${areas.join(', ')}.`,
   switchTitle: (next: string) => `Start ${next}?`,
-  switchBody: (current: string) => `One program at a time. ${current} stops here; the days you proved stay on your record.`,
+  switchBody: (current: string) => `One plan at a time. ${current} stops here; the days you proved stay on your record.`,
   switchYes: 'Start',
   switchNo: 'Cancel',
-  /** Under a program whose missions need a yes the user hasn't given (School Reset for someone not in school). */
-  needsSchool: 'Needs a yes to In school or college? in About you.',
-  started: 'Day 1 is in your missions today.',
-  startsTomorrow: "Today's missions were already set. Day 1 starts tomorrow.",
-  fullNote: 'Full Edition opens every program, and new ones each season.',
-  missionA11y: (title: string, meta: string, state?: string) => (state ? `${title}. ${meta}. ${state}` : `${title}. ${meta}`),
-  openHint: 'Opens the mission',
-  progressA11y: (done: number, of: number) => `${done} of ${of} days proven`,
-  rowA11y: (title: string, short: string, days: number, areas: string[], free: boolean) =>
-    `${title}. ${short} ${days === 1 ? '1 day' : `${days} days`}, ${areas.join(', ')}. ${free ? 'Free' : 'Full Edition'}.`,
+  /**
+   * On a plan whose missions need a yes the user hasn't given (School Reset for someone not in
+   * school), instead of Start: "Needs a yes to In school or college? in About you.", About you a link.
+   */
+  needsSchool: { before: 'Needs a yes to "In school or college?" in ', link: 'About\u00a0you', after: '.' },
+  needsSchoolHint: 'Opens About you',
 } as const;

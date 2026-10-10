@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { MilestoneId } from '../core/record';
-import { MILESTONES } from '../content';
+import { isKnownStatus } from '../core/rewards';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { useApp } from '../state/store';
@@ -11,10 +10,15 @@ import { Button, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, MARGIN } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
-import { accessDays, enableDropAlerts, runMilestoneAction, type ActionResult } from './access';
+import { STATUS_DEFAULTS } from '../services/access';
+import { accessDays, enableDropAlerts, runMilestoneAction, useStatusTiers, type ActionResult } from './access';
 import { ActionError } from './MilestoneScreen';
 
-/** A milestone or comeback letter. Shown once; opaque ink, fades in from black. */
+/**
+ * A status letter (one of the app's own tiers, reached) or the comeback letter. Shown once;
+ * opaque ink, fades in from black. The tier is the one at the letter's day in the status
+ * tiers in effect (the built-in one at that day when the config moved it).
+ */
 export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
   const { letter } = route.params;
   const { height } = useWindowDimensions();
@@ -27,14 +31,17 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
     useApp.getState().letterShown(letter);
   }, [letter]);
 
-  const m = letter.kind === 'milestone' ? MILESTONES.find(x => x.day === letter.day) : null;
+  const tiers = useStatusTiers();
+  const atDay = (t: { id: string; day: number; letter?: unknown }) => letter.kind === 'milestone' && t.day === letter.day && isKnownStatus(t.id) && Boolean(t.letter);
+  const m = letter.kind === 'milestone' ? (tiers.find(atDay) ?? STATUS_DEFAULTS.find(atDay) ?? null) : null;
+  const L = m?.letter ?? null;
+  const id = m && isKnownStatus(m.id) ? m.id : null;
   const day = letter.kind === 'milestone' ? letter.day : n;
   const close = () => navigation.goBack();
 
   // Day 7's button turns on drop alerts; the others claim, which needs an account.
   const primary = async () => {
-    if (!m) return close();
-    const id = m.id as MilestoneId;
+    if (!id || !L) return close();
     if (id !== 'early-access' && !useApp.getState().account.userId) return navigation.replace('Milestone', { id });
     const r = id === 'early-access' ? await enableDropAlerts() : await runMilestoneAction(id);
     if (r === 'done') close();
@@ -42,8 +49,8 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
     else setResult(r);
   };
   const secondary = () => {
-    if (!m) return close();
-    if (m.letter.secondary === 'Details') navigation.replace('Milestone', { id: m.id as MilestoneId });
+    if (!id || !L) return close();
+    if (L.secondary === 'Details') navigation.replace('Milestone', { id });
     else close();
   };
 
@@ -62,14 +69,14 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
           {COPY.letter.dayTitle(day)}
         </T>
         <T v="letter.sub" color={C.stone} style={{ marginTop: 16 }}>
-          {m ? m.letter.sub : COPY.letter.comebackSub}
+          {L ? L.sub : COPY.letter.comebackSub}
         </T>
         <T v="body" style={{ marginTop: 24 }}>
-          {m ? m.letter.body : COPY.letter.comebackBody}
+          {L ? L.body : COPY.letter.comebackBody}
         </T>
         <View style={{ marginTop: 32 }}>
-          <Button title={m ? m.letter.primary : COPY.letter.close} onPress={primary} />
-          {m ? <TextButton title={m.letter.secondary} onPress={secondary} style={{ marginTop: 8 }} /> : null}
+          <Button title={L ? L.primary : COPY.letter.close} onPress={primary} />
+          {L ? <TextButton title={L.secondary} onPress={secondary} style={{ marginTop: 8 }} /> : null}
           <ActionError result={result} style={{ marginTop: 8 }} />
         </View>
       </View>

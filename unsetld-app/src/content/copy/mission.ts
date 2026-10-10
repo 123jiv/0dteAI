@@ -1,15 +1,21 @@
-// The Mission screen and its proof flow (spec sections 6 and 7), the on-device
+// The Mission screen and its proof flow (MISSIONS_SPEC 6 and 7, UX_REDESIGN 5), the on-device
 // check notes, and the timer-done notification. Every user-facing string for the group.
+// Sentence case except kickers and the primary button (the Button uppercases its own label).
 // Never say a photo was checked by AI: the checks run on this phone and look at
 // when and how a photo was taken, not at what it shows.
 import type { ProofType, VerificationCheck } from '../../core/types';
+
+/** "1,340" */
+const num = (n: number) => n.toLocaleString('en-US');
 
 export const MISSION = {
   day: (n: number) => `DAY ${n}`,
   ok: 'OK',
 
-  meta: (minutes: number, points: number) => `${minutes} MIN · +${points} POINTS`,
+  /** Under the title: "30 min · +15 pts". How it's proven sits in the Proof card below. */
+  meta: (minutes: number, points: number) => `${minutes}\u00a0min · +${points}\u00a0pts`,
 
+  /** The Proof card's kicker. */
   proof: 'PROOF',
   /** The first line under PROOF: how this mission is proven. The mission's own proof line follows it. */
   method: (type: ProofType, timerMinutes?: number): string => {
@@ -120,15 +126,23 @@ export const MISSION = {
 
   done: {
     title: 'PROVEN.',
-    points: (n: number) => `+${n} POINTS`,
-    balance: (from: number, to: number) => `${from} → ${to} POINTS`,
-    toReward: (need: number, title: string) => `${need} POINTS TO ${title.toUpperCase()}`,
-    ready: (title: string) => `${title.toUpperCase()} IS READY`,
+    /** "+15" in serif, then the POINTS kicker beside it. */
+    points: (n: number) => `+${num(n)}`,
+    pointsLabel: 'POINTS',
+    /** The balance, before and after: "380 → 395". */
+    balance: (from: number, to: number) => `${num(from)} → ${num(to)}`,
+    /** A perfect day: the balance also takes the bonus, so "+10" isn't read against "405 → 430". */
+    balanceBonus: (from: number, to: number) => `${num(from)} → ${num(to)} with the bonus`,
+    toReward: (need: number, title: string) => `${num(need)}\u00a0${need === 1 ? 'pt' : 'pts'} to ${title}`,
+    ready: (title: string) => `${title} is ready`,
     /** The first proof of the day. Never "Day N": the nav row's DAY counts days with a proven mission, not the streak. */
-    streakFirst: (n: number) => (n === 1 ? 'Streak started.' : `Streak: ${n} days. Still alive.`),
-    streak: (n: number) => (n === 1 ? 'Streak: 1 day' : `Streak: ${n} days`),
+    streakFirst: (n: number) => (n <= 1 ? 'Streak started.' : `Streak: ${n} days.`),
+    streak: (n: number) => (n === 1 ? 'Streak: 1 day.' : `Streak: ${n} days.`),
+    /** Every mission in the plan proven: "3 / 3", PERFECT DAY, +15 BONUS. */
+    count: (done: number, all: number) => `${done} / ${all}`,
     perfect: 'PERFECT DAY',
     bonus: (n: number) => `+${n} BONUS`,
+    share: 'Share today',
     /** Before the checks line when the proof has photos. */
     saved: 'Proof saved.',
   },
@@ -151,12 +165,12 @@ export const MISSION = {
   },
 
   proven: {
-    line: (time: string, points: number) => `PROVEN ${time} · +${points} POINTS`,
-    focused: (minutes: number) => `${minutes} MIN FOCUSED`,
+    /** Under a proven mission, as on its card: "Proven 9:47 AM · +15". */
+    line: (time: string, points: number) => `Proven ${time} · +${points}`,
+    focused: (minutes: number) => `${minutes}\u00a0min focused`,
     /** A TIMER mission: the timer was the proof. */
-    timed: (minutes: number) => `${minutes} MIN TIMER FINISHED`,
+    timed: (minutes: number) => `${minutes}-minute timer finished`,
     cleared: 'Photo cleared. The mission stays on your record.',
-    stamp: (points: number) => `+${points}`,
   },
 
   camera: {
@@ -179,7 +193,13 @@ export const MISSION = {
     after: 'After photo',
     rewards: 'Opens Rewards',
     meta: (minutes: number, points: number) => `${minutes} minutes, ${points} points`,
+    /** The Proof card, read as one: "Proven with the timer and a photo. Run the 30-minute focus timer …". */
+    proof: (kind: string, lines: readonly string[]) => [`${kind.charAt(0).toUpperCase()}${kind.slice(1)}.`, ...lines].join(' '),
+    points: (n: number) => (n === 1 ? 'Plus 1 point' : `Plus ${n} points`),
     balance: (from: number, to: number) => `${from} to ${to} points`,
+    balanceBonus: (from: number, to: number) => `${from} to ${to} points with the bonus`,
+    perfect: (done: number, all: number, bonus: number) => `${done} of ${all}. Perfect day. Plus ${bonus} bonus points.`,
+    proven: (time: string, points: number) => `Proven at ${time}, ${points} points`,
     /** The proof stamp, read aloud. */
     stamp: (date: string, time: string) => `Taken ${date} at ${time}`,
   },

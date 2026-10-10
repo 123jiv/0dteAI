@@ -1,12 +1,8 @@
-// Home (spec section 5) and the colorway sheet it opens. Every user-facing string for the group.
-// Sentence case, no exclamation marks. Straight quotes become typographic at display time.
-
-const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six'];
-
-/** "Three" for 3, the digits past six. */
-function word(n: number): string {
-  return WORDS[n] ?? String(n);
-}
+// Today (docs/UX_REDESIGN.md §3, §4) and the colorway sheet it opens. Every user-facing string for the group.
+// Sentence case except kickers and the primary button, no exclamation marks.
+// Straight quotes become typographic at display time.
+import { PROOF_KIND } from './proof';
+import type { ProofType } from '../../core/types';
 
 /** "4h 20m", "25m", "0m". */
 function focused(minutes: number): string {
@@ -16,10 +12,14 @@ function focused(minutes: number): string {
 }
 
 /** A no-break space: keeps "45 min" together when a line wraps. */
-const NBSP = '\u00a0';
+const NBSP = ' ';
 
 /** "1,340" */
 const num = (n: number) => n.toLocaleString('en-US');
+
+const pts = (n: number) => `${num(n)}${NBSP}pts`;
+const points = (n: number) => (n === 1 ? '1 point' : `${num(n)} points`);
+const minutesSaid = (n: number) => (n === 1 ? '1 minute' : `${n} minutes`);
 
 export const HOME = {
   brand: 'UNSETLD',
@@ -28,22 +28,27 @@ export const HOME = {
   num,
 
   stats: {
-    streak: 'DAY STREAK',
-    points: 'POINTS',
-    offDays: (n: number) => (n === 1 ? '1 OFF DAY BANKED' : `${n} OFF DAYS BANKED`),
-    a11yStreak: (n: number, off: number) =>
-      [n === 1 ? '1 day streak' : `${n} day streak`, off ? (off === 1 ? '1 Off Day banked' : `${off} Off Days banked`) : null]
-        .filter(Boolean)
-        .join('. '),
-    a11yPoints: (n: number) => (n === 1 ? '1 point' : `${num(n)} points`),
+    /** After the serif number: "12 day streak". */
+    streak: 'day streak',
+    /** After the serif number: "380 pts". */
+    points: 'pts',
+    /** Day 1, in place of a zero. */
+    first: 'Your first mission starts your streak.',
+    /** A streak that ran out: in place of the zero, and what brings it back. */
+    restart: 'Your next mission starts a new streak.',
+    a11yStreak: (n: number) => (n === 1 ? '1 day streak' : `${n} day streak`),
+    a11yPoints: (n: number) => points(n),
     a11yPointsHint: 'Opens Rewards',
   },
 
   reward: {
-    toGo: (need: number, title: string) => `${num(need)} ${need === 1 ? 'POINT' : 'POINTS'} TO ${title.toUpperCase()}`,
-    ready: (title: string) => `${title.toUpperCase()} IS READY`,
-    a11yToGo: (need: number, title: string) => `${need === 1 ? '1 point' : `${num(need)} points`} to ${title}`,
-    a11yReady: (title: string) => `${title} is ready`,
+    label: 'NEXT REWARD',
+    toGo: (need: number, title: string) => `${pts(need)} to ${title}`,
+    /** Day 1: the first reward, said as one. */
+    first: (need: number, title: string) => `${pts(need)} to ${title} — your first reward.`,
+    ready: (title: string) => `${title} is ready`,
+    a11yToGo: (need: number, title: string) => `Next reward. ${points(need)} to ${title}`,
+    a11yReady: (title: string) => `Next reward. ${title} is ready`,
     a11yHint: 'Opens Rewards',
   },
 
@@ -51,30 +56,39 @@ export const HOME = {
     label: 'TODAY',
     count: (done: number, all: number) => `${done} / ${all}`,
     a11yCount: (done: number, all: number) => `${done} of ${all} done`,
+    perfect: 'Perfect day.',
+    share: 'Share today',
+    a11yShareHint: 'Opens your share card',
+    /** No mission fits the day's answers (a rare edge: every area ruled out). */
+    noneTitle: 'Nothing fits today.',
+    noneBody: 'Your areas and time leave no mission for today. Change them in You.',
+    noneAction: 'Open You',
   },
 
-  /** The line under TODAY. */
-  status: (done: number, all: number) => {
-    if (all === 0) return 'Nothing fits today. Check your plan in Settings.';
-    if (done >= all) return 'Perfect day. Every mission proven.';
-    if (done === 0) return all === 1 ? 'One mission today.' : `${word(all)} missions today.`;
-    return `${all - done} to go.`;
+  plan: {
+    label: 'ACTIVE PLAN',
+    day: (day: number, days: number) => `Day ${day} of ${days}`,
+    go: 'Continue',
+    a11y: (title: string, day: number, days: number) => `Active plan. ${title}, day ${day} of ${days}`,
+    a11yHint: 'Opens Plans',
+    /** No plan running: the quiet row at the bottom. */
+    link: 'Plans',
+    linkDetail: 'Guided 5–7 day runs',
   },
-  /** Said once, after the status line, while a mission can still be swapped. */
-  swapsLeft: (n: number) => (n === 1 ? '1 swap left.' : `${n} swaps left.`),
-
-  program: (title: string, day: number, days: number) => `${title} · DAY ${day} OF ${days}`,
-  programA11y: (title: string, day: number, days: number) => `${title}, day ${day} of ${days}`,
-  programA11yHint: 'Opens Programs',
 
   /**
-   * "School · 30 min · +15", with "Timer" or "Before + after" when the proof needs one.
+   * "School · 30 min · +15" (the widgets' line; `badge` adds a word such as "Timer").
    * No-break spaces inside each part and before each dot, so a narrow row wraps only
-   * after a dot ("Organization · 45 min ·" / "+20 · Before + after"), never inside "45 min".
+   * after a dot, never inside "45 min".
    */
   meta: (area: string, minutes: number, points: number, badge: string | null) =>
     [area || null, `${minutes}${NBSP}min`, `+${points}`, badge ? badge.replace(/ /g, NBSP) : null].filter(Boolean).join(`${NBSP}· `),
-  badge: { timer: 'Timer', beforeAfter: 'Before + after' },
+
+  /** The mission card's meta row, around the proof (ProofMeta): "30 min ·" … "· +15 pts". */
+  card: {
+    minutes: (n: number) => `${n}${NBSP}min`,
+    points: (n: number) => `+${n}${NBSP}pts`,
+  },
 
   action: {
     start: 'START',
@@ -85,7 +99,7 @@ export const HOME = {
     after: 'AFTER PHOTO',
   },
 
-  proven: (time: string, points: number) => `PROVEN ${time} · +${points}`,
+  proven: (time: string, points: number) => `Proven ${time} · +${points}`,
 
   swap: {
     button: 'Swap',
@@ -106,48 +120,36 @@ export const HOME = {
     noneBody: (area: string) =>
       `${area ? `Every other ${area} mission` : 'Every other mission'} is resting or doesn’t fit your day. Your swap wasn’t used.`,
     limitTitle: 'No swaps left today.',
-    limitFree: 'Full Edition gives you three a day.',
+    limitFree: 'UNSETLD+ gives you three a day.',
     limitFull: 'Three a day. More tomorrow.',
-    seeFull: 'See Full Edition',
+    seeFull: 'See UNSETLD+',
     ok: 'OK',
   },
 
-  comeBack: (n: number) => `Come back tomorrow for ${word(n).toLowerCase()} more.`,
-
   week: {
     label: 'YOUR WEEK',
+    /** Monday and Tuesday: the card is about the week before. */
+    lastLabel: 'LAST WEEK',
     summary: (missions: number, focusMinutes: number) =>
       [missions === 1 ? '1 mission' : `${missions} missions`, focusMinutes > 0 ? `${focused(focusMinutes)} focused` : null]
         .filter(Boolean)
         .join(' · '),
-    link: 'See the week →',
-    a11y: (summary: string) => `Your week. ${summary}`,
+    link: 'See the week',
+    a11y: (summary: string, last: boolean) => `${last ? 'Last week' : 'Your week'}. ${summary}`,
     a11yHint: 'Opens the weekly review',
-  },
-
-  access: {
-    label: 'ACCESS',
-    body: 'Seven days with a proven mission open early access to every UNSETLD drop. Points from proven missions trade for rewards at unsetld.com. None of it can be bought.',
-    link: 'See Rewards',
-  },
-
-  bar: {
-    progress: 'Progress',
-    programs: 'Programs',
-    rewards: 'Rewards',
-    colorway: 'Colorway',
   },
 
   a11y: {
     card: (title: string, rest: string) => `${title}. ${rest}`,
-    /** "School, 30 minutes, 15 points, with the focus timer". */
-    meta: (area: string, minutes: number, points: number, badge: string | null) =>
-      [area || null, minutes === 1 ? '1 minute' : `${minutes} minutes`, points === 1 ? '1 point' : `${points} points`, badge].filter(Boolean).join(', '),
-    badge: { timer: 'with the focus timer', beforeAfter: 'before and after photos' },
-    proven: (time: string, points: number) => `Proven at ${time}, ${points} points`,
+    /** The card's words: "School, 30 minutes, 15 points, proven with the timer and a photo". */
+    cardMeta: (area: string, minutes: number, pointsN: number, proof: ProofType) =>
+      [area || null, minutesSaid(minutes), pointsN === 1 ? '1 point' : `${pointsN} points`, (PROOF_KIND[proof] ?? PROOF_KIND.PHOTO).a11y]
+        .filter(Boolean)
+        .join(', '),
+    proven: (area: string, time: string, points: number) => [area || null, `proven at ${time}`, `${points} points`].filter(Boolean).join(', '),
     hint: 'Opens the mission',
-    timerRunning: (minutes: number) => `Timer running, ${minutes === 1 ? '1 minute' : `${minutes} minutes`} left`,
-    timerPaused: (minutes: number) => `Timer paused, ${minutes === 1 ? '1 minute' : `${minutes} minutes`} left`,
+    timerRunning: (minutes: number) => `Timer running, ${minutesSaid(minutes)} left`,
+    timerPaused: (minutes: number) => `Timer paused, ${minutesSaid(minutes)} left`,
     timerDone: 'Timer done, take the proof photo',
     timerDoneMark: 'Timer done, mark it done',
     afterWaiting: 'Before photo saved, after photo next',
@@ -156,10 +158,10 @@ export const HOME = {
 
   colorway: {
     title: 'Colorway',
-    locked: 'FULL EDITION',
-    lockedA11y: ', Full Edition',
-    lockedBar: (name: string) => `${name} is part of Full Edition.`,
-    seeFull: 'See Full Edition',
+    locked: 'UNSETLD+',
+    lockedA11y: ', UNSETLD+',
+    lockedBar: (name: string) => `${name} comes with UNSETLD+.`,
+    seeFull: 'See UNSETLD+',
     /** Swatch text when there is no plan to borrow a mission title from. */
     previewFallback: 'Study for 30 Minutes',
   },

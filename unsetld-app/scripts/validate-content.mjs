@@ -15,6 +15,7 @@ const rewards = read('rewards.json');
 const rules = read('rules.json');
 const colorways = read('colorways.json');
 const reminders = read('reminders.json');
+const milestones = read('milestones.json');
 
 const errors = [];
 const warnings = [];
@@ -60,7 +61,7 @@ for (const t of tracks) if (!t.name || !t.short || !t.scope) errors.push(`tracks
 // Missions
 const ids = new Set();
 const titles = new Map();
-const perTrack = Object.fromEntries(TRACK_IDS.map(t => [t, { easy: 0, main: 0, core: 0, timer: 0, before: 0, openEasy: 0, openFocused: 0 }]));
+const perTrack = Object.fromEntries(TRACK_IDS.map(t => [t, { easy: 0, main: 0, core: 0, timer: 0, before: 0, openEasy: 0, openFocused: 0, niche: 0 }]));
 for (const m of missions) {
   const where = `mission ${m.id ?? '?'}`;
   const e = msg => errors.push(`${where}: ${msg}`);
@@ -98,7 +99,18 @@ for (const m of missions) {
   if (m.days != null && (!Array.isArray(m.days) || m.days.length < 1 || m.days.length > 6 || new Set(m.days).size !== m.days.length || m.days.some(d => !Number.isInteger(d) || d < 0 || d > 6))) {
     e('days must list 1–6 distinct weekdays, 0 (Sunday) to 6');
   }
-  if (!Array.isArray(m.tags) || m.tags.length < 1 || m.tags.length > 4) e('1–4 tags');
+  // Tags: the area first, then lowercase keywords the goal text and the weekly focus match on (core/personalize.ts).
+  if (!Array.isArray(m.tags) || m.tags.length < 1 || m.tags.length > 8) e('1–8 tags');
+  else {
+    if (m.tags[0] !== m.track) e(`the first tag must be the area ("${m.track}")`);
+    if (m.tags.some(t => typeof t !== 'string' || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(t))) e(`tags must be lowercase words: ${JSON.stringify(m.tags)}`);
+    if (new Set(m.tags).size !== m.tags.length) e('repeated tag');
+    // Niche: hyper-specific missions that only come up when nothing better fits.
+    if (m.tags.includes('niche')) {
+      if (!(m.weight != null && m.weight <= 0.3)) e('a niche mission needs weight 0.3 or less');
+      if (m.anchor) e('a niche mission cannot be a core habit');
+    }
+  }
   if (typeof m.active !== 'boolean') e('active must be true or false');
   for (const k of ['slot', 'difficulty', 'why', 'how']) if (k in m) e(`"${k}" is no longer a mission field`);
   const text = [m.title, m.short, m.proof].join(' ');
@@ -115,6 +127,7 @@ for (const m of missions) {
   if (p && m.active) {
     p[m.minutes <= 15 ? 'easy' : 'main']++;
     if (m.anchor) p.core++;
+    if (m.tags?.includes('niche')) p.niche++;
     if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') p.timer++;
     if (m.proofType === 'BEFORE_AFTER') p.before++;
     if (openToAdult(m) && m.minutes > 15 && m.cooldownDays <= 3) p.openFocused++;
@@ -144,6 +157,7 @@ for (const p of programs) {
       if (!m) e(`day ${i + 1}: unknown mission "${id}"`);
       else if (!m.active) e(`day ${i + 1}: "${id}" is not active`);
       else if (m.requires?.some(r => r !== 'school')) e(`day ${i + 1}: "${id}" needs ${m.requires.join(', ')}, which not every user has`);
+      else if (m.tags?.includes('niche')) warnings.push(`${where}: day ${i + 1} uses a niche mission ("${m.title}"); a staple usually fits a plan better`);
     }
     if (new Set(day).size !== (day ?? []).length) e(`day ${i + 1} repeats a mission`);
     const groups = (day ?? []).map(id => byId.get(id)?.group).filter(Boolean);
@@ -158,9 +172,26 @@ if (programs.filter(p => p.free).length < 2) errors.push('programs.json: at leas
 // Rewards
 const rewardIds = new Set();
 const TYPES = ['discount', 'free-shipping', 'early-access', 'limited', 'drop'];
+// The founder's names for reward fields. core/rewards parseRewardTier accepts them in unsetld.com's
+// config only: the app reads content/rewards.json as is (content/index.ts), so this file uses the
+// canonical names or the tier silently loses its points, dates or cooldown.
+const REWARD_ALIASES = {
+  points: ['pointsRequired'],
+  type: ['rewardType'],
+  percent: ['discountPercent'],
+  maxOff: ['maxDiscount'],
+  availableFrom: ['startDate'],
+  availableUntil: ['endDate'],
+  redemptionCooldownDays: ['redemptionCooldown'],
+};
+// Dates the app can compare with a day (core/rewards compares the first 10 characters): YYYY-MM-DD first.
+const isDay = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) && !Number.isNaN(Date.parse(v.slice(0, 10)));
 for (const r of rewards) {
   const where = `reward ${r.id ?? '?'}`;
   const e = msg => errors.push(`${where}: ${msg}`);
+  for (const [name, others] of Object.entries(REWARD_ALIASES)) {
+    for (const a of others) if (a in r) e(`use "${name}", not "${a}" (the alias names are for unsetld.com's config only)`);
+  }
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(r.id ?? '')) e('bad id');
   if (rewardIds.has(r.id)) e('duplicate id');
   rewardIds.add(r.id);
@@ -172,10 +203,58 @@ for (const r of rewards) {
   if (!(Number.isInteger(r.codeValidDays) && r.codeValidDays >= 1)) e('codeValidDays must be 1 or more');
   if (r.inventory != null && !(Number.isInteger(r.inventory) && r.inventory >= 0)) e('inventory must be null or a whole number');
   if (!(Number.isInteger(r.perCollection) && r.perCollection >= 1)) e('perCollection must be 1 or more');
-  for (const k of ['availableFrom', 'availableUntil']) if (r[k] != null && Number.isNaN(Date.parse(r[k]))) e(`${k} must be null or a date`);
+  for (const k of ['availableFrom', 'availableUntil']) if (r[k] != null && !isDay(r[k])) e(`${k} must be null or a date starting YYYY-MM-DD`);
+  if (r.maxOff != null && !(typeof r.maxOff === 'number' && r.maxOff > 0)) e('maxOff must be null or a positive number of dollars');
+  // Optional rules, enforced by unsetld.com and shown on the reward.
+  if (r.minimumPurchase != null && !(typeof r.minimumPurchase === 'number' && Number.isFinite(r.minimumPurchase) && r.minimumPurchase >= 0)) {
+    e('minimumPurchase must be null or a number of dollars, 0 or more');
+  }
+  if (r.redemptionCooldownDays != null && !(Number.isInteger(r.redemptionCooldownDays) && r.redemptionCooldownDays >= 1)) {
+    e('redemptionCooldownDays must be null or a whole number of days, 1 or more');
+  }
+  if (r.oneTimeOnly != null && typeof r.oneTimeOnly !== 'boolean') e('oneTimeOnly must be true or false');
+  if (isDay(r.availableFrom) && isDay(r.availableUntil) && r.availableUntil.slice(0, 10) < r.availableFrom.slice(0, 10)) e('availableUntil is before availableFrom');
 }
 const active = rewards.filter(r => r.active).map(r => r.points);
 if (active.some((p, i) => i && p <= active[i - 1])) warnings.push('rewards.json: active tiers usually go up in points');
+
+// UNSETLD status (milestones.json): tiers earned by active days, as a plain list with `day`. The app reads
+// this file as is (content/index.ts → statusFromMilestones); `{ "status": [...] }` and `activeDays` are
+// the shape of unsetld.com's config override (core/rewards parseStatus), not of this file.
+const KNOWN_STATUS = ['early-access', 'patch', 'piece-365'];
+const statusList = Array.isArray(milestones) ? milestones : null;
+if (!statusList) errors.push('milestones.json: must be a list of status tiers (the { "status": [...] } wrapper is for unsetld.com\'s config only)');
+const statusIds = new Set();
+for (const t of statusList ?? []) {
+  if (!t || typeof t !== 'object') {
+    errors.push('milestones.json: every status tier must be an object');
+    continue;
+  }
+  const where = `status ${t.id ?? '?'}`;
+  const e = msg => errors.push(`${where}: ${msg}`);
+  if ('activeDays' in t) e('use "day", not "activeDays" (the alias is for unsetld.com\'s config only)');
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(t.id ?? '')) e('bad id');
+  if (statusIds.has(t.id)) e('duplicate id');
+  statusIds.add(t.id);
+  if (!(Number.isInteger(t.day) && t.day >= 1)) e('day (active days needed) must be a whole number, 1 or more');
+  if (typeof t.title !== 'string' || !t.title.trim() || t.title.length > 40) e('title must be 1–40 characters');
+  for (const k of ['short', 'detail']) if (t[k] != null && typeof t[k] !== 'string') e(`${k} must be text`);
+  if (t.active != null && typeof t.active !== 'boolean') e('active must be true or false');
+  if (t.pausable != null && typeof t.pausable !== 'boolean') e('pausable must be true or false');
+  if (t.action != null && (typeof t.action !== 'string' || !t.action.trim() || t.action.length > 40)) e('action must be 1–40 characters');
+  if (KNOWN_STATUS.includes(t.id)) {
+    // The app's own tiers carry their button and letter.
+    if (!t.short || !t.detail || !t.action || typeof t.pausable !== 'boolean') e('short, detail, action and pausable are required');
+    const l = t.letter;
+    if (l != null && (typeof l !== 'object' || ['sub', 'body', 'primary', 'secondary'].some(k => typeof l[k] !== 'string' || !l[k].trim()))) {
+      e('letter needs sub, body, primary and secondary');
+    }
+  }
+  const text = [t.title, t.short, t.detail, t.action, ...Object.values(t.letter ?? {})].filter(x => typeof x === 'string').join(' ');
+  if (/[!…]/.test(text) || EMOJI.test(text)) e('no "!", "…" or emoji');
+}
+const activeStatus = (statusList ?? []).filter(t => t && t.active !== false).map(t => t.day);
+if (activeStatus.some((d, i) => i && d <= activeStatus[i - 1])) warnings.push('milestones.json: active status tiers usually go up in days');
 
 // Rules
 const pos = (v, min = 1) => Number.isFinite(v) && v >= min;
@@ -195,18 +274,18 @@ for (const p of reminders) {
 }
 
 // open easy / open focused: what an 18+ user who skipped every About-you question can get (focused: cooldown ≤ 3 days).
-console.log('Track          easy  focused  core  timed  before/after  open easy  open focused');
+console.log('Track          easy  focused  core  niche  timed  before/after  open easy  open focused');
 for (const t of TRACK_IDS) {
   const p = perTrack[t];
   console.log(
-    `  ${t.padEnd(12)} ${String(p.easy).padStart(4)}  ${String(p.main).padStart(7)}  ${String(p.core).padStart(4)}  ${String(p.timer).padStart(5)}  ${String(p.before).padStart(12)}  ${String(p.openEasy).padStart(9)}  ${String(p.openFocused).padStart(12)}`,
+    `  ${t.padEnd(12)} ${String(p.easy).padStart(4)}  ${String(p.main).padStart(7)}  ${String(p.core).padStart(4)}  ${String(p.niche).padStart(5)}  ${String(p.timer).padStart(5)}  ${String(p.before).padStart(12)}  ${String(p.openEasy).padStart(9)}  ${String(p.openFocused).padStart(12)}`,
   );
   if (p.easy < 4 || p.main < 5) warnings.push(`${t}: aim for at least 4 easy and 5 focused missions`);
   if (p.core < 1) warnings.push(`${t}: no core habit (anchor)`);
   if (p.openEasy < 8) warnings.push(`${t}: ${p.openEasy} easy missions for an 18+ user who skipped About you; short days need at least 8`);
   if (p.openFocused < 3) warnings.push(`${t}: ${p.openFocused} focused missions with a cooldown of 3 days or less for an 18+ user who skipped About you; focused slots need at least 3`);
 }
-console.log(`Total: ${missions.length} missions, ${programs.length} programs, ${rewards.length} reward tiers`);
+console.log(`Total: ${missions.length} missions, ${programs.length} programs, ${rewards.length} reward tiers, ${statusList?.length ?? 0} status tiers`);
 if (warnings.length) {
   console.log(`\n${warnings.length} warning(s):`);
   for (const w of warnings.slice(0, 80)) console.log('  ! ' + w);

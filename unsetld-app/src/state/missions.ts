@@ -1,11 +1,13 @@
 // Hooks for the mission screens: today's missions, the streak, points and rewards.
 import { provenInPlan } from '../core/complete';
 import { serves } from '../core/missions';
+import { focusFor } from '../core/personalize';
 import { activeDays } from '../core/progress';
+import { weekStart } from '../core/review';
 import { balance, effectiveTiers, nextReward } from '../core/rewards';
 import { computeStreak, type StreakInfo } from '../core/streak';
 import type { DayKey } from '../core/time';
-import type { DayPlan, Mission, MissionDone, PlannedMission, RewardTier, TrackId } from '../core/types';
+import type { DayPlan, Mission, MissionDone, PlannedMission, RewardTier, TrackId, WeeklyFocus } from '../core/types';
 import { MISSION_BY_ID, REWARD_TIERS, RULES } from '../content';
 import { useApp } from './store';
 
@@ -69,4 +71,17 @@ export function useRerollsLeft(day: DayKey): number {
   const premium = useApp(s => s.premium.active);
   const used = useApp(s => s.plans[day]?.rerolls ?? 0);
   return Math.max(0, (premium ? RULES.rerolls.full : RULES.rerolls.free) - used);
+}
+
+/**
+ * This week's focus ("What matters most this week?"): the one set for the week `day` is in,
+ * if any (set this week, or picked ahead in Sunday's review and kept aside until now), and
+ * whether the user said "Not this week" to it. `week` is that Monday.
+ */
+export function useWeekFocus(day: DayKey): { week: DayKey; focus: WeeklyFocus | null; skipped: boolean } {
+  const week = weekStart(day);
+  const focus = useApp(s => s.profile.focus);
+  const nextFocus = useApp(s => s.profile.nextFocus);
+  const skipped = useApp(s => s.focusSkipped === week);
+  return { week, focus: focusFor({ focus, nextFocus }, week), skipped };
 }

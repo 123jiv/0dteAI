@@ -29,6 +29,29 @@ export interface Milestone {
   letter: { sub: string; body: string; primary: string; secondary: string };
 }
 
+/**
+ * An UNSETLD status tier, earned by active days (days with a proven mission). Defaults come
+ * from content/milestones.json; unsetld.com's config `status` can replace them (core/rewards
+ * parseStatus). Only the ids the app knows (MilestoneId) carry an action, a pause and a
+ * letter; any other id is shown as a display-only tier.
+ */
+export interface StatusTier {
+  id: string;
+  /** Active days needed. */
+  day: number;
+  title: string;
+  short: string;
+  detail: string;
+  /** false: not shown. */
+  active: boolean;
+  /** Pauses with early access (core/record). The app's own ids only. */
+  pausable: boolean;
+  /** The milestone page's button. The app's own ids only. */
+  action?: string;
+  /** The letter when it's reached. The app's own ids only. */
+  letter?: Milestone['letter'];
+}
+
 export interface ReminderPrompt {
   slot: 'morning' | 'midday' | 'evening' | 'night';
   text: string;
@@ -194,12 +217,14 @@ export interface Profile {
   /** The daily time the user realistically has: 15, 30, 45 or 60 (60+) minutes. */
   minutes: 15 | 30 | 45 | 60;
   intensity: 'easy' | 'lockin' | 'push';
-  /** A track to lean on this week (set from the weekly review). */
+  /** A track the 3.0 weekly review set to lean on. Retired: the weekly focus replaced it, and store v6 clears it. */
   priority: TrackId | null;
   /** "What are you working toward?" in their own words ("Launch my clothing brand"). Optional, at most 80 characters. */
   goal?: string | null;
   /** "What matters most this week?", for the week starting `week`. Absent or another week = not set. */
   focus?: WeeklyFocus | null;
+  /** Next week's focus, picked in Sunday's review. It takes over on Monday (core/personalize focusFor); this week's stays until then. */
+  nextFocus?: WeeklyFocus | null;
 }
 
 /** The weekly focus choices (core/personalize FOCUS_OPTIONS says what each one leans the plan toward). */

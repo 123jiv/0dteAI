@@ -4,11 +4,10 @@ import type { MissionSlot, Profile } from '../../core/types';
 import { ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
-import { useApp } from '../../state/store';
 import { Button, NavRow, PageTitle, Screen, Square } from '../../ui/kit';
 import { T } from '../../ui/text';
-import { color as C } from '../../ui/tokens';
-import { Chip, Choice, useProfileDraft } from './TracksScreen';
+import { color as C, GAP } from '../../ui/tokens';
+import { Choice, useProfileDraft } from './TracksScreen';
 
 const COPY = ONBOARDING.pace;
 
@@ -35,12 +34,13 @@ function DayShape({ slots, longest, on }: { slots: readonly MissionSlot[]; longe
   );
 }
 
-/** Onboarding step 3, and Settings › Your plan › Pace & intensity. */
+/** Onboarding step 3, and You › Time and intensity. */
 export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
   const edit = Boolean(route.params?.edit);
   const { value, change, save } = useProfileDraft(edit);
-  // 5–15 and 15–30 minutes set the day's shape whatever the intensity (slotsFor).
-  const short = value.minutes === 15 || value.minutes === 30 ? value.minutes : null;
+  // 15 and 30 minutes set the whole day whatever the intensity; 45 sets its shape (slotsFor, dayBudget).
+  const m = value.minutes;
+  const note = m === 15 || m === 30 || m === 45 ? COPY.timeNote[m] : null;
 
   /** A tap on the chosen one does nothing: time and intensity always have an answer. */
   const set = <K extends 'minutes' | 'intensity'>(key: K, v: Profile[K]) => {
@@ -55,9 +55,7 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
       navigation.goBack();
       return;
     }
-    // Today's plan fits the answers, so the reminder preview names real missions.
-    useApp.getState().replanToday();
-    navigation.navigate('Day');
+    navigation.navigate('Goal');
   };
 
   return (
@@ -65,57 +63,54 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
       nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(3)} />}
       footer={<Button title={edit ? ONBOARDING.save : ONBOARDING.continue} onPress={done} />}>
       <PageTitle title={COPY.title} />
-      <View accessibilityRole="radiogroup" accessibilityLabel={COPY.title} style={{ marginTop: 24, flexDirection: 'row', gap: 8 }}>
-        {MINUTES.map(m => {
-          const on = value.minutes === m;
+      <View accessibilityRole="radiogroup" accessibilityLabel={COPY.title} style={{ marginTop: 24, flexDirection: 'row', gap: GAP.tight }}>
+        {MINUTES.map(n => {
+          const on = m === n;
           return (
-            <Chip
-              key={m}
+            <Choice
+              key={n}
+              role="radio"
               on={on}
-              label={COPY.a11yMinutes[m]}
-              onPress={() => set('minutes', m)}
-              style={{ flex: 1, minWidth: 0, minHeight: 64, paddingHorizontal: 4, gap: 2 }}>
-              {/* Four across: at the largest text sizes the range shrinks to fit rather than breaking at the dash. */}
-              <T v="mono.l" align="center" color={on ? C.ink : C.bone} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
-                {COPY.minutes[m]}
+              label={COPY.a11yMinutes[n]}
+              onPress={() => set('minutes', n)}
+              style={{ flex: 1, minWidth: 0, minHeight: 76, paddingHorizontal: 4, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+              {/* Four across: at the largest text sizes the number shrinks to fit rather than breaking. */}
+              <T v="stat" align="center" color={on ? C.bone : C.muted} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: 28, lineHeight: 32 }}>
+                {COPY.minutes[n]}
               </T>
-              <T v="mono.s" align="center" color={on ? C.ink : C.stone}>
+              <T v="mono.s" align="center" color={on ? C.bone : C.stone}>
                 {COPY.minutesUnit}
               </T>
-            </Chip>
+            </Choice>
           );
         })}
       </View>
 
-      <T v="title.m" accessibilityRole="header" style={{ marginTop: 44 }}>
+      <T v="title.m" accessibilityRole="header" style={{ marginTop: GAP.section }}>
         {COPY.hard}
       </T>
-      {/* The time chosen wins over intensity: with 5–15 or 15–30 minutes every card gets the same day. */}
-      {short ? (
-        <T v="small" color={C.stone} style={{ marginTop: 8 }} accessibilityLabel={COPY.a11yShortDay[short]}>
-          {COPY.shortDay[short]}
+      {/* The time chosen wins over intensity: with 15 or 30 minutes every card gets the same day. */}
+      {note ? (
+        <T v="small" color={C.stone} style={{ marginTop: 8 }}>
+          {note}
         </T>
       ) : null}
-      <View accessibilityRole="radiogroup" accessibilityLabel={COPY.hard} style={{ marginTop: 16, gap: 10 }}>
+      <View accessibilityRole="radiogroup" accessibilityLabel={COPY.hard} style={{ marginTop: 16, gap: GAP.tight }}>
         {INTENSITIES.map(i => {
           const on = value.intensity === i;
           const card = COPY.intensity[i];
-          // On a short day every card is the same day: the glyphs match, and the words say what the card does with more time.
-          const body = short ? card.later : card.body;
+          // On a short day every card is the same day: the words say what the card does with more time.
+          const body = m === 15 || m === 30 ? card.later : m === 45 ? card.at45 : card.body;
+          const longest = m === 15 || m === 30 ? MAIN_MAX_MINUTES.easy : MAIN_MAX_MINUTES[i];
           return (
-            <Choice
-              key={i}
-              role="radio"
-              on={on}
-              label={COPY.a11yIntensity(card.name, body)}
-              onPress={() => set('intensity', i)}
-              style={{ paddingVertical: 16 }}>
+            <Choice key={i} role="radio" on={on} label={COPY.a11yIntensity(card.name, body)} onPress={() => set('intensity', i)}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <Square on={on} />
-                <T v="button" color={on ? C.bone : C.muted} style={{ flex: 1 }}>
+                {/* Serif, sentence case, like the area names: tracked capitals are for kickers and the main button. */}
+                <T v="saved" color={on ? C.bone : C.muted} style={{ flex: 1 }}>
                   {card.name}
                 </T>
-                <DayShape slots={slotsFor({ intensity: i, minutes: value.minutes })} longest={short ? MAIN_MAX_MINUTES.easy : MAIN_MAX_MINUTES[i]} on={on} />
+                <DayShape slots={slotsFor({ intensity: i, minutes: m })} longest={longest} on={on} />
               </View>
               <T v="small" color={C.stone} style={{ marginTop: 8, marginLeft: 26 }}>
                 {body}

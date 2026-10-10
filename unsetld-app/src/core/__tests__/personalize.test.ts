@@ -1,7 +1,7 @@
 // Personalization: the weekly focus, the goal text and what the user did lately.
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PROFILE, generatePlan, type PlanInput } from '../missions';
-import { activeFocus, goalLean, learnFrom, leanFor, mondayOf, NO_ADAPTATION, type Adaptation } from '../personalize';
+import { activeFocus, goalLean, learnFrom, leanFor, mondayOf, NO_ADAPTATION, personalWeight, type Adaptation } from '../personalize';
 import { addDays, type DayKey } from '../time';
 import type { DayPlan, Mission, MissionDone, Profile, TrackId } from '../types';
 
@@ -116,6 +116,17 @@ describe('goal text', () => {
     expect(leaned).toBeGreaterThan(base * 1.3);
   });
 
+  it('stacks with the weekly focus: a mission both point at beats one only the focus points at', () => {
+    const p = { focus: { week: '2026-10-12', id: 'exam' as const }, goal: 'Get my GPA up' };
+    const lean = leanFor(p, '2026-10-14');
+    const both = m('school', 30, { tags: ['school', 'test', 'grades'] });
+    const focusOnly = m('school', 30, { tags: ['school', 'test'] });
+    const neither = m('school', 30, { tags: ['school'] });
+    const w = (x: Mission) => personalWeight(x, 'school', lean, NO_ADAPTATION);
+    expect(w(both)).toBeGreaterThan(w(focusOnly));
+    expect(w(focusOnly)).toBeGreaterThan(w(neither));
+  });
+
   it('leads with an area the goal points at when no focus or priority is set', () => {
     const p = profile({ tracks: ['skills', 'money', 'school'], goal: 'Get my GPA up' });
     // School leads two days in three: it has a focused slot on (at least) those days.
@@ -189,5 +200,35 @@ describe('learning from what the user did', () => {
     const base = count(7, x => x.id === target.id, {}, LIB, 12);
     const ad: Adaptation = { ...NO_ADAPTATION, ignored: { [target.id]: 3 } };
     expect(count(7, x => x.id === target.id, { adapt: ad }, LIB, 12)).toBeLessThan(base * 0.8);
+  });
+});
+
+describe('staples and niche missions', () => {
+  it('a niche mission comes up only when nothing else fits, unless the goal points at it', () => {
+    const typing = m('skills', 30, { tags: ['skills', 'typing', 'niche'], weight: 0.1 });
+    const coding = m('skills', 30, { tags: ['skills', 'coding', 'niche'], weight: 0.1 });
+    const lib = [...LIB, typing, coding];
+    expect(count(14, x => x.id === typing.id || x.id === coding.id, {}, lib, 12)).toBe(0);
+    expect(count(14, x => x.id === coding.id, { profile: profile({ goal: 'Learn coding' }) }, lib, 12)).toBeGreaterThan(0);
+    // Alone in its area at that size, it still fills the slot rather than leave the day short.
+    const only = [...LIB.filter(x => x.track !== 'skills' || x.minutes < 30), typing];
+    expect(count(14, x => x.id === typing.id, {}, only, 4)).toBeGreaterThan(0);
+  });
+
+  it("Day 1 is the areas' core habits wherever an area has one that fits", () => {
+    const anchored = LIB.map(x => (Number(x.id.split('-p')[1]) % 3 === 0 ? { ...x, anchor: true } : x));
+    const byId = new Map(anchored.map(x => [x.id, x]));
+    let first = 0;
+    let later = 0;
+    let total = 0;
+    for (let k = 0; k < 24; k++) {
+      const day1 = generatePlan(input({ library: anchored, salt: `d${k}` }));
+      first += day1.missions.filter(p => byId.get(p.missionId)!.anchor).length;
+      total += day1.missions.length;
+      const day5 = generatePlan(input({ library: anchored, salt: `d${k}`, history: { lastDone: {}, lastPlanned: { [LIB[0].id]: '2026-10-10' }, skips: {} } }));
+      later += day5.missions.filter(p => byId.get(p.missionId)!.anchor).length;
+    }
+    expect(first).toBe(total);
+    expect(later).toBeLessThan(total);
   });
 });

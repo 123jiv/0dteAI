@@ -9,7 +9,7 @@ import { daysAhead } from '../core/reminders';
 import { computeStreak } from '../core/streak';
 import { addDays, nextDayStart, type DayKey } from '../core/time';
 import type { DayPlan, MissionDone } from '../core/types';
-import { accessDays, accessRecord } from '../screens/access';
+import { accessDays, accessRecord, earlyAccessDay, useStatusTiers } from '../screens/access';
 import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
 import { backupRecord, readBackup } from '../services/backup';
 import { now, today } from '../services/clock';
@@ -51,11 +51,11 @@ function applyPremium() {
     .catch(() => {});
 }
 
-/** unsetld.com's config: Access on or off, the collection, and reward tiers (null keeps the defaults). */
+/** unsetld.com's config: Access on or off, the collection, reward tiers and status tiers (null keeps the defaults). */
 function applyConfig() {
   fetchConfig()
     .then(c => {
-      if (c) useApp.getState().setRemote({ accessEnabled: c.accessEnabled, collection: c.collection, rewards: c.rewards });
+      if (c) useApp.getState().setRemote({ accessEnabled: c.accessEnabled, collection: c.collection, rewards: c.rewards, status: c.status });
     })
     .catch(() => {});
 }
@@ -253,11 +253,13 @@ export function useSideEffects() {
   }, [hydrated, account, recordedToday, day]);
 
   // Drops: fetched on launch and every foreground, for the early-access page
-  // and the opt-in alerts. Early access needs 7 active days, access on and no
+  // and the opt-in alerts. Early access needs its active days (7 unless the
+  // config moves it; none when the config switches it off), access on and no
   // pause. A failed fetch keeps the alerts already scheduled.
   const accessEnabled = useAccessEnabled();
   const paused = useMemo(() => accessState(accessRecord(record), day).paused, [record, day]);
-  const early = accessEnabled && accessDays(record) >= 7 && !paused;
+  const earlyDay = earlyAccessDay(useStatusTiers());
+  const early = accessEnabled && earlyDay !== null && accessDays(record) >= earlyDay && !paused;
   const dropAlerts = useApp(s => s.settings.dropAlerts);
   useEffect(() => {
     if (!hydrated) return;

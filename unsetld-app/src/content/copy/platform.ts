@@ -1,4 +1,4 @@
-// Settings, Full Edition, tester tools, widgets and notifications (spec sections 12 and 13).
+// You, UNSETLD+, tester tools, widgets and notifications (docs/UX_REDESIGN.md section 11).
 // Every user-facing string for the platform group. Sentence case, no exclamation marks.
 // Straight quotes become typographic at display time.
 import type { Profile } from '../../core/types';
@@ -22,99 +22,102 @@ export const PLATFORM = {
   wordmark: 'unsetld',
   a11y: { close: 'Close', back: 'Back' },
 
-  settings: {
-    title: 'Settings',
+  /** The You tab: goals, your day, membership, appearance, proof photos, account, help. */
+  you: {
+    title: 'You',
     sections: {
-      plan: 'YOUR PLAN',
-      reminders: 'REMINDERS',
-      streak: 'STREAK',
+      goals: 'YOUR GOALS',
+      day: 'YOUR DAY',
+      membership: 'MEMBERSHIP',
+      appearance: 'APPEARANCE',
       proof: 'PROOF PHOTOS',
-      look: 'COLORWAY & WIDGETS',
-      unsetld: 'UNSETLD',
-      full: 'FULL EDITION',
-      about: 'ABOUT',
-      tester: 'TESTER',
+      account: 'ACCOUNT',
+      help: 'HELP',
+      tester: 'TESTER TOOLS',
     },
 
-    tracks: 'Areas',
-    /** "School, Fitness, Money"; when that runs long, "Organization and 3 more". */
-    tracksValue: (names: string[]) => {
-      if (!names.length) return 'None yet';
-      const all = names.join(', ');
-      return names.length === 1 || all.length <= 27 ? all : `${names[0]} and ${names.length - 1} more`;
-    },
-    /** VoiceOver hears every area: "Areas, Discipline, School, Fitness and Money". */
-    tracksA11y: (names: string[]) =>
-      `Areas, ${names.length ? (names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`) : 'None yet'}`,
+    areas: 'Areas',
+    /** "School, Fitness, Money" */
+    areasValue: (names: string[]) => (names.length ? names.join(', ') : 'None yet'),
+    goal: "What you're working toward",
+    focus: "This week's focus",
+    notSet: 'Not set',
     aboutYou: 'About you',
     aboutValue: (answered: number, all: number) => (answered === 0 ? 'Skipped' : `${answered} of ${all} answered`),
-    pace: 'Pace & intensity',
-    paceValue: (minutes: Profile['minutes'], intensity: Profile['intensity']) => `${MINUTES[minutes] ?? ''} · ${INTENSITY[intensity] ?? ''}`,
+    pace: 'Time and intensity',
+    paceValue: (minutes: Profile['minutes'], intensity: Profile['intensity']) => `${MINUTES[minutes] ?? ''} a day · ${INTENSITY[intensity] ?? ''}`,
     /** Matches the store's replanToday: today's plan is rebuilt only while nothing in it was started (a timer, a before photo), proven or swapped. */
-    planNote: "Changes shape tomorrow's missions, and today's too if you haven't started, proven or swapped one yet.",
+    goalsNote: "Changes shape tomorrow's missions, and today's too if you haven't started, proven or swapped one yet.",
 
+    plans: 'Plans',
+    plansValue: 'Guided runs of five to seven days',
+    /** The plan running now: "Build Something · Day 4 of 7". */
+    planActive: (title: string, day: number, of: number) => `${title} · Day ${day} of ${of}`,
     reminders: 'Reminders',
-    remindersValue: (n: number, a: string, b: string) => (n === 0 ? 'Off' : `${n} a day, ${a} to ${b}`),
+    remindersValue: (n: number, a: string, b: string) => (n === 0 ? 'Off' : n === 1 ? `1 a day at ${a}` : `${n} a day, ${a} to ${b}`),
     remindersOff: 'Off',
-    remindersNote: "The first one names today's missions. Later ones name what's left, and stop once everything is proven.",
+    dropAlerts: 'Drop alerts',
+    dropNote: 'When a collection opens. Off unless you turn it on.',
+    permOff: 'Notifications are off for unsetld.',
+    openSettings: 'Open Settings',
 
-    offDays: 'Off Days banked',
-    offDaysValue: (n: number, max: number) => `${n} of ${max}`,
-    offDayNote: 'Miss a day and an Off Day covers it. You earn one every 7 days you show up. You can bank two.',
+    plus: 'UNSETLD+',
+    plusPitch: 'More swaps, every plan, all colorways.',
+    planName: { annual: 'Annual', monthly: 'Monthly', lifetime: 'Lifetime' } as Record<string, string>,
+    member: 'Member',
+    renews: (name: string, date: string) => `${name}, renews ${date}`,
+    restore: 'Restore purchases',
+    restored: 'UNSETLD+ restored.',
+    noneTitle: 'Nothing to restore.',
+    noneBody: "We couldn't find UNSETLD+ on this Apple ID.",
+    restoreFailed: "Couldn't reach the App Store. Try again in a moment.",
+
+    colorway: 'Colorway',
+    widgets: 'Widgets',
+    widgetsValue: 'Today on your lock screen',
 
     retentionLabel: 'Keep proof photos for',
     retention: { 30: '30 days', 365: '1 year', 0: 'Keep' } as Record<string, string>,
     retentionSpan: { 30: '30 days', 365: '1 year' } as Record<string, string>,
-    retentionNote:
-      'After that the photo is deleted from this phone. The mission, its points and your streak stay. Photos never leave your phone.',
+    retentionNote: 'After that the photo is deleted from this phone. The mission, its points and your streak stay. Photos never leave your phone.',
     clearTitle: (n: number) => (n === 1 ? 'Delete 1 older photo?' : `Delete ${num(n)} older photos?`),
     clearBody: (span: string) => `Proof photos older than ${span} are deleted from this phone. The missions and their points stay.`,
     clearYes: 'Delete',
     clearNo: 'Cancel',
-    gallery: 'Proof gallery',
+    proofHistory: 'Proof history',
+    proofHistoryValue: 'Only on this phone',
 
-    colorway: 'Colorway',
-    addWidget: 'Add a widget',
-
-    dropAlerts: 'Drop alerts',
-    dropNote: 'Tells you when a collection opens. Separate from your mission reminders. Off unless you turn it on.',
-    permOff: 'Notifications are off for unsetld.',
-    openSettings: 'Open Settings',
     account: 'Account',
     notSignedIn: 'Not signed in',
     signedInApple: 'Signed in with Apple',
+    accountNote: 'Only needed to use reward codes.',
 
-    plan: 'Plan',
-    free: 'Free',
-    planName: { annual: 'Annual', monthly: 'Monthly', lifetime: 'Lifetime' } as Record<string, string>,
-    renews: (name: string, date: string) => `${name}, renews ${date}`,
-    restore: 'Restore purchases',
-    restored: 'Full Edition restored.',
-    noneTitle: 'Nothing to restore.',
-    noneBody: "We couldn't find Full Edition on this Apple ID.",
-    restoreFailed: "Couldn't reach the App Store. Try again in a moment.",
-
-    accessTerms: 'Rewards and access terms',
+    accessTerms: 'Rewards and status terms',
     contact: 'Contact',
     contactEmail: 'unsetldclothing@gmail.com',
     terms: 'Terms of Use',
     privacy: 'Privacy Policy',
     devTools: 'Tester tools',
+    devToolsValue: 'Preview and dev builds only',
     footer: (version: string) => `unsetld · version ${version}`,
   },
 
+  /** UNSETLD+. The rows come from core/features (what UNSETLD+ adds); prices only from the store. */
   paywall: {
     restore: 'Restore',
-    label: 'UNSETLD',
-    title: 'Full Edition',
-    description: 'More programs, more swaps, every colorway.',
-    spec: [
-      ['PROGRAMS', 'Every program, and new ones each season'],
-      ['SWAPS', 'Three a day'],
-      ['COLORWAYS', 'All ten, in the app and on your widgets'],
-      ['REMINDERS', 'Up to ten a day'],
-    ] as const,
-    freeNote: 'Daily missions, proof, points, the streak, levels, the weekly review and rewards are the same on every plan.',
+    title: 'UNSETLD+',
+    description: 'More room to work with. The core of the app stays free.',
+    addsLabel: 'WHAT IT ADDS',
+    /** One line per UNSETLD+ feature in core/features. */
+    adds: {
+      extraSwaps: (free: number, plus: number) => `${word(plus)} swaps a day instead of ${word(free).toLowerCase()}`,
+      allPlans: (n: number) => `All ${word(n).toLowerCase()} plans, and new ones each season`,
+      colorways: (n: number) => `All ${n === 10 ? 'ten' : num(n)} colorways, in the app and on your widgets`,
+      extraReminders: (free: number, plus: number) => `Up to ${plus === 10 ? 'ten' : num(plus)} reminders a day instead of ${word(free).toLowerCase()}`,
+    },
+    freeLabel: 'ALWAYS FREE',
+    free: 'Daily missions, proof, points, your streak, progress and UNSETLD rewards. Membership never changes what you earn.',
+    planLabel: 'CHOOSE A PLAN',
     plans: {
       annual: 'Annual',
       monthly: 'Monthly',
@@ -159,20 +162,18 @@ export const PLATFORM = {
     tryAgain: 'Try again',
     failedTitle: "Purchase didn't go through.",
     failedBody: 'Nothing was charged. Try again in a moment.',
-    restored: 'Full Edition restored.',
+    restored: 'UNSETLD+ restored.',
     ok: 'OK',
     noneTitle: 'Nothing to restore.',
-    noneBody: "We couldn't find Full Edition on this Apple ID.",
+    noneBody: "We couldn't find UNSETLD+ on this Apple ID.",
     restoreFailed: "Couldn't reach the App Store. Try again in a moment.",
     preview: 'Preview build. No charge.',
   },
 
-  /** O6, and Settings › Add a widget. */
+  /** You › Widgets: how to add one, and what each shows. */
   widgetGuide: {
-    title: 'Put today on your lock screen.',
-    pageTitle: 'Add a widget',
-    body: "You look at your phone all day. Let it tell you what's next.",
-    step: '05 / 05',
+    title: 'Widgets',
+    body: "Put today's missions on your lock screen, so the next one is a glance away.",
     tabs: ['Lock Screen', 'Home Screen'] as const,
     lockSteps: [
       'Touch and hold your lock screen, then tap Customize.',
@@ -184,11 +185,12 @@ export const PLATFORM = {
       'Tap Edit, then Add Widget.',
       'Search unsetld, then choose Next mission or Streak and a size.',
     ],
+    stepsLabel: 'HOW TO ADD ONE',
     kindsLabel: 'THE WIDGETS',
     kinds: [
-      { name: 'NEXT MISSION', body: "The next mission you haven't proven, with its area, time and points. Tap it to start." },
-      { name: 'TODAY', body: "Today's missions, ticked off as you prove them. Lock Screen only." },
-      { name: 'STREAK', body: 'Your streak, your points and every day you showed up.' },
+      { name: 'Next mission', body: "The next mission you haven't proven, with its area, time and points. Tap it to start." },
+      { name: 'Today', body: "Today's missions, ticked off as you prove them. Lock Screen only." },
+      { name: 'Streak', body: 'Your streak, your points and every day you showed up.' },
     ],
     a11yLock: 'A lock screen with the Next mission and Streak widgets under the clock',
     a11yHome: 'A home screen with the Next mission and Streak widgets',
@@ -200,8 +202,6 @@ export const PLATFORM = {
       streak: 16,
       points: 340,
     },
-    done: 'Done',
-    later: 'Later',
   },
 
   /** What the widgets show. Kept short: they're read at a glance. */
@@ -247,7 +247,7 @@ export const PLATFORM = {
     active: (n: number) => (n === 1 ? '1 ACTIVE DAY' : `${num(n)} ACTIVE DAYS`),
 
     flags: 'FLAGS',
-    full: 'Full Edition',
+    full: 'UNSETLD+',
     fullNote: "This build asks the App Store: its answer replaces this switch on the next launch.",
     fast: 'Timers run 60× faster',
     fastNote: 'A 25-minute timer takes 25 seconds. Applies to timers started after you switch it.',
@@ -268,13 +268,13 @@ export const PLATFORM = {
     disappear: (n: number) => `Disappear for ${n} days`,
     back: 'Back to the real today',
     travelNote:
-      "After a jump, go back to Home: it builds the new day's plan and shows any milestone or letter.",
+      "After a jump, go back to Today: it builds the new day's plan and shows any milestone or letter.",
 
     reset: 'RESET',
     restart: 'Restart onboarding',
     clear: 'Clear the record',
     clearTitle: 'Clear everything on record?',
-    clearBody: 'Missions, points, streak, rewards taken and proof photos on this phone. Settings stay.',
+    clearBody: 'Missions, points, streak, rewards taken and proof photos on this phone. Your answers and settings stay.',
     clearYes: 'Clear',
     clearNo: 'Cancel',
   },

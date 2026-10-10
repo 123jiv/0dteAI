@@ -7,10 +7,11 @@ import { ONBOARDING } from '../content/copy/onboarding';
 import type { RootProps } from '../navigation/types';
 import { notificationStatus, requestNotifications, type Permission } from '../services/notifications';
 import { useApp, useEntitlements } from '../state/store';
+import { Card } from '../ui/blocks';
 import { Button, InlineLink, NavRow, PageTitle, Screen, Segmented, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { TimeSheet } from '../ui/TimeSheet';
-import { color as C, hairline } from '../ui/tokens';
+import { color as C, GAP, hairline } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
 
 /** Last stays after First in the 4 AM day: one at or before First moves to an hour after it (3:55 AM at most). */
@@ -21,19 +22,11 @@ function lastAfter(first: number, last: number): number {
 
 const SYSTEM = Platform.select({ ios: undefined, default: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Inter_400Regular, sans-serif" });
 
-function Row({ title, children, last }: { title: string; children: React.ReactNode; last?: boolean }) {
+/** One setting inside the card: its name on the left, its control on the right. No rules between them. */
+function Row({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <View
-      style={{
-        minHeight: 52,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderTopWidth: hairline,
-        borderBottomWidth: last ? hairline : 0,
-        borderColor: C.rule,
-        gap: 12,
-      }}>
-      <T v="row" style={{ flex: 1, fontFamily: 'Inter_400Regular' }}>
+    <View style={{ minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <T v="row" style={{ flex: 1 }}>
         {title}
       </T>
       {children}
@@ -59,7 +52,7 @@ function TimeValue({ value, onPress, disabled, label }: { value: number; onPress
 
 const COPY = ONBOARDING.day;
 
-/** Onboarding step 4 (Pace → Reminders → Widget), and Settings › Reminders. */
+/** Onboarding's last step (Goal → Reminders → Today), and You › Reminders. */
 export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   const edit = Boolean(route.params?.edit);
   const settings = useApp(s => s.settings);
@@ -90,10 +83,16 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
 
   const save = (on: boolean) => update({ reminders: { on, count, first, last } });
 
+  /** Onboarding ends here: today's plan is built and Today opens, with the tabs. No widget guide, no paywall. */
+  const finish = () => {
+    useApp.getState().completeOnboarding(false);
+    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+  };
+
   const allow = async () => {
     const granted = await requestNotifications().catch(() => false);
     save(granted || Platform.OS === 'web');
-    navigation.navigate('Widget');
+    finish();
   };
 
   const saveEdit = async () => {
@@ -110,7 +109,7 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   return (
     <View style={{ flex: 1 }}>
       <Screen
-        nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(4)} />}
+        nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(5)} />}
         footer={
           edit ? (
             <Button title={COPY.save} onPress={saveEdit} />
@@ -122,19 +121,19 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
                 style={{ marginTop: 8 }}
                 onPress={() => {
                   save(false);
-                  navigation.navigate('Widget');
+                  finish();
                 }}
               />
             </View>
           )
         }>
+        <PageTitle title={edit ? COPY.remindersTitle : COPY.title} body={edit ? undefined : COPY.body} />
         {edit && perm === 'denied' ? (
-          <View style={{ marginTop: 16, paddingVertical: 12, borderTopWidth: hairline, borderBottomWidth: hairline, borderColor: C.rule, gap: 4 }}>
+          <Card style={{ marginTop: 20, gap: 4 }}>
             <T v="small">{COPY.permOff}</T>
             <InlineLink title={COPY.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
-          </View>
+          </Card>
         ) : null}
-        <PageTitle title={edit ? COPY.remindersTitle : COPY.title} />
 
         <View
           accessible
@@ -158,31 +157,33 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
           </View>
         </View>
 
-        <View style={{ marginTop: 28 }}>
-          <Row title={COPY.perDay}>
+        <Card padding={0} style={{ marginTop: GAP.block, paddingHorizontal: 18, paddingVertical: 6 }}>
+          {/* The count on its own line, the control full width under it. */}
+          <View style={{ paddingTop: 14, paddingBottom: 8, gap: 12 }}>
+            <T v="row">{COPY.perDay}</T>
             <Segmented
               options={REMINDER_COUNTS}
               value={count as (typeof REMINDER_COUNTS)[number]}
               onChange={setCount}
               disabled={disabled}
-              style={{ width: 168 }}
+              style={{ alignSelf: 'stretch' }}
             />
-          </Row>
-          {!ent.premium ? (
-            <T v="note" color={C.stone} style={{ marginTop: -4, marginBottom: 12 }}>
-              {COPY.perDayNote}
-            </T>
-          ) : null}
+            {!ent.premium ? (
+              <T v="note" color={C.stone}>
+                {COPY.perDayNote}
+              </T>
+            ) : null}
+          </View>
           <Row title={COPY.first}>
             <TimeValue label={COPY.first} value={first} onPress={() => setPicker('first')} />
           </Row>
-          <Row title={COPY.last} last>
+          <Row title={COPY.last}>
             <TimeValue label={COPY.last} value={last} onPress={() => setPicker('last')} disabled={count === 1} />
           </Row>
-          <T v="note" color={C.stone} style={{ marginTop: 8 }}>
-            {COPY.note}
-          </T>
-        </View>
+        </Card>
+        <T v="note" color={C.stone} style={{ marginTop: 10 }}>
+          {COPY.note}
+        </T>
       </Screen>
 
       <TimeSheet

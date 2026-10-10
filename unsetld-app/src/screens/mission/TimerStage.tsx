@@ -7,10 +7,11 @@ import { View } from 'react-native';
 import { clock, remainingSeconds, timerDone, type FocusTimer } from '../../core/timer';
 import type { Mission, TrackId } from '../../core/types';
 import { MISSION } from '../../content/copy/mission';
+import { Meter } from '../../ui/blocks';
 import { Button, Screen, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C } from '../../ui/tokens';
-import { areaName, Bar, CameraNote } from './parts';
+import { areaName, CameraNote, LINING } from './parts';
 
 export function TimerStage({
   timer,
@@ -82,8 +83,8 @@ export function TimerStage({
   return (
     <Screen nav={nav} scroll={false} contentStyle={{ justifyContent: 'center' }} footer={footer}>
       <View onLayout={e => setBoxW(e.nativeEvent.layout.width)}>
-        <T v="mono.s" align="center">
-          {areaName(mission, area).toUpperCase()}
+        <T v="kicker" color={C.stone} align="center">
+          {areaName(mission, area)}
         </T>
         <T
           v="mono.l"
@@ -96,8 +97,10 @@ export function TimerStage({
           style={{ marginTop: 20, fontSize: size, lineHeight: Math.round(size * 1.12), letterSpacing: -size * 0.02 }}>
           {text}
         </T>
-        <Bar value={1 - left / Math.max(1, timer.requiredSeconds)} style={{ marginTop: 20 }} />
-        <T v="title.m" align="center" style={{ marginTop: 32 }}>
+        <View style={{ marginTop: 20 }}>
+          <Meter value={timer.requiredSeconds - left} max={Math.max(1, timer.requiredSeconds)} height={2} />
+        </View>
+        <T v="title.m" align="center" style={[{ marginTop: 32 }, LINING]}>
           {mission.title}
         </T>
         <T v="body" color={C.stone} align="center" style={{ marginTop: 12 }} accessibilityLiveRegion="polite">

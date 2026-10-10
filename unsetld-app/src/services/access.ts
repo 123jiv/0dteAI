@@ -5,15 +5,16 @@
 // again.
 import { Linking, Platform } from 'react-native';
 import { AppConfig, IS_PREVIEW } from '../config/app';
-import { parseRewards } from '../core/rewards';
+import { parseRewards, parseStatus, statusFromMilestones } from '../core/rewards';
 import type { DayKey } from '../core/time';
-import type { RewardTier } from '../core/types';
+import type { RewardTier, StatusTier } from '../core/types';
+import { MILESTONES } from '../content';
 import { useApp } from '../state/store';
 import { saveSession, sessionToken, signOutApple, type SignedIn } from './account';
 import type { Drop } from './notifications';
 
-/** The reward-config parser lives in core/rewards (pure, unit-tested); kept here for older imports. */
-export { parseRewards, parseRewardTier } from '../core/rewards';
+/** The config parsers live in core/rewards (pure, unit-tested); kept here for older imports. */
+export { parseRewards, parseRewardTier, parseStatus } from '../core/rewards';
 
 async function getJson<T>(url: string): Promise<T | null> {
   if (Platform.OS === 'web') return null; // the preview makes no outside requests
@@ -68,6 +69,9 @@ async function post<T>(path: string, body: object): Promise<Reply<T>> {
   return res;
 }
 
+/** The status tiers built in (content/milestones.json); the config's `status` list replaces them. */
+export const STATUS_DEFAULTS: readonly StatusTier[] = statusFromMilestones(MILESTONES);
+
 export interface RemoteConfig {
   accessEnabled: boolean;
   collection: string;
@@ -76,6 +80,12 @@ export interface RemoteConfig {
    * sent none (or none were valid): the app then uses content/rewards.json.
    */
   rewards: RewardTier[] | null;
+  /**
+   * UNSETLD status tiers (by active days) from unsetld.com, valid entries only.
+   * null when the config sent none (or none were valid): the app then uses
+   * content/milestones.json.
+   */
+  status: StatusTier[] | null;
 }
 
 export async function fetchConfig(): Promise<RemoteConfig | null> {
@@ -85,6 +95,7 @@ export async function fetchConfig(): Promise<RemoteConfig | null> {
     accessEnabled: json.accessEnabled,
     collection: String(json.collection ?? AppConfig.defaultCollection),
     rewards: parseRewards(json.rewards),
+    status: parseStatus(json.status, STATUS_DEFAULTS),
   };
 }
 
@@ -131,12 +142,14 @@ export type ClaimResult =
   | { ok: false; reason: 'network' | 'paused' | 'used' | 'needs-account' };
 
 /**
- * 'used': taken as many times as allowed this collection. 'short': the server
- * counts fewer points. 'unavailable': switched off, out of its dates or sold out.
+ * 'used': taken as many times as allowed this collection (or ever, for a
+ * one-time reward). 'cooldown': taken within its redemptionCooldownDays.
+ * 'short': the server counts fewer points. 'unavailable': switched off, out of
+ * its dates or sold out.
  */
 export type RedeemResult =
   | { ok: true; code: string; url: string; simulated?: boolean }
-  | { ok: false; reason: 'network' | 'used' | 'short' | 'unavailable' | 'needs-account' };
+  | { ok: false; reason: 'network' | 'used' | 'cooldown' | 'short' | 'unavailable' | 'needs-account' };
 
 /** The preview's made-up code, shaped like the real ones: UNSETLD10-, UNSETLDSHIP-, UNSETLD-. */
 function previewCode(tier: RewardTier): string {
@@ -146,17 +159,19 @@ function previewCode(tier: RewardTier): string {
 
 /**
  * Trades points for a reward. The server recounts points from its own proof
- * days, checks the tier against its own config (dates, inventory, one per
- * collection), mints the code and returns it with the URL that applies it.
+ * days, checks the tier against its own config (dates, inventory, per
+ * collection, one-time, cooldown, minimum purchase), mints the code and
+ * returns it with the URL that applies it.
  * The browser preview simulates it.
  */
 export async function redeem(tier: RewardTier): Promise<RedeemResult> {
   if (IS_PREVIEW && Platform.OS === 'web') return { ok: true, code: previewCode(tier), url: AppConfig.storeUrl, simulated: true };
-  const body = { rewardId: tier.id, points: tier.points, type: tier.type, percent: tier.percent ?? null };
+  // The server checks the tier against its own config; these are sent so it can log a mismatch.
+  const body = { rewardId: tier.id, points: tier.points, type: tier.type, percent: tier.percent ?? null, minimumPurchase: tier.minimumPurchase ?? null };
   const res = await post<{ code?: string; url?: string; error?: string }>('redeem', body);
   if (res === 'signed-out') return { ok: false, reason: 'needs-account' };
   if (res?.code && res.url) return { ok: true, code: res.code, url: res.url };
-  if (res?.error === 'used' || res?.error === 'short' || res?.error === 'unavailable') return { ok: false, reason: res.error };
+  if (res?.error === 'used' || res?.error === 'cooldown' || res?.error === 'short' || res?.error === 'unavailable') return { ok: false, reason: res.error };
   return { ok: false, reason: 'network' };
 }
 

@@ -1,4 +1,4 @@
-// Full Edition purchases. Products, prices and the trial live in App Store Connect
+// UNSETLD+ purchases. Products, prices and the trial live in App Store Connect
 // and RevenueCat; the app only reads the current Offering. Without a RevenueCat
 // key (or in the browser preview) it runs in preview mode with sample products
 // so the paywall can be tested end to end without charging anyone.

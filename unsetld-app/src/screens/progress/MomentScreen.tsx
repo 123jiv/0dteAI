@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Platform, Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { milestones, type MilestoneKey } from '../../core/progress';
-import { shortDate } from '../../core/time';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
 import { soft } from '../../services/haptics';
@@ -75,17 +74,17 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
             transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
           }}>
           {reached ? (
-            <T v="mono" accessibilityLabel={M.a11yDate(shortDate(reached))} style={{ marginBottom: 12 }}>
-              {M.reached(shortDate(reached))}
+            <T v="kicker" color={C.stone} accessibilityLabel={M.a11yDate(reached)} style={{ marginBottom: 14 }}>
+              {M.reached(reached)}
             </T>
           ) : null}
           <T v="letter.day" style={{ fontVariant: ['lining-nums'] }} accessibilityRole="header">
             {words.title}
           </T>
-          <T v="body" style={{ marginTop: 20 }}>
+          <T v="body" color={C.muted} style={{ marginTop: 20 }}>
             {words.line}
           </T>
-          <T v="letter.sub" color={C.stone} style={{ marginTop: 28 }}>
+          <T v="letter.sub" color={C.stone} style={{ marginTop: 32 }}>
             {M.footer}
           </T>
           <Button title={M.close} onPress={close} style={{ marginTop: 40 }} />

@@ -7,7 +7,7 @@ export const PREVIEW_PLANS: Plan[] = [
   {
     id: 'unsetld_full_annual',
     kind: 'annual',
-    title: 'Full Edition (Annual)',
+    title: 'UNSETLD+ (Annual)',
     price: 24.99,
     priceString: '$24.99',
     currencyCode: 'USD',
@@ -17,7 +17,7 @@ export const PREVIEW_PLANS: Plan[] = [
   {
     id: 'unsetld_full_monthly',
     kind: 'monthly',
-    title: 'Full Edition (Monthly)',
+    title: 'UNSETLD+ (Monthly)',
     price: 4.99,
     priceString: '$4.99',
     currencyCode: 'USD',
@@ -27,7 +27,7 @@ export const PREVIEW_PLANS: Plan[] = [
   {
     id: 'unsetld_full_lifetime',
     kind: 'lifetime',
-    title: 'Full Edition (Lifetime)',
+    title: 'UNSETLD+ (Lifetime)',
     price: 39.99,
     priceString: '$39.99',
     currencyCode: 'USD',

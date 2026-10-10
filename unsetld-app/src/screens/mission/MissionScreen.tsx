@@ -1,5 +1,6 @@
-// The Mission screen (spec sections 6 and 7): what the mission is, then PROVE IT.
-// Detail is deliberately short: title, minutes and points, one instruction, PROOF.
+// The Mission screen (MISSIONS_SPEC 6 and 7, UX_REDESIGN 5): what the mission is, then prove it.
+// Detail is deliberately short and in the card's order: the area, the title, time and points,
+// one instruction, the Proof card, then the one button.
 // Stages: detail → (timer | before photo) → review → checking → done | rejected.
 // A TIMER mission has no photo: when its timer ends, Mark it done goes straight to checking.
 // The timer and a waiting before photo live in the store, so they survive leaving
@@ -26,12 +27,13 @@ import { verifyProof } from '../../services/verify';
 import { plannedArea, useRerollsLeft } from '../../state/missions';
 import { useApp, useAppActive, type MissionResult, type PendingBefore } from '../../state/store';
 import { showDialog, type ActionOption } from '../../ui/actions';
+import { Card } from '../../ui/blocks';
 import { Button, NavRow, Screen, TextButton } from '../../ui/kit';
 import { clockTime } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
-import { color as C, hairline } from '../../ui/tokens';
+import { color as C, GAP } from '../../ui/tokens';
 import { DoneStage } from './DoneStage';
-import { CameraNote, MissionHeading, ProofBlock, ProofFrame, ProofPhotos } from './parts';
+import { addsTo, AfterSlot, CameraNote, Instruction, LINING, MissionHeading, ProofCard, ProofFrame, ProofPhotos, ProvenLine } from './parts';
 import { TimerStage } from './TimerStage';
 
 type Stage =
@@ -395,28 +397,51 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     navigation.navigate('Main', { screen: 'Rewards' });
   };
 
+  /** Perfect day: the share card opens over this screen; closing it comes back here. */
+  const openShare = () => navigation.navigate('Share');
+
+  // The area it's in today's plan for, as its card on Today says (else the user's area it serves).
+  const area = plannedArea(inPlan ? plan?.missions[index] : undefined, mission, tracks);
+
   // ── Stages ────────────────────────────────────────────────────────────────
 
   if (stage.kind === 'done') {
-    return <DoneStage mission={mission} result={stage.result} verification={stage.verification} day={day} nav={nav} onDone={close} onRewards={openRewards} />;
+    return (
+      <DoneStage
+        mission={mission}
+        result={stage.result}
+        verification={stage.verification}
+        day={day}
+        nav={nav}
+        onDone={close}
+        onRewards={openRewards}
+        onShare={openShare}
+      />
+    );
   }
 
   if (stage.kind === 'rejected') {
     return (
-      <Screen nav={nav} contentStyle={{ flexGrow: 1, justifyContent: 'center' }} footer={<Button title={MISSION.rejected.retry} onPress={retry} />}>
-        <T v="title.xl" accessibilityRole="header" style={{ marginTop: 24 }}>
+      <Screen nav={nav} contentStyle={{ flexGrow: 1, justifyContent: 'center', paddingTop: 16 }} footer={<Button title={MISSION.rejected.retry} onPress={retry} />}>
+        <T v="title.xl" accessibilityRole="header">
           {MISSION.rejected.title}
         </T>
-        <T v="list" color={C.stone} style={{ marginTop: 10 }}>
+        <T v="list" color={C.stone} style={[{ marginTop: 10 }, LINING]}>
           {mission.title}
         </T>
-        <View style={{ marginTop: 28 }} accessibilityLiveRegion="polite">
-          {stage.checks.map(c => (
-            <View key={c.id} style={{ paddingVertical: 14, borderTopWidth: hairline, borderTopColor: C.rule }}>
-              <T v="body">{c.note}</T>
-            </View>
-          ))}
-        </View>
+        {stage.checks.length ? (
+          <View style={{ marginTop: GAP.block }} accessibilityLiveRegion="polite">
+            <Card>
+              <View style={{ gap: 10 }}>
+                {stage.checks.map(c => (
+                  <T key={c.id} v="body">
+                    {c.note}
+                  </T>
+                ))}
+              </View>
+            </Card>
+          </View>
+        ) : null}
       </Screen>
     );
   }
@@ -443,16 +468,16 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
             <ProofPhotos photos={photos} day={day} single={mission.title} />
           </View>
         ) : null}
-        <T v="list" style={{ marginTop: photos.length > 0 ? 16 : 24 }}>
+        <T v="list" style={[{ marginTop: photos.length > 0 ? 20 : 24 }, LINING]}>
           {mission.title}
         </T>
         {photos.length > 0 ? (
-          <T v="note" color={C.stone} style={{ marginTop: 6 }}>
+          <T v="meta" color={C.stone} style={{ marginTop: 6 }}>
             {mission.proof}
           </T>
         ) : mission.timerMinutes ? (
           // A TIMER mission: no photo, the finished timer is what's being checked.
-          <T v="mono" style={{ marginTop: 8 }}>
+          <T v="meta" color={C.muted} style={{ marginTop: 6 }}>
             {MISSION.proven.timed(mission.timerMinutes)}
           </T>
         ) : null}
@@ -467,14 +492,14 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     const minutes = Math.round((proven.timerSeconds ?? 0) / 60);
     return (
       <Screen nav={nav}>
-        <MissionHeading mission={mission} />
+        <MissionHeading mission={mission} area={area} />
         {photos.length > 0 ? (
-          <View style={{ marginTop: 24 }}>
+          <View style={{ marginTop: GAP.block }}>
             {kept ? (
               photos.length === 1 ? (
-                <ProofFrame photo={photos[0]} day={day} label={MISSION.proven.stamp(proven.points)} a11y={MISSION.a11y.photo} style={{ width: '100%' }} />
+                <ProofFrame photo={photos[0]} day={day} label={mission.title} a11y={MISSION.a11y.photo} style={{ width: '100%' }} />
               ) : (
-                <ProofPhotos photos={photos} day={day} single={MISSION.proven.stamp(proven.points)} />
+                <ProofPhotos photos={photos} day={day} single={mission.title} />
               )
             ) : (
               <T v="note" color={C.stone}>
@@ -483,11 +508,9 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
             )}
           </View>
         ) : null}
-        <T v="mono" color={C.bone} style={{ marginTop: photos.length > 0 ? 14 : 28 }}>
-          {MISSION.proven.line(clockTime(proven.doneAt), proven.points)}
-        </T>
+        <ProvenLine time={clockTime(proven.doneAt)} points={proven.points} style={{ marginTop: photos.length > 0 ? 16 : GAP.block }} />
         {minutes > 0 ? (
-          <T v="mono" style={{ marginTop: 6 }}>
+          <T v="meta" color={C.stone} style={{ marginTop: 6, marginLeft: 22 }}>
             {mission.proofType === 'TIMER' ? MISSION.proven.timed(minutes) : MISSION.proven.focused(minutes)}
           </T>
         ) : null}
@@ -500,7 +523,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       <TimerStage
         timer={timerHere}
         mission={mission}
-        area={plannedArea(plan?.missions[index], mission, tracks)}
+        area={area}
         nav={nav}
         denied={denied}
         onPause={pause}
@@ -523,29 +546,27 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
             <TextButton title={MISSION.before.retake} onPress={() => void takeBefore()} style={{ marginTop: 8 }} />
           </>
         }>
-        <MissionHeading mission={mission} />
+        <MissionHeading mission={mission} area={area} />
         {/* The pair as it will be proven: the before photo, and the after still to come. */}
-        <View style={{ marginTop: 28, flexDirection: 'row', gap: 8 }}>
+        <View style={{ marginTop: GAP.block, flexDirection: 'row', gap: GAP.tight }}>
           <ProofFrame photo={beforeHere.photo} day={day} label={MISSION.before.label} small a11y={MISSION.a11y.before} style={{ flex: 1 }} />
-          <View
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            style={{ flex: 1, aspectRatio: 4 / 5, borderWidth: hairline, borderColor: C.ruleStrong, alignItems: 'center', justifyContent: 'center' }}>
-            <T v="mono.s">{MISSION.before.after}</T>
-          </View>
+          <AfterSlot style={{ flex: 1 }} />
         </View>
-        <T v="title.m" style={{ marginTop: 20 }} accessibilityLiveRegion="polite">
+        <T v="title.m" style={{ marginTop: 24 }} accessibilityLiveRegion="polite">
           {MISSION.before.saved}
         </T>
-        <T v="body" color={C.muted} style={{ marginTop: 12, fontSize: 17, lineHeight: 25 }}>
-          {mission.short}
-        </T>
-        <ProofBlock mission={mission} />
+        <Instruction>{mission.short}</Instruction>
+        {/* Half the proof is in: what the after photo shows, not the whole Proof card again. */}
+        {addsTo(mission, MISSION.method(mission.proofType)) ? (
+          <T v="meta" color={C.stone} style={{ marginTop: 12 }}>
+            {mission.proof}
+          </T>
+        ) : null}
       </Screen>
     );
   }
 
-  // Detail: title, 30 MIN · +15 POINTS, the one instruction, PROOF, then the button.
+  // Detail: SCHOOL, the title, 30 min · +15 pts, the one instruction, the Proof card, then the button.
   const primary = timed
     ? { title: MISSION.button.timer(mission.timerMinutes ?? 25), onPress: timerPressed }
     : mission.proofType === 'BEFORE_AFTER'
@@ -566,16 +587,14 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
           </>
         ) : undefined
       }>
-      <MissionHeading mission={mission} />
-      <T v="body" color={C.muted} style={{ marginTop: 16, fontSize: 17, lineHeight: 25 }}>
-        {mission.short}
-      </T>
+      <MissionHeading mission={mission} area={area} />
+      <Instruction>{mission.short}</Instruction>
       {!inPlan && plan ? (
-        <T v="note" color={C.stone} style={{ marginTop: 16 }}>
+        <T v="meta" color={C.stone} style={{ marginTop: 16 }}>
           {MISSION.notInPlan}
         </T>
       ) : null}
-      <ProofBlock mission={mission} />
+      <ProofCard mission={mission} />
     </Screen>
   );
 }

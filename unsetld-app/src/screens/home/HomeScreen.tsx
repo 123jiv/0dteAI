@@ -3,41 +3,42 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { slotsFor, swapArea } from '../../core/missions';
+import { swapArea } from '../../core/missions';
 import { programDay } from '../../core/programs';
 import { activeDays, milestones, type MilestoneKey } from '../../core/progress';
 import { pendingLetter } from '../../core/record';
 import { reviewWeekFor, weeklyReview } from '../../core/review';
-import type { DayKey } from '../../core/time';
+import { addDays, type DayKey } from '../../core/time';
 import type { MissionDone, RecordState } from '../../core/types';
 import { MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, TRACK_BY_ID } from '../../content';
+import { FOCUS } from '../../content/copy/focus';
 import { HOME } from '../../content/copy/home';
 import type { TabProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
 import { deletePhoto } from '../../services/proof';
 import { cancelTimerDone } from '../../services/timerNotify';
-import { useBalance, useNextReward, useRerollsLeft, useStreak, useTodayMissions, type TodayMission } from '../../state/missions';
+import { useBalance, useNextReward, useRerollsLeft, useStreak, useTodayMissions, useWeekFocus, type TodayMission } from '../../state/missions';
 import { useAccessEnabled, useApp, useAppActive, useReaderColorway } from '../../state/store';
 import { showDialog } from '../../ui/actions';
 import { ColorwayBackground } from '../../ui/ColorwayBackground';
-import { T } from '../../ui/text';
-import { MARGIN } from '../../ui/tokens';
-import { accessDays, accessRecord } from '../access';
+import { GAP, MARGIN } from '../../ui/tokens';
+import { accessRecord } from '../access';
 import { ColorwaySheet } from '../today/ColorwaySheet';
 import {
-  AccessNote,
-  BottomBar,
+  ActivePlanCard,
+  FocusCard,
   MissionCard,
-  NextRewardLine,
-  ProgramBanner,
-  StatsHeader,
+  NextReward,
+  NothingFits,
+  PlansRow,
+  StatsRow,
   TodayHeader,
   TopRow,
   WeeklyCard,
   type CardAction,
 } from './parts';
 
-/** A beat after Home settles, so a card that was just proven plays first. */
+/** A beat after Today settles, so a card that was just proven plays first. */
 const MOMENT_DELAY = 1800;
 /** Access letters wait a little longer. */
 const LETTER_DELAY = 2500;
@@ -61,7 +62,12 @@ function dueMoment(record: RecordState, day: DayKey, shown: readonly string[]): 
   return { key: newest.key, covers: unseen.map(m => m.key) };
 }
 
-/** Home (route Today): today's missions, the streak and points, and where they lead. */
+/**
+ * Today (docs/UX_REDESIGN.md §3): the wordmark and the day, streak and points, the next
+ * reward, the weekly focus question, TODAY with the three mission cards, the active plan (or
+ * a quiet row to Plans) and, Sunday to Tuesday, the weekly review card. The tab bar sits
+ * below; the colorway sheet opens over it when You asks (params { sheet: 'colorway' }).
+ */
 export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
@@ -77,12 +83,12 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const program = useApp(s => s.program);
   const reviewSeen = useApp(s => s.reviewSeen);
   const momentsShown = useApp(s => s.momentsShown);
-  const accessIntroShown = useApp(s => s.reading.accessIntroShown);
   const { plan, missions } = useTodayMissions(day);
   const streak = useStreak(day);
   const points = useBalance();
   const next = useNextReward(day);
   const swapsLeft = useRerollsLeft(day);
+  const weekFocus = useWeekFocus(day);
 
   const [sheet, setSheet] = useState<'colorway' | null>(route.params?.sheet === 'colorway' ? 'colorway' : null);
   const scrollRef = useRef<ScrollView>(null);
@@ -91,7 +97,7 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   // Today's plan, on focus and again when the day turns over at 4:00 AM.
   // A timer or a before photo left from an earlier day can't count any more
   // (that day's plan is closed): it goes, with its photo and its notification.
-  // Home in focus means no Mission screen is open on top of it.
+  // Today in focus means no Mission screen is open on top of it.
   useFocusEffect(
     useCallback(() => {
       const s = useApp.getState();
@@ -108,25 +114,22 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   );
 
   // Proven missions as this screen last showed them. A mission proven while the
-  // Mission screen was on top shows up as new once Home is back in view, and plays.
+  // Mission screen was on top shows up as new once Today is back in view, and plays.
   const provenIds = missions.filter(m => accepted(m.done)).map(m => m.mission.id);
   const provenKey = provenIds.join(',');
   const [seen, setSeen] = useState({ day, key: provenKey, ids: provenIds });
   const [celebrate, setCelebrate] = useState<{ ids: string[]; n: number }>({ ids: [], n: 0 });
-  // A card that just came in from a swap, and the note under it.
-  const [swapped, setSwapped] = useState<{ missionId: string; note: string } | null>(null);
-  // The Day 3 note stays up for the visit it first shows on, even once it's marked seen.
-  const [noteDay, setNoteDay] = useState<DayKey | null>(null);
-  // Route params: Settings asks for the colorway sheet, a widget or link for the top.
+  // A card that just came in from a swap.
+  const [swapped, setSwapped] = useState<string | null>(null);
+  // Route params: You asks for the colorway sheet (or the weekly focus), a widget or link for the top.
   const nonce = route.params?.nonce;
   const [seenNonce, setSeenNonce] = useState(nonce);
 
   if (seen.day !== day) {
-    // 4:00 AM with Home open: the new day starts at the top, with nothing left over from the last.
+    // 4:00 AM with Today open: the new day starts at the top, with nothing left over from the last.
     setSeen({ day, key: provenKey, ids: provenIds });
     setCelebrate({ ids: [], n: 0 });
     setSwapped(null);
-    setNoteDay(null);
     setScrollTop(t => t + 1);
   } else if (isFocused && seen.key !== provenKey) {
     const fresh = provenIds.filter(id => !seen.ids.includes(id));
@@ -136,13 +139,20 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   if (nonce !== seenNonce) {
     setSeenNonce(nonce);
     if (route.params?.sheet === 'colorway') setSheet('colorway');
-    else setScrollTop(t => t + 1);
+    else if (route.params?.sheet !== 'focus') setScrollTop(t => t + 1);
   }
   useEffect(() => {
     if (scrollTop) scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [scrollTop]);
+  // Asked for the weekly focus (a link or You): it's its own screen, opened over Today.
+  const wantsFocus = route.params?.sheet === 'focus' ? nonce ?? 0 : null;
+  useEffect(() => {
+    if (wantsFocus === null) return;
+    navigation.setParams({ sheet: undefined });
+    navigation.navigate('WeeklyFocus');
+  }, [wantsFocus, navigation]);
 
-  // Milestone moments first, then Access letters: one at a time, a beat after Home
+  // Milestone moments first, then Access letters: one at a time, a beat after Today
   // settles, and only on a day with something proven.
   const activeToday = streak.activeToday;
   const lettersShown = record.lettersShown;
@@ -164,18 +174,6 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
     return () => clearTimeout(t);
   }, [isFocused, active, activeToday, sheet, day, momentsShown, lettersShown, accessEnabled, navigation, provenKey]);
 
-  // Day 3: one quiet note about what showing up opens.
-  const access = accessDays(record);
-  const noteDue = accessEnabled && access >= 3 && !accessIntroShown;
-  if (noteDue && noteDay !== day) setNoteDay(day);
-  const showAccessNote = accessEnabled && noteDay === day;
-  useEffect(() => {
-    if (noteDue && isFocused && active) {
-      const t = setTimeout(() => useApp.getState().markAccessIntro(), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [noteDue, isFocused, active]);
-
   // No swaps left: say so, and where more come from.
   const showSwapLimit = () => {
     const premium = useApp.getState().premium.active;
@@ -194,10 +192,10 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const swap = (m: TodayMission) => {
     selection();
     // The dialog names the area the swap draws from: the one the mission is in the day for, or
-    // (a program's mission in an area since dropped) one of the user's areas.
+    // (a plan's mission in an area since dropped) one of the user's areas.
     const s = useApp.getState();
-    const plan = s.plans[day];
-    const to = plan ? swapArea(plan, m.index, { library: MISSIONS, profile: s.profile, day }) : m.area;
+    const dayPlan = s.plans[day];
+    const to = dayPlan ? swapArea(dayPlan, m.index, { library: MISSIONS, profile: s.profile, day }) : m.area;
     const area = (to && TRACK_BY_ID[to]?.short) || '';
     if (swapsLeft <= 0) {
       showSwapLimit();
@@ -213,9 +211,8 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
         const id = nowPlan?.missions[m.index]?.missionId;
         const title = id ? MISSION_BY_ID[id]?.title : undefined;
         if (id && title) {
-          const note = HOME.swap.done(title);
-          setSwapped({ missionId: id, note });
-          AccessibilityInfo.announceForAccessibility(note);
+          setSwapped(id);
+          AccessibilityInfo.announceForAccessibility(HOME.swap.done(title));
         }
       } else if (result === 'none') {
         showDialog(HOME.swap.noneTitle, HOME.swap.noneBody(area), [{ label: HOME.swap.ok, cancel: true }]);
@@ -230,7 +227,7 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const actionFor = (m: TodayMission): CardAction => {
     if (pendingBefore && pendingBefore.missionId === m.mission.id && pendingBefore.day === day) return { kind: 'after' };
     if (timer && timer.missionId === m.mission.id && timer.day === day) {
-      // The card counts down on its own while Home is in view.
+      // The card counts down on its own while Today is in view.
       return { kind: 'timer', timer, live: isFocused && active };
     }
     return { kind: 'start' };
@@ -240,15 +237,14 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const busyWith = (m: TodayMission) =>
     (timer?.missionId === m.mission.id && timer.day === day) || (pendingBefore?.missionId === m.mission.id && pendingBefore.day === day);
   // A mission with any proof on record today (a rejected attempt included) stays: the store won't swap it.
-  const canSwap = (m: TodayMission) => !m.done && !busyWith(m);
-  // Swaps left are said once, under TODAY, while there's a mission to use one on.
-  const swappable = missions.some(canSwap);
+  // Swap shows only while swaps are left (brief §3: swaps live on the card and in the dialog).
+  const canSwap = (m: TodayMission) => swapsLeft > 0 && !m.done && !busyWith(m);
 
   const all = missions.length;
-  const shownDone = seen.day === day ? seen.ids.length : 0;
+  const shownIds = seen.day === day ? seen.ids : [];
+  const shownDone = shownIds.length;
   const ready = Boolean(plan);
-  const allDone = ready && all > 0 && shownDone >= all;
-  const tomorrow = slotsFor(profile).length;
+  const perfect = ready && all > 0 && shownDone >= all;
 
   const prog = program ? PROGRAM_BY_ID[program.id] : undefined;
   const progDay = prog && program ? programDay(prog, program, day) : null;
@@ -259,6 +255,15 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   // Day N: the day you're on, counting only days with a proven mission (so day one reads DAY 1).
   const shownUp = activeDays(record);
   const dayNo = shownUp.size + (shownUp.has(day) ? 0 : 1);
+  // Day 1: nothing proven on any earlier day. No zeros, and the first reward is said as one.
+  const firstDay = dayNo === 1;
+
+  // The weekly focus question: from the second active day on, in a week with none set and not skipped.
+  // Not on Sunday: the week is ending (an answer would last a day), and the weekly review asks
+  // about next week then.
+  const sunday = addDays(weekFocus.week, 6) === day;
+  const askFocus = !firstDay && !sunday && ready && all > 0 && !weekFocus.focus && !weekFocus.skipped;
+  const focusLabel = weekFocus.focus ? FOCUS.label(weekFocus.focus) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: colorway.bg }}>
@@ -267,51 +272,58 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: MARGIN, paddingTop: insets.top + 8, paddingBottom: insets.bottom + 120 }}>
+        contentContainerStyle={{ paddingHorizontal: MARGIN, paddingTop: insets.top + 8, paddingBottom: GAP.section }}>
         <TopRow colorway={colorway} days={dayNo} />
 
-        <View style={{ marginTop: 20 }}>
-          <StatsHeader
-            colorway={colorway}
-            streak={streak.current}
-            offDays={streak.offDays}
-            points={points}
-            onPoints={() => navigation.navigate('Rewards')}
-          />
+        <View style={{ marginTop: 14 }}>
+          <StatsRow colorway={colorway} streak={streak.current} points={points} firstDay={firstDay} onPoints={() => navigation.navigate('Rewards')} />
         </View>
 
         {accessEnabled && next ? (
-          <View style={{ marginTop: 20 }}>
-            <NextRewardLine
+          <View style={{ marginTop: GAP.block }}>
+            <NextReward
               colorway={colorway}
               title={next.tier.title}
+              have={next.have}
+              points={next.tier.points}
               need={next.need}
               ready={next.ready}
+              first={firstDay && !record.redemptions?.length}
               onPress={() => navigation.navigate('Rewards')}
             />
           </View>
         ) : null}
 
-        <View style={{ marginTop: 40 }}>
-          <TodayHeader colorway={colorway} done={shownDone} all={all} ready={ready} swapsLeft={swappable ? swapsLeft : null} />
-        </View>
-
-        {prog && progDay ? (
-          <View style={{ marginTop: 20 }}>
-            <ProgramBanner
+        {askFocus ? (
+          <View style={{ marginTop: GAP.block }}>
+            <FocusCard
               colorway={colorway}
-              title={prog.title}
-              day={progDay}
-              days={prog.days}
-              onPress={() => navigation.navigate('Plans')}
+              onOpen={() => navigation.navigate('WeeklyFocus')}
+              onSkip={() => {
+                selection();
+                useApp.getState().skipFocus(weekFocus.week);
+              }}
             />
           </View>
         ) : null}
 
-        <View style={{ marginTop: prog && progDay ? 0 : 20 }}>
-          {missions.map((m, i) => {
+        <View style={{ marginTop: GAP.section }}>
+          <TodayHeader
+            colorway={colorway}
+            done={shownDone}
+            all={all}
+            ready={ready}
+            focus={focusLabel}
+            onFocus={() => navigation.navigate('WeeklyFocus')}
+            perfect={perfect}
+            onShare={() => navigation.navigate('Share')}
+          />
+        </View>
+
+        <View style={{ marginTop: GAP.card, gap: GAP.card }}>
+          {ready && all === 0 ? <NothingFits colorway={colorway} onPress={() => navigation.navigate('You')} /> : null}
+          {missions.map(m => {
             const done = accepted(m.done);
-            const isNew = swapped?.missionId === m.mission.id;
             return (
               <MissionCard
                 key={m.mission.id}
@@ -320,49 +332,42 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
                 done={done}
                 action={actionFor(m)}
                 colorway={colorway}
-                last={i === missions.length - 1}
-                swap={canSwap(m) ? { left: swapsLeft, note: isNew ? swapped.note : null } : null}
+                swap={canSwap(m) ? { left: swapsLeft } : null}
                 onOpen={() => navigation.navigate('Mission', { missionId: m.mission.id })}
                 onSwap={() => swap(m)}
                 celebrate={celebrate.ids.includes(m.mission.id) ? celebrate.n : 0}
-                arrive={isNew}
+                hold={Boolean(done) && !shownIds.includes(m.mission.id)}
+                arrive={swapped === m.mission.id}
               />
             );
           })}
         </View>
 
-        {allDone ? (
-          <T v="body" color={colorway.secondary} style={{ marginTop: 24 }}>
-            {HOME.comeBack(tomorrow)}
-          </T>
+        {prog && progDay ? (
+          <View style={{ marginTop: GAP.block }}>
+            <ActivePlanCard colorway={colorway} title={prog.title} day={progDay} days={prog.days} onPress={() => navigation.navigate('Plans')} />
+          </View>
         ) : null}
 
         {review && review.missions > 0 && week ? (
-          <View style={{ marginTop: 40 }}>
+          <View style={{ marginTop: prog && progDay ? GAP.card : GAP.block }}>
             <WeeklyCard
               colorway={colorway}
               missions={review.missions}
               focusMinutes={review.focusMinutes}
+              last={week !== weekFocus.week}
               onPress={() => navigation.navigate('WeeklyReview', { weekStart: week })}
             />
           </View>
         ) : null}
 
-        {showAccessNote ? (
-          <View style={{ marginTop: 40 }}>
-            <AccessNote colorway={colorway} onRewards={() => navigation.navigate('Rewards')} />
+        {prog && progDay ? null : (
+          // The row's own 14pt padding makes up the rest of the block gap.
+          <View style={{ marginTop: GAP.block - 14 }}>
+            <PlansRow colorway={colorway} onPress={() => navigation.navigate('Plans')} />
           </View>
-        ) : null}
+        )}
       </ScrollView>
-
-      <BottomBar
-        colorway={colorway}
-        nudge={celebrate.n}
-        onProgress={() => navigation.navigate('Progress')}
-        onPrograms={() => navigation.navigate('Plans')}
-        onRewards={() => navigation.navigate('Rewards')}
-        onColorway={() => setSheet('colorway')}
-      />
 
       <ColorwaySheet visible={sheet === 'colorway'} onClose={() => setSheet(null)} onFull={() => navigation.navigate('Paywall', { from: 'colorway' })} />
     </View>

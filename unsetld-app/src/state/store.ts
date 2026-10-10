@@ -7,6 +7,7 @@ import { randomSalt } from '../core/random';
 import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
 import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, prunePlans, meetsRequirements, rerollMission as rerollCore, serves, type MissionHistory } from '../core/missions';
+import { learnFrom, mondayOf } from '../core/personalize';
 import { programMissions, programProgress, startProgram as startProgramCore } from '../core/programs';
 import { clearPhotos, photosToClear } from '../core/proofs';
 import { activeDays } from '../core/progress';
@@ -16,7 +17,7 @@ import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as start
 import { claimPatch, emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
-import type { ChapterId, Colorway, DayPlan, Milestone, Profile, ProgramState, ProofPhoto, RecordState, RewardTier, TrackId, Verification, WeeklyFocus } from '../core/types';
+import type { ChapterId, Colorway, DayPlan, Profile, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, TrackId, Verification, WeeklyFocus } from '../core/types';
 import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
@@ -62,7 +63,7 @@ export interface Remote {
   /** Reward tiers from unsetld.com's config; null = use the defaults in content/rewards.json. */
   rewards?: RewardTier[] | null;
   /** Status (consistency) tiers from unsetld.com's config; null = the defaults in content/milestones.json. */
-  status?: Milestone[] | null;
+  status?: StatusTier[] | null;
 }
 
 /** What proving a mission did, for the done screen. */
@@ -153,8 +154,12 @@ interface State {
   leaveProgram: () => void;
   markReviewSeen: (weekStart: DayKey) => void;
   markMomentShown: (key: string) => void;
-  /** "What matters most this week?": sets it (and replans today if nothing in it was started yet), or clears it. */
-  setFocus: (focus: WeeklyFocus | null) => void;
+  /**
+   * "What matters most this week?": sets or clears the focus for `week` (default: the focus's
+   * own week, else this week). This week's replans today if nothing in it was started yet; a
+   * later week's (Sunday's review) is kept aside until its Monday and leaves today alone.
+   */
+  setFocus: (focus: WeeklyFocus | null, week?: DayKey) => void;
   /** "Not this week": the question stays away until next Monday. */
   skipFocus: (week: DayKey) => void;
   /** Clears proof photos older than the retention setting. Returns the files to delete. */
@@ -322,8 +327,15 @@ export const useApp = create<State>()(
       },
       leaveProgram: () => set({ program: null }),
       markReviewSeen: weekStart => set({ reviewSeen: weekStart }),
-      setFocus: focus => {
-        set(s => ({ profile: { ...s.profile, focus } }));
+      setFocus: (focus, week) => {
+        const now = mondayOf(get().currentDay);
+        const target = week ?? focus?.week ?? now;
+        if (target > now) {
+          set(s => ({ profile: { ...s.profile, nextFocus: focus } }));
+          return;
+        }
+        // This week's: a focus picked ahead for this week (now come round) is spent.
+        set(s => ({ profile: { ...s.profile, focus, nextFocus: s.profile.nextFocus?.week === target ? null : s.profile.nextFocus } }));
         get().replanToday();
       },
       skipFocus: week => set({ focusSkipped: week }),
@@ -400,7 +412,7 @@ export const useApp = create<State>()(
         momentsShown: s.momentsShown,
         focusSkipped: s.focusSkipped,
       }),
-      version: 5,
+      version: 6,
       migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
         const p = withoutUnknownMissions((persisted ?? {}) as Partial<State>);
@@ -436,6 +448,8 @@ function planInput(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
     // Morning missions only go into a plan made in the morning.
     hour: day === today() ? now().getHours() : undefined,
     program: prog && ids.length ? { id: prog.id, missionIds: ids } : null,
+    // What the last four weeks say: swapped and ignored missions, preferred length, consistent areas.
+    adapt: learnFrom(s.plans, s.record.missions, MISSION_BY_ID, day),
   };
 }
 
@@ -541,7 +555,14 @@ export function migrateRecordTracks(r: RecordState): RecordState {
  * codes already taken) carry over as a starting balance.
  */
 export function migrateState(p: Partial<State>, version: number): Partial<State> {
-  return version >= 5 ? p : toV5(version >= 4 ? p : toV4(p, version));
+  if (version >= 6) return p;
+  return toV6(version >= 5 ? p : toV5(version >= 4 ? p : toV4(p, version)));
+}
+
+/** 5 → 6: the 3.0 weekly priority is retired (the weekly focus replaced it), so a lean nobody can see or clear goes. */
+function toV6(p: Partial<State>): Partial<State> {
+  if (!p.profile?.priority) return p;
+  return { ...p, profile: { ...p.profile, priority: null } };
 }
 
 /** 4 → 5: the daily time choices became 15 / 30 / 45 / 60+ minutes (30–60 → 45, 60+ → 60). */
@@ -671,7 +692,7 @@ export function entitlementsOf(s: Pick<State, 'settings' | 'premium'>): Entitlem
   };
 }
 
-/** What the user actually gets, Full Edition or not. */
+/** What the user actually gets, UNSETLD+ or not. */
 export function useEntitlements(): Entitlements {
   const settings = useApp(s => s.settings);
   const premium = useApp(s => s.premium);

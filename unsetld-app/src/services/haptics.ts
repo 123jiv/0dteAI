@@ -4,7 +4,12 @@ import { Platform } from 'react-native';
 // The spec's haptics, and no others.
 const on = Platform.OS === 'ios';
 
-/** Day recorded. */
+/** A proof accepted (the Mission screen's done stage). */
+export function success() {
+  if (on) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+}
+
+/** Day recorded; a perfect day. */
 export function soft() {
   if (on) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
 }

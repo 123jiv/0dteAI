@@ -102,7 +102,7 @@ Study for 30 Minutes                     (serif, list 23)
 
 ## 6. Share card (Share)
 
-A Story-size (9:16) card, the user's colorway as background: `UNSETLD`, `DAY 47`, `3 / 3 TODAY`, `47 DAY STREAK`, `2,420 POINTS`, `NEVER SETTLE FOR LESS.` **No proof photos, ever, by default.** Nothing leaves the phone unless the user taps Share. iOS: capture the card view (`react-native-view-shot`, already installed) and open the system share sheet (`Share.share({ url })`). Browser preview: no capture is possible — the screen says "Take a screenshot to share it." and has no Share button (never a fake one). Opened from the perfect-day Done state, from Today on a perfect day, and from Progress.
+A Story-size (9:16) card, the user's colorway as background: `UNSETLD`, `DAY 47`, `3 / 3 TODAY`, `47 DAY STREAK`, `2,420 POINTS EARNED` (all-time points earned, so spending a reward never shrinks the card; a line that would be zero is left off), `NEVER SETTLE FOR LESS.` **No proof photos, ever, by default.** Nothing leaves the phone unless the user taps Share. iOS: capture the card view (`react-native-view-shot`, already installed) and open the system share sheet (`Share.share({ url })`). Browser preview: no capture is possible — the screen says "Take a screenshot to share it." and has no Share button (never a fake one). Opened from the perfect-day Done state, from Today on a perfect day, and from Progress.
 
 ## 7. Progress
 
@@ -143,6 +143,8 @@ UNSETLD STATUS  12 active days · Next: Early access at 7  →
 - When a reward is ready: the next-reward card says "Ready" with `Get the code` (existing redeem flow, Account sign-in if needed).
 - No paragraphs of rules on the main page; HowPoints holds them.
 - All values come from configuration: `content/rewards.json` and `content/milestones.json` as defaults, unsetld.com's `config.json` (`rewards`, `status`) as the override. Reward fields: `points` (pointsRequired), `type` (rewardType), `percent` (discountPercent), `maxOff` (maxDiscount), `minimumPurchase`, `redemptionCooldownDays`, `oneTimeOnly`, `active`, `inventory`, `availableFrom`/`availableUntil` (startDate/endDate), `codeValidDays`, `perCollection`. The parser also accepts the alias names. UI components never hardcode thresholds or prices.
+- A tier with `active: false` is not listed anywhere (nothing is promised that can't be had); one outside its dates or sold out shows as Not available in All rewards.
+- Status tiers: `id`, `title`, `day` (or `activeDays`), `active`. `active: false` hides a tier. The app's own ids (`early-access`, `patch`, `piece-365`) keep their action, pause and letter; any other id the config sends is display only (a page, no button, no letter). Early-access drop alerts follow the configured day.
 
 ## 10. Plans
 
@@ -150,19 +152,19 @@ UNSETLD STATUS  12 active days · Next: Early access at 7  →
 
 ## 11. You
 
-Sections (cards and link rows, no rules): **Your goals** (Areas, What you're working toward, This week's focus, About you, Time and intensity) · **Plans** · **Reminders** · **Membership** (UNSETLD+ → Paywall; Restore) · **Appearance** (Colorway → opens the sheet on Today) · **Widgets** · **Proof photos** (retention) · **Account** · **Help** (How missions work, Terms, Privacy) · **Tester tools** (dev/preview only).
+Sections (cards and link rows, no rules): **Your goals** (Areas, What you're working toward, This week's focus, About you, Time and intensity) · **Your day** (Plans, Reminders, Drop alerts when access is on) · **Membership** (UNSETLD+ → Paywall; Restore) · **Appearance** (Colorway → opens the sheet on Today; Widgets) · **Proof photos** (retention) · **Account** · **Help** (How missions work, Terms, Privacy, the rewards and status terms when access is on) · **Tester tools** (dev/preview only).
 
 ## 12. Onboarding
 
-Name → **Areas** ("What do you want to improve?", pick two to four) → **About you** (In school or college? + High school/College; Working?; Building a business or project?; Gym access?; Age; "What are you learning?" only when Skills, Projects or Career is chosen) → **Time** ("How much time do you realistically have each day?" 15 / 30 / 45 / 60+ min, then intensity) → **Goal** ("What are you working toward?", optional, up to 80 characters, example chips: Get my GPA up · Launch my clothing brand · Get an internship · Build muscle · Learn coding · Save $1,000) → **Reminders** → Today with the first plan built. Steps `01 / 05`…`05 / 05`. No widget guide and no paywall in onboarding.
+Name → **Areas** ("What do you want to improve?", pick two to four; someone with one area from an earlier version can keep one when editing) → **About you** (In school or college? + High school/College; Working?; Building a business or project?; Gym access?; Age; "What are you learning?" only when Skills, Projects or Career is chosen) → **Time** ("How much time do you realistically have each day?" 15 / 30 / 45 / 60+ min, then intensity) → **Goal** ("What are you working toward?", optional, up to 80 characters, example chips: Get my GPA up · Launch my clothing brand · Get an internship · Build muscle · Learn coding · Save $1,000) → **Reminders** → Today with the first plan built. Steps `01 / 05`…`05 / 05`. No widget guide and no paywall in onboarding.
 
 ## 13. Personalization (engine; core/personalize.ts, core/missions.ts)
 
 Real, deterministic rules — never called AI. Inputs: areas, answers (school, level, work, project, gym, age, skills), time, intensity, recent plans, proofs, swaps, ignored missions, time of day, the active plan, the weekly focus, the goal text.
-- **Weekly focus:** each option leans the plan toward an area and specific missions (e.g. "Prepare for an exam" → practice tests, flashcards, study sessions; "Get back in the gym" → workouts).
+- **Weekly focus:** asked on Today from the second active day in a week with none set ("Not this week" skips it); also in You and in Sunday's review, which sets next week's (kept aside until Monday, so Sunday's missions don't change). Only options the user's answers can get missions for are offered. Each option leans the plan toward an area and specific missions (e.g. "Prepare for an exam" → practice tests, flashcards, study sessions; "Get back in the gym" → workouts).
 - **Goal text:** keywords map to missions and areas ("GPA", "grades" → school study; "brand", "clothing" → business; "internship" → career applications; "muscle", "gym" → workouts; "coding", "app" → coding drills and project builds; "save" → savings).
 - **Learning from behaviour** (last 28 days): missions swapped repeatedly come up less; missions planned and left undone (ignored) come up less; if long missions are mostly left undone while shorter ones get proven, the day prefers shorter missions; an area proven consistently gets slightly bigger missions; areas rarely completed keep their place (no punishment).
-- **Staples first:** each area's staple missions (Complete Your Workout, Study for 30 Minutes ...) come up far more than niche ones (a 5-minute plank set appears only when nothing else fits).
+- **Staples first:** each area's staple missions (Complete Your Workout, Study for 30 Minutes ...) come up far more than niche ones (a 5-minute plank set appears only when nothing else fits). Day 1 is the areas' core habits wherever one fits.
 
 ## 14. Copy
 

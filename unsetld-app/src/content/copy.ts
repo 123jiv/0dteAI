@@ -30,7 +30,7 @@ export const COPY = {
   },
   account: {
     title: 'Account',
-    body: 'You only need an account to use reward codes and access: discount codes, early access and the patch. Your missions, proof photos and points stay on this phone.',
+    body: 'You only need an account to use your rewards and UNSETLD status: discount codes, early access and the patch. Your missions, proof photos and points stay on this phone.',
     legal: "By signing in you confirm you're 13 or over and live in the US. If you're under 18, check with a parent first.",
     signedIn: (email: string) => `Signed in as ${email}`,
     signedInApple: 'Signed in with Apple',
