@@ -69,6 +69,15 @@ describe('personas', () => {
       // Days differ.
       const keys = week.map(plan => plan.missions.map(x => x.missionId).sort().join());
       for (let i = 1; i < keys.length; i++) expect(keys[i]).not.toBe(keys[i - 1]);
+      // A mission that isn't a core habit never runs three days in a row.
+      for (let i = 2; i < week.length; i++) {
+        for (const x of week[i].missions) {
+          const m = BY_ID.get(x.missionId)!;
+          if (m.anchor) continue;
+          const run = [week[i - 1], week[i - 2]].every(d => d.missions.some(y => y.missionId === m.id));
+          expect(run, `${m.title} three days running`).toBe(false);
+        }
+      }
       // Over a week, every goal shows up.
       const tracks = new Set(week.flatMap(plan => plan.missions.map(x => BY_ID.get(x.missionId)!.track)));
       for (const t of p.profile.tracks) expect(tracks.has(t)).toBe(true);

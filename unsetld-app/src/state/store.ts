@@ -6,7 +6,7 @@ import { AppConfig } from '../config/app';
 import { randomSalt } from '../core/random';
 import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
-import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, prunePlans, rerollMission as rerollCore, type MissionHistory } from '../core/missions';
+import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, prunePlans, meetsRequirements, rerollMission as rerollCore, serves, type MissionHistory } from '../core/missions';
 import { programMissions, programProgress, startProgram as startProgramCore } from '../core/programs';
 import { clearPhotos, photosToClear } from '../core/proofs';
 import { activeDays } from '../core/progress';
@@ -192,21 +192,36 @@ export const useApp = create<State>()(
       reviewSeen: null,
       momentsShown: [],
 
-      setProfile: patch => set(s => ({ profile: { ...s.profile, ...patch } })),
+      setProfile: patch =>
+        set(s => {
+          const profile = { ...s.profile, ...patch };
+          // A program with missions the new answers rule out (School Reset after "not in school") stops;
+          // the days already proven stay on the record.
+          const p = s.program && !s.program.finishedDay ? PROGRAM_BY_ID[s.program.id] : undefined;
+          const fits = !p || p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile));
+          return fits ? { profile } : { profile, program: null };
+        }),
 
       ensurePlan: day => {
         const d = day ?? today();
         const s = get();
         const have = s.plans[d];
-        if (have?.missions.length && have.missions.every(p => MISSION_BY_ID[p.missionId])) return have;
+        if (have?.missions.length && have.missions.every(p => MISSION_BY_ID[p.missionId])) {
+          if (have.missions.every(p => p.area)) return have;
+          // A plan from an earlier build: record each mission's area once, as its row shows it.
+          const plan = withAreas(have, s.profile);
+          set(st => ({ plans: { ...st.plans, [d]: plan } }));
+          return plan;
+        }
         let plan: DayPlan;
         if (!have) plan = buildPlan(s, d);
         else {
           // A library update removed a planned mission, or the day has none: a day that was swapped,
-          // proven or started keeps what's left; an untouched day, or one with nothing left, is
-          // planned again and keeps its swap count.
-          const kept = { ...have, missions: have.missions.filter(p => MISSION_BY_ID[p.missionId]) };
-          if (kept.missions.length && touched(s, kept, d)) plan = kept;
+          // proven or started keeps what's left while something in it is still open; an untouched
+          // day, or one with nothing left to prove, is planned again and keeps its swap count.
+          const kept = withAreas({ ...have, missions: have.missions.filter(p => MISSION_BY_ID[p.missionId]) }, s.profile);
+          const open = kept.missions.some(p => s.record.missions?.[d]?.[p.missionId]?.verification?.status !== 'accepted');
+          if (open && touched(s, kept, d)) plan = kept;
           else {
             plan = { ...buildPlan(s, d), rerolls: have.rerolls, replaced: have.replaced };
             // Still nothing fits: keep the stored day rather than saving it again on every call.
@@ -338,8 +353,8 @@ export const useApp = create<State>()(
       backToRealToday: () => {
         const snap = get().devSnapshot;
         setDayOffset(0);
-        // A snapshot kept by an earlier 4.0 build can still hold 3.0 preview area ids.
-        set({ dayOffset: 0, currentDay: today(), devSnapshot: null, ...(snap ? { record: migrateRecordTracks(snap) } : {}) });
+        // A snapshot kept by an earlier build can hold 3.0 preview area ids or a 2.x record: normalised like a backup.
+        set({ dayOffset: 0, currentDay: today(), devSnapshot: null, ...(snap ? { record: fromBackup(snap) } : {}) });
       },
       refreshDay: () => {
         const d = today();
@@ -413,6 +428,21 @@ function buildPlan(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
   return generatePlan(planInput(s, day));
 }
 
+/**
+ * Gives each planned mission without one the area its row shows (state/missions plannedArea):
+ * the first of the user's areas it serves, else its own. Plans from earlier builds have none.
+ */
+function withAreas(plan: DayPlan, profile: Profile): DayPlan {
+  if (plan.missions.every(p => p.area)) return plan;
+  return {
+    ...plan,
+    missions: plan.missions.map(p => {
+      const m = MISSION_BY_ID[p.missionId];
+      return p.area || !m ? p : { ...p, area: profile.tracks.find(t => serves(m, t)) ?? m.track };
+    }),
+  };
+}
+
 /** A running timer or a waiting before photo, for one mission on one day. */
 type Started = { missionId: string; day: DayKey } | null | undefined;
 
@@ -438,8 +468,9 @@ function stranded(s: Pick<State, 'timer' | 'pendingBefore'>, plan: DayPlan): Pic
 }
 
 /**
- * A saved timer or before photo for a mission the library no longer has (3.0 preview builds had
- * other missions) can't be shown or proven: it goes on load, with its notification and its photo.
+ * A saved timer or before photo for a mission removed from the library (3.0 preview builds had
+ * other missions; retired missions are still known) can't be shown or proven: it goes on load,
+ * with its notification and its photo.
  */
 function withoutUnknownMissions(p: Partial<State>): Partial<State> {
   const gone = (x: Started) => Boolean(x && !MISSION_BY_ID[x.missionId]);
@@ -519,6 +550,8 @@ export function migrateState(p: Partial<State>, version: number): Partial<State>
     ...p,
     profile: { ...DEFAULT_PROFILE, tracks: tracks.length ? tracks : DEFAULT_PROFILE.tracks },
     record: { ...record, legacyPoints: record.legacyPoints || legacyBalance(record) },
+    // A tester mid time travel keeps the real 2.x record aside, with its balance.
+    ...(p.devSnapshot ? { devSnapshot: fromBackup(p.devSnapshot as RecordState) } : {}),
   };
 }
 

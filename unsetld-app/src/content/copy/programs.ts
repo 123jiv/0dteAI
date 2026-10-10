@@ -42,6 +42,8 @@ export const PROGRAMS_COPY = {
   switchBody: (current: string) => `One program at a time. ${current} stops here; the days you proved stay on your record.`,
   switchYes: 'Start',
   switchNo: 'Cancel',
+  /** Under a program whose missions need a yes the user hasn't given (School Reset for someone not in school). */
+  needsSchool: 'Needs a yes to In school or college? in About you.',
   started: 'Day 1 is in your missions today.',
   startsTomorrow: "Today's missions were already set. Day 1 starts tomorrow.",
   fullNote: 'Full Edition opens every program, and new ones each season.',

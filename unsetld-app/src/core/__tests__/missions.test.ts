@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import promptsJson from '../../content/reminders.json';
 import { completeMission, provenInPlan } from '../complete';
-import { addSkip, available, dayBudget, DEFAULT_PROFILE, generatePlan, historyFrom, meetsRequirements, rerollMission, slotsFor, slotTracks, SLOTS_BY_INTENSITY, tooLateForMorning, usableAreas, type MissionHistory, type PlanInput } from '../missions';
+import { addSkip, available, dayBudget, DEFAULT_PROFILE, generatePlan, historyFrom, meetsRequirements, rerollMission, slotsFor, slotTracks, SLOTS_BY_INTENSITY, swapArea, tooLateForMorning, usableAreas, type MissionHistory, type PlanInput } from '../missions';
 import { programDay, programMissions, programProgress, startProgram } from '../programs';
 import { clearPhotos, fingerprint, photosToClear, usedHashes } from '../proofs';
 import { activeDays, allDone, completion, isProven, levelFor, levelStart, milestones, photosOf, totals, trackProgress } from '../progress';
@@ -227,6 +227,29 @@ describe('daily missions', () => {
     expect(easy.filter(x => x === 'discipline').length).toBeLessThan(5);
   });
 
+  it('with two areas, the two take turns at the extra slot; with one focused slot, each area gets it in turn', () => {
+    const two = profile({ tracks: ['business', 'projects'] });
+    const count: Record<string, number> = {};
+    const easy: Record<string, number> = {};
+    for (let i = 0; i < 30; i++) {
+      const t = slotTracks(two, SLOTS_BY_INTENSITY.lockin, addDays('2026-10-01', i));
+      t.forEach((x, k) => {
+        count[x] = (count[x] ?? 0) + 1;
+        if (k === 0) easy[x] = (easy[x] ?? 0) + 1;
+      });
+    }
+    for (const a of ['business', 'projects']) {
+      expect(count[a]).toBeGreaterThanOrEqual(40);
+      expect(easy[a]).toBeGreaterThanOrEqual(10);
+    }
+    const focused: Record<string, number> = {};
+    for (let i = 0; i < 30; i++) {
+      const t = slotTracks(profile({ minutes: 30 }), slotsFor(profile({ minutes: 30 })), addDays('2026-10-01', i));
+      focused[t[2]] = (focused[t[2]] ?? 0) + 1;
+    }
+    for (const a of ['discipline', 'school', 'fitness']) expect(focused[a]).toBeGreaterThanOrEqual(5);
+  });
+
   it('fills each slot from an area not in the day yet, and records which area', () => {
     for (let i = 0; i < 30; i++) {
       const plan = generatePlan(input({ day: addDays('2026-10-01', i), profile: profile({ tracks: ['money', 'career', 'skills'] }) }));
@@ -301,6 +324,24 @@ describe('daily missions', () => {
     const s1 = rerollMission(p2, 0, inp2)!;
     expect(s1.missions[0].missionId).toBe(other.id);
     expect(rerollMission(s1, 0, inp2)!.missions[0].missionId).toBe(twinB.id);
+    // Same size beats a different kind: a focused twin rather than a 5-minute mission.
+    const short = m('money', 'quick');
+    const lib3 = [twinA, twinB, short];
+    const p3: DayPlan = { day: '2026-10-09', missions: [{ slot: 'main', missionId: twinA.id, area: 'money' }], rerolls: 0, replaced: [] };
+    expect(rerollMission(p3, 0, input({ library: lib3, profile: profile({ tracks: ['money'] }) }))!.missions[0].missionId).toBe(twinB.id);
+  });
+
+  it("keeps a program mission's swap in the program's area, and says so", () => {
+    const prog = m('discipline', 'progress');
+    const lib = [...LIB, prog];
+    const prof = profile({ tracks: ['fitness', 'money'] });
+    const plan: DayPlan = { day: '2026-10-09', missions: [{ slot: 'main', missionId: prog.id, area: 'discipline', programId: 'p' }], rerolls: 0, replaced: [] };
+    const inp = input({ library: lib, profile: prof });
+    expect(swapArea(plan, 0, inp)).toBe('discipline');
+    expect(byId.get(rerollMission(plan, 0, inp)!.missions[0].missionId)!.track).toBe('discipline');
+    // An area the user has since dropped: the swap (and the dialog) moves to one of their areas not in the day.
+    const stale: DayPlan = { ...plan, missions: [{ slot: 'main', missionId: prog.id, area: 'discipline' }] };
+    expect(swapArea(stale, 0, inp)).toBe('fitness');
   });
 
   it("puts the lead goal (first pick or this week's priority) on a focused mission most days", () => {

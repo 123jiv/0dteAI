@@ -3,14 +3,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { slotsFor } from '../../core/missions';
+import { slotsFor, swapArea } from '../../core/missions';
 import { programDay } from '../../core/programs';
 import { activeDays, milestones, type MilestoneKey } from '../../core/progress';
 import { pendingLetter } from '../../core/record';
 import { reviewWeekFor, weeklyReview } from '../../core/review';
 import type { DayKey } from '../../core/time';
 import type { MissionDone, RecordState } from '../../core/types';
-import { MISSION_BY_ID, PROGRAM_BY_ID, TRACK_BY_ID } from '../../content';
+import { MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, TRACK_BY_ID } from '../../content';
 import { HOME } from '../../content/copy/home';
 import type { RootProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
@@ -193,8 +193,12 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
 
   const swap = (m: TodayMission) => {
     selection();
-    // A swap stays in the area the mission is in the day for.
-    const area = TRACK_BY_ID[m.area]?.short ?? '';
+    // The dialog names the area the swap draws from: the one the mission is in the day for, or
+    // (a program's mission in an area since dropped) one of the user's areas.
+    const s = useApp.getState();
+    const plan = s.plans[day];
+    const to = plan ? swapArea(plan, m.index, { library: MISSIONS, profile: s.profile, day }) : m.area;
+    const area = (to && TRACK_BY_ID[to]?.short) || '';
     if (swapsLeft <= 0) {
       showSwapLimit();
       return;

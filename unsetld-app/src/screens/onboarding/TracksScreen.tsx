@@ -6,7 +6,7 @@ import { MAX_AREAS, ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection, warning } from '../../services/haptics';
 import { useApp } from '../../state/store';
-import { Button, NavRow, PageTitle, Screen, Square } from '../../ui/kit';
+import { Button, NavRow, PageTitle, Screen, Square, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, font } from '../../ui/tokens';
 
@@ -175,8 +175,11 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
   // A saved id the library no longer has would count toward four with no tile to take it off.
   const chosen = value.tracks.filter(id => TRACK_BY_ID[id]);
   const full = chosen.length >= MAX;
-  // Every School mission needs a yes to "In school or college?".
+  // Every School mission needs a yes to "In school or college?". Onboarding goes on to About you,
+  // where the answer can still change; Settings saves straight away, so there School stays off.
   const schoolOff = value.school === false && chosen.includes('school');
+  const schoolNote = edit ? COPY.schoolOffEdit : COPY.schoolOff;
+  const stuck = edit && schoolOff && chosen.length === 1;
   const [flash] = useState(() => new Animated.Value(1));
 
   const blocked = () => {
@@ -196,15 +199,17 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
     else {
       selection();
       change({ tracks: [...chosen, id] });
-      if (id === 'school' && value.school === false) AccessibilityInfo.announceForAccessibility(COPY.schoolOff);
+      if (id === 'school' && value.school === false) AccessibilityInfo.announceForAccessibility(schoolNote);
     }
   };
 
   const done = () => {
+    if (stuck) return;
+    const tracks = edit && schoolOff ? chosen.filter(t => t !== 'school') : chosen;
     // A week's lean on a track that's no longer chosen goes with it.
-    const priority = value.priority && chosen.includes(value.priority) ? value.priority : null;
+    const priority = value.priority && tracks.includes(value.priority) ? value.priority : null;
     if (edit) {
-      save({ tracks: chosen, priority });
+      save({ tracks, priority });
       navigation.goBack();
     } else {
       if (priority !== value.priority || chosen.length !== value.tracks.length) change({ tracks: chosen, priority });
@@ -219,9 +224,10 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
         <View style={{ gap: 12 }}>
           {schoolOff ? (
             <T v="note" color={C.stone} align="center">
-              {COPY.schoolOff}
+              {schoolNote}
             </T>
           ) : null}
+          {stuck ? <TextButton title={COPY.aboutYou} onPress={() => navigation.navigate('AboutYou', { edit: true })} /> : null}
           <Animated.View style={{ opacity: flash, alignItems: 'center' }}>
             <T
               v="mono"
@@ -231,7 +237,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
               {COPY.counter(chosen.length)}
             </T>
           </Animated.View>
-          <Button title={edit ? ONBOARDING.save : ONBOARDING.continue} disabled={chosen.length === 0} onPress={done} />
+          <Button title={edit ? ONBOARDING.save : ONBOARDING.continue} disabled={chosen.length === 0 || stuck} onPress={done} />
         </View>
       }>
       <PageTitle title={COPY.title} body={COPY.body} />

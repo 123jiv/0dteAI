@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { meetsRequirements } from '../../core/missions';
 import { programDay, programMissions } from '../../core/programs';
 import type { PlannedMission, Program } from '../../core/types';
 import { MISSION_BY_ID, PROGRAM_BY_ID, PROGRAMS, TRACK_BY_ID } from '../../content';
@@ -122,7 +123,7 @@ function ProgramMission({
 }
 
 /** A program in the list: edition, title, what it is, days and areas ("7 days · School"), and Start. */
-function ProgramRow({ p, active, last, onStart }: { p: Program; active: boolean; last: boolean; onStart: () => void }) {
+function ProgramRow({ p, active, fits, last, onStart }: { p: Program; active: boolean; fits: boolean; last: boolean; onStart: () => void }) {
   // Areas by their short names; one the app no longer has is left out.
   const areas = p.tracks.flatMap(t => (TRACK_BY_ID[t] ? [TRACK_BY_ID[t].short] : []));
   return (
@@ -149,8 +150,13 @@ function ProgramRow({ p, active, last, onStart }: { p: Program; active: boolean;
         <T v="mono" style={{ marginTop: 10 }}>
           {P.meta(P.days(p.days), areas)}
         </T>
+        {fits ? null : (
+          <T v="note" color={C.stone} style={{ marginTop: 8 }}>
+            {P.needsSchool}
+          </T>
+        )}
       </View>
-      {active ? (
+      {!fits && !active ? null : active ? (
         <T v="label" color={C.bone}>
           {P.running}
         </T>
@@ -175,6 +181,9 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
   const plan = useApp(s => s.plans[s.currentDay]);
   const provenToday = useApp(s => s.record.missions?.[s.currentDay]);
   const premium = useApp(s => s.premium.active);
+  const profile = useApp(s => s.profile);
+  // Every mission of the program has to be one the user's answers allow (School Reset needs school).
+  const fits = (p: Program) => p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile));
   /** The line under the active program right after Start, for this visit. */
   const [started, setStarted] = useState<{ id: string; line: string } | null>(null);
 
@@ -191,6 +200,7 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
   const n = running && program ? programDay(running, program, day) : null;
 
   const start = (p: Program) => {
+    if (!fits(p)) return;
     if (!p.free && !premium) {
       navigation.navigate('Paywall', { from: 'programs' });
       return;
@@ -328,7 +338,7 @@ export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
             {P.all}
           </T>
           {PROGRAMS.map((p, i) => (
-            <ProgramRow key={p.id} p={p} active={running?.id === p.id} last={i === PROGRAMS.length - 1} onStart={() => start(p)} />
+            <ProgramRow key={p.id} p={p} active={running?.id === p.id} fits={fits(p)} last={i === PROGRAMS.length - 1} onStart={() => start(p)} />
           ))}
           {!premium && PROGRAMS.some(p => !p.free) ? (
             <T v="note" color={C.stone} style={{ marginTop: 12 }}>

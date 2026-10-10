@@ -215,7 +215,7 @@
   "tags": [
    "discipline"
   ],
-  "active": true
+  "active": false
  },
  {
   "id": "discipline-plan-week",
@@ -1942,8 +1942,8 @@
   "id": "career-resume-bullet",
   "track": "career",
   "title": "Improve One Resume Bullet",
-  "short": "Rewrite one line of your resume so it shows a result, with a number if you can.",
-  "proof": "The old line and the new one, written down.",
+  "short": "Write or rewrite one line of your resume so it shows a result, with a number if you can.",
+  "proof": "Your new line, and the old one if there was one.",
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 10,
@@ -2565,7 +2565,9 @@
   "proofType": "PHOTO",
   "points": 15,
   "minutes": 30,
-  "requires": [],
+  "requires": [
+   "building"
+  ],
   "cooldownDays": 3,
   "repeatable": true,
   "tags": [
@@ -2775,6 +2777,7 @@
   ],
   "cooldownDays": 14,
   "repeatable": true,
+  "weight": 2,
   "tags": [
    "business"
   ],
@@ -2794,6 +2797,7 @@
   ],
   "cooldownDays": 14,
   "repeatable": true,
+  "weight": 2,
   "tags": [
    "business"
   ],
@@ -3148,7 +3152,7 @@
   "points": 5,
   "minutes": 5,
   "requires": [],
-  "cooldownDays": 1,
+  "cooldownDays": 2,
   "repeatable": true,
   "group": "planning",
   "when": "evening",
@@ -3684,6 +3688,7 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "group": "skill-review",
   "tags": [
    "skills"
   ],
@@ -3699,7 +3704,7 @@
   "points": 5,
   "minutes": 5,
   "requires": [],
-  "cooldownDays": 1,
+  "cooldownDays": 2,
   "repeatable": true,
   "group": "planning",
   "when": "evening",
@@ -3780,6 +3785,7 @@
   "cooldownDays": 2,
   "repeatable": true,
   "group": "skill-review",
+  "weight": 0.5,
   "tags": [
    "skills"
   ],
@@ -3798,6 +3804,7 @@
   "cooldownDays": 5,
   "repeatable": true,
   "group": "skill-review",
+  "weight": 0.5,
   "tags": [
    "skills"
   ],

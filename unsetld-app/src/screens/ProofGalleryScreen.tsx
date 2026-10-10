@@ -5,9 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { allDone } from '../core/progress';
 import { addDays, shortDate, type DayKey } from '../core/time';
 import type { Mission, MissionDone, ProofPhoto } from '../core/types';
-import { TRACK_BY_ID } from '../content';
+import { MISSION_BY_ID, TRACK_BY_ID } from '../content';
 import { PROGRESS } from '../content/copy/progress';
-import missionsJson from '../content/missions.json';
 import type { RootProps } from '../navigation/types';
 import { proofImage } from '../services/proof';
 import { useApp } from '../state/store';
@@ -17,13 +16,6 @@ import { T } from '../ui/text';
 import { color as C, hairline, MARGIN } from '../ui/tokens';
 
 const G = PROGRESS.gallery;
-
-/**
- * Every mission in the library, retired ones too (MISSION_BY_ID has only the active ones), so a
- * proof keeps its mission's title after the mission is retired. Ids from a library that was
- * replaced (3.0 previews) aren't here: those proofs get a title made from the id.
- */
-const EVER_BY_ID: Record<string, Mission> = Object.fromEntries((missionsJson as Mission[]).map(m => [m.id, m]));
 
 /**
  * A proof thumbnail. When the photo is gone it shows a quiet placeholder: `placeholder`
@@ -90,7 +82,7 @@ function items(record: Parameters<typeof allDone>[0]): Item[] {
     .filter(m => m.verification?.status === 'accepted' && (m.photos?.length ?? 0) > 0)
     .reverse()
     .map(({ day, ...done }) => {
-      const mission = EVER_BY_ID[done.missionId];
+      const mission = MISSION_BY_ID[done.missionId];
       return {
         day,
         done,

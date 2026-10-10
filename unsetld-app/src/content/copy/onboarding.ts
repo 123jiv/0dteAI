@@ -29,6 +29,9 @@ export const ONBOARDING = {
     full: 'Four is the most. Take one off first.',
     /** School chosen after a No to "In school or college?": the answer is changed in About you. */
     schoolOff: "You said you're not in school, so School won't get missions. Change that in About you.",
+    /** Settings › Areas saves straight away, so School stays off until About you says yes. */
+    schoolOffEdit: "You said you're not in school, so School stays off. Answer Yes in About you to add it.",
+    aboutYou: 'Go to About you',
     a11yTile: (name: string, scope: string) => `${spoken(name)}. ${scope}`,
     tileNo: (i: number) => String(i + 1).padStart(2, '0'),
   },

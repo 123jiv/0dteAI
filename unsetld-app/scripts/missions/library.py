@@ -88,7 +88,7 @@ m('discipline-prepare-tomorrow', D, 'Prepare Everything You Need for Tomorrow', 
   group='tomorrow-ready', when='evening', also=['organization'], days=WEEKNIGHTS)
 m('discipline-prepare-workspace', D, 'Prepare Your Workspace', 5, 5, BA,
   'Clear your desk and set out only what you need for your next work session.', 'Before and after of your workspace.', 2,
-  group='desk')
+  group='desk', active=False)  # Retired: the same action as Clean Your Desk, which also counts for Discipline.
 m('discipline-plan-week', D, 'Plan Your Week', 15, 10, P,
   'Write your goals, deadlines and key tasks for the next 7 days on one page.',
   'Your week on one page, private details covered.', 6, group='planning-week')
@@ -367,8 +367,8 @@ m('career-improve-resume', C, 'Improve Your Resume', 30, 15, TP,
   "Spend 30 minutes making your resume clearer and stronger, or start one if you don't have one yet.",
   'Your updated resume, contact details covered.', 5, group='resume', requires=['age16'], weight=2)
 m('career-resume-bullet', C, 'Improve One Resume Bullet', 10, 10, P,
-  'Rewrite one line of your resume so it shows a result, with a number if you can.',
-  'The old line and the new one, written down.', 4, group='resume', requires=['age16'])
+  'Write or rewrite one line of your resume so it shows a result, with a number if you can.',
+  'Your new line, and the old one if there was one.', 4, group='resume', requires=['age16'])
 m('career-first-resume', C, 'Write the First Draft of Your Resume', 30, 15, P,
   "Write a one-page resume with your school, work, projects and skills, even if it's short.",
   'Your draft, contact details covered.', 365, repeatable=False, group='resume', weight=2)
@@ -459,7 +459,8 @@ m('business-product', B, 'Work on Your Product', 30, 20, TP,
   'Spend 30 minutes making your product or service better.', 'Your product or your work, after the timer.', 2,
   requires=['building'])
 m('business-fix-problem', B, 'Fix One Problem With Your Business', 30, 15, P,
-  "Pick one thing that's broken or slowing you down and fix it.", 'The fix, or your notes on what changed.', 3)
+  "Pick one thing that's broken or slowing you down and fix it.", 'The fix, or your notes on what changed.', 3,
+  requires=['building'])
 m('business-product-page', B, 'Improve One Product Page', 20, 10, P,
   'Improve the description, photos or price on one product page.',
   'The updated page on a computer, or what you changed written down.', 5, weight=0.7, requires=['project'])
@@ -489,10 +490,10 @@ m('business-profit-per-sale', B, 'Work Out Your Profit per Sale', 20, 10, P,
   'Add up what one sale costs you and set a price that leaves a profit.', 'Your math on paper.', 21)
 m('business-ideas', B, 'Write Down 10 Business Ideas', 15, 10, P,
   'List 10 things people around you would pay for that you could make, sell or do.', 'Your list of ten.', 14,
-  requires=['starting'])
+  requires=['starting'], weight=2)
 m('business-pick-idea', B, 'Pick One Business Idea and Plan It', 20, 10, P,
   'Pick one idea and write who it is for, what you would charge and your first three steps.', 'Your plan on paper.', 14,
-  requires=['starting'])
+  requires=['starting'], weight=2)
 m('business-pitch', B, 'Write Your One-Sentence Pitch', 5, 5, P,
   "Write one sentence that says what you sell, who it's for and why they'd pick you.", 'Your sentence on paper.', 14)
 m('business-month-goal', B, "Set This Month's Business Goal", 5, 5, P,
@@ -546,7 +547,7 @@ m("projects-finish-not-start", PR, "Finish One Thing Instead of Starting Another
 m('projects-plan-steps', PR, "Plan Your Project's Next Steps", 10, 10, P,
   'Write the next 5 steps for your project, smallest first.', 'Your list.', 5, group='planning')
 m('projects-plan-tomorrow', PR, "Plan Tomorrow's Project Work", 5, 5, P,
-  "Write the one thing you'll get done on your project tomorrow and when you'll do it.", 'Your plan.', 1,
+  "Write the one thing you'll get done on your project tomorrow and when you'll do it.", 'Your plan.', 2,
   group='planning', when='evening', weight=0.6)
 m('projects-small-project', PR, 'Create One Small Project', 60, 25, P,
   'Start and finish one small thing in a single sitting.', 'What you made.', 5, also=['skills'])
@@ -626,9 +627,9 @@ m('skills-practice-10', K, 'Practice Your Skill for 10 Minutes', 10, 10, TP,
   "Spend 10 focused minutes practicing the skill you're learning, without a tutorial.",
   'What you practiced, after the timer.', 1, group='skill-session')
 m('skills-notes-learned', K, 'Take Notes on Something You Learned Today', 5, 5, P,
-  'Write one thing you learned today in your own words, with an example.', 'Your note.', 2)
+  'Write one thing you learned today in your own words, with an example.', 'Your note.', 2, group='skill-review')
 m('skills-plan-practice', K, "Plan Tomorrow's Practice", 5, 5, P,
-  "Write what you'll practice tomorrow, for how long and when.", 'Your plan.', 1, group='planning', when='evening',
+  "Write what you'll practice tomorrow, for how long and when.", 'Your plan.', 2, group='planning', when='evening',
   weight=0.6)
 m('skills-short-lesson', K, 'Watch One Short Lesson and Try It', 10, 10, P,
   'Watch one short lesson on the skill you are learning and try what it shows right away.', 'What you tried.', 2,
@@ -641,10 +642,10 @@ m('skills-spreadsheets', K, 'Learn One Spreadsheet Skill', 20, 10, TP,
   'What you made on a computer, after the timer.', 5, also=['career'])
 
 m('skills-review-yesterday', K, "Review Yesterday's Notes for 10 Minutes", 10, 10, P,
-  "Go over what you learned yesterday before you learn anything new.", 'Your notes.', 2, group='skill-review')
+  "Go over what you learned yesterday before you learn anything new.", 'Your notes.', 2, group='skill-review', weight=0.5)
 m('skills-quiz-yourself', K, "Test Yourself on Last Week's Lessons", 10, 10, P,
   "Write down what you remember from last week's lessons without looking, then check your notes.",
-  'What you wrote, checked against your notes.', 5, group='skill-review')
+  'What you wrote, checked against your notes.', 5, group='skill-review', weight=0.5)
 m("skills-practice-exercise", K, "Do One Practice Exercise for Your Skill", 15, 10, P,
   "Do one short exercise for the skill you are learning.", "What you made.", 1,
   weight=0.5, group='skill-session')

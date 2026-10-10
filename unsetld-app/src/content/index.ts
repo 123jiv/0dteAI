@@ -20,9 +20,14 @@ export const PROMPTS = remindersJson as ReminderPrompt[];
 // Missions
 export const TRACKS = tracksJson as Track[];
 export const TRACK_BY_ID = Object.fromEntries(TRACKS.map(t => [t.id, t])) as Record<TrackId, Track>;
-/** The mission library (active missions only). */
+/** The mission library the planner draws from (active missions only). */
 export const MISSIONS = (missionsJson as Mission[]).filter(m => m.active);
-export const MISSION_BY_ID: Record<string, Mission> = Object.fromEntries(MISSIONS.map(m => [m.id, m]));
+/**
+ * Every mission ever in the library, retired ones too: a plan, a running timer or a proof
+ * made before a mission was retired still finds it. Ids that were removed outright (the
+ * 3.0 preview library) aren't here.
+ */
+export const MISSION_BY_ID: Record<string, Mission> = Object.fromEntries((missionsJson as Mission[]).map(m => [m.id, m]));
 export const PROGRAMS = programsJson as Program[];
 export const PROGRAM_BY_ID: Record<string, Program> = Object.fromEntries(PROGRAMS.map(p => [p.id, p]));
 /** Default reward tiers; unsetld.com's config can replace them (store.remote.rewards). */

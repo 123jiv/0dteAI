@@ -202,7 +202,8 @@ const rotate = <T,>(xs: readonly T[], k: number): T[] => (xs.length ? [...xs.sli
  * user's lead area (their first pick, or this week's priority) on two days in
  * three, then the other areas in rotation; on the third day the others go first.
  * Easy missions take the next areas, so a day covers as many of their goals as it
- * has slots. Slots beyond the areas go to the other areas in turn, never the lead.
+ * has slots. Slots beyond the areas go to the other areas in turn, never the lead
+ * (with two areas, the two take turns).
  * `areas`: the usable areas (usableAreas); the profile's own when left out.
  */
 export function slotTracks(profile: Profile, slots: readonly MissionSlot[], day: DayKey, areas?: readonly TrackId[]): TrackId[] {
@@ -210,11 +211,12 @@ export function slotTracks(profile: Profile, slots: readonly MissionSlot[], day:
   const d = dayNumber(day);
   const lead = profile.priority && tracks.includes(profile.priority) ? profile.priority : tracks[0];
   const pool = tracks.filter(t => t !== lead);
-  // The others' order moves on each lead day, so the one that goes first changes.
-  const others = rotate(pool, d - Math.floor(d / 3));
+  // The others' order moves on every day, so the one that goes first changes (on the third day too).
+  const others = rotate(pool, mod(d, 3) === 0 ? Math.floor(d / 3) : d - Math.floor(d / 3));
   const rest = pool.length > 0 && mod(d, 3) === 0;
   const queue = rest ? [...others, lead] : [lead, ...others];
-  const at = (k: number) => (k < queue.length ? queue[k] : pool.length ? others[mod(k - queue.length + d, others.length)] : lead);
+  const at = (k: number) =>
+    k < queue.length ? queue[k] : pool.length > 1 ? others[mod(k - queue.length + d, others.length)] : queue[mod(k - queue.length + d, queue.length)];
   const out: TrackId[] = new Array(slots.length);
   let q = 0;
   slots.forEach((s, i) => {
@@ -300,7 +302,9 @@ export interface SlotPick {
  * 4. missions the user swapped away lately, from any of their areas;
  * 5. the universal basics (plan tomorrow, clean your desk);
  * 6. the shortest few of their areas' missions, a little over the time left.
- * Never returns anything in `exclude`.
+ * Never returns anything in `exclude`. A slot whose area is already in the day lets the
+ * areas still missing go first, and is tried with the others in the day before any of
+ * them is let back early; `keepTrack` (a swap) keeps the slot's own area first.
  */
 export function chooseForSlot(
   input: PlanInput,
@@ -310,12 +314,14 @@ export function chooseForSlot(
   maxMinutes: number,
   seed: string,
   usedTracks: readonly TrackId[] = [],
+  keepTrack = false,
 ): SlotPick | null {
   const areas = usableAreas(input.library, input.profile);
   const mainMax = MAIN_MAX_MINUTES[input.profile.intensity] ?? 45;
-  const fresh = [track, ...areas.filter(t => t !== track && !usedTracks.includes(t))];
+  const trackUsed = !keepTrack && usedTracks.includes(track);
+  const fresh = trackUsed ? areas.filter(t => !usedTracks.includes(t)) : [track, ...areas.filter(t => t !== track && !usedTracks.includes(t))];
   const freshSet = new Set(fresh);
-  const rest = areas.filter(t => !freshSet.has(t));
+  const rest = trackUsed ? [track, ...areas.filter(t => t !== track && !freshSet.has(t))] : areas.filter(t => !freshSet.has(t));
   const sizes: MissionSlot[] = slot === 'main' ? ['main', 'easy'] : ['easy'];
 
   const fits = (m: Mission, size: MissionSlot, cap: number) =>
@@ -403,6 +409,8 @@ export function generatePlan(input: PlanInput): DayPlan {
   for (const id of input.program?.missionIds ?? []) {
     const m = byId.get(id);
     if (!m || !m.active || used.has(id)) continue;
+    // A mission the user's answers rule out (School Reset after "not in school") stays out.
+    if (!meetsRequirements(m.requires, profile)) continue;
     // Too late for a morning mission (or the wrong day of the week); the program day's other missions still move it on.
     if (m.when === 'morning' && tooLateForMorning(input.hour)) continue;
     if (m.days && !m.days.includes(parseDay(day).getDay())) continue;
@@ -443,11 +451,42 @@ export function generatePlan(input: PlanInput): DayPlan {
   return { day, missions: chosenSlots.filter(Boolean), rerolls: 0, replaced: [] };
 }
 
+/** The areas the rest of the day is in, for the mission at `index`'s neighbours. */
+function otherAreas(plan: DayPlan, index: number, byId: ReadonlyMap<string, Mission>, areas: readonly TrackId[]): TrackId[] {
+  return plan.missions.flatMap((p, i) => {
+    if (i === index) return [];
+    const m = byId.get(p.missionId);
+    return p.area ? [p.area] : m ? [areaFor(m, areas)] : [];
+  });
+}
+
+/**
+ * The area a swap of the mission at `index` draws from (and the swap dialog names):
+ * the area it was in the day for, while that is still one of the user's areas or the
+ * mission came from a program; otherwise the first of the user's areas it serves, then
+ * the first of their areas not in the day yet.
+ */
+export function swapArea(plan: DayPlan, index: number, input: Pick<PlanInput, 'library' | 'profile' | 'day'>): TrackId | null {
+  const current = plan.missions[index];
+  if (!current) return null;
+  const byId = new Map(input.library.map(m => [m.id, m]));
+  const old = byId.get(current.missionId);
+  const areas = usableAreas(input.library, input.profile);
+  if (current.area && (areas.includes(current.area) || current.programId != null)) return current.area;
+  if (old && areas.some(t => serves(old, t))) return areaFor(old, areas);
+  const others = otherAreas(plan, index, byId, areas);
+  return (
+    areas.find(t => !others.includes(t)) ??
+    slotTracks(input.profile, plan.missions.map(p => (p.slot === 'easy' ? 'easy' : 'main')), input.day, areas)[index]
+  );
+}
+
 /**
  * Swap one mission of today's plan for another from the same area (another
  * School mission for a School mission), the same size, not already in the day.
- * A different kind of mission comes first (not "Lock In" for "Do a 20-Minute
- * Focus Session"); the user's other areas only when that area has nothing left.
+ * Same area and size come first, then a different kind of mission (not "Lock In"
+ * for "Do a 20-Minute Focus Session"); the user's other areas only when that area
+ * has nothing left.
  */
 export function rerollMission(plan: DayPlan, index: number, input: PlanInput): DayPlan | null {
   const current = plan.missions[index];
@@ -464,20 +503,18 @@ export function rerollMission(plan: DayPlan, index: number, input: PlanInput): D
   const spent = plan.missions.reduce((t, p, i) => (i === index ? t : t + (byId.get(p.missionId)?.minutes ?? 0)), 0);
   const room = Math.max(old?.minutes ?? 20, dayBudget(input.profile) - spent);
   const slot: MissionSlot = current.slot === 'easy' || current.slot === 'main' ? current.slot : old ? sizeOf(old) : 'main';
-  const slotArea = () => slotTracks(input.profile, plan.missions.map(p => (p.slot === 'easy' ? 'easy' : 'main')), input.day, areas)[index];
-  // The area it was in the day for; for plans from earlier builds, the first of the user's areas it serves.
-  const track =
-    current.area && areas.includes(current.area) ? current.area : old && areas.some(t => serves(old, t)) ? areaFor(old, areas) : slotArea();
-  const others = plan.missions.flatMap((p, i) => {
-    if (i === index) return [];
-    const m = byId.get(p.missionId);
-    return p.area ? [p.area] : m ? [areaFor(m, areas)] : [];
-  });
+  const track = swapArea(plan, index, input)!;
+  const others = otherAreas(plan, index, byId, areas);
   const seed = `${input.salt}:${input.day}:${index}:r${plan.rerolls + 1}`;
-  // First without the old mission's own group (its near-twins), then with it.
+  // Same area and size first: without the old mission's own group (its near-twins), then with it.
   const apart = new Set([...exclude, ...sameDayBlocked(input.library, old)]);
-  const first = chooseForSlot(input, slot, track, apart, room, seed, others);
-  const next = first && first.area === track ? first : (chooseForSlot(input, slot, track, exclude, room, seed, others) ?? first);
+  const fit = (p: SlotPick | null) => Boolean(p && p.area === track && sizeOf(p.mission) === slot);
+  const first = chooseForSlot(input, slot, track, apart, room, seed, others, true);
+  let next = first;
+  if (!fit(first)) {
+    const second = chooseForSlot(input, slot, track, exclude, room, seed, others, true);
+    next = fit(second) ? second : first && first.area === track ? first : (second ?? first);
+  }
   if (!next) return null;
   const missions = plan.missions.map((p, i) => (i === index ? { slot, missionId: next.mission.id, area: next.area } : p));
   return { ...plan, missions, rerolls: plan.rerolls + 1, replaced: [...plan.replaced, current.missionId] };
