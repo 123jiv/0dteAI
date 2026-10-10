@@ -40,17 +40,9 @@ export const MISSION = {
     done: 'Done',
   },
 
+  /** The button only: the dialogs are Today's (screens/home/swap). */
   swap: {
     button: 'Swap this mission',
-    title: 'Swap this mission?',
-    body: (left: number) => (left === 1 ? 'You have 1 swap left today.' : `You have ${left} swaps left today.`),
-    yes: 'Swap',
-    no: 'Cancel',
-    noneTitle: 'Nothing else fits today.',
-    noneBody: 'No other mission in this area fits your plan today. Your swap wasn’t used.',
-    limitTitle: 'No swaps left today.',
-    limitBody: 'More tomorrow.',
-    ok: 'OK',
   },
 
   busy: {

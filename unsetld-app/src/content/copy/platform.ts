@@ -19,6 +19,8 @@ const MINUTES: Record<Profile['minutes'], string> = { 15: '15 min', 30: '30 min'
 const INTENSITY: Record<Profile['intensity'], string> = { easy: 'Start easy', lockin: 'Lock in', push: 'Push me' };
 
 export const PLATFORM = {
+  /** Browser preview only: said once when the app's state no longer fits in the browser's storage. */
+  outOfSpace: { title: 'Progress isn’t being saved', body: 'This browser is out of space. Set You › Proof photos to 30 days to free some.' },
   wordmark: 'unsetld',
   a11y: { close: 'Close', back: 'Back' },
 
@@ -81,6 +83,8 @@ export const PLATFORM = {
     retentionSpan: { 30: '30 days', 365: '1 year' } as Record<string, string>,
     // Not "never leave your phone": like other app files they can be in the user's own iPhone backup.
     retentionNote: 'After that the photo is deleted from this phone. The mission, its points and your streak stay. The app never uploads your photos.',
+    /** With Always: nothing is deleted on a schedule. */
+    retentionNoteAlways: 'Photos stay on this phone until you change this or delete the app. The app never uploads your photos.',
     clearTitle: (n: number) => (n === 1 ? 'Delete 1 older photo?' : `Delete ${num(n)} older photos?`),
     clearBody: (span: string) => `Proof photos older than ${span} are deleted from this phone. The missions and their points stay.`,
     clearYes: 'Delete',

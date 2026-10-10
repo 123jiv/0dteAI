@@ -3,14 +3,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { swapArea } from '../../core/missions';
 import { programDay } from '../../core/programs';
 import { activeDays, milestones, type MilestoneKey } from '../../core/progress';
 import { dayCount } from '../../core/record';
 import { reviewWeekFor, weeklyReview } from '../../core/review';
 import { addDays, type DayKey } from '../../core/time';
 import type { MissionDone, RecordState } from '../../core/types';
-import { MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, TRACK_BY_ID } from '../../content';
+import { MISSION_BY_ID, PROGRAM_BY_ID } from '../../content';
 import { FOCUS } from '../../content/copy/focus';
 import { HOME } from '../../content/copy/home';
 import { MISSION } from '../../content/copy/mission';
@@ -38,6 +37,7 @@ import {
   WeeklyCard,
   type CardAction,
 } from './parts';
+import { confirmSwap } from './swap';
 
 /** A beat after Today settles, so a card that was just proven plays first. */
 const MOMENT_DELAY = 1800;
@@ -194,54 +194,21 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
     return () => clearTimeout(t);
   }, [isFocused, active, activeToday, sheet, day, momentsShown, lettersShown, accessEnabled, remoteStatus, navigation, provenKey]);
 
-  // No swaps left: say so, and where more come from.
-  const showSwapLimit = () => {
-    const premium = useApp.getState().premium.active;
-    showDialog(
-      HOME.swap.limitTitle,
-      premium ? HOME.swap.limitFull : HOME.swap.limitFree,
-      premium
-        ? [{ label: HOME.swap.ok, cancel: true }]
-        : [
-            { label: HOME.swap.ok, cancel: true },
-            { label: HOME.swap.seeFull, onPress: () => navigation.navigate('Paywall', { from: 'swaps' }) },
-          ],
-    );
-  };
-
   const swap = (m: TodayMission) => {
     selection();
-    // The dialog names the area the swap draws from: the one the mission is in the day for, or
-    // (a plan's mission in an area since dropped) one of the user's areas.
-    const s = useApp.getState();
-    const dayPlan = s.plans[day];
-    const to = dayPlan ? swapArea(dayPlan, m.index, { library: MISSIONS, profile: s.profile, day }) : m.area;
-    const area = (to && TRACK_BY_ID[to]?.short) || '';
-    if (swapsLeft <= 0) {
-      showSwapLimit();
-      return;
-    }
-    const doSwap = () => {
-      // 4:00 AM passed while the dialog was up: this card belongs to a day that's over.
-      useApp.getState().refreshDay();
-      if (useApp.getState().currentDay !== day) return;
-      const result = useApp.getState().rerollMission(m.index);
-      if (result === 'ok') {
-        const nowPlan = useApp.getState().plans[day];
-        const id = nowPlan?.missions[m.index]?.missionId;
-        const title = id ? MISSION_BY_ID[id]?.title : undefined;
-        if (id && title) {
-          setSwapped(id);
-          AccessibilityInfo.announceForAccessibility(HOME.swap.done(title));
-        }
-      } else if (result === 'none') {
-        showDialog(HOME.swap.noneTitle, HOME.swap.noneBody(area), [{ label: HOME.swap.ok, cancel: true }]);
-      } else showSwapLimit();
-    };
-    showDialog(HOME.swap.confirmTitle(m.mission.title), HOME.swap.confirmBody(swapsLeft, area), [
-      { label: HOME.swap.no, cancel: true },
-      { label: HOME.swap.yes, onPress: doSwap },
-    ]);
+    confirmSwap({
+      index: m.index,
+      title: m.mission.title,
+      day,
+      swapsLeft,
+      onSwapped: id => {
+        const title = MISSION_BY_ID[id]?.title;
+        if (!title) return;
+        setSwapped(id);
+        AccessibilityInfo.announceForAccessibility(HOME.swap.done(title));
+      },
+      onPaywall: () => navigation.navigate('Paywall', { from: 'swaps' }),
+    });
   };
 
   const actionFor = (m: TodayMission): CardAction => {

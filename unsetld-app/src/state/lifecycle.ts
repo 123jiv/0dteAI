@@ -27,12 +27,11 @@ import { initPurchases, purchaseMode, refreshPremium, type EntitlementInfo } fro
 import { cancelTimerDone } from '../services/timerNotify';
 import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
 import { showDialog } from '../ui/actions';
+import { PLATFORM } from '../content/copy/platform';
 import { parseUrl, useIntent } from './intents';
 import { useSaveFailed } from './storage';
 import { useAccessEnabled, useApp, useEntitlements } from './store';
 
-/** Browser preview only: said once when the app's state no longer fits in the browser's storage. */
-const OUT_OF_SPACE = { title: 'Progress isn’t being saved', body: 'This browser is out of space.' };
 let toldOutOfSpace = false;
 
 /** The last drops.json that loaded, for the early-access page. Fetched on launch and every foreground. */
@@ -257,7 +256,7 @@ export function useSideEffects() {
   useEffect(() => {
     if (!saveFailed || toldOutOfSpace) return;
     toldOutOfSpace = true;
-    showDialog(OUT_OF_SPACE.title, OUT_OF_SPACE.body);
+    showDialog(PLATFORM.outOfSpace.title, PLATFORM.outOfSpace.body);
   }, [saveFailed]);
 
   // Account holders: tell the server about today's day on record (a proven mission).

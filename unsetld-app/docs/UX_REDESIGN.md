@@ -65,7 +65,7 @@ ACTIVE PLAN  Build Something · Day 4 of 7   Continue →
 ```
 
 - Top row: `UNSETLD` wordmark (kicker) left, `DAY 12` right (mono). Day N = days with a proven mission (+1 if today has none yet).
-- Stats row: streak (serif number + "day streak") left, points (serif number + "pts") right; tap points → Rewards tab. **Day 1 / streak 0:** no zero — "Your first mission starts your streak." in its place.
+- Stats row: streak (serif number + "day streak") left, points (serif number + "pts") right; tap points → Rewards tab (How points work while rewards are off). **Day 1 / streak 0:** no zero — "Your first mission starts your streak." in its place.
 - Next reward: kicker `NEXT REWARD`, a `Meter`, "220 pts to 10% off" (or "10% off is ready" → Rewards). Shown when rewards are enabled. Day 1: "300 pts to 5% off — your first reward."
 - `TODAY` kicker with `0 / 3` (mono). Below it the three mission cards (§4), `GAP.card` apart. Swaps left appear only on the card ("Swap") and in the confirm dialog, not as a separate line.
 - Active plan card (when a plan runs): kicker `ACTIVE PLAN`, plan title (serif), "Day 4 of 7", `Continue →` → Plans. No plan: a quiet `LinkRow` "Plans" ("Guided 5–7 day runs") at the very bottom, after the missions.
@@ -79,7 +79,7 @@ ACTIVE PLAN  Build Something · Day 4 of 7   Continue →
 ```
 SCHOOL                                   (kicker, colorway.secondary)
 Study for 30 Minutes                     (serif, list 23)
-30 min · ⏱📷 Timer + photo · +15 pts      (meta row; ProofMeta for the middle)
+30 min · ⏱📷 Timer + photo · +15 pts      (meta row; ProofMeta for the middle; "Tonight" after the time for an evening mission, which sorts after the others)
                                    [ START ]   Swap
 ```
 
@@ -111,14 +111,14 @@ Progress
 CURRENT STREAK 12 days            TODAY 2 / 3
 THIS WEEK  M T W T F S S  (squares: proven / today / missed / ahead)
 YOUR AREAS
-  [School · Level 3 · meter · 120 / 150 XP · 18 missions · 8h 24m]
+  [School · Level 3 · meter · 120 / 150 XP to level 4 · 18 missions · 8h 24m invested]
   [Fitness ...] [Projects ...]
 Proof history      47 proofs  →
 Achievements       4 of 12    →
 Stats                          →
 ```
 
-- XP = mission points in that area (core/progress `trackProgress`); no second currency. Area cards show level (serif), meter, "120 / 150 XP", missions completed and time invested (timer seconds + mission minutes for proven missions).
+- XP = mission points in that area (core/progress `trackProgress`); no second currency. Area cards show level (serif), meter, "120 / 150 XP to level 4", missions completed and time invested (timer seconds + mission minutes for proven missions); Stats shows the area's total ("225 XP total"). The week row says when an Off Day covered a day. A proof that takes an area to a new level adds one line to the Done stage ("SCHOOL · LEVEL 4").
 - **Day 1 (nothing proven):** one `EmptyState`: "Your record starts with your first mission." / "Prove one of today's missions and it shows up here." / `Go to today` → Today. Plus the areas list in a quiet "starts at level 1" form is NOT shown; no zeros.
 - Achievements (milestones): reached ones with dates, then the next three with progress. Stats: longest streak, missions, points earned, focused time, this-week completion, active days, Off Days with their one-line explainer, per-area totals.
 - Weekly review (modal, Sundays): keep, simplified; "Next week" chips are the weekly focus options (sets next week's focus).

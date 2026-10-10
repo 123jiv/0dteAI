@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { meetsRequirements } from '../../core/missions';
 import { programDay, programDayView, programFinished } from '../../core/programs';
 import type { Program } from '../../core/types';
+import { planOpenToAll } from '../../core/features';
 import { MISSION_BY_ID, PROGRAM_BY_ID, PROGRAMS, TRACK_BY_ID } from '../../content';
 import { PROGRAMS_COPY } from '../../content/copy/programs';
 import { PROOF_KIND } from '../../content/copy/proof';
@@ -113,7 +114,7 @@ function PlanMission({ id, area, showArea, state, onOpen }: { id: string; area: 
 }
 
 /** A plan in the list: serif title, one line, "7 days · Discipline", and Start (or why it can't start). */
-function PlanCard({ p, fits, onStart, onAboutYou }: { p: Program; fits: boolean; onStart: () => void; onAboutYou: () => void }) {
+function PlanCard({ p, fits, included, onStart, onAboutYou }: { p: Program; fits: boolean; included: boolean; onStart: () => void; onAboutYou: () => void }) {
   // Areas by their short names; one the app no longer has is left out.
   const areas = p.tracks.flatMap(t => (TRACK_BY_ID[t] ? [TRACK_BY_ID[t].short] : []));
   const N = P.needsSchool;
@@ -129,7 +130,7 @@ function PlanCard({ p, fits, onStart, onAboutYou }: { p: Program; fits: boolean;
         <T v="meta" color={C.muted} style={{ flexShrink: 1 }} accessibilityElementsHidden importantForAccessibility="no">
           {P.meta(P.days(p.days), areas)}
         </T>
-        {fits ? <StartButton accessibilityLabel={p.free ? P.startA11y(p.title) : P.plusA11y(p.title)} onPress={onStart} /> : null}
+        {fits ? <StartButton accessibilityLabel={included ? P.startA11y(p.title) : P.plusA11y(p.title)} onPress={onStart} /> : null}
       </View>
       {fits ? null : (
         <Pressable
@@ -235,14 +236,15 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
     .map((p, i) => ({ p, i, r: rank(p) }))
     .sort((a, b) => a.r - b.r || a.i - b.i)
     .map(x => x.p);
-  const free = list.filter(p => p.free);
-  const plus = list.filter(p => !p.free);
+  // Sections by what anyone can start (core/features), not by membership.
+  const free = list.filter(p => planOpenToAll(p));
+  const plus = list.filter(p => !planOpenToAll(p));
   const top = Boolean(running || finished);
 
   const cards = (ps: readonly Program[]) => (
     <View style={{ gap: GAP.card }}>
       {ps.map(p => (
-        <PlanCard key={p.id} p={p} fits={fits(p)} onStart={() => start(p)} onAboutYou={() => navigation.navigate('AboutYou', { edit: true })} />
+        <PlanCard key={p.id} p={p} fits={fits(p)} included={ent.canStartPlan(p)} onStart={() => start(p)} onAboutYou={() => navigation.navigate('AboutYou', { edit: true })} />
       ))}
     </View>
   );

@@ -189,7 +189,7 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
                   lockedNote={COPY.perDayNote}
                   style={{ alignSelf: 'stretch' }}
                 />
-                {edit && !ent.premium ? (
+                {edit && disabled.length > 0 ? (
                   <T v="note" color={C.stone}>
                     {COPY.perDayNote}
                   </T>

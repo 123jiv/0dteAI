@@ -1,5 +1,7 @@
 # UNSETLD copy deck
 
+> **3.1 note (10 Oct 2026):** the screens and their copy follow [UX_REDESIGN.md](UX_REDESIGN.md). "Full Edition" is UNSETLD+, "programs" are Plans, Access is UNSETLD status, Settings is You. The live strings are only in `src/content/copy/`; anything below that says otherwise is history.
+>
 > **3.0 note (9 Oct 2026):** UNSETLD 3.0 supersedes this deck's lines, quotes, chapters, the standard (three rules), the night check, Today, Record and the paywall rows. The 3.0 strings live in `src/content/copy/*.ts` (and `src/content/copy.ts`), specified in [MISSIONS_SPEC.md](MISSIONS_SPEC.md); where they disagree with this file, they win. The App Store listing below is updated for 3.0; the rest of this file is kept as the 2.x record, so check `src/content/copy/` before reusing a string from it.
 
 UNSETLD 2.0: COPY DECK (final wording; build exactly; sentence case; no exclamation marks)
@@ -226,7 +228,7 @@ MILESTONE DETAIL
   - Every UNSETLD drop opens to you 24 hours before the public. When a drop is announced, open it from here.
   - Button: Turn on drop alerts
   - While a drop is open early (button, needs an account): Open Collection 004
-  - Notifications off (under the button): Notifications are off for unsetld. · Open Settings
+  - Notifications off (under the button): Notifications are off for UNSETLD. · Open Settings
 - 090 The patch:
   - A woven UNSETLD patch with your number. It ships free with your next order. One per person.
   - Button: Add it to my next order
@@ -242,7 +244,7 @@ MILESTONE LETTERS
   - You kept coming back.
   - Early access is open. Every UNSETLD drop opens to you 24 hours before the public.
   - [Turn on drop alerts] · Not now
-  - Notifications off (under the buttons): Notifications are off for unsetld. · Open Settings
+  - Notifications off (under the buttons): Notifications are off for UNSETLD. · Open Settings
 - DAY 090 · Day 90.
   - This isn't a phase anymore.
   - Your patch is numbered and waiting. It ships free with your next order.
@@ -268,15 +270,15 @@ HOW THE RECORD WORKS (Details)
   - Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked.
 - Keeping it: Once early access is open, if 14 days pass with nothing on record, it pauses until you put 7 more days on record. Your count, points and milestones stay.
 - Limits: One code each collection. Up to $25 off an order. Codes don't combine with other codes, including the 10% first-order code, and exclude the 365 piece. One patch per person.
-- It can't be bought: Full Edition doesn't change any of this. Points and access are the same for everyone.
-- Account: To use a code or access you need a free account, made with Sign in with Apple, so we can hold your place.
+- It can't be bought: UNSETLD+ doesn't change any of this. Points and UNSETLD status are the same for everyone.
+- Account: To use rewards or UNSETLD status you need a free account, made with Sign in with Apple, so we can hold your place.
 
 ACCESS TERMS (legal page, lawyer review before launch)
 - For US residents 13 and over. If you're under 18, get a parent's or guardian's OK before you place an order.
 - No cash value.
 - Not transferable.
 - Codes are single use.
-- We may change or end the program with 30 days' notice in the app.
+- We may change or end rewards and UNSETLD status with 30 days' notice in the app.
 - Contact unsetldclothing@gmail.com.
 
 ACCOUNT
@@ -350,7 +352,7 @@ SETTINGS
 - UNSETLD
   - Drop alerts (switch, off)
     - Footnote: Tells you when a collection opens. Separate from your daily reminders. Off unless you turn it on.
-    - Notifications off (the switch stays off): Notifications are off for unsetld. · Open Settings
+    - Notifications off (the switch stays off): Notifications are off for UNSETLD. · Open Settings
   - Account · Not signed in
 - FULL EDITION
   - Plan · Free (or: Annual, renews 10 Oct 2027 / Monthly, renews 7 Nov 2026 / Lifetime)
@@ -367,7 +369,7 @@ Sub-pages
 - Your standard: title Set your standard. · button Save
 - Reminders:
   - title Reminders · button Save
-  - permission-off row: Notifications are off for unsetld. · Open Settings
+  - permission-off row: Notifications are off for UNSETLD. · Open Settings
 - Wallpapers:
   - title Wallpapers
   - FIG. 01 · Evolution

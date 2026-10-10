@@ -40,3 +40,8 @@ export type FeatureMap = Readonly<Record<Feature, Edition>>;
 export function hasFeature(feature: Feature, plus: boolean, features: FeatureMap = FEATURES): boolean {
   return features[feature] === 'free' || plus;
 }
+
+/** Whether anyone can start a plan, membership or not (the Plans list's first section). */
+export function planOpenToAll(p: { free: boolean }, features: FeatureMap = FEATURES): boolean {
+  return hasFeature('allPlans', false, features) || (p.free && hasFeature('basicPlans', false, features));
+}

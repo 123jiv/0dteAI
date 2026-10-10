@@ -255,13 +255,13 @@ export function YouScreen({ navigation }: TabProps<'You'>) {
         <LinkRow title={S.widgets} detail={S.widgetsValue} onPress={() => navigation.navigate('Widget', { guide: true })} />
       </Group>
 
-      <Group label={S.sections.proof} note={S.retentionNote}>
+      <Group label={S.sections.proof} note={retention === 0 ? S.retentionNoteAlways : S.retentionNote}>
         <LinkRow title={S.proofHistory} detail={S.proofHistoryValue} onPress={() => navigation.navigate('ProofHistory')} />
         <View style={{ paddingTop: 10, paddingBottom: 16 }}>
           <T v="row" style={{ marginBottom: 12 }}>
             {S.retentionLabel}
           </T>
-          <Segmented options={RETENTION} value={retention} onChange={setRetention} labels={S.retention} style={{ alignSelf: 'stretch' }} />
+          <Segmented options={RETENTION} value={retention} onChange={setRetention} labels={S.retention} accessibilityLabel={S.retentionLabel} style={{ alignSelf: 'stretch' }} />
         </View>
       </Group>
 

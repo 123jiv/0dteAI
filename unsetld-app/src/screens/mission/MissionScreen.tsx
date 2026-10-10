@@ -36,6 +36,7 @@ import { clockTime } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
 import { color as C, GAP } from '../../ui/tokens';
 import { useAnnounce } from '../../ui/useAnnounce';
+import { confirmSwap } from '../home/swap';
 import { DoneStage } from './DoneStage';
 import { addsTo, AfterSlot, CameraNote, Instruction, LINING, MissionHeading, ProofCard, ProofFrame, ProofPhotos, ProvenLine } from './parts';
 import { TimerStage } from './TimerStage';
@@ -338,22 +339,19 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     ]);
   };
 
+  // The same swap flow as Today's cards (screens/home/swap); a swap closes the page.
   const swap = () => {
-    showDialog(MISSION.swap.title, MISSION.swap.body(swapsLeft), [
-      { label: MISSION.swap.no, cancel: true },
-      {
-        label: MISSION.swap.yes,
-        onPress: () => {
-          if (today() !== day) return close();
-          const i = useApp.getState().plans[day]?.missions.findIndex(p => p.missionId === missionId) ?? -1;
-          if (i < 0) return;
-          const r = useApp.getState().rerollMission(i);
-          if (r === 'ok') close();
-          else if (r === 'none') showDialog(MISSION.swap.noneTitle, MISSION.swap.noneBody, [{ label: MISSION.swap.ok, cancel: true }]);
-          else showDialog(MISSION.swap.limitTitle, MISSION.swap.limitBody, [{ label: MISSION.swap.ok, cancel: true }]);
-        },
-      },
-    ]);
+    const i = useApp.getState().plans[day]?.missions.findIndex(p => p.missionId === missionId) ?? -1;
+    if (i < 0) return;
+    confirmSwap({
+      index: i,
+      title: mission.title,
+      day,
+      swapsLeft,
+      onSwapped: close,
+      onDayOver: close,
+      onPaywall: () => navigation.navigate('Paywall', { from: 'swaps' }),
+    });
   };
 
   /** The server keeps each day's proven count and points (missions plus the perfect-day bonus) for rewards; it never sees a photo. */
