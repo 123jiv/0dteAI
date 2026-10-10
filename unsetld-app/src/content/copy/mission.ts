@@ -184,6 +184,8 @@ export const MISSION = {
   dayEnded: {
     title: 'The day ended at 4:00 AM.',
     body: 'That proof was for yesterday’s plan. Today has its own missions.',
+    /** A timer or a before photo was still going at 4:00 AM (on the mission page or on Today). */
+    unfinished: 'It was still going, so it didn’t count. Today has its own missions.',
     ok: 'OK',
   },
 

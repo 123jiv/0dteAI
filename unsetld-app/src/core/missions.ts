@@ -273,7 +273,7 @@ export function slotTracks(
   return out;
 }
 
-function weight(m: Mission, input: Pick<PlanInput, 'history' | 'day' | 'profile' | 'adapt'>, track: TrackId): number {
+function weight(m: Mission, input: Pick<PlanInput, 'history' | 'day' | 'profile' | 'adapt' | 'hour'>, track: TrackId): number {
   let w = (m.weight ?? 1) * personalWeight(m, track, leanFor(input.profile, input.day), input.adapt ?? NO_ADAPTATION);
   if (m.track !== track) w *= 0.6; // counts toward this area, but it's mainly another one
   const skills = input.profile.skills ?? [];
@@ -291,6 +291,8 @@ function weight(m: Mission, input: Pick<PlanInput, 'history' | 'day' | 'profile'
   }
   const skip = input.history.skips[m.id];
   if (skip) w /= 1 + skip.count;
+  // A plan made in the morning leans toward what can be done now; tonight's prep can still come up.
+  if (m.when === 'evening' && !m.anchor && input.hour != null && input.hour >= DAY_START_HOUR && input.hour < AFTERNOON_HOUR) w *= 0.5;
   return w;
 }
 
@@ -302,7 +304,7 @@ export const CORE_SHARE = 0.6;
  * fill the other days, so the habits that matter repeat without every day
  * looking the same.
  */
-function pick(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day' | 'profile' | 'adapt'>, track: TrackId, seed: string): Mission | null {
+function pick(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day' | 'profile' | 'adapt' | 'hour'>, track: TrackId, seed: string): Mission | null {
   if (!cands.length) return null;
   // A core habit counts as core only in its own area (Learn a Career Skill is core for Career, not Skills).
   const core = cands.filter(m => m.anchor && m.track === track);
@@ -320,7 +322,7 @@ function pick(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day
   return pickWeighted(cands, input, track, seed);
 }
 
-function pickWeighted(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day' | 'profile' | 'adapt'>, track: TrackId, seed: string): Mission | null {
+function pickWeighted(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day' | 'profile' | 'adapt' | 'hour'>, track: TrackId, seed: string): Mission | null {
   if (!cands.length) return null;
   const sorted = [...cands].sort((a, b) => (a.id < b.id ? -1 : 1));
   const ws = sorted.map(m => weight(m, input, track));
@@ -486,7 +488,13 @@ export function generatePlan(input: PlanInput): DayPlan {
   const byId = new Map(input.library.map(m => [m.id, m]));
   const focusArea = lean.focusArea && areas.includes(lean.focusArea) ? lean.focusArea : null;
   const programIds = [...(input.program?.missionIds ?? [])];
-  if (focusArea && slots.length <= 3) programIds.sort((x, y) => (byId.get(x)?.track === focusArea ? 0 : 1) - (byId.get(y)?.track === focusArea ? 0 : 1));
+  // The one that goes in: the plan's mission in the focus area if it has one, else its shortest,
+  // so the focus keeps the focused slot ("Get back in the gym" still gets a workout).
+  const rank = (id: string) => {
+    const m = byId.get(id);
+    return (m?.track === focusArea ? 0 : 2) + (m && sizeOf(m) === 'easy' ? 0 : 1);
+  };
+  if (focusArea && slots.length <= 3) programIds.sort((x, y) => rank(x) - rank(y) || (byId.get(x)?.minutes ?? 0) - (byId.get(y)?.minutes ?? 0));
   let placed = 0;
   for (const id of programIds) {
     if (focusArea && slots.length <= 3 && placed >= 1 && !usedTracks.includes(focusArea)) break;

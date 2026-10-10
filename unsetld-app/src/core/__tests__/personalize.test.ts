@@ -104,6 +104,12 @@ describe('goal text', () => {
     expect(goalLean('Get an internship').tags).toContain('internship');
     expect(goalLean('Build muscle').areas).toEqual(['fitness']);
     expect(goalLean('Make varsity basketball').tags).toContain('sport');
+    expect(goalLean('Be more disciplined').areas).toEqual(['discipline']);
+    expect(goalLean('Stretch every day').areas).toEqual(['fitness']);
+    expect(goalLean('Network more').areas).toEqual(['career']);
+    // Moving up at work isn't an internship search.
+    expect(goalLean('Advance professionally').tags).not.toContain('internship');
+    expect(goalLean('Land a summer internship').tags).toContain('internship');
     expect(goalLean('Learn coding').tags).toContain('coding');
     expect(goalLean('Save $1,000').areas).toEqual(['money']);
     expect(goalLean('').areas).toEqual([]);

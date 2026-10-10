@@ -26,13 +26,15 @@ const steersNothing = (text: string) => {
 /**
  * True when what's typed matches nothing the plan can lean toward (core/personalize goalLean),
  * so the screen says so rather than promise a lean. It waits for a pause in typing, so a
- * half-typed word ("gy") doesn't flash the note; a match hides it at once. Also used by
- * "Something else" on the weekly focus.
+ * half-typed word ("gy") or a thumb's pause between words ("Get a … better job") doesn't
+ * flash the note; a match hides it at once. Also used by "Something else" on the weekly focus.
  */
 export function useSteersNothing(text: string): boolean {
   const [settled, setSettled] = useState(text);
   useEffect(() => {
-    const t = setTimeout(() => setSettled(text), 600);
+    // Emptied (Clear, or every letter deleted) starts over at once, so a note for the old
+    // words can't flash on the first letter of new ones.
+    const t = setTimeout(() => setSettled(text), text.trim() ? 1200 : 0);
     return () => clearTimeout(t);
   }, [text]);
   return Boolean(text.trim() && settled.trim()) && steersNothing(text) && steersNothing(settled);
@@ -89,6 +91,9 @@ export function GoalScreen({ navigation, route }: RootProps<'Goal'>) {
           value={text}
           onChangeText={t => setText(t.replace(/\n/g, ' '))}
           maxLength={GOAL_MAX}
+          // Wraps so a whole goal stays readable; Return still submits (submitBehavior) and newlines are dropped.
+          multiline
+          scrollEnabled={false}
           placeholder={COPY.placeholder}
           placeholderTextColor={C.ash}
           accessibilityLabel={COPY.a11yInput}

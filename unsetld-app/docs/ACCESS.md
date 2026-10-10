@@ -126,7 +126,7 @@ Status fields (`StatusTier` in `src/core/types.ts`):
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string, ≤64 characters | `early-access`, `patch` and `piece-365` are the app's own: they keep their action, pause and letter from `milestones.json`. Any other id is a display-only tier. |
+| `id` | string, ≤64 characters | `early-access`, `patch` and `piece-365` are the app's own: they keep their action, pause and letter from `milestones.json`. Any other id is a display-only tier. The 365 piece's letter says "A full year", so keep `piece-365` at day 365 (or change its letter in `milestones.json` with it). |
 | `day` (`activeDays`) | whole number ≥1 | Active days needed. Moving an own tier's day moves its status, its page and its letter: Today asks `accessLetter` (`src/screens/access.ts`, `pendingStatusLetter` in `src/core/rewards.ts`) for the letter with the tiers in effect, and the letter page shows nothing for a tier the config has since moved or switched off. A letter's sub never names the number of days. The pause still starts at 7 active days (`PAUSABLE_DAYS` in `src/core/record.ts`). |
 | `title` | string, ≤40 characters | |
 | `short` | string | One line on Status. Optional: an own tier left without one keeps the built-in line; others default to "". |

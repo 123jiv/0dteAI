@@ -12,6 +12,7 @@ import type { MissionDone, RecordState } from '../../core/types';
 import { MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, TRACK_BY_ID } from '../../content';
 import { FOCUS } from '../../content/copy/focus';
 import { HOME } from '../../content/copy/home';
+import { MISSION } from '../../content/copy/mission';
 import type { TabProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
 import { deletePhoto } from '../../services/proof';
@@ -109,14 +110,19 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
     useCallback(() => {
       const s = useApp.getState();
       s.ensurePlan(day);
+      let ended = false;
       if (s.pendingBefore && s.pendingBefore.day < day) {
         deletePhoto(s.pendingBefore.photo.uri);
         s.setPendingBefore(null);
+        ended = true;
       }
       if (s.timer && s.timer.day < day) {
         s.cancelTimer();
         cancelTimerDone();
+        ended = true;
       }
+      // Say why it's gone, the same way the mission page does.
+      if (ended) showDialog(MISSION.dayEnded.title, MISSION.dayEnded.unfinished, [{ label: MISSION.dayEnded.ok, cancel: true }]);
     }, [day]),
   );
 

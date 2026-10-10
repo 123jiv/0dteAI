@@ -82,11 +82,12 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
   },
   { words: /\b(exams?|tests?|sat|act|finals?|midterms?|quiz(zes)?)\b/i, areas: ['school'], tags: ['exam', 'test'] },
   {
-    words: /\b(muscle|gym|strength|strong(er)?|lift(ing)?|work(ing)?\s?outs?|exercis\w*|train(ing)?|bulk|fit|fitness|shape|athlet\w*|abs|lose weight|weight loss|tryouts?)\b/i,
+    words: /\b(muscle|gym|strength|strong(er)?|lift(ing)?|work(ing)?\s?outs?|exercis\w*|train(ing)?|bulk|fit|fitness|shape|athlet\w*|abs|lose weight|weight loss|tryouts?|gymnastics|cheer|dance)\b/i,
     areas: ['fitness'],
     tags: ['gym', 'muscle', 'strength', 'workout'],
   },
-  { words: /\b(run(ning)?|cardio|endurance|marathon|5k|10k|stamina)\b/i, areas: ['fitness'], tags: ['run', 'cardio', 'endurance'] },
+  { words: /\b(run(ning)?|jog(ging)?|walk(ing)?|cardio|endurance|marathon|5k|10k|stamina)\b/i, areas: ['fitness'], tags: ['run', 'cardio', 'endurance', 'walk'] },
+  { words: /\b(stretch(ing)?|flexib\w*|mobility)\b/i, areas: ['fitness'], tags: ['stretch', 'mobility'] },
   {
     words: /\b(sports?|varsity|basketball|soccer|football|baseball|softball|volleyball|tennis|hockey|wrestling|lacrosse|swim(ming)?)\b/i,
     areas: ['fitness'],
@@ -98,11 +99,11 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
     areas: ['business'],
     tags: ['brand', 'clothing', 'shop', 'sell', 'customers'],
   },
-  {
-    words: /\b(internships?|jobs?|career|resume|cv|interviews?|hired|promotion|raise|linkedin|advanc\w*|professional(ly)?|salary)\b/i,
-    areas: ['career'],
-    tags: ['internship', 'job', 'resume', 'interview'],
-  },
+  // Career, split by stage: an internship, a job search, or moving up where they already work.
+  { words: /\b(internships?)\b/i, areas: ['career'], tags: ['internship'] },
+  { words: /\b(jobs?|hired|resume|cv|interviews?|linkedin|apply|applications?)\b/i, areas: ['career'], tags: ['job', 'resume', 'interview', 'apply'] },
+  { words: /\b(career|promotion|raise|advanc\w*|professional(ly)?|salary|manager)\b/i, areas: ['career'], tags: ['work', 'skill', 'resume'] },
+  { words: /\b(network(ing)?|connections?)\b/i, areas: ['career'], tags: ['network'] },
   {
     words: /\b(cod(e|ing)|program(ming)?|developer|software|apps?|websites?|python|javascript)\b/i,
     areas: ['skills', 'projects'],
@@ -115,7 +116,7 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
   },
   { words: /\b(read(ing)?|books?)\b/i, areas: ['skills'], tags: ['reading'] },
   {
-    words: /\b(routine|discipline|habits?|productive|productivity|focus(ed)?|procrastinat\w*|lazy|wake up|early|phone|screen time|scrolling)\b/i,
+    words: /\b(routine|disciplin\w*|habits?|productive|productivity|focus(ed)?|procrastinat\w*|lazy|wake up|early|phone|screen time|scrolling)\b/i,
     areas: ['discipline'],
     tags: ['routine', 'habits', 'focus'],
   },

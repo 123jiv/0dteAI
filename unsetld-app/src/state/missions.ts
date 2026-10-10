@@ -32,10 +32,13 @@ export function plannedArea(planned: Pick<PlannedMission, 'area'> | undefined, m
 /** Today's plan with each mission and its proof (if proven). Missing missions (removed from the library) are skipped. */
 export function missionsOf(plan: DayPlan | undefined, done: Record<string, MissionDone> | undefined, tracks: readonly TrackId[] = []): TodayMission[] {
   if (!plan) return [];
-  return plan.missions.flatMap((planned, index) => {
+  // The focused missions first (Study for 30 Minutes before Make Your Bed), then the plan's order.
+  // `index` stays the mission's place in the plan, for swaps.
+  const rows = plan.missions.flatMap((planned, index) => {
     const mission = MISSION_BY_ID[planned.missionId];
     return mission ? [{ index, planned, mission, area: plannedArea(planned, mission, tracks), done: done?.[planned.missionId] ?? null }] : [];
   });
+  return rows.sort((a, b) => (a.planned.slot === 'easy' ? 1 : 0) - (b.planned.slot === 'easy' ? 1 : 0) || a.index - b.index);
 }
 
 export function useTodayMissions(day: DayKey): { plan: DayPlan | undefined; missions: TodayMission[]; proven: number } {

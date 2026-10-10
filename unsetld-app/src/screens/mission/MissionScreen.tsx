@@ -64,7 +64,7 @@ const ours = (missionId: string, day: DayKey) => (x: { missionId: string; day: D
  * 4:00 AM passed with this mission's timer or before photo still going: that day's plan is
  * closed, so they go (the photo, and the timer's notification), and the dialog says why.
  */
-function endDay(missionId: string, day: DayKey, close: () => void) {
+function endDay(missionId: string, day: DayKey, close: () => void, proof = false) {
   const isOurs = ours(missionId, day);
   const s = useApp.getState();
   if (isOurs(s.pendingBefore)) {
@@ -75,7 +75,9 @@ function endDay(missionId: string, day: DayKey, close: () => void) {
     s.cancelTimer();
     cancelTimerDone();
   }
-  showDialog(MISSION.dayEnded.title, MISSION.dayEnded.body, [{ label: MISSION.dayEnded.ok, cancel: true, onPress: close }]);
+  // A proof sent after 4:00 AM, or a timer or before photo still going at 4:00 AM.
+  const body = proof ? MISSION.dayEnded.body : MISSION.dayEnded.unfinished;
+  showDialog(MISSION.dayEnded.title, body, [{ label: MISSION.dayEnded.ok, cancel: true, onPress: close }]);
 }
 
 export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
@@ -200,7 +202,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     clockCheck.current = null;
     // The dialog's OK closes the screen; the day-turned effect doesn't close it under the dialog.
     ended.current = true;
-    endDay(missionId, day, close);
+    endDay(missionId, day, close, photos.length > 0);
   };
 
   /** The proof photo itself: the single photo, the result, or the after. */

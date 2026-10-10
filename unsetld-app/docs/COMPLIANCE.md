@@ -28,6 +28,7 @@ Sources were checked on 2026-10-07: the App Review Guidelines (last updated 2026
 ## Photo proof
 
 - **Camera only.** iOS opens the camera, never the photo library (`photosPermission: false` in `app.json`). The camera permission text says what it's for: "unsetld uses the camera only when you prove a mission. Photos stay on your phone." (5.1.1(ii)). The app asks the first time someone opens the camera.
+- **Saving the share card.** The share card (no proof photos on it) goes to the system share sheet only when the user taps Share. "Save Image" there needs add-only Photos access, so `app.json` sets `NSPhotoLibraryAddUsageDescription`: "unsetld saves your share card to Photos only when you choose Save Image." The app never reads the photo library.
 - **Photos stay on the phone.** They're saved in the app's own folder and never uploaded. Like other app files, they can be part of the user's own iPhone backup.
 - **Metadata is stripped.** Each photo is resized to 1600 px and re-encoded as a new JPEG, which drops EXIF, including location.
 - **Retention.** Photos are deleted after 30 days by default (You → Proof photos: 30 days, 1 year or Keep). The mission, its points and its fingerprint stay.
