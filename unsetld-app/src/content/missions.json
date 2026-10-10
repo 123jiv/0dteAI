@@ -770,6 +770,7 @@
   ],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "flashcards",
   "tags": [
    "school",
@@ -1296,8 +1297,8 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "anchor": true,
   "group": "workout",
-  "weight": 0.7,
   "tags": [
    "fitness",
    "workout",
@@ -1542,6 +1543,7 @@
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "stretch",
   "tags": [
    "fitness",
@@ -3533,6 +3535,7 @@
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "project-session",
   "tags": [
    "projects",
@@ -4395,6 +4398,7 @@
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "skill-session",
   "tags": [
    "skills",

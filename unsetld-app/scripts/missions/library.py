@@ -200,7 +200,7 @@ m('school-flashcards-10', S, 'Review Flashcards for 10 Minutes', 10, 10, TP,
   'Your flashcards, after the timer.', 1, group='flashcards', requires=SC, tags=['test', 'exam', 'flashcards'])
 m('school-flashcards-5', S, 'Review Flashcards for 5 Minutes', 5, 5, T,
   'Go through flashcards for 5 minutes and say each answer before you flip the card.',
-  'Run the 5-minute timer to the end.', 1, group='flashcards', requires=SC, tags=['test', 'exam', 'flashcards'])
+  'Run the 5-minute timer to the end.', 1, group='flashcards', requires=SC, anchor=True, tags=['test', 'exam', 'flashcards'])
 m('school-upcoming-project', S, 'Work on an Upcoming School Project', 30, 15, TP,
   "Spend 30 minutes on a school project that's due soon.", 'What you got done, after the timer.', 2,
   requires=SC, tags=['homework'])
@@ -276,7 +276,7 @@ m('fitness-bodyweight-10', F, 'Do a 10-Minute Bodyweight Workout', 10, 10, T,
   'Run the 10-minute timer to the end.', 2, group='workout', anchor=True, tags=['workout', 'strength', 'home'])
 m('fitness-pushups-squats', F, 'Do 3 Rounds of Push-ups and Squats', 5, 5, T,
   'Do 3 rounds of 10 push-ups and 15 squats, with the push-ups on your knees if you need to.',
-  'Run the 5-minute timer to the end.', 2, group='workout', weight=0.7, tags=['workout', 'strength', 'home'])
+  'Run the 5-minute timer to the end.', 2, group='workout', anchor=True, tags=['workout', 'strength', 'home'])
 m('fitness-walk-30', F, 'Walk for 30 Minutes', 30, 15, TP,
   'Go for a 30-minute walk with your phone in your pocket.', 'Where you walked. No people.', 1, group='cardio', anchor=True,
   weight=1.3, tags=['walk', 'cardio', 'outside'])
@@ -311,7 +311,7 @@ m('fitness-stretch-10', F, 'Stretch for 10 Minutes', 10, 10, T,
   group='stretch', anchor=True, weight=1.2, tags=['stretch', 'mobility', 'recovery'])
 m('fitness-stretch-5', F, 'Stretch for 5 Minutes', 5, 5, T,
   'Stretch your legs, hips and back for 5 minutes, holding each stretch for 30 seconds.',
-  'Run the 5-minute timer to the end.', 1, group='stretch', tags=['stretch', 'mobility', 'recovery'])
+  'Run the 5-minute timer to the end.', 1, group='stretch', anchor=True, tags=['stretch', 'mobility', 'recovery'])
 m('fitness-mobility-10', F, 'Do a 10-Minute Mobility Session', 10, 10, T,
   'Ten minutes of mobility work for your hips, ankles, shoulders and back.', 'Run the 10-minute timer to the end.', 2,
   group='stretch', weight=0.8, tags=['mobility', 'stretch', 'recovery'])
@@ -615,7 +615,7 @@ m('projects-work-10', PR, 'Work on Your Project for 10 Minutes', 10, 10, TP,
   group='project-session', anchor=True, tags=['build', 'project'])
 m('projects-work-5', PR, 'Work on Your Project for 5 Minutes', 5, 5, T,
   'Open your project and do the next small thing on it for 5 minutes.',
-  'Run the 5-minute timer to the end.', 1, group='project-session', tags=['build', 'project'])
+  'Run the 5-minute timer to the end.', 1, group='project-session', anchor=True, tags=['build', 'project'])
 m("projects-instead-of-scrolling", PR, "Spend 30 Minutes Building Instead of Scrolling", 30, 20, TP,
   "Put the phone down and build something for 30 minutes instead.", "What you built, after the timer.", 3,
   group="project-session", weight=0.5, tags=['build', 'project', 'phone'])
@@ -741,7 +741,7 @@ m('skills-practice-10', K, 'Practice Your Skill for 10 Minutes', 10, 10, TP,
   'What you practiced, after the timer.', 1, group='skill-session', tags=['practice', 'skill'])
 m('skills-practice-5', K, 'Practice Your Skill for 5 Minutes', 5, 5, T,
   "Spend 5 minutes practicing the skill you're learning: one drill, one exercise, no tutorial.",
-  'Run the 5-minute timer to the end.', 1, group='skill-session', tags=['practice', 'skill'])
+  'Run the 5-minute timer to the end.', 1, group='skill-session', anchor=True, tags=['practice', 'skill'])
 m('skills-notes-learned', K, 'Take Notes on Something You Learned Today', 5, 5, P,
   'Write one thing you learned today in your own words, with an example.', 'Your note.', 2, group='skill-review',
   tags=['learn', 'notes'])

@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import missionsJson from '../../content/missions.json';
 import { dayBudget, DEFAULT_PROFILE, generatePlan, historyFrom, rerollMission, serves, usableAreas, type PlanInput } from '../missions';
+import { goalLean } from '../personalize';
 import { addDays, type DayKey } from '../time';
 import type { DayPlan, Mission, Profile, TrackId } from '../types';
 
@@ -76,7 +77,8 @@ describe('personas', () => {
         // At least one focused mission every day (an area with nothing focused left gives a short one instead).
         expect(ms.some(m => m.minutes > 15)).toBe(true);
         focusedSlots += plan.missions.filter(x => x.slot === 'main').length;
-        focusedFilled += plan.missions.filter(x => x.slot === 'main' && BY_ID.get(x.missionId)!.minutes > 15).length;
+        // 15 minutes counts (Clean Your Room for 15 Minutes in a 20-minute focused slot); 5- and 10-minute fillers don't.
+        focusedFilled += plan.missions.filter(x => x.slot === 'main' && BY_ID.get(x.missionId)!.minutes >= 15).length;
         // No school missions for someone not in school; no gym missions without a gym.
         if (p.profile.school === false) expect(ms.some(m => m.requires?.includes('school'))).toBe(false);
         if (p.profile.gym !== true) expect(ms.some(m => m.requires?.includes('gym'))).toBe(false);
@@ -139,5 +141,80 @@ describe('personas', () => {
   it('leaves morning missions out of a plan made in the afternoon', () => {
     const plans = simulateWeek(PERSONAS[0].profile, '2026-10-12', 14, 15);
     for (const plan of plans) for (const x of plan.missions) expect(BY_ID.get(x.missionId)!.when).not.toBe('morning');
+  });
+});
+
+describe('the founder personas, from the goal they typed', () => {
+  const NONE = { lastDone: {}, lastPlanned: {}, skips: {} };
+  const areasOf = (key: string) => goalLean(PERSONAS.find(p => p.key === key)!.profile.goal).areas;
+
+  it('read every area each goal names', () => {
+    expect(areasOf('A')).toEqual(expect.arrayContaining(['school', 'fitness']));
+    expect(areasOf('B')).toEqual(expect.arrayContaining(['business', 'money']));
+    expect(areasOf('C')).toEqual(expect.arrayContaining(['career', 'skills']));
+    expect(areasOf('D')).toEqual(expect.arrayContaining(['projects']));
+    expect(areasOf('E')).toEqual(expect.arrayContaining(['fitness', 'money', 'career']));
+  });
+
+  it('Day 1 gives a focused mission to an area the goal names, whatever the date', () => {
+    for (const p of PERSONAS) {
+      const goal = goalLean(p.profile.goal).areas.filter(a => p.profile.tracks.includes(a));
+      for (let d = 0; d < 9; d++) {
+        const day = addDays('2026-10-12', d);
+        const plan = generatePlan({ library: LIBRARY, profile: p.profile, day, salt: `day1-${d}`, history: NONE, hour: 9 });
+        const focused = plan.missions.filter(x => x.slot === 'main').map(x => x.area);
+        expect(focused.some(a => a && goal.includes(a)), `${p.key} on ${day}`).toBe(true);
+      }
+    }
+  });
+
+  it('Day 1 in the morning is things to do now, not tonight', () => {
+    for (const p of PERSONAS) {
+      for (let d = 0; d < 7; d++) {
+        const plan = generatePlan({ library: LIBRARY, profile: p.profile, day: addDays('2026-10-12', d), salt: `am-${d}`, history: NONE, hour: 9 });
+        for (const x of plan.missions) expect(BY_ID.get(x.missionId)!.when, `${p.key} ${x.missionId}`).not.toBe('evening');
+      }
+    }
+  });
+
+  it('with three goal areas, each one leads (takes the first focused slot) on some days', () => {
+    const e = PERSONAS.find(p => p.key === 'E')!.profile;
+    const led = new Set<string>();
+    for (const plan of simulateWeek(e, '2026-10-12', 9)) {
+      const first = plan.missions.find(x => x.slot === 'main');
+      if (first?.area) led.add(first.area);
+    }
+    expect([...led].sort()).toEqual(['career', 'fitness', 'money']);
+  });
+
+  it('a running plan never pushes the weekly focus out of the day', () => {
+    const a = PERSONAS.find(p => p.key === 'A')!.profile;
+    const lockIn = [['discipline-plan-tomorrow', 'discipline-lock-in-30'], ['discipline-top-3', 'discipline-lock-in-30'], ['discipline-clear-3-small', 'discipline-lock-in-30']];
+    for (const minutes of [15, 30, 45] as const) {
+      for (let d = 0; d < 6; d++) {
+        const day = addDays('2026-10-12', d);
+        const profile = { ...a, minutes, focus: { week: '2026-10-12', id: 'exam' as const } };
+        const plan = generatePlan({
+          library: LIBRARY,
+          profile,
+          day,
+          salt: `plan-${d}`,
+          history: { lastDone: {}, lastPlanned: { 'retired-mission': '2026-09-01' }, skips: {} },
+          hour: 9,
+          program: { id: 'lock-in-7', missionIds: lockIn[d % 3] },
+        });
+        expect(plan.missions.some(x => x.area === 'school'), `${minutes} min, ${day}`).toBe(true);
+        expect(plan.missions.some(x => x.programId), `${minutes} min, ${day}`).toBe(true);
+      }
+    }
+  });
+
+  it('missions made for one medium (Film One Video) wait for a user who named it', () => {
+    const builder: Profile = { ...DEFAULT_PROFILE, tracks: ['projects', 'discipline'], project: true, skills: [], age: '18plus', minutes: 60 };
+    const medium = (id: string) => Boolean(BY_ID.get(id)!.fits?.length);
+    const plans = simulateWeek(builder, '2026-10-12', 28);
+    expect(plans.flatMap(p => p.missions).filter(x => medium(x.missionId)).length).toBe(0);
+    const filmmaker = simulateWeek({ ...builder, goal: 'Start a YouTube channel and get better at video editing' }, '2026-10-12', 28);
+    expect(filmmaker.flatMap(p => p.missions).filter(x => medium(x.missionId)).length).toBeGreaterThan(0);
   });
 });

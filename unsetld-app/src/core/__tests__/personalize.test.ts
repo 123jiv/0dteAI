@@ -36,7 +36,8 @@ const input = (p: Partial<PlanInput> = {}): PlanInput => ({
   profile: profile(),
   day: '2026-10-14',
   salt: 's',
-  history: { lastDone: {}, lastPlanned: {}, skips: {} },
+  // Not the user's first day (Day 1 has its own rules, tested below).
+  history: { lastDone: {}, lastPlanned: { 'retired-mission': '2026-09-01' }, skips: {} },
   ...p,
 });
 const accepted = (id: string, at = Date.UTC(2026, 9, 10, 9)): MissionDone => ({
@@ -223,7 +224,7 @@ describe('staples and niche missions', () => {
     let later = 0;
     let total = 0;
     for (let k = 0; k < 24; k++) {
-      const day1 = generatePlan(input({ library: anchored, salt: `d${k}` }));
+      const day1 = generatePlan(input({ library: anchored, salt: `d${k}`, history: { lastDone: {}, lastPlanned: {}, skips: {} } }));
       first += day1.missions.filter(p => byId.get(p.missionId)!.anchor).length;
       total += day1.missions.length;
       const day5 = generatePlan(input({ library: anchored, salt: `d${k}`, history: { lastDone: {}, lastPlanned: { [LIB[0].id]: '2026-10-10' }, skips: {} } }));

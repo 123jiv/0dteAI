@@ -75,20 +75,61 @@ export const FOCUS_LEAN: Record<Exclude<FocusId, 'other'>, { area: TrackId; ids:
  * missions in any of the user's areas.
  */
 const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
-  { words: /\b(gpa|grades?|homework|class(es)?|study(ing)?|school)\b/i, areas: ['school'], tags: ['study', 'grades', 'gpa', 'homework'] },
+  {
+    words: /\b(gpa|grades?|homework|class(es)?|study(ing)?|school|college|university|semester|courses?|essays?|assignments?|science fair|school project|class project)\b/i,
+    areas: ['school'],
+    tags: ['study', 'grades', 'gpa', 'homework'],
+  },
   { words: /\b(exams?|tests?|sat|act|finals?|midterms?|quiz(zes)?)\b/i, areas: ['school'], tags: ['exam', 'test'] },
-  { words: /\b(muscle|gym|strength|strong|lift(ing)?|workouts?|bulk|fit|fitness|shape|athletic)\b/i, areas: ['fitness'], tags: ['gym', 'muscle', 'strength', 'workout'] },
+  {
+    words: /\b(muscle|gym|strength|strong(er)?|lift(ing)?|work(ing)?\s?outs?|exercis\w*|train(ing)?|bulk|fit|fitness|shape|athlet\w*|abs|lose weight|weight loss|tryouts?)\b/i,
+    areas: ['fitness'],
+    tags: ['gym', 'muscle', 'strength', 'workout'],
+  },
   { words: /\b(run(ning)?|cardio|endurance|marathon|5k|10k|stamina)\b/i, areas: ['fitness'], tags: ['run', 'cardio', 'endurance'] },
-  { words: /\b(sports?|varsity|basketball|soccer|football|baseball|softball|volleyball|tennis|hockey|wrestling|lacrosse|swim(ming)?)\b/i, areas: ['fitness'], tags: ['sport', 'training'] },
-  { words: /\b(brand|clothing|apparel|business|shop|store|sell(ing)?|customers?|startup|company|merch)\b/i, areas: ['business'], tags: ['brand', 'clothing', 'shop', 'sell', 'customers'] },
-  { words: /\b(internships?|jobs?|career|resume|cv|interviews?|hired|promotion|raise|linkedin)\b/i, areas: ['career'], tags: ['internship', 'job', 'resume', 'interview'] },
-  { words: /\b(cod(e|ing)|program(ming)?|developer|software|apps?|websites?|python|javascript)\b/i, areas: ['skills', 'projects'], tags: ['coding', 'code', 'app', 'programming'] },
-  { words: /\b(save|saving|savings|budget(ing)?|debt|invest(ing)?|money)\b|\$\s?\d/i, areas: ['money'], tags: ['save', 'savings', 'budget', 'money'] },
+  {
+    words: /\b(sports?|varsity|basketball|soccer|football|baseball|softball|volleyball|tennis|hockey|wrestling|lacrosse|swim(ming)?)\b/i,
+    areas: ['fitness'],
+    tags: ['sport', 'training'],
+  },
+  { words: /\b(eat(ing)? (better|healthier|healthy)|healthier|nutrition|meals?|protein|cook(ing)?)\b/i, areas: ['fitness'], tags: ['meal', 'food'] },
+  {
+    words: /\b(brand|clothing|apparel|business|shop|store|sell(ing)?|customers?|clients?|startup|company|merch|side hustle|hustle|entrepreneur\w*|etsy|resell(ing)?)\b/i,
+    areas: ['business'],
+    tags: ['brand', 'clothing', 'shop', 'sell', 'customers'],
+  },
+  {
+    words: /\b(internships?|jobs?|career|resume|cv|interviews?|hired|promotion|raise|linkedin|advanc\w*|professional(ly)?|salary)\b/i,
+    areas: ['career'],
+    tags: ['internship', 'job', 'resume', 'interview'],
+  },
+  {
+    words: /\b(cod(e|ing)|program(ming)?|developer|software|apps?|websites?|python|javascript)\b/i,
+    areas: ['skills', 'projects'],
+    tags: ['coding', 'code', 'app', 'programming'],
+  },
+  {
+    words: /\b(save|saving|savings|budget(ing)?|debt|invest(ing)?|money|spend(ing)?|income|financ\w*)\b|\$\s?\d/i,
+    areas: ['money'],
+    tags: ['save', 'savings', 'budget', 'money'],
+  },
   { words: /\b(read(ing)?|books?)\b/i, areas: ['skills'], tags: ['reading'] },
-  { words: /\b(routine|discipline|habits?|consistent|consistency|productive|productivity|focus(ed)?|procrastinat\w*)\b/i, areas: ['discipline'], tags: ['routine', 'habits', 'focus'] },
-  { words: /\b(organi[sz](e|ed|ing)|clean(er|ing)?|declutter|tidy)\b/i, areas: ['organization'], tags: ['clean', 'organize'] },
+  {
+    words: /\b(routine|discipline|habits?|productive|productivity|focus(ed)?|procrastinat\w*|lazy|wake up|early|phone|screen time|scrolling)\b/i,
+    areas: ['discipline'],
+    tags: ['routine', 'habits', 'focus'],
+  },
+  // "...consistently": how they want to do it, not an area of its own.
+  { words: /\b(consistent(ly)?|consistency)\b/i, areas: [], tags: ['routine', 'habits'] },
+  { words: /\b(organi[sz](e|ed|ing)|clean(er|ing)?|declutter|tidy|messy|laundry|chores?)\b/i, areas: ['organization'], tags: ['clean', 'organize'] },
   { words: /\b(ship|launch|portfolio|side project|project)\b/i, areas: ['projects'], tags: ['build', 'launch', 'project'] },
-  { words: /\b(design|drawing|art|editing|video|music|guitar|piano|language|spanish|french)\b/i, areas: ['skills'], tags: ['practice', 'learn'] },
+  // A skill by name also names its medium, so missions made for that medium can come up.
+  { words: /\b(design(ing)?|drawing|draw|art)\b/i, areas: ['skills'], tags: ['practice', 'learn', 'design'] },
+  { words: /\b(editing|video|youtube|film(ing)?|content)\b/i, areas: ['skills'], tags: ['practice', 'learn', 'video', 'editing'] },
+  { words: /\b(writ(e|ing)|blog)\b/i, areas: ['skills'], tags: ['practice', 'learn', 'writing'] },
+  { words: /\b(music|guitar|piano|drums|singing|instrument)\b/i, areas: ['skills'], tags: ['practice', 'learn', 'music'] },
+  { words: /\b(languages?|spanish|french|german|japanese|korean|chinese)\b/i, areas: ['skills'], tags: ['practice', 'learn', 'language'] },
+  { words: /\b(learn(ing)?|skills?)\b/i, areas: ['skills'], tags: ['learn'] },
 ];
 
 /** What a goal (or a weekly focus typed under "Something else") points at. Empty for no match. */

@@ -222,7 +222,9 @@ export function leadArea(input: Pick<PlanInput, 'profile' | 'day'>, areas: reado
   const set = [lean.focusArea, input.profile.priority].find(a => a && areas.includes(a));
   if (set) return set;
   const goal = lean.goalAreas.filter(a => areas.includes(a));
-  return goal.length ? goal[mod(dayNumber(input.day), goal.length)] : undefined;
+  // Counted over the days the lead doesn't rest (slotTracks rests it every third day), so each goal area gets lead days.
+  const d = dayNumber(input.day);
+  return goal.length ? goal[mod(d - Math.floor(d / 3), goal.length)] : undefined;
 }
 
 const rotate = <T,>(xs: readonly T[], k: number): T[] => (xs.length ? [...xs.slice(mod(k, xs.length)), ...xs.slice(0, mod(k, xs.length))] : []);
@@ -242,17 +244,20 @@ export function slotTracks(
   day: DayKey,
   areas?: readonly TrackId[],
   leadOverride?: TrackId,
-  /** The lead never rests (a weekly focus: the user asked for it all week). */
+  /** The lead never rests (a weekly focus: the user asked for it all week; or the user's first day). */
   alwaysLead = false,
+  /** On a rest day, these (the other areas the goal points at) go first among the others. */
+  preferred: readonly TrackId[] = [],
 ): TrackId[] {
   const tracks = areas?.length ? [...areas] : profile.tracks.length ? profile.tracks : DEFAULT_PROFILE.tracks;
   const d = dayNumber(day);
   const lead =
     leadOverride && tracks.includes(leadOverride) ? leadOverride : profile.priority && tracks.includes(profile.priority) ? profile.priority : tracks[0];
   const pool = tracks.filter(t => t !== lead);
-  // The others' order moves on every day, so the one that goes first changes (on the third day too).
-  const others = rotate(pool, mod(d, 3) === 0 ? Math.floor(d / 3) : d - Math.floor(d / 3));
   const rest = !alwaysLead && pool.length > 0 && mod(d, 3) === 0;
+  // The others' order moves on every day, so the one that goes first changes (on the third day too).
+  const turn = rotate(pool, mod(d, 3) === 0 ? Math.floor(d / 3) : d - Math.floor(d / 3));
+  const others = rest ? [...turn.filter(t => preferred.includes(t)), ...turn.filter(t => !preferred.includes(t))] : turn;
   const queue = rest ? [...others, lead] : [lead, ...others];
   const at = (k: number) =>
     k < queue.length ? queue[k] : pool.length > 1 ? others[mod(k - queue.length + d, others.length)] : queue[mod(k - queue.length + d, queue.length)];
@@ -376,16 +381,22 @@ export function chooseForSlot(
   const named = input.profile.skills ?? [];
   const offMedium = (m: Mission) => named.length > 0 && Boolean(m.fits?.length) && !m.fits!.some(x => named.includes(x));
 
-  // A niche mission (a plank set, typing practice) only when the area has nothing else that
-  // fits, unless the week's focus or the goal points at it.
+  // Only when the area has nothing else that fits: a niche mission (a plank set, typing practice)
+  // or one made for a medium (Film One Video) the user never named, unless the week's focus or the
+  // goal points at it; and on Day 1 before 3 PM, a mission for tonight (the first list should be
+  // doable now).
   const lean = leanFor(input.profile, input.day);
-  const niche = (m: Mission) => Boolean(m.tags?.includes('niche')) && !leansTo(m, lean);
+  const firstDay = Object.keys(input.history.lastPlanned).length === 0;
+  const morning = input.hour != null && input.hour >= DAY_START_HOUR && input.hour < AFTERNOON_HOUR + 3;
+  const lastResort = (m: Mission) =>
+    ((Boolean(m.tags?.includes('niche')) || (named.length === 0 && Boolean(m.fits?.length))) && !leansTo(m, lean)) ||
+    (firstDay && morning && m.when === 'evening');
 
   const tryAreas = (list: readonly TrackId[], size: MissionSlot, relaxShown: boolean, ignoreSkips: boolean, cap: number): SlotPick | null => {
     for (const area of list) {
       const all = input.library.filter(m => serves(m, area) && fits(m, size, cap) && available(m, input, relaxShown, ignoreSkips));
       const onMedium = all.filter(m => !offMedium(m));
-      const usual = (onMedium.length ? onMedium : all).filter(m => !niche(m));
+      const usual = (onMedium.length ? onMedium : all).filter(m => !lastResort(m));
       const cands = usual.length ? usual : onMedium.length ? onMedium : all;
       const m = pick(cands, input, area, `${seed}:${size}:${area}`);
       if (m) return { mission: m, area };
@@ -456,7 +467,11 @@ export function generatePlan(input: PlanInput): DayPlan {
   const slots = slotsFor(profile);
   const areas = planAreas(input);
   const lead = leadArea(input, areas);
-  const tracks = slotTracks(profile, slots, day, areas, lead, Boolean(lead && lead === leanFor(profile, day).focusArea));
+  const lean = leanFor(profile, day);
+  // Day 1 (nothing planned before) leads with the area they came for, whatever the date.
+  const firstDay = Object.keys(input.history.lastPlanned).length === 0;
+  const goalAreas = lean.goalAreas.filter(a => areas.includes(a));
+  const tracks = slotTracks(profile, slots, day, areas, lead, firstDay || Boolean(lead && lead === lean.focusArea), goalAreas);
   const budget = dayBudget(profile);
   const chosenSlots: PlannedMission[] = [];
   const used = new Set<string>();
@@ -464,9 +479,15 @@ export function generatePlan(input: PlanInput): DayPlan {
   let spent = 0;
   const filled = new Set<number>();
 
-  // Program missions take a slot of their size (or the first free one).
+  // Program missions take a slot of their size (or the first free one). With a weekly focus on a
+  // day of three or fewer, one of them is enough (it moves the plan on) and the focus keeps a slot.
   const byId = new Map(input.library.map(m => [m.id, m]));
-  for (const id of input.program?.missionIds ?? []) {
+  const focusArea = lean.focusArea && areas.includes(lean.focusArea) ? lean.focusArea : null;
+  const programIds = [...(input.program?.missionIds ?? [])];
+  if (focusArea && slots.length <= 3) programIds.sort((x, y) => (byId.get(x)?.track === focusArea ? 0 : 1) - (byId.get(y)?.track === focusArea ? 0 : 1));
+  let placed = 0;
+  for (const id of programIds) {
+    if (focusArea && slots.length <= 3 && placed >= 1 && !usedTracks.includes(focusArea)) break;
     const m = byId.get(id);
     if (!m || !m.active || used.has(id)) continue;
     // A mission the user's answers rule out (School Reset after "not in school") stays out.
@@ -483,10 +504,16 @@ export function generatePlan(input: PlanInput): DayPlan {
     for (const x of sameDayBlocked(input.library, m)) used.add(x);
     usedTracks.push(area);
     spent += m.minutes;
+    placed += 1;
   }
 
   // Focused missions first (they take most of the time), then the easy ones.
   const order = slots.map((s, i) => ({ s, i })).sort((a, b) => (a.s === b.s ? a.i - b.i : a.s === 'main' ? -1 : 1));
+  // A plan took the focus area's slot: the first free slot (focused first) goes to the focus instead.
+  if (focusArea && !usedTracks.includes(focusArea) && !order.some(o => !filled.has(o.i) && tracks[o.i] === focusArea)) {
+    const free = order.find(o => !filled.has(o.i));
+    if (free) tracks[free.i] = focusArea;
+  }
   for (const { s, i } of order) {
     if (filled.has(i)) continue;
     const later = order.filter(o => !filled.has(o.i) && o.i !== i && !chosenSlots[o.i]);
