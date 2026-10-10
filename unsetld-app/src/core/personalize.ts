@@ -109,11 +109,9 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
   { words: /\b(jobs?|hired|resume|cv|interviews?|linkedin|apply|applications?)\b/i, areas: ['career'], tags: ['job', 'resume', 'interview', 'apply'] },
   { words: /\b(career|promotion|raise|advanc\w*|professional(ly)?|salary|manager)\b/i, areas: ['career'], tags: ['work', 'skill', 'resume'] },
   { words: /\b(network(ing)?|connections?)\b/i, areas: ['career'], tags: ['network'] },
-  {
-    words: /\b(cod(e|ing)|program(ming)?|developer|software|apps?|websites?|python|javascript)\b/i,
-    areas: ['skills', 'projects'],
-    tags: ['coding', 'code', 'app', 'programming'],
-  },
+  // Building a thing (an app, a site) is a project first; learning to code is a skill first.
+  { words: /\b(apps?|websites?|software)\b/i, areas: ['projects', 'skills'], tags: ['app', 'coding', 'code'] },
+  { words: /\b(cod(e|ing)|program(ming)?|developer|python|javascript)\b/i, areas: ['skills', 'projects'], tags: ['coding', 'code', 'programming'] },
   {
     words: /\b(save|saving|savings|budget(ing)?|debt|invest(ing)?|money|spend(ing)?|income|financ\w*)\b|\$\s?\d/i,
     areas: ['money'],

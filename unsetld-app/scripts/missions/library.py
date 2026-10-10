@@ -127,7 +127,7 @@ m('discipline-plan-week', D, 'Plan Your Week', 20, 10, P,
   'Write your goals, deadlines and key tasks for the next 7 days on one page.',
   'Your week on one page, private details covered.', 6, group='planning-week', tags=['planning', 'routine'])
 m('discipline-clear-3-small', D, 'Finish 3 Small Tasks', 20, 10, P,
-  'Do three small things you keep leaving: a reply, a form, a quick errand.',
+  'Do three small things you keep putting off: a reply, a form, a quick errand.',
   'Your list with all three crossed off.', 3, group='small-tasks', tags=['habits'])
 m('discipline-todo-30', D, 'Work Through Your To-Do List for 30 Minutes', 30, 15, TP,
   'Cross off as many tasks on your list as you can in 30 minutes, quickest first.',
@@ -251,7 +251,7 @@ m('school-term-deadlines', S, "Put This Term's Deadlines in Your Calendar", 30, 
 
 m('school-plan-study-tomorrow', S, "Plan Tomorrow's Study Time", 5, 5, P,
   "Write what you'll study tomorrow, for how long and when.", 'Your plan.', 2, group='planning', requires=SC,
-  when='evening', tags=['planning'])
+  when='evening', tags=['planning', 'support'])
 m('school-check-due', S, 'Write Down Everything Due This Week', 5, 5, P,
   'Check your planner and class pages and list every assignment and test due in the next 7 days.',
   "Your list of what's due. No scores.", 5, group='planning-week', requires=SC, tags=['planning'])
@@ -320,17 +320,17 @@ m("fitness-balanced-meal", F, "Prepare a Balanced Meal", 20, 10, P,
   group="meal", weight=0.8, tags=['meal', 'food', 'cooking'])
 m('fitness-pack-meal', F, "Prepare Tomorrow's Meal", 15, 10, P,
   "Make or pack tomorrow's lunch tonight.", 'Your packed meal.', 2, group='meal', when='evening', days=WEEKNIGHTS,
-  tags=['meal', 'food', 'planning'])
+  tags=['meal', 'food', 'planning', 'support'])
 m('fitness-breakfast', F, "Get Tomorrow's Breakfast Ready", 5, 5, P,
   "Set out or make tomorrow's breakfast tonight so you don't skip it.", 'Your breakfast, ready for the morning.', 2,
-  group='meal', when='evening', weight=0.5, tags=['meal', 'food', 'routine'])
+  group='meal', when='evening', weight=0.5, tags=['meal', 'food', 'routine', 'support'])
 # Planning, packing and logging support the workout; they sit below it and don't carry its keywords.
 m('fitness-plan-week', F, "Plan This Week's Workouts", 10, 10, P,
   "Write which days you'll train this week, when, and what you'll do.", 'Your training plan.', 6,
-  group='planning-week', tags=['planning'])
+  group='planning-week', tags=['planning', 'support'])
 m('fitness-log-workout', F, 'Log Your Last Workout', 5, 5, P,
   'Write down every exercise, set and rep from your last workout, and circle one to beat next time.',
-  'Your workout log.', 2, requires=['gym'], weight=0.5, tags=['tracking', 'follow-up'])
+  'Your workout log.', 2, requires=['gym'], weight=0.5, tags=['tracking', 'follow-up', 'support'])
 m('fitness-meal-prep', F, 'Meal Prep for the Next 3 Days', 60, 25, P,
   'Cook and pack lunches or dinners for the next 3 days.', 'Your packed meals.', 6, group='meal', weight=0.6,
   tags=['meal', 'food', 'cooking'])
@@ -344,10 +344,10 @@ m('fitness-plank-5', F, 'Do a 5-Minute Plank Set', 5, 5, T,
   'Run the 5-minute timer to the end.', 2, group='core', weight=0.1, niche=True, tags=['core'])
 m('fitness-pack-gym-bag', F, 'Pack Your Gym Bag for Tomorrow', 5, 5, P,
   "Pack your shoes, clothes and water tonight for tomorrow's workout.", 'Your packed bag.', 2,
-  group='tomorrow-ready', when='evening', requires=['gym'], weight=0.5, tags=['planning'])
+  group='tomorrow-ready', when='evening', requires=['gym'], weight=0.5, tags=['planning', 'support'])
 m('fitness-plan-tomorrow', F, "Plan Tomorrow's Workout", 5, 5, P,
   "Write what you'll do in tomorrow's workout: the exercises, sets and reps, or how far you'll go.",
-  'Your written plan.', 2, group='planning', when='evening', weight=0.5, tags=['planning'])
+  'Your written plan.', 2, group='planning', when='evening', weight=0.5, tags=['planning', 'support'])
 
 # ── MONEY ──────────────────────────────────────────────────────────────────
 M = 'money'
@@ -647,7 +647,7 @@ m('projects-plan-steps', PR, "Plan Your Project's Next Steps", 10, 10, P,
   tags=['planning'])
 m('projects-plan-tomorrow', PR, "Plan Tomorrow's Project Work", 5, 5, P,
   "Write the one thing you'll get done on your project tomorrow and when you'll do it.", 'Your plan.', 2,
-  group='planning', when='evening', tags=['planning'])
+  group='planning', when='evening', tags=['planning', 'support'])
 m('projects-ideas-3', PR, 'Write 3 Ideas to Improve Your Project', 5, 5, P,
   "Write three ways to make your project better and circle the one you'll do next.", 'Your list with one circled.', 3,
   tags=['ideas'])
@@ -747,7 +747,7 @@ m('skills-notes-learned', K, 'Take Notes on Something You Learned Today', 5, 5, 
   tags=['learn', 'notes'])
 m('skills-plan-practice', K, "Plan Tomorrow's Practice", 5, 5, P,
   "Write what you'll practice tomorrow, for how long and when.", 'Your plan.', 2, group='planning', when='evening',
-  weight=0.8, tags=['planning'])
+  weight=0.8, tags=['planning', 'support'])
 m('skills-one-technique', K, 'Learn One New Shortcut or Technique', 5, 5, P,
   "Learn one shortcut, command or technique for the skill you're learning and use it once.",
   'A note of what you learned, or it in use on a computer.', 2, tags=['learn', 'practice', 'skill'])
@@ -801,6 +801,12 @@ m('organization-dishes', O, 'Do the Dishes', 15, 10, P,
   'Wash, dry and put away the dishes.', 'The empty sink.', 3, weight=0.7, tags=['clean', 'chores'])
 m("organization-trash", O, "Take Out Your Trash", 5, 5, P,
   "Empty your trash and recycling and take them out.", "The empty bin.", 3, tags=['clean', 'chores'])
+m('organization-put-back-10', O, 'Put 10 Things Back Where They Belong', 5, 5, P,
+  'Pick up ten things that are out of place and put each one back where it lives.', 'The space, after.', 1,
+  group='tidy', tags=['clean', 'organize', 'tidy'])
+m('organization-nightstand', O, 'Clear Off Your Nightstand', 5, 5, BA,
+  "Take everything off your nightstand or bedside shelf that doesn't belong there and put it away.", 'Before and after.', 2,
+  group='desk', tags=['clean', 'organize'])
 m('organization-bag', O, 'Clean Out Your Backpack or Work Bag', 10, 10, BA,
   'Empty your bag, throw out the trash and pack back only what you need.', 'Before and after, cards turned over.', 7,
   also=['discipline'], tags=['organize', 'clean', 'bag'])

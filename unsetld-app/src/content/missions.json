@@ -272,7 +272,7 @@
   "id": "discipline-clear-3-small",
   "track": "discipline",
   "title": "Finish 3 Small Tasks",
-  "short": "Do three small things you keep leaving: a reply, a form, a quick errand.",
+  "short": "Do three small things you keep putting off: a reply, a form, a quick errand.",
   "proof": "Your list with all three crossed off.",
   "proofType": "PHOTO",
   "points": 10,
@@ -1141,7 +1141,8 @@
   "when": "evening",
   "tags": [
    "school",
-   "planning"
+   "planning",
+   "support"
   ],
   "active": true
  },
@@ -1623,7 +1624,8 @@
    "fitness",
    "meal",
    "food",
-   "planning"
+   "planning",
+   "support"
   ],
   "active": true
  },
@@ -1646,7 +1648,8 @@
    "fitness",
    "meal",
    "food",
-   "routine"
+   "routine",
+   "support"
   ],
   "active": true
  },
@@ -1665,7 +1668,8 @@
   "group": "planning-week",
   "tags": [
    "fitness",
-   "planning"
+   "planning",
+   "support"
   ],
   "active": true
  },
@@ -1687,7 +1691,8 @@
   "tags": [
    "fitness",
    "tracking",
-   "follow-up"
+   "follow-up",
+   "support"
   ],
   "active": true
  },
@@ -1776,7 +1781,8 @@
   "weight": 0.5,
   "tags": [
    "fitness",
-   "planning"
+   "planning",
+   "support"
   ],
   "active": true
  },
@@ -1797,7 +1803,8 @@
   "weight": 0.5,
   "tags": [
    "fitness",
-   "planning"
+   "planning",
+   "support"
   ],
   "active": true
  },
@@ -3777,7 +3784,8 @@
   "when": "evening",
   "tags": [
    "projects",
-   "planning"
+   "planning",
+   "support"
   ],
   "active": true
  },
@@ -4445,7 +4453,8 @@
   "weight": 0.8,
   "tags": [
    "skills",
-   "planning"
+   "planning",
+   "support"
   ],
   "active": true
  },
@@ -4810,6 +4819,47 @@
    "organization",
    "clean",
    "chores"
+  ],
+  "active": true
+ },
+ {
+  "id": "organization-put-back-10",
+  "track": "organization",
+  "title": "Put 10 Things Back Where They Belong",
+  "short": "Pick up ten things that are out of place and put each one back where it lives.",
+  "proof": "The space, after.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "tidy",
+  "tags": [
+   "organization",
+   "clean",
+   "organize",
+   "tidy"
+  ],
+  "active": true
+ },
+ {
+  "id": "organization-nightstand",
+  "track": "organization",
+  "title": "Clear Off Your Nightstand",
+  "short": "Take everything off your nightstand or bedside shelf that doesn't belong there and put it away.",
+  "proof": "Before and after.",
+  "proofType": "BEFORE_AFTER",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "group": "desk",
+  "tags": [
+   "organization",
+   "clean",
+   "organize"
   ],
   "active": true
  },

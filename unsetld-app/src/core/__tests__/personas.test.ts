@@ -228,3 +228,54 @@ describe('the founder personas, from the goal they typed', () => {
     expect(filmmaker.flatMap(p => p.missions).filter(x => medium(x.missionId)).length).toBeGreaterThan(0);
   });
 });
+
+describe('short days stay useful', () => {
+  const salts = (n: number, f: (salt: string) => DayPlan[]) => Array.from({ length: n }, (_, k) => f(`s${k}`)).flat();
+  const run = (profile: Profile, days: number, salt: string) => {
+    const done: Record<DayKey, Record<string, { missionId: string }>> = {};
+    const plans: Record<DayKey, DayPlan> = {};
+    const out: DayPlan[] = [];
+    for (let i = 0; i < days; i++) {
+      const day = addDays('2026-10-12', i);
+      const plan = generatePlan({ library: LIBRARY, profile, day, salt, history: historyFrom(done, plans, {}, day), hour: 9 });
+      plans[day] = plan;
+      done[day] = Object.fromEntries(plan.missions.map(p => [p.missionId, { missionId: p.missionId }]));
+      out.push(plan);
+    }
+    return out;
+  };
+
+  it("Fitness is never just a prep task (Plan Tomorrow's Workout) at 15 or 30 minutes", () => {
+    for (const key of ['A', 'E']) {
+      for (const minutes of [15, 30] as const) {
+        const p = { ...PERSONAS.find(x => x.key === key)!.profile, minutes };
+        for (const plan of salts(6, salt => run(p, 14, salt))) {
+          const fit = plan.missions.filter(x => x.area === 'fitness').map(x => BY_ID.get(x.missionId)!);
+          if (fit.length) expect(fit.every(m => m.tags?.includes('support')), `${key} ${minutes} ${plan.day}`).toBe(false);
+        }
+      }
+    }
+  });
+
+  it('a 15-minute day stays within its budget', () => {
+    const p: Profile = { ...DEFAULT_PROFILE, tracks: ['school', 'fitness'], school: true, minutes: 15 };
+    for (const plan of salts(10, salt => run(p, 28, salt))) {
+      expect(plan.missions.reduce((t, x) => t + BY_ID.get(x.missionId)!.minutes, 0)).toBeLessThanOrEqual(dayBudget(p));
+    }
+  });
+
+  it('two areas at 15 minutes: both are in the day', () => {
+    const p: Profile = { ...DEFAULT_PROFILE, tracks: ['fitness', 'organization'], school: false, gym: false, age: 'u16', minutes: 15 };
+    for (const plan of salts(6, salt => run(p, 14, salt))) expect(new Set(plan.missions.map(x => x.area)).size).toBe(2);
+  });
+
+  it('"Build and ship an app" starts with real project work on Day 1 at 30 and 45 minutes', () => {
+    const d = PERSONAS.find(x => x.key === 'D')!.profile;
+    for (const minutes of [30, 45] as const) {
+      for (let i = 0; i < 14; i++) {
+        const plan = generatePlan({ library: LIBRARY, profile: { ...d, minutes }, day: addDays('2026-10-12', i), salt: 'd1', history: { lastDone: {}, lastPlanned: {}, skips: {} }, hour: 9 });
+        expect(plan.missions.some(x => x.area === 'projects' && BY_ID.get(x.missionId)!.minutes >= 20), `${minutes} min, day ${i}`).toBe(true);
+      }
+    }
+  });
+});
