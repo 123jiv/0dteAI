@@ -69,7 +69,10 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
         <Icon name="close" size={24} />
       </Pressable>
       <View style={{ position: 'absolute', top: Math.round(Math.min(height * 0.28, height - 540)), left: MARGIN, right: MARGIN }}>
-        <T v="mono">{COPY.letter.dayLabel(day)}</T>
+        {/* The header under it says the day ("Day 7."): VoiceOver reads that one only. */}
+        <T v="mono" aria-hidden>
+          {COPY.letter.dayLabel(day)}
+        </T>
         <T v="letter.day" style={{ marginTop: 12 }} accessibilityRole="header">
           {COPY.letter.dayTitle(day)}
         </T>

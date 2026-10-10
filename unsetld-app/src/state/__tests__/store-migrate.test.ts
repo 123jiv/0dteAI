@@ -1,11 +1,15 @@
 // Loading state saved by earlier builds: v3 plans, timers and before photos for missions the
-// library no longer has, and old area ids in the tester snapshot and the Keychain backup.
+// library no longer has, and old area ids in the tester snapshot and the Keychain backup; and
+// the updates App Store users take into v6 (3.0's v4 state, v5's minutes, 2.x's v1 state, a
+// 3.0 Keychain backup), from states the real builds saved (fixtures/).
 // Hydrates the real store from a seeded storage entry.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import v1 from './fixtures/v1-state.json';
+import v30 from './fixtures/v30-state.json';
 
 const mem = vi.hoisted(() => {
   (globalThis as { __DEV__?: boolean }).__DEV__ = false;
-  return { map: new Map<string, string>(), deleted: [] as string[], cancelled: 0 };
+  return { map: new Map<string, string>(), secure: new Map<string, string>(), deleted: [] as string[], cancelled: 0 };
 });
 
 vi.mock('react-native', () => ({
@@ -25,6 +29,10 @@ vi.mock('../../services/timerNotify', () => ({
     mem.cancelled++;
     return Promise.resolve();
   },
+}));
+vi.mock('expo-secure-store', () => ({
+  getItemAsync: async (k: string) => mem.secure.get(k) ?? null,
+  setItemAsync: async (k: string, v: string) => void mem.secure.set(k, v),
 }));
 
 const NOW = new Date(2026, 9, 10, 15, 0, 0); // Sat 10 Oct 2026, 3 PM local
@@ -243,5 +251,70 @@ describe('old area ids stay out of the record', () => {
     const old = rec({ '2026-10-05': { 'reset-x': done('reset-x', 'reset', 10) } });
     const once = migrateRecordTracks(old as never);
     expect(migrateRecordTracks(once)).toEqual(once);
+  });
+});
+
+describe('updating into v6 from what the real builds saved', () => {
+  const DAY = '2026-10-14';
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 14, 8, 10, 0)); // Wed 14 Oct 2026, 8:10 AM local
+  });
+
+  async function totals(r: never) {
+    const { balance, pointsEarned } = await import('../../core/rewards');
+    const { activeDays } = await import('../../core/progress');
+    const { computeStreak } = await import('../../core/streak');
+    return { balance: balance(r), earned: pointsEarned(r), active: activeDays(r).size, streak: computeStreak(activeDays(r), DAY).current };
+  }
+
+  it('3.0 (v4): points, days, codes and the running timer stay; 30–60 minutes become 45; saved as v6', async () => {
+    const { useApp } = await load({ ...v30.state, profile: { ...v30.state.profile, priority: 'school' } }, v30.version);
+    const s = useApp.getState();
+    expect(await totals(s.record as never)).toEqual({ balance: 370, earned: 670, active: 20, streak: 9 });
+    expect(s.record.redemptions).toHaveLength(1);
+    expect(s.record.lettersShown).toEqual(['7']);
+    expect(s.profile.minutes).toBe(45);
+    expect(s.profile.priority).toBeNull();
+    expect(s.timer?.missionId).toBe('discipline-focus-20');
+    expect(s.program?.finishedDay).toBe('2026-10-02');
+    s.ensurePlan(DAY);
+    expect(JSON.parse(mem.map.get('unsetld-v2')!).version).toBe(6);
+  });
+
+  it('3.0 (v4): 60+ minutes become 60; v5: 60 stays 60 and the retired weekly priority goes', async () => {
+    const { useApp: a } = await load({ ...v30.state, profile: { ...v30.state.profile, minutes: 90 } }, 4);
+    expect(a.getState().profile.minutes).toBe(60);
+    const { useApp: b } = await load({ ...v30.state, profile: { ...v30.state.profile, minutes: 60, priority: 'fitness' } }, 5);
+    expect(b.getState().profile.minutes).toBe(60);
+    expect(b.getState().profile.priority).toBeNull();
+  });
+
+  it('2.x (v1): areas from its chapters, its balance and codes, and only the settings 3.1 knows', async () => {
+    const { useApp, DEFAULT_SETTINGS } = await load(v1.state, v1.version);
+    const s = useApp.getState();
+    expect(s.profile.tracks).toEqual(['discipline', 'school', 'fitness']);
+    expect(s.record.legacyPoints).toBe(320);
+    expect((await totals(s.record as never)).balance).toBe(320);
+    // Reward history lists the 2.x codes.
+    expect(s.record.codes.map(c => c.code)).toEqual(['UNS-OLD5X', 'UNS-TEN2X']);
+    expect(Object.keys(s.settings).sort()).toEqual(Object.keys(DEFAULT_SETTINGS).sort());
+    expect(s.settings).toMatchObject({ onboarded: true, dropAlerts: true, reminders: { on: true, count: 3, first: 450, last: 1290 } });
+    expect(Object.keys(s.reading).sort()).toEqual(['accessIntroShown', 'road']);
+  });
+
+  it('a Keychain backup written by 3.0 restores into a fresh install', async () => {
+    const { useApp } = await load({ installSalt: 'fresh', settings: { onboarded: false } }, 6);
+    mem.secure.clear();
+    mem.secure.set('unsetld.record.v2', JSON.stringify({ installSalt: v30.state.installSalt, record: v30.state.record }));
+    const { readBackup } = await import('../../services/backup');
+    const b = await readBackup();
+    expect(b?.installSalt).toBe(v30.state.installSalt);
+    useApp.getState().restore(b!.installSalt, b!.record);
+    const s = useApp.getState();
+    expect(s.installSalt).toBe(v30.state.installSalt);
+    expect(await totals(s.record as never)).toEqual({ balance: 370, earned: 670, active: 20, streak: 9 });
+    expect(s.record.lettersShown).toEqual(v30.state.record.lettersShown);
+    expect(s.record.redemptions).toEqual(v30.state.record.redemptions);
   });
 });

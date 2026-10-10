@@ -12,6 +12,7 @@ import { Card, Meter } from '../ui/blocks';
 import { Button, InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, GAP } from '../ui/tokens';
+import { useAnnounce } from '../ui/useAnnounce';
 import { accessDays, accessRecord, earlyDrop, enableDropAlerts, findStatus, nextDropChange, runMilestoneAction, statusTiers, useStatusTiers, type ActionResult } from './access';
 import { LINING } from './rewards/redeem';
 import { statusStateText } from './rewards/StatusScreen';
@@ -32,6 +33,8 @@ export function errorText(r: ActionResult): string | null {
 /** The error under an action, with Open Settings when notifications are off. */
 export function ActionError({ result, style }: { result: ActionResult | null; style?: StyleProp<ViewStyle> }) {
   const text = result ? errorText(result) : null;
+  // VoiceOver on iOS reads no live region: the error is said as it shows.
+  useAnnounce(text);
   if (!text) return null;
   return (
     <View style={[{ gap: 4 }, style]}>

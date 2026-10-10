@@ -1,3 +1,4 @@
+import { useIsFocused } from '@react-navigation/native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,13 +11,14 @@ import { PROOF_KIND } from '../../content/copy/proof';
 import type { RootProps } from '../../navigation/types';
 import { light, selection } from '../../services/haptics';
 import { plannedArea } from '../../state/missions';
-import { useApp } from '../../state/store';
+import { useApp, useEntitlements } from '../../state/store';
 import { showDialog } from '../../ui/actions';
 import { Card, Meter, ProofMeta, SectionLabel } from '../../ui/blocks';
 import { Icon } from '../../ui/icons';
 import { NavRow, PageTitle, Screen, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN, radius } from '../../ui/tokens';
+import { useAnnounce } from '../../ui/useAnnounce';
 
 const P = PROGRAMS_COPY;
 
@@ -161,12 +163,13 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   const program = useApp(s => s.program);
   const plan = useApp(s => s.plans[s.currentDay]);
   const provenToday = useApp(s => s.record.missions?.[s.currentDay]);
-  const premium = useApp(s => s.premium.active);
+  const ent = useEntitlements();
   const profile = useApp(s => s.profile);
   // Every mission of the plan has to be one the user's answers allow (School Reset needs school).
   const fits = (p: Program) => p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile));
   /** The plan started on this visit: its note says when Day 1 runs until a day is proven. */
   const [started, setStarted] = useState<string | null>(null);
+  const focused = useIsFocused();
 
   const current = program ? PROGRAM_BY_ID[program.id] ?? null : null;
   // A plan no longer in the library (an old install's) can't be shown or run: let it go.
@@ -181,7 +184,7 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
 
   const start = (p: Program) => {
     if (!fits(p)) return;
-    if (!p.free && !premium) {
+    if (!ent.canStartPlan(p)) {
       selection();
       navigation.navigate('Paywall', { from: 'programs' });
       return;
@@ -245,6 +248,8 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   );
 
   let activeCard: ReactNode = null;
+  /** The note as VoiceOver says it (below). */
+  let said: string | null = null;
   if (running && program && n !== null && view) {
     // Each mission's planned area (tomorrow's: the area of yours it serves). When they share one,
     // the label says it once ("Today · Projects") and the rows leave it out.
@@ -272,6 +277,8 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
             : fresh
               ? P.started
               : null;
+    // A plan just started says its own note (start).
+    said = fresh ? null : note;
     activeCard = (
       <Card>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -334,6 +341,10 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
       </Card>
     );
   }
+
+  // VoiceOver on iOS reads no live region: the note is said when a proof or a swap made from
+  // here changes it, once this screen is back on top.
+  useAnnounce(said, { hold: !focused });
 
   return (
     <Screen nav={<NavRow onBack={() => navigation.goBack()} />} scroll={false} contentStyle={{ paddingHorizontal: 0, paddingBottom: 0 }}>

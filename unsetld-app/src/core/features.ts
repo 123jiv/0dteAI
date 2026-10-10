@@ -1,7 +1,8 @@
 // What's free and what UNSETLD+ adds, in one place. The core loop is always free: missions,
 // proof, the streak, points and UNSETLD rewards never depend on a membership. Limits that
 // differ (swaps, reminders) live in rules.json and core/reminders; this map says which side
-// each feature is on, so moving one is a one-line change.
+// each feature is on, and state/store entitlementsOf, the one gate, reads it through
+// hasFeature, so moving one is a one-line change.
 export type Edition = 'free' | 'plus';
 
 export const FEATURES = {
@@ -33,8 +34,9 @@ export const FEATURES = {
 } as const satisfies Record<string, Edition>;
 
 export type Feature = keyof typeof FEATURES;
+export type FeatureMap = Readonly<Record<Feature, Edition>>;
 
 /** Whether a feature is open: free features always, UNSETLD+ features with the membership. */
-export function hasFeature(feature: Feature, plus: boolean): boolean {
-  return FEATURES[feature] === 'free' || plus;
+export function hasFeature(feature: Feature, plus: boolean, features: FeatureMap = FEATURES): boolean {
+  return features[feature] === 'free' || plus;
 }

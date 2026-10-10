@@ -52,7 +52,7 @@ function Lines({ label, lines }: { label: string; lines: readonly string[] }) {
 /**
  * How points work: what each mission earns, the perfect-day bonus, how codes work, status
  * and the limits. The rules that used to sit on the Rewards page. With rewards switched off
- * (accessEnabled false), only how points are earned.
+ * (accessEnabled false), only how points are earned and that they build each area's level.
  */
 export function HowPointsScreen({ navigation }: RootProps<'HowPoints'>) {
   const accessEnabled = useAccessEnabled();
@@ -75,6 +75,9 @@ export function HowPointsScreen({ navigation }: RootProps<'HowPoints'>) {
         </Card>
         <T v="note" color={C.stone} style={{ marginTop: 14 }}>
           {H.earnedOnly}
+        </T>
+        <T v="note" color={C.stone} style={{ marginTop: 8 }}>
+          {H.levels}
         </T>
       </View>
 

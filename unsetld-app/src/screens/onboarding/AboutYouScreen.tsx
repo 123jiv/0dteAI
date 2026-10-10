@@ -30,10 +30,13 @@ const SKILLS: SkillId[] = ['coding', 'design', 'video', 'writing', 'language', '
 /** "What are you learning?" is asked only with one of these areas. */
 const LEARNING_AREAS: readonly TrackId[] = ['skills', 'projects', 'career'];
 
+/** The narrowest a question's words get beside chips that can wrap: a couple of words a line. */
+const WORDS_MIN = 88;
+
 /** The words of a question, with a grey line under them when there is one. */
-function Words({ question, hint, fill }: { question: string; hint?: string; fill?: boolean }) {
+function Words({ question, hint, fill, minWidth }: { question: string; hint?: string; fill?: boolean; minWidth?: number }) {
   return (
-    <View style={{ flex: fill ? 1 : undefined, gap: 2 }}>
+    <View style={{ flex: fill ? 1 : undefined, minWidth, gap: 2 }}>
       <T v="row">{question}</T>
       {hint ? (
         <T v="note" color={C.stone}>
@@ -44,11 +47,18 @@ function Words({ question, hint, fill }: { question: string; hint?: string; fill
   );
 }
 
-/** One pick-one question: the words on the left, its chips on the right. */
-function Question({ question, hint, children }: { question: string; hint?: string; children: ReactNode }) {
+/**
+ * One pick-one question: the words on the left, its chips on the right. With `wrap`, wide
+ * chips (High school, College) go under the words when the row can't leave them WORDS_MIN,
+ * as on a 320pt screen, rather than squeezing them a few letters to a line.
+ */
+function Question({ question, hint, wrap, children }: { question: string; hint?: string; wrap?: boolean; children: ReactNode }) {
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={question} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <Words question={question} hint={hint} fill />
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel={question}
+      style={{ minHeight: 44, flexDirection: 'row', flexWrap: wrap ? 'wrap' : 'nowrap', alignItems: 'center', gap: 12 }}>
+      <Words question={question} hint={hint} fill minWidth={wrap ? WORDS_MIN : undefined} />
       <View style={{ flexDirection: 'row', gap: 8 }}>{children}</View>
     </View>
   );
@@ -131,7 +141,7 @@ export function AboutYouScreen({ navigation, route }: RootProps<'AboutYou'>) {
             </Question>
             {q.key === 'school' && value.school === true ? (
               <View style={{ marginTop: 14 }}>
-                <Question question={COPY.schoolLevel}>
+                <Question question={COPY.schoolLevel} wrap>
                   {SCHOOL_LEVELS.map(l => (
                     <Chip
                       key={l}

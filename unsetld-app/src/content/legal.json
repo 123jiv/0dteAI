@@ -40,11 +40,11 @@
       },
       {
         "h": "Levels",
-        "p": "The points from each mission add to its area's level, so you can see where the work is going. Achievements mark your first mission, your first perfect day, 7 days, 30 missions and more."
+        "p": "Each mission's points also count as XP for its area, so you can see where the work is going. An area levels up as its XP adds up, and XP is never spent. Achievements mark your first mission, your first perfect day, 7 days, 30 missions and more."
       },
       {
         "h": "Proof photos",
-        "p": "Photos stay on this phone. They're deleted after 30 days unless you choose 1 year or Keep under Proof photos in You. The mission, its points and your streak stay."
+        "p": "Photos stay on this phone. They're deleted after 30 days unless you choose 1 year or Always under Proof photos in You. The mission, its points and your streak stay."
       },
       {
         "h": "Rewards",
@@ -73,7 +73,7 @@
       },
       {
         "h": "Account",
-        "p": "To use a reward or access you need a free account, made with Sign in with Apple, so unsetld.com can hold your place. Your photos stay on this phone.",
+        "p": "To use a reward or UNSETLD status you need a free account, made with Sign in with Apple, so unsetld.com can hold your place. Your photos stay on this phone.",
         "accessOnly": true
       }
     ]
@@ -112,7 +112,7 @@
       },
       {
         "h": "Changes",
-        "p": "We may change or end the program with 30 days' notice in the app. Points already earned can still be traded for 30 days after it ends."
+        "p": "We may change or end rewards and UNSETLD status with 30 days' notice in the app. Points already earned can still be traded for 30 days after they end."
       },
       {
         "h": "Contact",
@@ -138,7 +138,7 @@
       },
       {
         "h": "Rewards and status",
-        "p": "Rewards and UNSETLD status have their own terms, in You and on the Rewards screen.",
+        "p": "Rewards and UNSETLD status have their own terms, under Help in You and at the end of How points work.",
         "accessOnly": true
       },
       {
@@ -165,7 +165,7 @@
       },
       {
         "h": "Camera and proof photos",
-        "p": "The camera is used only when you prove a mission. Photos are saved inside the app on this iPhone and the app never uploads them. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days unless you choose 1 year or Keep under Proof photos in You; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
+        "p": "The camera is used only when you prove a mission. Photos are saved inside the app on this iPhone and the app never uploads them. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days unless you choose 1 year or Always under Proof photos in You; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
       },
       {
         "h": "Proof checks",
@@ -180,8 +180,8 @@
         "p": "Your answers (school, work, gym, a business or project, what you're learning, your age range), what you're working toward, this week's focus and the areas you chose only decide which missions you get. They stay on your phone."
       },
       {
-        "h": "If you sign in for rewards or access",
-        "p": "Signing in with Apple is optional and only needed to use rewards and access. We receive an Apple user ID and, if you choose, a private relay email. We store the days you proved a mission and each day's number of proven missions and points (dates and numbers only, never photos) so we can hold your place and issue single-use codes. We also keep a token from Apple so we can end the Sign in with Apple link when you delete your account. Nothing else."
+        "h": "If you sign in for rewards or UNSETLD status",
+        "p": "Signing in with Apple is optional and only needed to use rewards and UNSETLD status. We receive an Apple user ID and, if you choose, a private relay email. We store the days you proved a mission and each day's number of proven missions and points (dates and numbers only, never photos) so we can hold your place and issue single-use codes. We also keep a token from Apple so we can end the Sign in with Apple link when you delete your account. Nothing else."
       },
       {
         "h": "Notifications",

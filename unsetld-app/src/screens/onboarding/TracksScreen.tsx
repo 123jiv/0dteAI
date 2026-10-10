@@ -9,6 +9,7 @@ import { useApp } from '../../state/store';
 import { Button, NavRow, PageTitle, Screen, Square, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, font, GAP, radius } from '../../ui/tokens';
+import { minAreasFor } from './areas';
 
 const COPY = ONBOARDING.tracks;
 const MAX = MAX_AREAS;
@@ -47,10 +48,12 @@ export function useProfileDraft(edit: boolean) {
 /**
  * The fewest areas a save may leave: two, or one for someone whose saved profile
  * already has one (earlier versions allowed it). Onboarding always asks for two.
+ * Read once, as the screen opens: an area saved meanwhile (About you › Change areas,
+ * adding one to a lone School) doesn't raise it and block the save that follows.
  */
 export function useMinAreas(edit: boolean): number {
-  const saved = useApp(s => s.profile.tracks.filter(id => TRACK_BY_ID[id]).length);
-  return edit ? Math.max(1, Math.min(MIN_AREAS, saved)) : MIN_AREAS;
+  const [min] = useState(() => minAreasFor(useApp.getState().profile.tracks, edit));
+  return min;
 }
 
 /**

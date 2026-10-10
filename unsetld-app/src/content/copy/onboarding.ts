@@ -170,7 +170,7 @@ export const ONBOARDING = {
     allow: 'Allow reminders',
     notNow: 'Not now',
     save: 'Save',
-    permOff: 'Notifications are off for unsetld.',
+    permOff: 'Notifications are off for UNSETLD.',
     openSettings: 'Open Settings',
   },
 } as const;

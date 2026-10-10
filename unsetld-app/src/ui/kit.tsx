@@ -238,13 +238,22 @@ export function Screen({
   );
 }
 
-/** Custom segmented control: 32 tall, square cells, bone fill when selected. */
+/**
+ * Custom segmented control: 32 tall, square cells, bone fill when selected. A value picker
+ * by default, read as a radio group named by `accessibilityLabel` ("Reminders a day"); a
+ * locked option says why (`lockedNote`) rather than only "dimmed". `role="tabs"` when it
+ * switches what the page shows instead (Widgets: Lock Screen / Home Screen).
+ */
 export function Segmented<V extends string | number>({
   options,
   value,
   onChange,
   disabled = [],
   labels,
+  role = 'radio',
+  accessibilityLabel,
+  a11yLabels,
+  lockedNote,
   style,
 }: {
   options: readonly V[];
@@ -252,18 +261,34 @@ export function Segmented<V extends string | number>({
   onChange: (v: V) => void;
   disabled?: readonly V[];
   labels?: Partial<Record<string, string>>;
+  role?: 'radio' | 'tabs';
+  /** The question the control answers, read as the group's name. */
+  accessibilityLabel?: string;
+  /** What an option is read as when its visible label isn't enough; else the visible label. */
+  a11yLabels?: Partial<Record<string, string>>;
+  /** Read after each locked option: why it can't be picked ("More than 3 a day comes with UNSETLD+."). */
+  lockedNote?: string;
   style?: StyleProp<ViewStyle>;
 }) {
+  const tabs = role === 'tabs';
   return (
-    <View accessibilityRole="tablist" style={[{ flexDirection: 'row', borderWidth: 1, borderColor: C.ruleStrong }, style]}>
+    <View
+      accessibilityRole={tabs ? 'tablist' : 'radiogroup'}
+      accessibilityLabel={accessibilityLabel}
+      style={[{ flexDirection: 'row', borderWidth: 1, borderColor: C.ruleStrong }, style]}>
       {options.map((o, i) => {
         const on = o === value;
         const off = disabled.includes(o);
+        const label = labels?.[String(o)] ?? String(o);
+        const said = a11yLabels?.[String(o)] ?? label;
         return (
           <Pressable
             key={String(o)}
-            accessibilityRole="tab"
-            aria-selected={on}
+            accessibilityRole={tabs ? 'tab' : 'radio'}
+            accessibilityLabel={off && lockedNote ? `${said}. ${lockedNote}` : said}
+            // aria-* rather than accessibilityState: react-native-web only reads the former, iOS reads both.
+            aria-selected={tabs ? on : undefined}
+            aria-checked={tabs ? undefined : on}
             aria-disabled={off}
             disabled={off}
             onPress={() => {
@@ -286,7 +311,7 @@ export function Segmented<V extends string | number>({
               v="small"
               style={{ fontFamily: font.sansMedium }}
               color={on ? C.ink : off ? C.ash : C.stone}>
-              {labels?.[String(o)] ?? String(o)}
+              {label}
             </T>
           </Pressable>
         );

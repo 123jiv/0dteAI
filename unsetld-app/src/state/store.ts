@@ -1,15 +1,16 @@
 import { useSyncExternalStore } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type PersistStorage } from 'zustand/middleware';
 import { AppConfig } from '../config/app';
 import { randomSalt } from '../core/random';
 import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
+import { FEATURES, hasFeature, type Feature, type FeatureMap } from '../core/features';
 import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, prunePlans, meetsRequirements, rerollMission as rerollCore, serves, type MissionHistory } from '../core/missions';
 import { learnFrom, mondayOf } from '../core/personalize';
 import { programMissions, programProgress, startProgram as startProgramCore } from '../core/programs';
-import { clearPhotos, photosToClear } from '../core/proofs';
+import { clearPhotos, oldestPhotos, photosToClear, photoUris } from '../core/proofs';
 import { activeDays } from '../core/progress';
 import { balance, redeem } from '../core/rewards';
 import { computeStreak } from '../core/streak';
@@ -17,13 +18,13 @@ import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as start
 import { claimPatch, emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
-import type { ChapterId, Colorway, DayPlan, Profile, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, TrackId, Verification, WeeklyFocus } from '../core/types';
+import type { ChapterId, Colorway, DayPlan, Profile, Program, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, TrackId, Verification, WeeklyFocus } from '../core/types';
 import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
-import { deletePhoto } from '../services/proof';
+import { deletePhoto, webPhotoKeys } from '../services/proof';
 import { cancelTimerDone } from '../services/timerNotify';
-import { appStorage } from './storage';
+import { appStorage, setRoomMaker } from './storage';
 
 export interface Settings {
   onboarded: boolean;
@@ -100,6 +101,8 @@ interface State {
   dayOffset: number;
   /** Real record saved when tester time travel starts; restored on return. */
   devSnapshot: RecordState | null;
+  /** Real plans saved with it: the travelled days' plans would push them out (six weeks are kept). */
+  devPlans: Record<DayKey, DayPlan> | null;
   /** The UNSETLD day the UI is showing; refreshed on foreground and at 4:00 AM. */
   currentDay: DayKey;
   /** Colorway shown while browsing the colorway sheet (not saved). */
@@ -193,6 +196,7 @@ export const useApp = create<State>()(
       remote: { accessEnabled: null, collection: AppConfig.defaultCollection },
       dayOffset: 0,
       devSnapshot: null,
+      devPlans: null,
       currentDay: today(),
       previewColorway: null,
 
@@ -260,8 +264,7 @@ export const useApp = create<State>()(
         const d = today();
         const s = get();
         const plan = s.plans[d] ?? get().ensurePlan(d);
-        const limit = s.premium.active ? RULES.rerolls.full : RULES.rerolls.free;
-        if (plan.rerolls >= limit) return 'limit';
+        if (plan.rerolls >= entitlementsOf(s).maxSwaps) return 'limit';
         const old = plan.missions[index];
         if (!old || s.record.missions?.[d]?.[old.missionId]) return 'none';
         const next = rerollCore(plan, index, planInput(s, d));
@@ -345,7 +348,9 @@ export const useApp = create<State>()(
         const s = get();
         const clear = photosToClear(s.record, s.settings.proofRetentionDays, today());
         if (clear.length) set({ record: clearPhotos(s.record, clear) });
-        return clear.map(c => c.uri);
+        // Tester time travel: the real record kept aside still shows these, so their files stay.
+        const real = s.devSnapshot ? photoUris(s.devSnapshot) : null;
+        return clear.map(c => c.uri).filter(uri => !real?.has(uri));
       },
 
       updateSettings: patch => set(s => ({ settings: { ...s.settings, ...patch } })),
@@ -371,16 +376,24 @@ export const useApp = create<State>()(
       setPreviewColorway: id => set({ previewColorway: id }),
 
       setDayOffset: days => {
-        // First jump away from the real date: keep the real record to come back to.
-        if (getDayOffset() === 0 && days !== 0 && !get().devSnapshot) set({ devSnapshot: get().record });
+        // First jump away from the real date: keep the real record and plans to come back to.
+        if (getDayOffset() === 0 && days !== 0 && !get().devSnapshot) set({ devSnapshot: get().record, devPlans: get().plans });
         setDayOffset(days);
         set({ dayOffset: days, currentDay: today() });
       },
       backToRealToday: () => {
-        const snap = get().devSnapshot;
+        const { devSnapshot: snap, devPlans } = get();
         setDayOffset(0);
         // A snapshot kept by an earlier build can hold 3.0 preview area ids or a 2.x record: normalised like a backup.
-        set({ dayOffset: 0, currentDay: today(), devSnapshot: null, ...(snap ? { record: fromBackup(snap) } : {}) });
+        // One kept before plans were kept with it leaves the plans as they are.
+        set({
+          dayOffset: 0,
+          currentDay: today(),
+          devSnapshot: null,
+          devPlans: null,
+          ...(snap ? { record: fromBackup(snap) } : {}),
+          ...(snap && devPlans ? { plans: devPlans } : {}),
+        });
       },
       refreshDay: () => {
         const d = today();
@@ -402,6 +415,7 @@ export const useApp = create<State>()(
         remote: s.remote,
         dayOffset: s.dayOffset,
         devSnapshot: s.devSnapshot,
+        devPlans: s.devPlans,
         profile: s.profile,
         plans: s.plans,
         skips: s.skips,
@@ -638,6 +652,42 @@ const markHydrated = () => useApp.setState({ hydrated: true, currentDay: today()
 if (useApp.persist.hasHydrated()) markHydrated();
 else useApp.persist.onFinishHydration(markHydrated);
 
+let evicted: string[] = [];
+
+/**
+ * Browser preview: local storage holds about 5 MB, which photos kept a year (or for good) fill
+ * in about two months. When the state or a new photo doesn't fit, the oldest day's photos go
+ * and the record shows them as cleared, so proofs, points and the streak are still saved.
+ * Today's photos and a before photo waiting for its after stay.
+ */
+function makeRoomForState(): boolean {
+  const s = useApp.getState();
+  // Never a file already given up in this save (should removing it have failed).
+  const keep = new Set([...evicted, ...(s.pendingBefore ? [s.pendingBefore.photo.uri] : [])]);
+  const free = oldestPhotos(webPhotoKeys(), keep, today());
+  if (!free.length) return false;
+  for (const uri of free) deletePhoto(uri);
+  // Afterwards, once: this runs while the store is saving.
+  if (!evicted.length) {
+    Promise.resolve().then(() => {
+      const gone = evicted.map(uri => ({ uri }));
+      evicted = [];
+      useApp.setState(st => ({ record: clearPhotos(st.record, gone), devSnapshot: st.devSnapshot && clearPhotos(st.devSnapshot, gone) }));
+    });
+  }
+  evicted.push(...free);
+  return true;
+}
+
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  setRoomMaker(makeRoomForState);
+  // The preview open in two tabs: a save in the other tab is read here, so this tab's next save
+  // doesn't put back what it had. The event fires only in the other tabs, and reading doesn't save.
+  window.addEventListener?.('storage', e => {
+    if (e.key === useApp.persist.getOptions().name && e.newValue) void useApp.persist.rehydrate();
+  });
+}
+
 let readFails = 0;
 
 /**
@@ -679,16 +729,28 @@ export interface Entitlements {
   maxReminders: number;
   /** Swaps a day. */
   maxSwaps: number;
+  /** The colorways marked free in colorways.json, and the rest when colorways are open. */
+  canUseColorway: (c: Pick<Colorway, 'free'>) => boolean;
+  /** The plans marked free in programs.json (basic plans), and every plan when all plans are open. */
+  canStartPlan: (p: Pick<Program, 'free'>) => boolean;
 }
 
-export function entitlementsOf(s: Pick<State, 'settings' | 'premium'>): Entitlements {
+/**
+ * The one gate for what's free and what UNSETLD+ adds: each answer comes from core/features
+ * (FEATURES through hasFeature), so moving a feature there moves it here. `features` is for tests.
+ */
+export function entitlementsOf(s: Pick<State, 'settings' | 'premium'>, features: FeatureMap = FEATURES): Entitlements {
   const premium = s.premium.active;
+  const has = (f: Feature) => hasFeature(f, premium, features);
+  const canUseColorway = (c: Pick<Colorway, 'free'>) => c.free || has('colorways');
   const chosen = COLORWAY_BY_ID[s.settings.colorway] ?? COLORWAYS[0];
   return {
     premium,
-    colorway: premium || chosen.free ? chosen : COLORWAYS[0],
-    maxReminders: premium ? FULL_MAX_REMINDERS : FREE_MAX_REMINDERS,
-    maxSwaps: premium ? RULES.rerolls.full : RULES.rerolls.free,
+    colorway: canUseColorway(chosen) ? chosen : COLORWAYS[0],
+    maxReminders: has('extraReminders') ? FULL_MAX_REMINDERS : FREE_MAX_REMINDERS,
+    maxSwaps: has('extraSwaps') ? RULES.rerolls.full : has('swaps') ? RULES.rerolls.free : 0,
+    canUseColorway,
+    canStartPlan: p => has('allPlans') || (p.free && has('basicPlans')),
   };
 }
 

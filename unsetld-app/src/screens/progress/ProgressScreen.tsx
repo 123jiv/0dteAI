@@ -2,13 +2,14 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usableAreas } from '../../core/missions';
 import { achievementsView, activeDays, areaProgress, areasShown, milestones, totals, weekDays, type AreaProgress, type WeekDay } from '../../core/progress';
+import { dayCount } from '../../core/record';
 import { weekStart } from '../../core/review';
 import { computeStreak } from '../../core/streak';
 import { MISSION_BY_ID, MISSIONS, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { TabProps } from '../../navigation/types';
-import { useTodayMissions } from '../../state/missions';
-import { useApp } from '../../state/store';
+import { useBalance, useTodayMissions } from '../../state/missions';
+import { useAccessEnabled, useApp } from '../../state/store';
 import { Card, EmptyState, LinkRow, Meter, SectionLabel } from '../../ui/blocks';
 import { Icon } from '../../ui/icons';
 import { T } from '../../ui/text';
@@ -19,14 +20,19 @@ const minutesOf = (id: string) => MISSION_BY_ID[id]?.minutes;
 
 /**
  * One day of the week as a square. Proven: filled bone. Today: red (the one place the signal
- * colour appears), filled once something is proven, an outline until then. Missed: an ash
- * outline. Covered by an Off Day: a stone fill. Still to come, or before the first mission:
- * barely there.
+ * colour appears), filled once something is proven, an outline until then. Covered by an Off
+ * Day: a stone fill (the line under the row says so). Missed: an ash outline with a dash in it.
+ * Still to come, or before the first mission: an ash outline, quiet but visible.
  */
 function DaySquare({ kind, size }: { kind: WeekDay['kind']; size: number }) {
   const fill = kind === 'proven' ? C.bone : kind === 'today-proven' ? C.signal : kind === 'covered' ? C.stone : 'transparent';
-  const border = kind === 'today' ? C.signal : kind === 'missed' ? C.ash : kind === 'ahead' || kind === 'before' ? C.rule : fill;
-  return <View style={{ width: size, height: size, backgroundColor: fill, borderWidth: fill === 'transparent' ? 1.5 : 0, borderColor: border }} />;
+  const border = kind === 'today' ? C.signal : fill === 'transparent' ? C.ash : fill;
+  return (
+    <View
+      style={{ width: size, height: size, backgroundColor: fill, borderWidth: fill === 'transparent' ? 1.5 : 0, borderColor: border, alignItems: 'center', justifyContent: 'center' }}>
+      {kind === 'missed' ? <View style={{ width: size / 2 - 2, height: 1.5, backgroundColor: C.ash }} /> : null}
+    </View>
+  );
 }
 
 /** A serif number with its label under it, read as one thing. */
@@ -41,10 +47,18 @@ function Stat({ value, label, said, right }: { value: string; label: string; sai
   );
 }
 
-/** This week, Monday to Sunday: a letter over a square for each day. Opens the week's review. */
-function WeekRow({ days, today, onPress }: { days: WeekDay[]; today: string; onPress: () => void }) {
+/**
+ * This week, Monday to Sunday: a letter over a square for each day, and a line for any day an
+ * Off Day covered. `streak`: the streak running now. Opens the week's review.
+ */
+function WeekRow({ days, today, streak, onPress }: { days: WeekDay[]; today: string; streak: number; onPress: () => void }) {
   const proven = days.filter(d => d.kind === 'proven' || d.kind === 'today-proven').length;
-  const summary = days.map(d => P.a11yDay(d.day, d.kind)).join('. ');
+  const covered = days.filter(d => d.kind === 'covered');
+  const lastCovered = covered.length ? days.indexOf(covered[covered.length - 1]) : -1;
+  // The covered day is in the streak running now when no day after it this week was missed.
+  const going = streak > 0 && lastCovered >= 0 && !days.slice(lastCovered + 1).some(d => d.kind === 'missed');
+  const off = covered.length ? P.weekOff(covered.map(d => PROGRESS.weekday(d.day)), going) : null;
+  const summary = [...days.map(d => P.a11yDay(d.day, d.kind)), off].filter(Boolean).join('. ');
   return (
     <Card onPress={onPress} accessibilityLabel={P.a11yWeek(summary)} accessibilityHint={P.a11yWeekHint}>
       <SectionLabel
@@ -68,6 +82,11 @@ function WeekRow({ days, today, onPress }: { days: WeekDay[]; today: string; onP
           </View>
         ))}
       </View>
+      {off ? (
+        <T v="meta" color={C.stone} style={{ marginTop: 14 }}>
+          {off}
+        </T>
+      ) : null}
     </Card>
   );
 }
@@ -104,7 +123,7 @@ function AreaCard({ p }: { p: AreaProgress }) {
             {P.level(p.level)}
           </T>
           <T v="meta" color={C.muted}>
-            {P.xp(p.into, p.span)}
+            {P.xp(p.into, p.span, p.level)}
           </T>
         </View>
         <View style={{ marginTop: 12 }}>
@@ -128,9 +147,13 @@ export function ProgressScreen({ navigation }: TabProps<'Progress'>) {
   const record = useApp(s => s.record);
   const profile = useApp(s => s.profile);
   const { missions: todays, proven: provenToday } = useTodayMissions(today);
+  const accessEnabled = useAccessEnabled();
+  const points = useBalance();
 
   const active = activeDays(record);
   const first = active.size === 0;
+  // A 2.x record: days on record, nothing proven since (3.x puts a day on record only with a proof).
+  const before = first ? dayCount(record) : 0;
   const streak = computeStreak(active, today);
   const ws = weekStart(today);
   const days = weekDays(active, streak.covered, today, ws);
@@ -141,6 +164,9 @@ export function ProgressScreen({ navigation }: TabProps<'Progress'>) {
   const { reached } = achievementsView(marks);
   const proofs = totals(record).missions;
   const perfect = todays.length > 0 && provenToday >= todays.length;
+  // Rewards off, there's no Rewards tab: the point total and How points work live here.
+  const pointsRow =
+    !accessEnabled && points > 0 ? <LinkRow title={P.points} value={P.pointsValue(points)} onPress={() => navigation.navigate('HowPoints')} /> : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
@@ -165,7 +191,13 @@ export function ProgressScreen({ navigation }: TabProps<'Progress'>) {
 
         {first ? (
           <View style={{ marginTop: GAP.block }}>
-            <EmptyState title={P.empty.title} body={P.empty.body} action={P.empty.action} onAction={() => navigation.navigate('Today')} />
+            <EmptyState
+              title={before > 0 ? P.before.title(before) : P.empty.title}
+              body={before > 0 ? P.before.body : P.empty.body}
+              action={P.empty.action}
+              onAction={() => navigation.navigate('Today')}
+            />
+            {pointsRow ? <View style={{ marginTop: GAP.block - 14 }}>{pointsRow}</View> : null}
           </View>
         ) : (
           <>
@@ -187,7 +219,7 @@ export function ProgressScreen({ navigation }: TabProps<'Progress'>) {
             </View>
 
             <View style={{ marginTop: GAP.block }}>
-              <WeekRow days={days} today={today} onPress={() => navigation.navigate('WeeklyReview', { weekStart: ws })} />
+              <WeekRow days={days} today={today} streak={streak.current} onPress={() => navigation.navigate('WeeklyReview', { weekStart: ws })} />
             </View>
 
             {order.length ? (
@@ -209,6 +241,7 @@ export function ProgressScreen({ navigation }: TabProps<'Progress'>) {
                 onPress={() => navigation.navigate('Achievements')}
               />
               <LinkRow title={P.stats} onPress={() => navigation.navigate('Stats')} />
+              {pointsRow}
             </View>
           </>
         )}

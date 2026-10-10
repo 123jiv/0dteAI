@@ -8,6 +8,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
 import { fingerprint } from '../core/proofs';
+import { isQuotaError, makeRoom } from '../state/storage';
 
 export type Capture = { ok: true; uri: string } | { ok: false; reason: 'cancelled' | 'denied' | 'failed' };
 
@@ -125,11 +126,17 @@ export async function savePhoto(uri: string, key: string): Promise<SavedPhoto> {
   if (web) {
     const data = await shrinkForWeb(uri).catch(() => uri);
     const hash = fingerprint(data);
-    try {
-      globalThis.localStorage?.setItem(`${WEB_PREFIX}${safe}`, data);
-      return { uri: `${WEB_PREFIX}${safe}`, hash };
-    } catch {
-      return { uri: data.length < 200_000 ? data : '', hash };
+    // Storage full: the oldest photos make room (state/storage makeRoom); when nothing more can
+    // go, the photo isn't saved and the Mission screen says so. Storage blocked (a sandboxed
+    // frame, some private windows): the store lives in memory, and the photo goes in the record.
+    for (;;) {
+      try {
+        globalThis.localStorage.setItem(`${WEB_PREFIX}${safe}`, data);
+        return { uri: `${WEB_PREFIX}${safe}`, hash };
+      } catch (e) {
+        if (!isQuotaError(e)) return { uri: data.length < 200_000 ? data : '', hash };
+        if (!makeRoom()) return { uri: '', hash };
+      }
     }
   }
   const ref = await ImageManipulator.manipulate(uri).resize({ width: 1600 }).renderAsync();
@@ -143,6 +150,22 @@ export async function savePhoto(uri: string, key: string): Promise<SavedPhoto> {
   if (dest.exists) dest.delete();
   await new File(out.uri).copy(dest);
   return { uri: dest.uri, hash: fingerprint(out.base64 ?? dest.uri) };
+}
+
+/** Browser preview: the names of the proof photos kept in local storage (none in the app). */
+export function webPhotoKeys(): string[] {
+  if (!web) return [];
+  try {
+    const ls = globalThis.localStorage;
+    const out: string[] = [];
+    for (let i = 0; i < ls.length; i++) {
+      const k = ls.key(i);
+      if (k?.startsWith(WEB_PREFIX)) out.push(k);
+    }
+    return out;
+  } catch {
+    return [];
+  }
 }
 
 /** Deletes a saved proof photo (retention policy, or a retake), wherever this install keeps it. Missing files are fine. */

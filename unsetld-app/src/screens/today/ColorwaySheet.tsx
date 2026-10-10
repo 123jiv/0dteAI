@@ -82,7 +82,7 @@ function ColorwayPicker({ visible, onClose, onFull }: { visible: boolean; onClos
   const setPreview = useApp(s => s.setPreviewColorway);
   const update = useApp(s => s.updateSettings);
   const current = preview ?? ent.colorway.id;
-  const lockedPreview = preview && !ent.premium && !COLORWAY_BY_ID[preview]?.free ? COLORWAY_BY_ID[preview] : null;
+  const lockedPreview = preview && COLORWAY_BY_ID[preview] && !ent.canUseColorway(COLORWAY_BY_ID[preview]) ? COLORWAY_BY_ID[preview] : null;
   const w = Math.floor((width - MARGIN * 2 - 16) / 2);
   const h = Math.round((w * 16) / 9);
 
@@ -94,7 +94,7 @@ function ColorwayPicker({ visible, onClose, onFull }: { visible: boolean; onClos
   const pick = (id: string) => {
     selection();
     const c = COLORWAY_BY_ID[id];
-    if (ent.premium || c.free) {
+    if (ent.canUseColorway(c)) {
       update({ colorway: id });
       setPreview(null);
     } else setPreview(id);
@@ -128,7 +128,7 @@ function ColorwayPicker({ visible, onClose, onFull }: { visible: boolean; onClos
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
           {COLORWAYS.map((c, i) => {
             const on = c.id === current;
-            const locked = !ent.premium && !c.free;
+            const locked = !ent.canUseColorway(c);
             return (
               <Pressable
                 key={c.id}

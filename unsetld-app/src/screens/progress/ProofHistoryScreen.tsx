@@ -77,7 +77,7 @@ export function ProofThumb({
  * small mark). A photo that's gone, a timer-only proof, or an old entry with neither is a quiet
  * tile with the area and the date, so the history never has a hole in it.
  */
-function Tile({ e, size, onPress }: { e: ProofEntry; size: number; onPress: () => void }) {
+function Tile({ e, size, today, onPress }: { e: ProofEntry; size: number; today: DayKey; onPress: () => void }) {
   const src = e.cover ? proofImage(e.cover.uri) : null;
   const area = areaOf(e);
   const pair = e.done.photos.some(p => p.kind === 'before');
@@ -86,7 +86,7 @@ function Tile({ e, size, onPress }: { e: ProofEntry; size: number; onPress: () =
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={H.a11yTile(titleOf(e), area, e.day, state, seconds)}
+      accessibilityLabel={H.a11yTile(titleOf(e), area, e.day, today, state, seconds)}
       accessibilityHint={H.a11yTileHint}
       onPress={onPress}
       style={({ pressed }) => ({
@@ -206,7 +206,7 @@ export function ProofHistoryScreen({ navigation }: RootProps<'ProofHistory'>) {
           ) : (
             <View style={{ flexDirection: 'row', gap: TILE_GAP, marginBottom: TILE_GAP }}>
               {item.entries.map(e => (
-                <Tile key={e.key} e={e} size={size} onPress={() => setOpenKey(e.key)} />
+                <Tile key={e.key} e={e} size={size} today={today} onPress={() => setOpenKey(e.key)} />
               ))}
             </View>
           )
@@ -253,6 +253,7 @@ function Photo({ photo, day, width, maxHeight, label, cleared, said }: { photo: 
 /** The proof full width (the photo, the before and after, or the timer), with what it proved. */
 function Viewer({ entry, width, maxHeight, cleared, onClose }: { entry: ProofEntry; width: number; maxHeight: number; cleared: string; onClose: () => void }) {
   const insets = useSafeAreaInsets();
+  const today = useApp(s => s.currentDay);
   const { done, day } = entry;
   const title = titleOf(entry);
   const mission = MISSION_BY_ID[done.missionId];
@@ -297,7 +298,7 @@ function Viewer({ entry, width, maxHeight, cleared, onClose }: { entry: ProofEnt
         </View>
         <View style={{ marginTop: 18, gap: 6 }}>
           <T v="meta" color={C.bone}>
-            {H.proven(clockTime(done.doneAt), day, done.points)}
+            {H.proven(clockTime(done.doneAt), day, today, done.points)}
           </T>
           {seconds > 0 && (pair || single) ? (
             <T v="meta" color={C.stone}>

@@ -39,8 +39,8 @@ export const REWARDS_COPY = {
   balanceA11y: (n: number) => plural(n, 'point', 'points'),
   /** Nothing earned yet (Day 1): no zero, the way to the first points. */
   firstPoints: 'Your first proven mission earns your first points.',
-  /** Rewards switched off (accessEnabled false): the page stays calm, points keep counting. */
-  off: "Rewards aren't open right now. Your points keep counting.",
+  /** Rewards switched off (accessEnabled false). Promises nothing: says what points do now. */
+  off: "Rewards aren't open. Points still count toward your area levels on Progress.",
 
   // Next reward
   next: 'NEXT REWARD',
@@ -49,15 +49,20 @@ export const REWARDS_COPY = {
   progressFirst: (need: number) => `${pts(need)} points to your first reward`,
   ready: 'Ready',
   getCode: 'Get the code',
-  nextA11y: (title: string, have: number, need: number) =>
-    have >= need ? `Next reward: ${title}, ready` : `Next reward: ${title}. ${pts(have)} of ${pts(need)} points, ${plural(need - have, 'point', 'points')} left`,
+  /** `first`: nothing earned yet, said as the card shows it (no "0 of 300"). */
+  nextA11y: (title: string, have: number, need: number, first = false) =>
+    have >= need
+      ? `Next reward: ${title}, ready`
+      : first
+        ? `Next reward: ${title}. ${pts(need)} points to your first reward`
+        : `Next reward: ${title}. ${pts(have)} of ${pts(need)} points, ${plural(need - have, 'point', 'points')} left`,
   /** What a ready reward gives, under its meter: "600 points · Up to $25 off · Code works 30 days". */
   readyLine: (t: RewardTier) => [`${pts(t.points)} points`, ...rules(t)].slice(0, 3).join(' · '),
   allTaken: "You've taken every reward open this collection. More open with the next one.",
   /** Every open reward is cooling down; `d` is when the first one opens again. */
   coolingNext: (d: string) => `Your next reward opens again ${date(d)}.`,
-  /** No tier is switched on, in its dates or out of its cooldown. */
-  noneOpen: 'No rewards are open right now. Your points keep counting.',
+  /** No tier is switched on, in its dates or out of its cooldown. Promises nothing. */
+  noneOpen: "No rewards are open. Your points don't expire.",
   signInNote: 'Codes need a free account. It takes one tap.',
 
   // Up next
@@ -83,7 +88,9 @@ export const REWARDS_COPY = {
     allReached: (n: number) => `${plural(n, 'active day', 'active days')}. Every tier is open to you.`,
     allReachedTitle: 'Every tier reached',
     paused: 'Early access is paused.',
-    a11y: (title: string, n: number, day: number) => `UNSETLD status. Next: ${title} at ${plural(day, 'active day', 'active days')}. You have ${pts(n)}.`,
+    /** No active day yet: no "You have 0". */
+    a11y: (title: string, n: number, day: number) =>
+      `UNSETLD status. Next: ${title} at ${plural(day, 'active day', 'active days')}.${n > 0 ? ` You have ${plural(n, 'active day', 'active days')}.` : ''}`,
     a11yAll: (n: number) => `UNSETLD status. ${plural(n, 'active day', 'active days')}. Every tier reached.`,
   },
 
@@ -184,6 +191,8 @@ export const REWARDS_COPY = {
     plus: (n: number) => `+${n}`,
     plusSaid: (n: number) => plural(n, 'point', 'points'),
     earnedOnly: "Points come only from proven missions. They don't expire, and UNSETLD+ doesn't change them.",
+    /** Shown whether rewards are on or off: what points do besides rewards. */
+    levels: "Each mission's points also count as XP toward its area's level on Progress.",
     codes: 'CODES',
     codesBody: [
       'When a reward is ready, trade its points for a code. The points are spent when you take it.',

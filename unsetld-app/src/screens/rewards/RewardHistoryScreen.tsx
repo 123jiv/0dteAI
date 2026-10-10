@@ -61,7 +61,8 @@ function CodeCard({ item, expired }: { item: CodeItem; expired: boolean }) {
 /**
  * Your codes, newest first: every reward taken since 3.0 and the 2.x codes, each with when
  * it was taken and when it runs out. A code whose reward has since left the list keeps its
- * name. Tap one to copy it or use it at unsetld.com.
+ * name. Tap one to copy it or use it at unsetld.com. The codes show even while rewards are
+ * switched off: they were paid for with points.
  */
 export function RewardHistoryScreen({ navigation }: RootProps<'RewardHistory'>) {
   const record = useApp(s => s.record);
@@ -78,11 +79,7 @@ export function RewardHistoryScreen({ navigation }: RootProps<'RewardHistory'>) 
   return (
     <Screen nav={<NavRow onBack={() => navigation.goBack()} />}>
       <PageTitle title={H.title} />
-      {!accessEnabled ? (
-        <T v="small" color={C.stone} style={{ marginTop: GAP.block }}>
-          {R.off}
-        </T>
-      ) : codes.length ? (
+      {codes.length ? (
         <View style={{ marginTop: GAP.block, gap: GAP.card }}>
           {codes.map(c => (
             <CodeCard key={c.key} item={c} expired={day > c.expires} />
@@ -93,6 +90,10 @@ export function RewardHistoryScreen({ navigation }: RootProps<'RewardHistory'>) 
             </T>
           ) : null}
         </View>
+      ) : !accessEnabled ? (
+        <T v="small" color={C.stone} style={{ marginTop: GAP.block }}>
+          {R.off}
+        </T>
       ) : (
         <View style={{ marginTop: GAP.block }}>
           <EmptyState title={H.emptyTitle} body={H.emptyBody} />

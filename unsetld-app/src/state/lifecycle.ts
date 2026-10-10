@@ -26,8 +26,14 @@ import { deletePhoto } from '../services/proof';
 import { initPurchases, purchaseMode, refreshPremium, type EntitlementInfo } from '../services/purchases';
 import { cancelTimerDone } from '../services/timerNotify';
 import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
+import { showDialog } from '../ui/actions';
 import { parseUrl, useIntent } from './intents';
+import { useSaveFailed } from './storage';
 import { useAccessEnabled, useApp, useEntitlements } from './store';
+
+/** Browser preview only: said once when the app's state no longer fits in the browser's storage. */
+const OUT_OF_SPACE = { title: 'Progress isn’t being saved', body: 'This browser is out of space.' };
+let toldOutOfSpace = false;
 
 /** The last drops.json that loaded, for the early-access page. Fetched on launch and every foreground. */
 export const useDrops = create<{ drops: Drop[] }>(() => ({ drops: [] }));
@@ -245,6 +251,14 @@ export function useSideEffects() {
   useEffect(() => {
     if (hydrated) backupRecord({ installSalt: salt, record });
   }, [hydrated, salt, record]);
+
+  // Browser preview: a save that didn't fit even after the oldest photos made room.
+  const saveFailed = useSaveFailed(s => s.failed);
+  useEffect(() => {
+    if (!saveFailed || toldOutOfSpace) return;
+    toldOutOfSpace = true;
+    showDialog(OUT_OF_SPACE.title, OUT_OF_SPACE.body);
+  }, [saveFailed]);
 
   // Account holders: tell the server about today's day on record (a proven mission).
   const recordedToday = Boolean(record.days[day]);

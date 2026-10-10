@@ -2,6 +2,8 @@
 // lives in the store on wall-clock time (core/timer), so it keeps running when this
 // screen or the app is closed; this view only redraws it once a second. When it
 // reaches zero: the proof photo (TIMER_AND_PHOTO), or Mark it done (TIMER, no photo).
+// "Come back when it rings." only when the timer-done notification can ring; otherwise
+// how long to come back in. The line at zero is said with VoiceOver on iOS.
 import { useEffect, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { clock, remainingSeconds, timerDone, type FocusTimer } from '../../core/timer';
@@ -11,6 +13,7 @@ import { Meter } from '../../ui/blocks';
 import { Button, Screen, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C } from '../../ui/tokens';
+import { useAnnounce } from '../../ui/useAnnounce';
 import { areaName, CameraNote, LINING } from './parts';
 
 export function TimerStage({
@@ -19,6 +22,7 @@ export function TimerStage({
   area,
   nav,
   denied,
+  canRing,
   onPause,
   onResume,
   onEnd,
@@ -31,6 +35,8 @@ export function TimerStage({
   area?: TrackId;
   nav: ReactNode;
   denied: boolean;
+  /** The timer-done notification will ring: notifications are allowed, and it isn't the browser preview. */
+  canRing: boolean;
   onPause: () => void;
   onResume: () => void;
   onEnd: () => void;
@@ -62,7 +68,9 @@ export function TimerStage({
   const text = clock(left);
   // As big as the width allows: Plex Mono's figures are 0.6 em wide.
   const size = boxW ? Math.min(104, Math.floor(boxW / (text.length * 0.62))) : 88;
-  const line = done ? (photo ? MISSION.timer.done : MISSION.timer.doneNoPhoto) : paused ? MISSION.timer.paused : MISSION.timer.line;
+  const comeBack = canRing ? MISSION.timer.line : MISSION.timer.lineNoRing(Math.max(1, Math.ceil(left / 60)));
+  const line = done ? (photo ? MISSION.timer.done : MISSION.timer.doneNoPhoto) : paused ? MISSION.timer.paused : comeBack;
+  useAnnounce(done ? line : null);
 
   const footer = done ? (
     photo ? (
@@ -103,7 +111,8 @@ export function TimerStage({
         <T v="title.m" align="center" style={[{ marginTop: 32 }, LINING]}>
           {mission.title}
         </T>
-        <T v="body" color={C.stone} align="center" style={{ marginTop: 12 }} accessibilityLiveRegion="polite">
+        {/* Live only for paused and done: "Come back in N minutes." changes every minute, and TalkBack would read each one. */}
+        <T v="body" color={C.stone} align="center" style={{ marginTop: 12 }} accessibilityLiveRegion={done || paused ? 'polite' : 'none'}>
           {line}
         </T>
       </View>

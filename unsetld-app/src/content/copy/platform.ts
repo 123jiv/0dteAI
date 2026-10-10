@@ -58,7 +58,7 @@ export const PLATFORM = {
     remindersOff: 'Off',
     dropAlerts: 'Drop alerts',
     dropNote: 'When a collection opens. Off unless you turn it on.',
-    permOff: 'Notifications are off for unsetld.',
+    permOff: 'Notifications are off for UNSETLD.',
     openSettings: 'Open Settings',
 
     plus: 'UNSETLD+',
@@ -77,9 +77,10 @@ export const PLATFORM = {
     widgetsValue: 'Today on your lock screen',
 
     retentionLabel: 'Keep proof photos for',
-    retention: { 30: '30 days', 365: '1 year', 0: 'Keep' } as Record<string, string>,
+    retention: { 30: '30 days', 365: '1 year', 0: 'Always' } as Record<string, string>,
     retentionSpan: { 30: '30 days', 365: '1 year' } as Record<string, string>,
-    retentionNote: 'After that the photo is deleted from this phone. The mission, its points and your streak stay. Photos never leave your phone.',
+    // Not "never leave your phone": like other app files they can be in the user's own iPhone backup.
+    retentionNote: 'After that the photo is deleted from this phone. The mission, its points and your streak stay. The app never uploads your photos.',
     clearTitle: (n: number) => (n === 1 ? 'Delete 1 older photo?' : `Delete ${num(n)} older photos?`),
     clearBody: (span: string) => `Proof photos older than ${span} are deleted from this phone. The missions and their points stay.`,
     clearYes: 'Delete',
@@ -119,7 +120,8 @@ export const PLATFORM = {
     free: 'Daily missions, proof, points, your streak, progress and UNSETLD rewards. Membership never changes what you earn.',
     /** The same while rewards are switched off: they're not named. */
     freeNoRewards: 'Daily missions, proof, points, your streak and progress. Membership never changes what you earn.',
-    planLabel: 'CHOOSE A PLAN',
+    /** Not "plan": in the app a plan is a guided run of days (Plans). */
+    planLabel: 'CHOOSE HOW TO PAY',
     plans: {
       annual: 'Annual',
       monthly: 'Monthly',
@@ -227,9 +229,9 @@ export const PLATFORM = {
     /** Later ones: "2 missions left. Read 10 Pages takes 15 minutes." */
     left: (n: number, title: string, minutes: number) =>
       `${plural(n, 'mission', 'missions')} left. ${title} takes ${plural(minutes, 'minute', 'minutes')}.`,
-    /** The evening one, only when nothing is proven yet. */
+    /** The evening one, only when nothing is proven yet (so every mission is still open). */
     lastCall: (streak: number) =>
-      streak > 0 ? 'Last call: 1 mission left to keep the streak.' : 'Last call: 1 mission today starts a streak.',
+      streak > 0 ? 'Last call: prove one mission today to keep your streak.' : 'Last call: prove one mission today to start a streak.',
     /** A day the app hasn't planned yet names no mission. */
     waiting: (n: number) => `${word(n)} missions are waiting.`,
     trial: (p: string) => `Your free trial ends tomorrow. ${p} for the year starts then. Cancel any time in Settings.`,

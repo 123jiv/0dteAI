@@ -11,13 +11,13 @@ import { color as C, GAP } from '../../ui/tokens';
 
 const A = PROGRESS.achievements;
 
-/** A milestone reached: a check, its name in serif and the day. Opens its moment again. */
-function Reached({ m, onOpen }: { m: MilestoneState; onOpen: () => void }) {
+/** A milestone reached: a check, its name in serif and the day (with the year when it isn't this one). Opens its moment again. */
+function Reached({ m, today, onOpen }: { m: MilestoneState; today: string; onOpen: () => void }) {
   const title = A.byKey[m.key]?.title ?? m.title;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={A.a11yReached(title, m.reached!)}
+      accessibilityLabel={A.a11yReached(title, m.reached!, today)}
       accessibilityHint={A.a11yReachedHint}
       onPress={onOpen}
       style={({ pressed }) => ({ minHeight: 48, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 14, opacity: pressed ? 0.6 : 1 })}>
@@ -26,7 +26,7 @@ function Reached({ m, onOpen }: { m: MilestoneState; onOpen: () => void }) {
         {title}
       </T>
       <T v="meta" color={C.stone}>
-        {PROGRESS.date(m.reached!)}
+        {PROGRESS.date(m.reached!, today)}
       </T>
     </Pressable>
   );
@@ -77,7 +77,7 @@ export function AchievementsScreen({ navigation }: RootProps<'Achievements'>) {
           <SectionLabel>{A.reached}</SectionLabel>
           <Card style={{ paddingVertical: 8 }}>
             {reached.map(m => (
-              <Reached key={m.key} m={m} onOpen={() => navigation.navigate('Moment', { key: m.key, revisit: true })} />
+              <Reached key={m.key} m={m} today={today} onOpen={() => navigation.navigate('Moment', { key: m.key, revisit: true })} />
             ))}
           </Card>
         </View>

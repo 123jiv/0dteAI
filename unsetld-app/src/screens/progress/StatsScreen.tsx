@@ -178,12 +178,12 @@ export function StatsScreen({ navigation }: RootProps<'Stats'>) {
           right={
             <T v="meta" color={C.stone}>
               {/* "1 day since 14 Oct" reads oddly when 14 Oct is today: just the count then. */}
-              {firstActive ? (firstActive === today ? S.streakDays(active.size) : S.activeSince(active.size, firstActive)) : ''}
+              {firstActive ? (firstActive === today ? S.streakDays(active.size) : S.activeSince(active.size, firstActive, today)) : ''}
             </T>
           }>
           {S.active}
         </SectionLabel>
-        <View accessible accessibilityRole="image" accessibilityLabel={firstActive ? S.a11yBarcode(active.size, firstActive) : undefined} style={{ marginTop: 4 }}>
+        <View accessible accessibilityRole="image" accessibilityLabel={firstActive ? S.a11yBarcode(active.size, firstActive, today) : undefined} style={{ marginTop: 4 }}>
           <Barcode width={w} bars={bars} />
         </View>
       </View>

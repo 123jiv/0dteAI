@@ -69,8 +69,8 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
             transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
           }}>
           {reached ? (
-            <T v="kicker" color={C.stone} accessibilityLabel={M.a11yDate(reached)} style={{ marginBottom: 14 }}>
-              {M.reached(reached)}
+            <T v="kicker" color={C.stone} accessibilityLabel={M.a11yDate(reached, today)} style={{ marginBottom: 14 }}>
+              {M.reached(reached, today)}
             </T>
           ) : null}
           <T v="letter.day" style={{ fontVariant: ['lining-nums'] }} accessibilityRole="header">

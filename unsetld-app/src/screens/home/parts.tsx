@@ -88,14 +88,17 @@ function Figure({ value, unit, colorway, align = 'left' }: { value: string; unit
 }
 
 /**
- * Streak on the left, points on the right (opens Rewards). No zeros: with no streak the left
- * says what starts one, and with no points yet (Day 1) the right is empty.
+ * Streak on the left, points on the right (opens Rewards, or How points work while rewards are
+ * off). No zeros: with no streak the left says what starts one, and with no points yet (Day 1)
+ * the right is empty.
  */
 export function StatsRow({
   colorway,
   streak,
   points,
   firstDay,
+  before = 0,
+  pointsHint,
   onPoints,
 }: {
   colorway: Colorway;
@@ -103,6 +106,10 @@ export function StatsRow({
   points: number;
   /** Nothing proven on any day before today. */
   firstDay: boolean;
+  /** Days on record from 2.x with nothing proven since: said in place of Day 1's line. */
+  before?: number;
+  /** What tapping the points opens, for VoiceOver. */
+  pointsHint: string;
   onPoints: () => void;
 }) {
   return (
@@ -113,14 +120,14 @@ export function StatsRow({
         </View>
       ) : (
         <T v="saved" color={colorway.ink} style={{ flexShrink: 1 }}>
-          {firstDay ? HOME.stats.first : HOME.stats.restart}
+          {before > 0 ? HOME.stats.before(before) : firstDay ? HOME.stats.first : HOME.stats.restart}
         </T>
       )}
       {points > 0 ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={HOME.stats.a11yPoints(points)}
-          accessibilityHint={HOME.stats.a11yPointsHint}
+          accessibilityHint={pointsHint}
           onPress={onPoints}
           hitSlop={8}
           style={({ pressed }) => ({ minHeight: 44, justifyContent: 'flex-end', opacity: pressed ? 0.6 : 1 })}>
@@ -339,7 +346,7 @@ function actionSaid(a: CardAction, remaining: number, type: ProofType): string |
   return null;
 }
 
-/** "30 min · [icons] Timer + photo · +15 pts". Wraps after a dot at large text sizes. */
+/** "30 min · [icons] Timer + photo · +15 pts" ("5 min · Tonight · …" for an evening mission). Wraps after a dot at large text sizes. */
 function MetaRow({ mission, colorway }: { mission: Mission; colorway: Colorway }) {
   const dot = (
     <T v="meta" color={colorway.secondary} style={{ marginHorizontal: 6 }}>
@@ -352,6 +359,14 @@ function MetaRow({ mission, colorway }: { mission: Mission; colorway: Colorway }
         {HOME.card.minutes(mission.minutes)}
       </T>
       {dot}
+      {mission.when === 'evening' ? (
+        <>
+          <T v="meta" color={colorway.secondary}>
+            {HOME.card.tonight}
+          </T>
+          {dot}
+        </>
+      ) : null}
       <ProofMeta type={mission.proofType} color={colorway.secondary} />
       {dot}
       <T v="meta" color={colorway.secondary}>
@@ -480,7 +495,7 @@ export function MissionCard({
     ? HOME.a11y.card(mission.title, HOME.a11y.proven(area, time, done.points))
     : HOME.a11y.card(
         mission.title,
-        [HOME.a11y.cardMeta(area, mission.minutes, mission.points, mission.proofType), actionSaid(action, remaining, mission.proofType)]
+        [HOME.a11y.cardMeta(area, mission.minutes, mission.points, mission.proofType, mission.when === 'evening'), actionSaid(action, remaining, mission.proofType)]
           .filter(Boolean)
           .join('. '),
       );

@@ -16,6 +16,7 @@ import { useApp } from '../../state/store';
 import { Button, NavRow, PageTitle, Square, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, font, GAP, MARGIN, radius } from '../../ui/tokens';
+import { useAnnounce } from '../../ui/useAnnounce';
 import { useSteersNothing } from '../onboarding/GoalScreen';
 
 /** iOS scrolls the focused field above the keyboard itself; the prop means nothing elsewhere. */
@@ -74,6 +75,8 @@ export function WeeklyFocusScreen({ navigation }: RootProps<'WeeklyFocus'>) {
   const valid = Boolean(id) && (!other || text.trim().length > 0);
   // Typed words that match no missions change nothing: say so instead of promising a lean.
   const noMatch = useSteersNothing(other ? text : '');
+  // VoiceOver on iOS reads no live region: the note is said as it appears.
+  useAnnounce(noMatch ? FOCUS.otherNoMatch : null);
   const insets = useSafeAreaInsets();
   // "Something else" opens a field at the end of the list: bring it into view once it's laid out.
   const scroll = useRef<ScrollView>(null);

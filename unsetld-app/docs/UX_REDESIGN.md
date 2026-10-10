@@ -19,13 +19,13 @@ Principles:
 
 ## 1. Information architecture
 
-Bottom navigation, always on the four main screens: **Today · Progress · Rewards · You** (`@react-navigation/bottom-tabs`, custom `src/ui/TabBar.tsx`). The root native stack holds onboarding, `Main` (the tabs) and everything opened from a tab (those screens have no tab bar and a back arrow).
+Bottom navigation, always on the main screens: **Today · Progress · Rewards · You** (`@react-navigation/bottom-tabs`, custom `src/ui/TabBar.tsx`). The root native stack holds onboarding, `Main` (the tabs) and everything opened from a tab (those screens have no tab bar and a back arrow). The Rewards tab is there only while rewards are on (`accessEnabled`), or while a code the user took still works (`RootNavigator`); otherwise the bar is Today · Progress · You and nothing navigates to `Rewards`. The selected tab is marked by a short line under its label as well as by colour; inactive tabs are stone on ink (5.8:1) and `colorway.secondary` on Today, and on Today the bar continues the colorway's plate.
 
 | Tab | What it is | Opens |
 |---|---|---|
 | Today (`Main › Today`) | The three missions, the next reward, the active plan, the weekly focus question, the weekly review card on Sundays | Mission, Plans, WeeklyFocus, WeeklyReview, Share |
 | Progress (`Main › Progress`) | Streak, today, this week, your areas (levels) | ProofHistory, Achievements, Stats, Moment |
-| Rewards (`Main › Rewards`) | Points, next reward, up next, status | AllRewards, RewardHistory, HowPoints, Status, Milestone, Account |
+| Rewards (`Main › Rewards`; only while rewards are on, or a code taken still works) | Points, next reward, up next, status | AllRewards, RewardHistory, HowPoints, Status, Milestone, Account |
 | You (`Main › You`) | Goals, profile, this week, reminders, membership, appearance, settings | Tracks/AboutYou/Pace/Goal (edit), Day, WeeklyFocus, Plans, Paywall, Widget, Account, Doc, DevTools |
 
 Route names (src/navigation/types.ts): tabs `Today`, `Progress`, `Rewards`, `You` under `Main`; stack `Plans` (was Programs), `ProofHistory` (was ProofGallery), `Achievements`, `Stats`, `AllRewards`, `RewardHistory`, `HowPoints`, `Status`, `Share`, `WeeklyFocus`, `Goal` (onboarding + edit), plus the existing ones. From a tab, `navigation.navigate('Rewards')` reaches a sibling tab and `navigation.navigate('Plans')` a stack screen (`TabProps`). From a stack screen, reach a tab with `navigation.navigate('Main', { screen: 'Rewards' })`. There is no `Settings` route any more: Settings lives in You.
@@ -141,7 +141,8 @@ UNSETLD STATUS  12 active days · Next: Early access at 7  →
 
 - **Point rewards** (spent with points: discounts) and **UNSETLD status** (earned by active days: early access, the patch, the 365 piece) are separate. Status is a card linking to Status.
 - When a reward is ready: the next-reward card says "Ready" with `Get the code` (existing redeem flow, Account sign-in if needed).
-- No paragraphs of rules on the main page; HowPoints holds them.
+- No paragraphs of rules on the main page; HowPoints holds them. HowPoints also says, whether rewards are on or off, that each mission's points count as XP toward its area's level on Progress.
+- **Rewards off** (`accessEnabled` false, the iOS default until unsetld.com's backend exists): no Rewards tab, so no near-empty page and no promise of rewards later. The one exception is a code the user already took that still works: then the tab stays with the points, "Rewards aren't open. Points still count toward your area levels on Progress.", Reward history (every code, copyable) and How points work. Reward history lists codes whether rewards are on or off.
 - All values come from configuration: `content/rewards.json` and `content/milestones.json` as defaults, unsetld.com's `config.json` (`rewards`, `status`) as the override. Reward fields: `points` (pointsRequired), `type` (rewardType), `percent` (discountPercent), `maxOff` (maxDiscount), `minimumPurchase`, `redemptionCooldownDays`, `oneTimeOnly`, `active`, `inventory`, `availableFrom`/`availableUntil` (startDate/endDate), `codeValidDays`, `perCollection`. unsetld.com's config may also use the alias names (the built-in JSON files use the canonical ones; the validator enforces it). UI components never hardcode thresholds or prices.
 - A tier with `active: false` is not listed anywhere (nothing is promised that can't be had); one outside its dates or sold out shows as Not available in All rewards.
 - Status tiers: `id`, `title`, `day` (or `activeDays`), `active`. `active: false` hides a tier. The app's own ids (`early-access`, `patch`, `piece-365`) keep their action, pause and letter; any other id the config sends is display only (a page, no button, no letter). Early-access drop alerts follow the configured day.

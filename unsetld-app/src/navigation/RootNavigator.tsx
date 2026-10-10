@@ -24,6 +24,7 @@ import { ProofHistoryScreen } from '../screens/progress/ProofHistoryScreen';
 import { StatsScreen } from '../screens/progress/StatsScreen';
 import { WeeklyReviewScreen } from '../screens/progress/WeeklyReviewScreen';
 import { AllRewardsScreen } from '../screens/rewards/AllRewardsScreen';
+import { holdsLiveCode } from '../screens/rewards/codes';
 import { HowPointsScreen } from '../screens/rewards/HowPointsScreen';
 import { RewardHistoryScreen } from '../screens/rewards/RewardHistoryScreen';
 import { RewardsScreen } from '../screens/rewards/RewardsScreen';
@@ -31,7 +32,7 @@ import { StatusScreen } from '../screens/rewards/StatusScreen';
 import { ShareScreen } from '../screens/share/ShareScreen';
 import { WidgetScreen } from '../screens/WidgetScreen';
 import { YouScreen } from '../screens/you/YouScreen';
-import { useApp } from '../state/store';
+import { useAccessEnabled, useApp } from '../state/store';
 import { TabBar } from '../ui/TabBar';
 import { color as C } from '../ui/tokens';
 import type { RootParams, TabParams } from './types';
@@ -41,15 +42,21 @@ const Tabs = createBottomTabNavigator<TabParams>();
 const web = Platform.OS === 'web';
 const fade = web ? ('none' as const) : ('fade' as const);
 
-/** The four main screens, with the bottom navigation. Everything opened from them goes on the stack above. */
+/**
+ * The four main screens, with the bottom navigation. Everything opened from them goes on the stack above.
+ * With rewards switched off (accessEnabled false) there is no Rewards tab, unless a code taken with
+ * points still works: then it stays, so the code can be found.
+ */
 function MainTabs() {
+  const accessEnabled = useAccessEnabled();
+  const liveCode = useApp(s => holdsLiveCode(s.record, s.currentDay));
   return (
     <Tabs.Navigator
       tabBar={props => <TabBar {...props} />}
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: C.ink }, animation: 'none' }}>
       <Tabs.Screen name="Today" component={HomeScreen} />
       <Tabs.Screen name="Progress" component={ProgressScreen} />
-      <Tabs.Screen name="Rewards" component={RewardsScreen} />
+      {accessEnabled || liveCode ? <Tabs.Screen name="Rewards" component={RewardsScreen} /> : null}
       <Tabs.Screen name="You" component={YouScreen} />
     </Tabs.Navigator>
   );

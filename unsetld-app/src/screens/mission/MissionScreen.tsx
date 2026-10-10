@@ -7,6 +7,8 @@
 // this screen or closing the app; the rest of the flow is local to the screen.
 // The checks run on this phone (core/verify via services/verify) and never look
 // at what a photo shows; nothing here says otherwise.
+// VoiceOver on iOS reads no live region, so a stage's new line (checking, not counted,
+// before saved) is said with ui/useAnnounce; the done stage says its own.
 import { useEffect, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { activeDays } from '../../core/progress';
@@ -20,6 +22,7 @@ import { MISSION } from '../../content/copy/mission';
 import type { RootProps } from '../../navigation/types';
 import { syncProof } from '../../services/access';
 import { now, today } from '../../services/clock';
+import { notificationStatus } from '../../services/notifications';
 import { cameraPermission, capture, deletePhoto, PROOF_FROM_CAMERA, proofImage, savePhoto } from '../../services/proof';
 import { cancelTimerDone, syncTimerDone } from '../../services/timerNotify';
 import { checkTrustedTime, type TimeCheck } from '../../services/trustedTime';
@@ -32,6 +35,7 @@ import { Button, NavRow, Screen, TextButton } from '../../ui/kit';
 import { clockTime } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
 import { color as C, GAP } from '../../ui/tokens';
+import { useAnnounce } from '../../ui/useAnnounce';
 import { DoneStage } from './DoneStage';
 import { addsTo, AfterSlot, CameraNote, Instruction, LINING, MissionHeading, ProofCard, ProofFrame, ProofPhotos, ProvenLine } from './parts';
 import { TimerStage } from './TimerStage';
@@ -153,6 +157,27 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     [navigation],
   );
 
+  // Whether the timer's "done" notification can ring (allowed; never in the browser preview), so
+  // the timer only says it will ring when it can. Checked again on coming back to the app, and
+  // once a timer starts, which may ask.
+  const [canRing, setCanRing] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    let live = true;
+    notificationStatus()
+      .then(p => {
+        if (live) setCanRing(p === 'granted');
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [active]);
+
+  // Said as each appears (iOS): checking, then not counted with what failed; a before photo saved.
+  useAnnounce(stage.kind === 'checking' ? MISSION.checking : stage.kind === 'rejected' ? MISSION.a11y.rejected(stage.checks.map(c => c.note)) : null);
+  useAnnounce(inPlan && beforeHere && !proven ? MISSION.before.saved : null);
+
   const close = () => navigation.goBack();
 
   const nav = <NavRow onClose={close} step={MISSION.day(dayNo)} />;
@@ -267,8 +292,11 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     }
     const s = useApp.getState();
     s.startTimer(missionId);
-    // Starting is when to ask for notifications: the screen says it will ring.
-    syncTimerDone(useApp.getState().timer, { ask: true });
+    // Starting is when to ask for notifications: then the screen can say it will ring.
+    void syncTimerDone(useApp.getState().timer, { ask: true })
+      .then(notificationStatus)
+      .then(p => setCanRing(p === 'granted'))
+      .catch(() => {});
   };
 
   /** START 30 MIN TIMER: one timer runs at a time. */
@@ -552,6 +580,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
         area={area}
         nav={nav}
         denied={denied}
+        canRing={canRing}
         onPause={pause}
         onResume={resume}
         onEnd={endTimer}

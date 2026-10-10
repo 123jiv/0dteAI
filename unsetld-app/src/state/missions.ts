@@ -8,8 +8,8 @@ import { balance, effectiveTiers, nextReward } from '../core/rewards';
 import { computeStreak, type StreakInfo } from '../core/streak';
 import type { DayKey } from '../core/time';
 import type { DayPlan, Mission, MissionDone, PlannedMission, RewardTier, TrackId, WeeklyFocus } from '../core/types';
-import { MISSION_BY_ID, REWARD_TIERS, RULES } from '../content';
-import { useApp } from './store';
+import { MISSION_BY_ID, REWARD_TIERS } from '../content';
+import { entitlementsOf, useApp } from './store';
 
 export interface TodayMission {
   index: number;
@@ -73,9 +73,9 @@ export function useNextReward(day: DayKey) {
 }
 
 export function useRerollsLeft(day: DayKey): number {
-  const premium = useApp(s => s.premium.active);
+  const max = useApp(s => entitlementsOf(s).maxSwaps);
   const used = useApp(s => s.plans[day]?.rerolls ?? 0);
-  return Math.max(0, (premium ? RULES.rerolls.full : RULES.rerolls.free) - used);
+  return Math.max(0, max - used);
 }
 
 /**

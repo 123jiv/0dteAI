@@ -99,10 +99,23 @@ export async function fetchConfig(): Promise<RemoteConfig | null> {
   };
 }
 
-/** Null when the fetch fails, so the alerts already scheduled can stay. */
+/** A drop as drops.json should send it: an id, a collection, and an early window that opens before it ends. */
+function isDrop(d: unknown): d is Drop {
+  if (!d || typeof d !== 'object') return false;
+  const { id, collection, earlyAt, publicAt } = d as Record<string, unknown>;
+  if (typeof id !== 'string' || typeof collection !== 'string' || typeof earlyAt !== 'string' || typeof publicAt !== 'string') return false;
+  const early = Date.parse(earlyAt);
+  const open = Date.parse(publicAt);
+  return Number.isFinite(early) && Number.isFinite(open) && early <= open;
+}
+
+/**
+ * Valid entries only (a hand-edited file can hold a null or a half-filled drop); an empty list
+ * means no drops. Null when the fetch fails, so the alerts already scheduled can stay.
+ */
 export async function fetchDrops(): Promise<Drop[] | null> {
-  const json = await getJson<{ drops?: Drop[] }>(AppConfig.dropsUrl);
-  return Array.isArray(json?.drops) ? json.drops : null;
+  const json = await getJson<{ drops?: unknown }>(AppConfig.dropsUrl);
+  return Array.isArray(json?.drops) ? json.drops.filter(isDrop) : null;
 }
 
 /** One check-in per account per server day. */

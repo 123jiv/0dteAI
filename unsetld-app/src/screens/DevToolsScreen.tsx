@@ -175,12 +175,15 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
     showDialog(D.backfilled(missionsAdded, daysAdded));
   };
 
-  /** Today and the next n-1 days each get a plan and one proven mission; then the clock moves n days on. */
+  /**
+   * Today and the next n days each get a plan and one proven mission; then the clock moves n days
+   * on. The day it lands on is proven too, so Today shows any milestone or letter it brings.
+   */
   const jumpProving = (n: number) => {
     const d = today();
     let r = st().record;
     const plans = { ...st().plans };
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i <= n; i++) {
       const at = addDays(d, i);
       const plan = plans[at] ?? planFor(r, plans, at);
       plans[at] = plan;
@@ -195,7 +198,7 @@ export function DevToolsScreen({ navigation }: RootProps<'DevTools'>) {
   };
   const skip = (n: number) => st().setDayOffset(st().dayOffset + n);
 
-  /** Back to the real date and record; plans made for days that haven't come yet go. */
+  /** Back to the real date, record and plans; plans made for days that haven't come yet go. */
   const backToReal = () => {
     st().backToRealToday();
     const d = today();

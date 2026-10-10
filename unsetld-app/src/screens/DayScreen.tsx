@@ -185,6 +185,8 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
                   value={count as (typeof REMINDER_COUNTS)[number]}
                   onChange={setCount}
                   disabled={disabled}
+                  accessibilityLabel={COPY.perDay}
+                  lockedNote={COPY.perDayNote}
                   style={{ alignSelf: 'stretch' }}
                 />
                 {edit && !ent.premium ? (

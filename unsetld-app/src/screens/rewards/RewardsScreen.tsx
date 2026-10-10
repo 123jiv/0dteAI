@@ -13,6 +13,7 @@ import { Button, Screen } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP } from '../../ui/tokens';
 import { accessDays, accessRecord, useStatusTiers } from '../access';
+import { codeCount } from './codes';
 import { LINING, RedeemNote, useRedeem } from './redeem';
 
 const R = REWARDS_COPY;
@@ -32,8 +33,9 @@ function nothingOpenText(statuses: { tier: RewardTier; status: ReturnType<typeof
  * Rewards (docs/UX_REDESIGN.md section 9): points, the next reward with its meter (and
  * "Get the code" once it's ready), the two after it, links to every reward, your codes and
  * how points work, and a separate UNSETLD status card. No rules on this page: How points
- * work holds them. With rewards switched off (accessEnabled false) only the points and how
- * they're earned show.
+ * work holds them. With rewards switched off (accessEnabled false) the tab only shows while a
+ * code taken still works (RootNavigator): then the points, your codes and how points are
+ * earned.
  */
 export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
   const insets = useSafeAreaInsets();
@@ -49,7 +51,7 @@ export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
   const { busy, noteFor, take, sheet } = useRedeem(() => navigation.navigate('Account'));
 
   const earned = pointsEarned(record) > 0;
-  const codes = (record.redemptions?.length ?? 0) + (Array.isArray(record.codes) ? record.codes.length : 0);
+  const codes = codeCount(record);
   const later = next ? upNext(record, tiers, collection, day, next.tier) : [];
 
   // Status counts active days on the record as Access sees it.
@@ -85,7 +87,7 @@ export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
             {next ? (
               <Card style={{ marginTop: GAP.block }}>
                 {/* One element for screen readers (title, progress, what it gives); the button stays its own. */}
-                <View accessible accessibilityLabel={next.ready ? `${R.nextA11y(next.tier.title, next.have, next.tier.points)}. ${R.readyLine(next.tier)}` : R.nextA11y(next.tier.title, next.have, next.tier.points)}>
+                <View accessible accessibilityLabel={next.ready ? `${R.nextA11y(next.tier.title, next.have, next.tier.points)}. ${R.readyLine(next.tier)}` : R.nextA11y(next.tier.title, next.have, next.tier.points, !earned)}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <T v="kicker" color={C.stone}>
                       {R.next}
@@ -207,6 +209,8 @@ export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
               </T>
             ) : null}
             <View style={{ marginTop: GAP.block - 6 }}>
+              {/* Codes already taken stay reachable while rewards are off. */}
+              {codes ? <LinkRow title={R.links.history} value={R.links.historyValue(codes)} onPress={() => navigation.navigate('RewardHistory')} /> : null}
               <LinkRow title={R.links.how} onPress={() => navigation.navigate('HowPoints')} />
             </View>
           </>

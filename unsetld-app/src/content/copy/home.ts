@@ -34,11 +34,15 @@ export const HOME = {
     points: 'pts',
     /** Day 1, in place of a zero. */
     first: 'Your first mission starts your streak.',
+    /** Days on record from 2.x and nothing proven since: they're kept, so they're said. */
+    before: (n: number) => `${n === 1 ? '1 day' : `${num(n)} days`} on record. Your next mission starts your streak.`,
     /** A streak that ran out: in place of the zero, and what brings it back. */
     restart: 'Your next mission starts a new streak.',
     a11yStreak: (n: number) => (n === 1 ? '1 day streak' : `${n} day streak`),
     a11yPoints: (n: number) => points(n),
     a11yPointsHint: 'Opens Rewards',
+    /** Rewards off: there's no Rewards tab, so the points open How points work. */
+    a11yPointsHowHint: 'Opens How points work',
   },
 
   reward: {
@@ -87,6 +91,8 @@ export const HOME = {
   /** The mission card's meta row, around the proof (ProofMeta): "30 min ·" … "· +15 pts". */
   card: {
     minutes: (n: number) => `${n}${NBSP}min`,
+    /** A mission meant for the evening (`when: 'evening'`), after its minutes. */
+    tonight: 'Tonight',
     points: (n: number) => `+${n}${NBSP}pts`,
   },
 
@@ -141,9 +147,9 @@ export const HOME = {
 
   a11y: {
     card: (title: string, rest: string) => `${title}. ${rest}`,
-    /** The card's words: "School, 30 minutes, 15 points, proven with the timer and a photo". */
-    cardMeta: (area: string, minutes: number, pointsN: number, proof: ProofType) =>
-      [area || null, minutesSaid(minutes), pointsN === 1 ? '1 point' : `${pointsN} points`, (PROOF_KIND[proof] ?? PROOF_KIND.PHOTO).a11y]
+    /** The card's words: "School, 30 minutes, 15 points, proven with the timer and a photo" ("…, 5 minutes, for tonight, …"). */
+    cardMeta: (area: string, minutes: number, pointsN: number, proof: ProofType, tonight = false) =>
+      [area || null, minutesSaid(minutes), tonight ? 'for tonight' : null, pointsN === 1 ? '1 point' : `${pointsN} points`, (PROOF_KIND[proof] ?? PROOF_KIND.PHOTO).a11y]
         .filter(Boolean)
         .join(', '),
     proven: (area: string, time: string, points: number) => [area || null, `proven at ${time}`, `${points} points`].filter(Boolean).join(', '),

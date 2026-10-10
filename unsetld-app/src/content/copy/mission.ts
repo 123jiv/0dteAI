@@ -72,7 +72,10 @@ export const MISSION = {
   },
 
   timer: {
+    /** Only while the timer-done notification can ring: allowed, and not the browser preview. */
     line: 'Phone down. Come back when it rings.',
+    /** Nothing will ring (notifications off, or the preview): when to come back instead. */
+    lineNoRing: (minutes: number) => (minutes === 1 ? 'Phone down. Come back in 1 minute.' : `Phone down. Come back in ${minutes} minutes.`),
     paused: 'Paused. The clock stops until you resume.',
     done: 'Time. Take the proof photo.',
     /** A TIMER mission: the timer is the whole proof. */
@@ -145,6 +148,10 @@ export const MISSION = {
     share: 'Share today',
     /** Before the checks line when the proof has photos. */
     saved: 'Proof saved.',
+    /** The proof took its area to a new level: a kicker ("SCHOOL · LEVEL 3") over the area's meter. */
+    level: (area: string, level: number) => `${area} · Level ${level}`,
+    /** Otherwise, quietly: what the proof added to its area ("+15 XP · School · Level 2"). XP is the mission's points. */
+    xp: (points: number, area: string, level: number) => `+${num(points)} XP · ${area} · Level ${level}`,
   },
 
   /** "Checked on this phone: taken just now, timer finished, new photo." from the checks that passed. */
@@ -208,6 +215,21 @@ export const MISSION = {
     balance: (from: number, to: number) => `${from} to ${to} points`,
     balanceBonus: (from: number, to: number) => `${from} to ${to} points with the bonus`,
     perfect: (done: number, all: number, bonus: number) => `${done} of ${all}. Perfect day. Plus ${bonus} bonus points.`,
+    toReward: (need: number, title: string) => `${need} ${need === 1 ? 'point' : 'points'} to ${title}.`,
+    ready: (title: string) => `${title} is ready.`,
+    /** The level the proof took its area to, with where the meter stands in it. */
+    level: (area: string, level: number, into: number, span: number) => `${area} is now level ${level}. ${into} of ${span} XP to level ${level + 1}.`,
+    levelSaid: (area: string, level: number) => `${area} is now level ${level}.`,
+    xp: (points: number, area: string, level: number) => `Plus ${points} XP. ${area}, level ${level}.`,
+    /**
+     * Said once as the done stage opens (VoiceOver on iOS reads no live region), with the final
+     * numbers rather than the count-up: "Proven. Plus 15 points. 205 points to 10% off. Streak: 12 days."
+     * A perfect day's line comes before the streak, a new area level after it.
+     */
+    done: (o: { points: number; reward?: string | null; perfect?: string | null; streak: string; level?: string | null }): string =>
+      ['Proven.', `${MISSION.a11y.points(o.points)}.`, o.reward, o.perfect, o.streak, o.level].filter(Boolean).join(' '),
+    /** Not counted, with what failed, as the screen lists it. */
+    rejected: (notes: readonly string[]) => ['Not counted.', ...notes].join(' '),
     proven: (time: string, points: number) => `Proven at ${time}, ${points} points`,
     /** The proof stamp, read aloud. */
     stamp: (date: string, time: string) => `Taken ${date} at ${time}`,

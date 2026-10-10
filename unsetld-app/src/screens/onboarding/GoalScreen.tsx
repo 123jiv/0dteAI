@@ -8,6 +8,7 @@ import { useApp } from '../../state/store';
 import { Button, NavRow, PageTitle, Screen, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, font, GAP, radius } from '../../ui/tokens';
+import { useAnnounce } from '../../ui/useAnnounce';
 import { Chip, useProfileDraft } from './TracksScreen';
 
 const COPY = ONBOARDING.goal;
@@ -71,6 +72,8 @@ export function GoalScreen({ navigation, route }: RootProps<'Goal'>) {
 
   const length = text.length;
   const noMatch = useSteersNothing(text);
+  // VoiceOver on iOS reads no live region: the note is said as it appears.
+  useAnnounce(noMatch ? COPY.noMatch : null);
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.ink }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

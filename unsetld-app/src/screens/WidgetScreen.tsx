@@ -249,6 +249,7 @@ export function WidgetScreen({ navigation }: RootProps<'Widget'>) {
     <Screen nav={<NavRow onBack={() => navigation.goBack()} />}>
       <PageTitle title={G.title} body={G.body} />
       <Segmented
+        role="tabs"
         options={TABS}
         value={tab}
         onChange={setTab}

@@ -19,6 +19,7 @@ import { ColorwayBackground } from '../../ui/ColorwayBackground';
 import { Button, NavRow, Screen } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, font, radius } from '../../ui/tokens';
+import { useAnnounce } from '../../ui/useAnnounce';
 
 /** Story size: 9 wide, 16 tall. */
 const RATIO = 9 / 16;
@@ -54,6 +55,8 @@ export function ShareScreen({ navigation }: RootProps<'Share'>) {
   const card = useRef<View>(null);
   const busy = useRef(false);
   const [failed, setFailed] = useState(false);
+  // VoiceOver on iOS reads no live region: a failed share is said as it shows.
+  useAnnounce(failed ? SHARE.failed : null);
   // The space between the nav row and the footer; the card is the biggest 9:16 that fits in it.
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
   const onBox = (e: LayoutChangeEvent) => {

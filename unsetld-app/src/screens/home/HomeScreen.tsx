@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { swapArea } from '../../core/missions';
 import { programDay } from '../../core/programs';
 import { activeDays, milestones, type MilestoneKey } from '../../core/progress';
+import { dayCount } from '../../core/record';
 import { reviewWeekFor, weeklyReview } from '../../core/review';
 import { addDays, type DayKey } from '../../core/time';
 import type { MissionDone, RecordState } from '../../core/types';
@@ -276,6 +277,10 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const dayNo = shownUp.size + (shownUp.has(day) ? 0 : 1);
   // Day 1: nothing proven on any earlier day. No zeros, and the first reward is said as one.
   const firstDay = dayNo === 1;
+  // Days on record from 2.x with no mission proven since (3.x puts a day on record only with a
+  // proof): DAY 1 still, but the days are said, and points already held aren't a first reward
+  // (nor is the next one once a 2.x code was taken: `record.codes`).
+  const before = shownUp.size === 0 ? dayCount(record) : 0;
 
   // The weekly focus question: from the second active day on, in a week with none set and not skipped.
   // Not on Sunday: the week is ending (an answer would last a day), and the weekly review asks
@@ -295,7 +300,16 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
         <TopRow colorway={colorway} days={dayNo} />
 
         <View style={{ marginTop: 14 }}>
-          <StatsRow colorway={colorway} streak={streak.current} points={points} firstDay={firstDay} onPoints={() => navigation.navigate('Rewards')} />
+          {/* Rewards off, there's no Rewards tab: the points open How points work instead. */}
+          <StatsRow
+            colorway={colorway}
+            streak={streak.current}
+            points={points}
+            firstDay={firstDay}
+            before={before}
+            pointsHint={accessEnabled ? HOME.stats.a11yPointsHint : HOME.stats.a11yPointsHowHint}
+            onPoints={() => navigation.navigate(accessEnabled ? 'Rewards' : 'HowPoints')}
+          />
         </View>
 
         {accessEnabled && next ? (
@@ -307,7 +321,7 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
               points={next.tier.points}
               need={next.need}
               ready={next.ready}
-              first={firstDay && !record.redemptions?.length}
+              first={firstDay && !before && !record.redemptions?.length && !record.codes?.length}
               onPress={() => navigation.navigate('Rewards')}
             />
           </View>
