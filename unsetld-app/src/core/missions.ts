@@ -415,11 +415,11 @@ export function chooseForSlot(
     return null;
   };
 
-  const shortest = (list: readonly TrackId[], over = 15): SlotPick | null => {
+  const shortest = (list: readonly TrackId[], cap: number): SlotPick | null => {
     for (const size of sizes) {
       for (const area of list) {
         const cands = input.library
-          .filter(m => serves(m, area) && fits(m, size, maxMinutes + over) && available(m, input, true, true))
+          .filter(m => serves(m, area) && fits(m, size, cap) && available(m, input, true, true))
           .sort((a, b) => a.minutes - b.minutes)
           .slice(0, 3);
         const m = pick(cands, input, area, `${seed}:short:${size}:${area}`);
@@ -452,9 +452,10 @@ export function chooseForSlot(
     const got = tryAreas([...fresh, ...rest], size, true, true, maxMinutes);
     if (got) return got;
   }
-  // 5 (one area only): their own area's shortest, up to 5 minutes over, before anything from outside it.
+  // 5 (one area only): their own area's missions shown or swapped lately, within the time the day
+  // has left, before anything from outside it.
   if (areas.length === 1) {
-    const own = shortest(areas, 5);
+    const own = shortest(areas, Math.max(maxMinutes, stretch));
     if (own) return own;
   }
   // 5: the universal basics.
@@ -466,7 +467,7 @@ export function chooseForSlot(
     }
   }
   // 6: nothing fits the time left; the shortest few of their areas' missions, a little over.
-  return shortest([...fresh, ...rest]);
+  return shortest([...fresh, ...rest], maxMinutes + 15);
 }
 
 /** A mission's id plus every other mission in its group: none of them can join a day that has it. */
