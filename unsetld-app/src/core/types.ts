@@ -228,7 +228,7 @@ export interface Profile {
 }
 
 /** The weekly focus choices (core/personalize FOCUS_OPTIONS says what each one leans the plan toward). */
-export type FocusId = 'school-catchup' | 'exam' | 'business' | 'gym' | 'project' | 'routine' | 'save' | 'skill' | 'other';
+export type FocusId = 'school-catchup' | 'exam' | 'business' | 'gym' | 'project' | 'routine' | 'organize' | 'save' | 'skill' | 'other';
 
 export interface WeeklyFocus {
   /** Monday of the week it's for. */

@@ -111,5 +111,8 @@ export function reviewFocusWeek(from: DayKey, today: DayKey): DayKey | null {
  */
 export function focusChoices(order: readonly FocusId[], library: readonly Mission[], profile: Profile): FocusId[] {
   const plannable = (t: TrackId) => library.some(m => m.active && serves(m, t) && meetsRequirements(m.requires, profile));
-  return order.filter(id => id !== 'other' && plannable(FOCUS_LEAN[id].area));
+  const ok = order.filter(id => id !== 'other' && plannable(FOCUS_LEAN[id].area));
+  // The ones in the user's own areas first, each group in the screen's order.
+  const mine = (id: FocusId) => (id !== 'other' && profile.tracks.includes(FOCUS_LEAN[id].area) ? 0 : 1);
+  return [...ok].sort((a, b) => mine(a) - mine(b));
 }

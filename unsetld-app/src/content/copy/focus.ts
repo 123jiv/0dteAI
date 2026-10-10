@@ -9,6 +9,7 @@ const OPTIONS = {
   gym: 'Get back in the gym',
   project: 'Finish a project',
   routine: 'Improve my routine',
+  organize: 'Get my space in order',
   save: 'Save money',
   skill: 'Learn a skill',
   other: 'Something else',
@@ -19,7 +20,7 @@ export const FOCUS = {
   body: 'Your missions lean toward it all week.',
   options: OPTIONS,
   /** Order on the screen. */
-  order: ['school-catchup', 'exam', 'business', 'gym', 'project', 'routine', 'save', 'skill', 'other'] as FocusId[],
+  order: ['school-catchup', 'exam', 'business', 'gym', 'project', 'routine', 'organize', 'save', 'skill', 'other'] as FocusId[],
   /** "Something else": the most they can type. */
   otherMax: 60,
   otherPlaceholder: 'In a few words',
@@ -41,6 +42,9 @@ export const FOCUS = {
   /** The line on Today once it's set ("This week: Work on my business"). */
   current: (label: string) => `This week: ${label}`,
   currentHint: 'Change this week’s focus',
+  /** An option as the user reads it: "Get back in the gym" only for someone with a gym. */
+  option: (id: FocusId, gym?: boolean | null): string => (id === 'gym' && gym !== true ? 'Get back to working out' : OPTIONS[id]),
   /** What a focus reads as: the option, or what they typed for "Something else". */
-  label: (f: Pick<WeeklyFocus, 'id' | 'text'>): string => (f.id === 'other' ? f.text?.trim() || OPTIONS.other : OPTIONS[f.id] ?? OPTIONS.other),
+  label: (f: Pick<WeeklyFocus, 'id' | 'text'>, gym?: boolean | null): string =>
+    f.id === 'other' ? f.text?.trim() || OPTIONS.other : f.id === 'gym' && gym !== true ? 'Get back to working out' : (OPTIONS[f.id] ?? OPTIONS.other),
 };

@@ -57,6 +57,11 @@ export const FOCUS_LEAN: Record<Exclude<FocusId, 'other'>, { area: TrackId; ids:
     ids: ['discipline-plan-tomorrow', 'discipline-make-your-bed', 'discipline-top-3', 'discipline-lock-in-30', 'discipline-most-important-first'],
     tags: ['routine', 'habits'],
   },
+  organize: {
+    area: 'organization',
+    ids: ['organization-clean-room-15', 'organization-declutter-30', 'organization-closet', 'organization-drawer', 'organization-clean-desk'],
+    tags: ['clean', 'organize'],
+  },
   save: {
     area: 'money',
     ids: ['money-track-spending', 'money-save-today', 'money-simple-budget', 'money-month-review', 'money-compare-prices'],

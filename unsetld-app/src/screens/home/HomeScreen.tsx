@@ -282,7 +282,7 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   // about next week then.
   const sunday = addDays(weekFocus.week, 6) === day;
   const askFocus = !firstDay && !sunday && ready && all > 0 && !weekFocus.focus && !weekFocus.skipped;
-  const focusLabel = weekFocus.focus ? FOCUS.label(weekFocus.focus) : null;
+  const focusLabel = weekFocus.focus ? FOCUS.label(weekFocus.focus, profile.gym) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: colorway.bg }}>

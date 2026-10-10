@@ -65,7 +65,8 @@ export function WeeklyFocusScreen({ navigation }: RootProps<'WeeklyFocus'>) {
   // "Something else": nothing about school for someone not in school.
   const profile = useApp(s => s.profile);
   const plannable = focusChoices(FOCUS.order, MISSIONS, profile);
-  const options = FOCUS.order.filter(f => f === 'other' || f === current?.id || plannable.includes(f));
+  // The plannable ones (the user's own areas first), the one already set, then "Something else".
+  const options = [...plannable, ...(current && current.id !== 'other' && !plannable.includes(current.id) ? [current.id] : []), 'other' as const];
   const [id, setId] = useState<FocusId | null>(current?.id ?? null);
   const [text, setText] = useState(current?.id === 'other' ? current.text ?? '' : '');
   const [typing, setTyping] = useState(false);
@@ -125,7 +126,7 @@ export function WeeklyFocusScreen({ navigation }: RootProps<'WeeklyFocus'>) {
         <PageTitle title={FOCUS.title} body={FOCUS.body} style={{ marginTop: 8 }} />
         <View accessibilityRole="radiogroup" accessibilityLabel={FOCUS.title} style={{ marginTop: GAP.block, gap: GAP.tight }}>
           {options.map(f => (
-            <Option key={f} label={FOCUS.options[f]} on={id === f} onPress={() => choose(f)} />
+            <Option key={f} label={FOCUS.option(f, profile.gym)} on={id === f} onPress={() => choose(f)} />
           ))}
         </View>
         {other ? (

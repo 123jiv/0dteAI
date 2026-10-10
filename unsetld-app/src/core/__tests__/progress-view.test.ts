@@ -156,9 +156,10 @@ describe('the review sets next week’s focus', () => {
     const order: FocusId[] = ['school-catchup', 'exam', 'business', 'gym', 'other'];
     const library = missionsJson as unknown as Mission[];
     const p = (patch: Partial<Profile>): Profile => ({ ...DEFAULT_PROFILE, ...patch });
-    expect(focusChoices(order, library, p({ school: true }))).toEqual(['school-catchup', 'exam', 'business', 'gym']);
+    // The user's own areas first (the default profile has School and Fitness), each group in order.
+    expect(focusChoices(order, library, p({ school: true }))).toEqual(['school-catchup', 'exam', 'gym', 'business']);
     // Not in school: no school missions to lean toward, so no school options.
-    expect(focusChoices(order, library, p({ school: false }))).toEqual(['business', 'gym']);
+    expect(focusChoices(order, library, p({ school: false }))).toEqual(['gym', 'business']);
     // An area with nothing the user's answers allow is left out, whatever it is.
     const onlySchool = library.filter(m => m.track === 'school');
     expect(focusChoices(order, onlySchool, p({ school: true }))).toEqual(['school-catchup', 'exam']);

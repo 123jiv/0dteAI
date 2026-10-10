@@ -176,7 +176,7 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
           </T>
           <View accessibilityRole="radiogroup" style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: GAP.tight }}>
             {options.map(id => (
-              <Option key={id} label={FOCUS.options[id]} on={set === id} onPress={() => choose(id)} />
+              <Option key={id} label={FOCUS.option(id, profile.gym)} on={set === id} onPress={() => choose(id)} />
             ))}
           </View>
           {set ? (

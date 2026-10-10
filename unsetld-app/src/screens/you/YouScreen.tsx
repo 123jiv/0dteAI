@@ -54,10 +54,9 @@ function answered(p: Profile): number {
 }
 
 /** This week's focus in the user's words, or null when none is set for this week. */
-function focusLabel(focus: WeeklyFocus | null): string | null {
+function focusLabel(focus: WeeklyFocus | null, gym: boolean | null | undefined): string | null {
   if (!focus) return null;
-  if (focus.id === 'other') return focus.text?.trim() || FOCUS.options.other;
-  return FOCUS.options[focus.id] ?? null;
+  return FOCUS.label(focus, gym);
 }
 
 /** A kicker, then one card of rows, then an optional note. No rules: the card is the group. */
@@ -143,7 +142,7 @@ export function YouScreen({ navigation }: TabProps<'You'>) {
   const areaNames = profile.tracks.map(t => TRACK_BY_ID[t]?.short).filter((x): x is string => Boolean(x));
   const retention = RETENTION.includes(settings.proofRetentionDays) ? settings.proofRetentionDays : RETENTION[0];
   const goal = profile.goal?.trim() || null;
-  const focus = focusLabel(focusFor(profile, weekStart(day)));
+  const focus = focusLabel(focusFor(profile, weekStart(day)), profile.gym);
   const plan = program && !program.finishedDay ? PROGRAM_BY_ID[program.id] : undefined;
   const planDay = plan && program ? programDay(plan, program, day) : null;
 
