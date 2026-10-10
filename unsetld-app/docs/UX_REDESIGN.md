@@ -30,7 +30,7 @@ Bottom navigation, always on the four main screens: **Today · Progress · Rewar
 
 Route names (src/navigation/types.ts): tabs `Today`, `Progress`, `Rewards`, `You` under `Main`; stack `Plans` (was Programs), `ProofHistory` (was ProofGallery), `Achievements`, `Stats`, `AllRewards`, `RewardHistory`, `HowPoints`, `Status`, `Share`, `WeeklyFocus`, `Goal` (onboarding + edit), plus the existing ones. From a tab, `navigation.navigate('Rewards')` reaches a sibling tab and `navigation.navigate('Plans')` a stack screen (`TabProps`). From a stack screen, reach a tab with `navigation.navigate('Main', { screen: 'Rewards' })`. There is no `Settings` route any more: Settings lives in You.
 
-Moved: Programs → **Plans** (from Today's active-plan card and You; no longer in a bar). Colorway → You › Appearance (the sheet still opens over Today: `navigate('Today', { sheet: 'colorway', nonce })`). The access/drops note leaves Today. The paywall leaves onboarding (reached from You › Membership and from a limit, e.g. out of swaps).
+Moved: Programs → **Plans** (from Today's active-plan card and You; no longer in a bar). Colorway → You › Appearance (the sheet still opens over Today: `navigate('Today', { sheet: 'colorway', nonce })`). The access/drops note leaves Today. The paywall leaves onboarding (reached from You › Membership, an UNSETLD+ plan, a locked colorway). Swap is hidden once no swaps are left, so Today never carries an upsell; the swap-limit notice with its UNSETLD+ line only appears if a swap is refused.
 
 ## 2. Design system
 
@@ -43,7 +43,7 @@ Blocks (src/ui/blocks.tsx): `Card` (raised surface, radius 12, padding 18, optio
 Rules:
 - **No hairline between list items.** Use `GAP` spacing, `Card`s, and `SectionLabel`s. `Rule`/`hairline` only where a real boundary exists (a sheet edge, the tab bar is borderless).
 - **Uppercase tracking sparingly:** kickers and the primary button label. Body, meta, links and secondary buttons are sentence case.
-- On Today (colorway backgrounds) a card's surface is translucent: dark colorways (`statusBar: 'light'`) `rgba(237,233,227,0.07)`, light ones `rgba(10,10,10,0.06)`; text uses `colorway.ink` / `colorway.secondary`.
+- On Today (colorway backgrounds) a card's surface is translucent: dark colorways (`statusBar: 'light'`) `rgba(237,233,227,0.07)`, light ones `rgba(10,10,10,0.085)` (strong enough to hold on mid-grey Concrete); text uses `colorway.ink` / `colorway.secondary`.
 - Buttons are obvious without being huge: the primary `Button` (54 tall) for the one main action of a screen; a small filled button (START) on cards; `TextButton`/`LinkRow` for the rest.
 - Tab screens have no back arrow; their title is the first thing on the page (serif `title.l`), except Today, whose top row is the wordmark and the day.
 - Motion: short, eased (`ease.out`), never bouncy; respect Reduce Motion. Haptics: `selection` on taps, `success` on a proof, `soft` on a perfect day.
@@ -69,7 +69,7 @@ ACTIVE PLAN  Build Something · Day 4 of 7   Continue →
 - Next reward: kicker `NEXT REWARD`, a `Meter`, "220 pts to 10% off" (or "10% off is ready" → Rewards). Shown when rewards are enabled. Day 1: "300 pts to 5% off — your first reward."
 - `TODAY` kicker with `0 / 3` (mono). Below it the three mission cards (§4), `GAP.card` apart. Swaps left appear only on the card ("Swap") and in the confirm dialog, not as a separate line.
 - Active plan card (when a plan runs): kicker `ACTIVE PLAN`, plan title (serif), "Day 4 of 7", `Continue →` → Plans. No plan: a quiet `LinkRow` "Plans" ("Guided 5–7 day runs") at the very bottom, after the missions.
-- Weekly focus: from the user's second active day on, in a week with no focus set and not skipped, a compact card above the missions: "What matters most this week?" / "Pick one and your missions lean toward it." → WeeklyFocus; dismiss "Not this week". When set, one meta line under TODAY: "This week: Work on my business" (tap → WeeklyFocus).
+- Weekly focus: from the user's second active day on, Monday to Saturday (on Sunday the weekly review asks about next week), in a week with no focus set and not skipped, a compact card above the missions: "What matters most this week?" / "Pick one and your missions lean toward it." → WeeklyFocus; dismiss "Not this week". When set, one meta line under TODAY: "This week: Work on my business" (tap → WeeklyFocus).
 - Sunday: the weekly review card (existing) after the missions.
 - Perfect day: the TODAY row reads `3 / 3` with "Perfect day." and a `Share today` text button → Share.
 - Removed from Today: the access/drops note, the colorway button, the old bottom bar, the separate swaps line.

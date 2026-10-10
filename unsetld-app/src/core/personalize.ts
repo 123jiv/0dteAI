@@ -79,6 +79,7 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
   { words: /\b(exams?|tests?|sat|act|finals?|midterms?|quiz(zes)?)\b/i, areas: ['school'], tags: ['exam', 'test'] },
   { words: /\b(muscle|gym|strength|strong|lift(ing)?|workouts?|bulk|fit|fitness|shape|athletic)\b/i, areas: ['fitness'], tags: ['gym', 'muscle', 'strength', 'workout'] },
   { words: /\b(run(ning)?|cardio|endurance|marathon|5k|10k|stamina)\b/i, areas: ['fitness'], tags: ['run', 'cardio', 'endurance'] },
+  { words: /\b(sports?|varsity|basketball|soccer|football|baseball|softball|volleyball|tennis|hockey|wrestling|lacrosse|swim(ming)?)\b/i, areas: ['fitness'], tags: ['sport', 'training'] },
   { words: /\b(brand|clothing|apparel|business|shop|store|sell(ing)?|customers?|startup|company|merch)\b/i, areas: ['business'], tags: ['brand', 'clothing', 'shop', 'sell', 'customers'] },
   { words: /\b(internships?|jobs?|career|resume|cv|interviews?|hired|promotion|raise|linkedin)\b/i, areas: ['career'], tags: ['internship', 'job', 'resume', 'interview'] },
   { words: /\b(cod(e|ing)|program(ming)?|developer|software|apps?|websites?|python|javascript)\b/i, areas: ['skills', 'projects'], tags: ['coding', 'code', 'app', 'programming'] },

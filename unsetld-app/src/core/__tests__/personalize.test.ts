@@ -102,6 +102,7 @@ describe('goal text', () => {
     expect(goalLean('Launch my clothing brand').areas).toContain('business');
     expect(goalLean('Get an internship').tags).toContain('internship');
     expect(goalLean('Build muscle').areas).toEqual(['fitness']);
+    expect(goalLean('Make varsity basketball').tags).toContain('sport');
     expect(goalLean('Learn coding').tags).toContain('coding');
     expect(goalLean('Save $1,000').areas).toEqual(['money']);
     expect(goalLean('').areas).toEqual([]);

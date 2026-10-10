@@ -45,7 +45,7 @@ function withMotion(run: (reduce: boolean) => void): () => void {
 export function surfacesFor(colorway: Colorway): { card: string; pressed: string; quiet: string } {
   return colorway.statusBar === 'light'
     ? { card: 'rgba(237,233,227,0.07)', pressed: 'rgba(237,233,227,0.12)', quiet: 'rgba(237,233,227,0.035)' }
-    : { card: 'rgba(10,10,10,0.06)', pressed: 'rgba(10,10,10,0.11)', quiet: 'rgba(10,10,10,0.03)' };
+    : { card: 'rgba(10,10,10,0.085)', pressed: 'rgba(10,10,10,0.14)', quiet: 'rgba(10,10,10,0.045)' };
 }
 
 /** UNSETLD on the left, DAY 12 on the right. */

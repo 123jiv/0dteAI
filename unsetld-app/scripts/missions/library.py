@@ -299,10 +299,10 @@ m("fitness-outside-20", F, "Get Outside and Move for 20 Minutes", 20, 10, TP,
 m("fitness-bike-30", F, "Bike for 30 Minutes", 30, 15, TP,
   "Ride your bike for 30 minutes at a steady pace, helmet on.", "Your bike after the ride. No people.", 3,
   group="cardio", active=False)
-# Only for people who play a sport, which nobody is asked: it stays in, but rarely.
+# One of the founder's picks: kept at normal weight (a lot of 13–25s play a sport).
 m('fitness-sport-30', F, 'Practice Your Sport for 30 Minutes', 30, 15, TP,
   'Work on the skills of your sport for 30 minutes: drills, shots, footwork.', 'Where you practiced. No people.', 3,
-  group='workout', weight=0.1, niche=True, tags=['sport', 'training'])
+  group='workout', tags=['sport', 'training'])
 m('fitness-stretch-10', F, 'Stretch for 10 Minutes', 10, 10, T,
   'Stretch your hips, legs, back and shoulders for 10 minutes.', 'Run the 10-minute timer to the end.', 1,
   group='stretch', anchor=True, weight=1.2, tags=['stretch', 'mobility', 'recovery'])
@@ -320,7 +320,7 @@ m('fitness-pack-meal', F, "Prepare Tomorrow's Meal", 15, 10, P,
   tags=['meal', 'food', 'planning'])
 m('fitness-breakfast', F, "Get Tomorrow's Breakfast Ready", 5, 5, P,
   "Set out or make tomorrow's breakfast tonight so you don't skip it.", 'Your breakfast, ready for the morning.', 2,
-  group='meal', when='evening', weight=0.8, tags=['meal', 'food', 'routine'])
+  group='meal', when='evening', weight=0.5, tags=['meal', 'food', 'routine'])
 # Planning, packing and logging support the workout; they sit below it and don't carry its keywords.
 m('fitness-plan-week', F, "Plan This Week's Workouts", 10, 10, P,
   "Write which days you'll train this week, when, and what you'll do.", 'Your training plan.', 6,

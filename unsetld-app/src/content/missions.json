@@ -1474,12 +1474,10 @@
   "cooldownDays": 3,
   "repeatable": true,
   "group": "workout",
-  "weight": 0.1,
   "tags": [
    "fitness",
    "sport",
-   "training",
-   "niche"
+   "training"
   ],
   "active": true
  },
@@ -1617,7 +1615,7 @@
   "repeatable": true,
   "group": "meal",
   "when": "evening",
-  "weight": 0.8,
+  "weight": 0.5,
   "tags": [
    "fitness",
    "meal",
