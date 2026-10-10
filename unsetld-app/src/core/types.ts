@@ -124,8 +124,11 @@ export type MissionSlot = 'easy' | 'main';
 /** Skills a user can say they're learning; skill-specific missions need a match. */
 export type SkillId = 'coding' | 'design' | 'video' | 'writing' | 'language' | 'music';
 
-/** What a mission needs from the user's life; a mission is only offered when they match. */
-export type Requirement = 'school' | 'work' | 'gym' | 'project' | 'age16' | 'age18' | SkillId;
+/**
+ * What a mission needs from the user's life; a mission is only offered when they match.
+ * 'highschool': in school and not in college (SAT/ACT, college applications).
+ */
+export type Requirement = 'school' | 'highschool' | 'work' | 'gym' | 'project' | 'age16' | 'age18' | SkillId;
 
 export interface Mission {
   /** Permanent id, "<track>-<slug>": "school-study-30". Completions and programs refer to it. */
@@ -162,6 +165,11 @@ export interface Mission {
   when?: 'morning' | 'evening';
   /** Days of the week it can be planned (0 = Sunday), for missions tied to a school day. Any day when absent. */
   days?: number[];
+  /**
+   * Skills it suits ("Edit One Video": video). A soft hint, not a requirement: users who
+   * named other skills see it less, users who named one of these see it more.
+   */
+  fits?: SkillId[];
   tags: string[];
   active: boolean;
 }
@@ -171,6 +179,8 @@ export interface Profile {
   tracks: TrackId[];
   /** In school or college. */
   school: boolean | null;
+  /** Which, when in school: high school or college. Absent or null = not asked or skipped. */
+  schoolLevel?: 'high' | 'college' | null;
   work: boolean | null;
   gym: boolean | null;
   /** Building a business or a project of their own. */
@@ -190,6 +200,12 @@ export interface Profile {
 export interface PlannedMission {
   slot: MissionSlot;
   missionId: string;
+  /**
+   * The chosen area this mission is in the day for (a mission can serve several:
+   * "Work on Your Portfolio" is Career, also Projects). The row shows it and a swap
+   * stays in it. Absent on plans made by earlier builds.
+   */
+  area?: TrackId;
   /** Set when it came from a program. */
   programId?: string;
 }

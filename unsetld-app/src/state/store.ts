@@ -395,7 +395,7 @@ function planInput(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
     salt: s.installSalt,
     history: historyFrom(s.record.missions ?? {}, s.plans, s.skips, day),
     // Morning missions only go into a plan made in the morning.
-    hour: day === today() ? now().getHours() : 0,
+    hour: day === today() ? now().getHours() : undefined,
     program: prog && ids.length ? { id: prog.id, missionIds: ids } : null,
   };
 }
