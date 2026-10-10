@@ -82,7 +82,7 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
     [navigation, from],
   );
 
-  const close = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Today'));
+  const close = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Today' }));
 
   const thisWeek = weekStart(today);
   const label = from === thisWeek ? R.thisWeek : from === addDays(thisWeek, -7) ? R.lastWeek : R.week;

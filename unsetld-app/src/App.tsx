@@ -50,10 +50,10 @@ function useIntents(ready: boolean) {
     useIntent.getState().clear();
     const earlyDrop = takeEarlyDropTap();
     if (!useApp.getState().settings.onboarded) return;
-    // Every intent starts from Home, with whatever was open on top of it closed.
-    navigationRef.dispatch(StackActions.popTo('Today', { nonce: newNonce() }));
+    // Every intent starts from Today, with whatever was open on top of it closed.
+    navigationRef.dispatch(StackActions.popTo('Main', { screen: 'Today', params: { nonce: newNonce() } }));
     const missionId = openMission(intent);
-    if (intent.kind === 'progress') navigationRef.navigate('Progress');
+    if (intent.kind === 'progress') navigationRef.navigate('Main', { screen: 'Progress' });
     else if (missionId) navigationRef.navigate('Mission', { missionId });
     // An early drop alert opens the early-access page, where the drop opens.
     else if (earlyDrop && accessEnabled) navigationRef.navigate('Milestone', { id: 'early-access' });

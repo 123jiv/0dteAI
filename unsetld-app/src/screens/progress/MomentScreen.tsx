@@ -40,7 +40,7 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
     let live = true;
     const { routes } = navigation.getState();
     const at = routes.findIndex(r => r.key === routeKey);
-    const revisit = at > 0 && routes[at - 1].name === 'Progress' && useApp.getState().momentsShown.includes(key);
+    const revisit = at > 0 && routes[at - 1].name === 'Main' && useApp.getState().momentsShown.includes(key);
     if (!revisit) soft();
     AccessibilityInfo.isReduceMotionEnabled()
       .catch(() => false)
@@ -61,7 +61,7 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
   const close = () => {
     markSeen(key);
     if (navigation.canGoBack()) navigation.goBack();
-    else navigation.navigate('Today');
+    else navigation.navigate('Main', { screen: 'Today' });
   };
 
   return (

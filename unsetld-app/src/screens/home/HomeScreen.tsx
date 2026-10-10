@@ -12,7 +12,7 @@ import type { DayKey } from '../../core/time';
 import type { MissionDone, RecordState } from '../../core/types';
 import { MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, TRACK_BY_ID } from '../../content';
 import { HOME } from '../../content/copy/home';
-import type { RootProps } from '../../navigation/types';
+import type { TabProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
 import { deletePhoto } from '../../services/proof';
 import { cancelTimerDone } from '../../services/timerNotify';
@@ -62,7 +62,7 @@ function dueMoment(record: RecordState, day: DayKey, shown: readonly string[]): 
 }
 
 /** Home (route Today): today's missions, the streak and points, and where they lead. */
-export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
+export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const active = useAppActive();
@@ -303,7 +303,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
               title={prog.title}
               day={progDay}
               days={prog.days}
-              onPress={() => navigation.navigate('Programs')}
+              onPress={() => navigation.navigate('Plans')}
             />
           </View>
         ) : null}
@@ -359,7 +359,7 @@ export function HomeScreen({ navigation, route }: RootProps<'Today'>) {
         colorway={colorway}
         nudge={celebrate.n}
         onProgress={() => navigation.navigate('Progress')}
-        onPrograms={() => navigation.navigate('Programs')}
+        onPrograms={() => navigation.navigate('Plans')}
         onRewards={() => navigation.navigate('Rewards')}
         onColorway={() => setSheet('colorway')}
       />

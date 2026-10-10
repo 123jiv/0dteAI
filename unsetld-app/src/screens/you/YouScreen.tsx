@@ -1,25 +1,24 @@
-import { StackActions } from '@react-navigation/native';
 import { useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppConfig, IS_PREVIEW } from '../config/app';
-import { photosToClear } from '../core/proofs';
-import { formatTime } from '../core/time';
-import type { Profile } from '../core/types';
-import { DOCS, RULES, TRACK_BY_ID } from '../content';
-import { PLATFORM } from '../content/copy/platform';
-import { newNonce } from '../navigation/nonce';
-import type { RootProps } from '../navigation/types';
-import { today } from '../services/clock';
-import { deletePhoto } from '../services/proof';
-import { restore } from '../services/purchases';
-import { useStreak } from '../state/missions';
-import { useAccessEnabled, useApp, useEntitlements } from '../state/store';
-import { showDialog } from '../ui/actions';
-import { Footnote, InlineLink, NavRow, PageTitle, SectionHeader, Segmented, SettingsRow, Toggle } from '../ui/kit';
-import { T } from '../ui/text';
-import { color as C, hairline, MARGIN } from '../ui/tokens';
-import { enableDropAlerts } from './access';
+import { AppConfig, IS_PREVIEW } from '../../config/app';
+import { photosToClear } from '../../core/proofs';
+import { formatTime } from '../../core/time';
+import type { Profile } from '../../core/types';
+import { DOCS, RULES, TRACK_BY_ID } from '../../content';
+import { PLATFORM } from '../../content/copy/platform';
+import { newNonce } from '../../navigation/nonce';
+import type { TabProps } from '../../navigation/types';
+import { today } from '../../services/clock';
+import { deletePhoto } from '../../services/proof';
+import { restore } from '../../services/purchases';
+import { useStreak } from '../../state/missions';
+import { useAccessEnabled, useApp, useEntitlements } from '../../state/store';
+import { showDialog } from '../../ui/actions';
+import { Footnote, InlineLink, NavRow, PageTitle, SectionHeader, Segmented, SettingsRow, Toggle } from '../../ui/kit';
+import { T } from '../../ui/text';
+import { color as C, hairline, MARGIN } from '../../ui/tokens';
+import { enableDropAlerts } from '../access';
 
 const S = PLATFORM.settings;
 /** Settings → Proof photos: 30 days, 1 year, or keep (0). */
@@ -46,7 +45,7 @@ function answered(p: Profile): number {
   return yesNo + ((p.skills ?? []).length > 0 ? 1 : 0) + (p.school === true && p.schoolLevel ? 1 : 0);
 }
 
-export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
+export function YouScreen({ navigation }: TabProps<'You'>) {
   const insets = useSafeAreaInsets();
   const settings = useApp(s => s.settings);
   const update = useApp(s => s.updateSettings);
@@ -64,7 +63,7 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
   const areaNames = profile.tracks.map(t => TRACK_BY_ID[t]?.short).filter((x): x is string => Boolean(x));
   const retention = RETENTION.includes(settings.proofRetentionDays) ? settings.proofRetentionDays : RETENTION[0];
 
-  const openColorway = () => navigation.dispatch(StackActions.popTo('Today', { sheet: 'colorway', nonce: newNonce() }));
+  const openColorway = () => navigation.navigate('Today', { sheet: 'colorway', nonce: newNonce() });
 
   const doRestore = async () => {
     try {
@@ -157,7 +156,7 @@ export function SettingsScreen({ navigation }: RootProps<'Settings'>) {
             style={{ alignSelf: 'stretch' }}
           />
         </View>
-        <SettingsRow first title={S.gallery} onPress={() => navigation.navigate('ProofGallery')} />
+        <SettingsRow first title={S.gallery} onPress={() => navigation.navigate('ProofHistory')} />
         <Footnote>{S.retentionNote}</Footnote>
 
         <SectionHeader>{S.sections.look}</SectionHeader>

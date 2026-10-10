@@ -15,7 +15,7 @@ const num = (n: number) => n.toLocaleString('en-US');
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? `1 ${one}` : `${num(n)} ${many}`);
 
-const MINUTES: Record<Profile['minutes'], string> = { 15: '5–15 min', 30: '15–30 min', 60: '30–60 min', 90: '60+ min' };
+const MINUTES: Record<Profile['minutes'], string> = { 15: '15 min', 30: '30 min', 45: '45 min', 60: '60+ min' };
 const INTENSITY: Record<Profile['intensity'], string> = { easy: 'Start easy', lockin: 'Lock in', push: 'Push me' };
 
 export const PLATFORM = {

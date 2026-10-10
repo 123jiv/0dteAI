@@ -392,7 +392,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
 
   const openRewards = () => {
     navigation.goBack();
-    navigation.navigate('Rewards');
+    navigation.navigate('Main', { screen: 'Rewards' });
   };
 
   // ── Stages ────────────────────────────────────────────────────────────────

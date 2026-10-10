@@ -8,7 +8,7 @@ import { computeStreak } from '../../core/streak';
 import { addDays, diffDays, shortDate, type DayKey } from '../../core/time';
 import { RULES, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
-import type { RootProps } from '../../navigation/types';
+import type { TabProps } from '../../navigation/types';
 import { useApp } from '../../state/store';
 import { Icon, SVG_HIDDEN } from '../../ui/icons';
 import { NavRow, Screen, Square, TextButton } from '../../ui/kit';
@@ -206,7 +206,7 @@ function MilestoneRow({ m, last, onOpen }: { m: MilestoneState; last: boolean; o
 }
 
 /** Progress: the numbers, the active days, Off Days, a level per track, milestones and the week. */
-export function ProgressScreen({ navigation }: RootProps<'Progress'>) {
+export function ProgressScreen({ navigation }: TabProps<'Progress'>) {
   const { width } = useWindowDimensions();
   const w = width - MARGIN * 2;
   const today = useApp(s => s.currentDay);
@@ -233,14 +233,13 @@ export function ProgressScreen({ navigation }: RootProps<'Progress'>) {
   const bars = activeBars(active, streak.covered, today);
   const firstActive = [...active].sort()[0];
   const lastCovered = streak.current > 0 ? coveredInRun(active, streak.covered, today) : null;
-  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Today'));
   const proofs = Object.values(record.missions ?? {}).reduce(
     (n, byId) => n + Object.values(byId).filter(m => m.verification?.status === 'accepted' && (m.photos?.length ?? 0) > 0).length,
     0,
   );
 
   return (
-    <Screen nav={<NavRow onBack={back} right={<TextButton title={PROGRESS.settings} onPress={() => navigation.navigate('Settings')} />} />}>
+    <Screen nav={<NavRow right={<TextButton title={PROGRESS.settings} onPress={() => navigation.navigate('You')} />} />}>
       <T v="title.xl" accessibilityRole="header" style={{ marginTop: 24 }}>
         {P.title}
       </T>
@@ -352,7 +351,7 @@ export function ProgressScreen({ navigation }: RootProps<'Progress'>) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={P.a11yProofRow(proofs)}
-        onPress={() => navigation.navigate('ProofGallery')}
+        onPress={() => navigation.navigate('ProofHistory')}
         style={({ pressed }) => ({
           marginTop: 40,
           minHeight: 52,

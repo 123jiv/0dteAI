@@ -12,7 +12,7 @@ import { Chip, Choice, useProfileDraft } from './TracksScreen';
 
 const COPY = ONBOARDING.pace;
 
-const MINUTES: Profile['minutes'][] = [15, 30, 60, 90];
+const MINUTES: Profile['minutes'][] = [15, 30, 45, 60];
 const INTENSITIES: Profile['intensity'][] = ['easy', 'lockin', 'push'];
 
 /** The glyph's height; an easy mission's bar. */

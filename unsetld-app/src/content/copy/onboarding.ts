@@ -77,27 +77,29 @@ export const ONBOARDING = {
   },
 
   pace: {
-    title: 'How much time a day?',
-    minutes: { 15: '5–15', 30: '15–30', 60: '30–60', 90: '60+' } satisfies Record<Profile['minutes'], string>,
+    title: 'How much time do you realistically have each day?',
+    minutes: { 15: '15', 30: '30', 45: '45', 60: '60+' } satisfies Record<Profile['minutes'], string>,
     minutesUnit: 'MIN',
     a11yMinutes: {
-      15: '5 to 15 minutes',
-      30: '15 to 30 minutes',
-      60: '30 to 60 minutes',
-      90: 'More than 60 minutes',
+      15: '15 minutes',
+      30: '30 minutes',
+      45: '45 minutes',
+      60: 'An hour or more',
     } satisfies Record<Profile['minutes'], string>,
     hard: 'How hard?',
     /**
      * Under How hard? when the time chosen sets the day's shape (core/missions slotsFor):
-     * with 5–15 or 15–30 minutes every intensity gets the same day.
+     * with 15, 30 or 45 minutes every intensity gets the same day.
      */
     shortDay: {
-      15: 'With 5–15 minutes, you get three short missions a day, whatever you pick.',
-      30: 'With 15–30 minutes, you get two short missions and one focused one a day, whatever you pick.',
+      15: 'With 15 minutes, you get three short missions a day, whatever you pick.',
+      30: 'With 30 minutes, you get two short missions and one focused one a day, whatever you pick.',
+      45: 'With 45 minutes, you get one short mission and two focused ones a day, whatever you pick.',
     },
     a11yShortDay: {
-      15: 'With 5 to 15 minutes, you get three short missions a day, whatever you pick.',
-      30: 'With 15 to 30 minutes, you get two short missions and one focused one a day, whatever you pick.',
+      15: 'With 15 minutes, you get three short missions a day, whatever you pick.',
+      30: 'With 30 minutes, you get two short missions and one focused one a day, whatever you pick.',
+      45: 'With 45 minutes, you get one short mission and two focused ones a day, whatever you pick.',
     },
     /**
      * `body` with 30 minutes or more; `later` on a 5–15 or 15–30 day, where every card

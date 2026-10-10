@@ -173,7 +173,7 @@ function ProgramRow({ p, active, fits, last, onStart }: { p: Program; active: bo
  * Start. One program at a time; Full Edition programs open the paywall for
  * free users.
  */
-export function ProgramsScreen({ navigation }: RootProps<'Programs'>) {
+export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   const insets = useSafeAreaInsets();
   const scroll = useRef<ScrollView>(null);
   const day = useApp(s => s.currentDay);

@@ -25,30 +25,31 @@ export const SLOTS_BY_INTENSITY: Record<Profile['intensity'], MissionSlot[]> = {
 export const MAIN_MAX_MINUTES: Record<Profile['intensity'], number> = { easy: 30, lockin: 45, push: 60 };
 
 /**
- * The day's slots. The time the user chose wins over intensity: with 5–15 minutes
- * a day it's three short missions, with 15–30 two short ones and one focused one.
+ * The day's slots. The time the user has wins over intensity: with 15 minutes a day
+ * it's three short missions, with 30 two short ones and one focused one, with 45 one
+ * short and two focused. With an hour or more, intensity decides (Push me adds one).
  */
 export function slotsFor(profile: Pick<Profile, 'intensity' | 'minutes'>): MissionSlot[] {
   if (profile.minutes === 15) return ['easy', 'easy', 'easy'];
   if (profile.minutes === 30) return ['easy', 'easy', 'main'];
+  if (profile.minutes === 45) return ['easy', 'main', 'main'];
   return SLOTS_BY_INTENSITY[profile.intensity] ?? SLOTS_BY_INTENSITY.lockin;
 }
 
 /**
- * Total minutes a day's missions should fit in, by the time the user chose. Close to
- * the top of their range; Push me gets more, because it asks for more.
+ * Total minutes a day's missions should fit in, by the time the user has. Close to
+ * what they said; with an hour or more, Start easy keeps it shorter and Push me longer.
  */
 export function dayBudget(profile: Pick<Profile, 'intensity' | 'minutes'>): number {
-  const push = profile.intensity === 'push';
   switch (profile.minutes) {
     case 15:
-      return 25;
+      return 20;
     case 30:
-      return 45;
-    case 90:
-      return push ? 180 : 120;
+      return 40;
+    case 45:
+      return profile.intensity === 'push' ? 65 : 55;
     default:
-      return push ? 100 : 75;
+      return profile.intensity === 'push' ? 150 : profile.intensity === 'easy' ? 75 : 90;
   }
 }
 
@@ -108,7 +109,7 @@ export const DEFAULT_PROFILE: Profile = {
   project: null,
   skills: [],
   age: null,
-  minutes: 60,
+  minutes: 45,
   intensity: 'lockin',
   priority: null,
 };

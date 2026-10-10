@@ -16,7 +16,7 @@ import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as start
 import { claimPatch, emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
-import type { ChapterId, Colorway, DayPlan, Profile, ProgramState, ProofPhoto, RecordState, RewardTier, TrackId, Verification } from '../core/types';
+import type { ChapterId, Colorway, DayPlan, Milestone, Profile, ProgramState, ProofPhoto, RecordState, RewardTier, TrackId, Verification, WeeklyFocus } from '../core/types';
 import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
@@ -61,6 +61,8 @@ export interface Remote {
   collection: string;
   /** Reward tiers from unsetld.com's config; null = use the defaults in content/rewards.json. */
   rewards?: RewardTier[] | null;
+  /** Status (consistency) tiers from unsetld.com's config; null = the defaults in content/milestones.json. */
+  status?: Milestone[] | null;
 }
 
 /** What proving a mission did, for the done screen. */
@@ -114,6 +116,8 @@ interface State {
   reviewSeen: DayKey | null;
   /** Progress milestones whose moment was already shown (core/progress MilestoneKey). */
   momentsShown: string[];
+  /** Week start (Monday) of the week the user said "Not this week" to the weekly focus question. */
+  focusSkipped: DayKey | null;
 
   updateSettings: (patch: Partial<Settings>) => void;
   completeOnboarding: (verified: boolean) => void;
@@ -149,6 +153,10 @@ interface State {
   leaveProgram: () => void;
   markReviewSeen: (weekStart: DayKey) => void;
   markMomentShown: (key: string) => void;
+  /** "What matters most this week?": sets it (and replans today if nothing in it was started yet), or clears it. */
+  setFocus: (focus: WeeklyFocus | null) => void;
+  /** "Not this week": the question stays away until next Monday. */
+  skipFocus: (week: DayKey) => void;
   /** Clears proof photos older than the retention setting. Returns the files to delete. */
   expireProofPhotos: () => string[];
 }
@@ -191,6 +199,7 @@ export const useApp = create<State>()(
       program: null,
       reviewSeen: null,
       momentsShown: [],
+      focusSkipped: null,
 
       setProfile: patch =>
         set(s => {
@@ -313,6 +322,11 @@ export const useApp = create<State>()(
       },
       leaveProgram: () => set({ program: null }),
       markReviewSeen: weekStart => set({ reviewSeen: weekStart }),
+      setFocus: focus => {
+        set(s => ({ profile: { ...s.profile, focus } }));
+        get().replanToday();
+      },
+      skipFocus: week => set({ focusSkipped: week }),
       markMomentShown: key => set(s => (s.momentsShown.includes(key) ? {} : { momentsShown: [...s.momentsShown, key] })),
 
       expireProofPhotos: () => {
@@ -384,8 +398,9 @@ export const useApp = create<State>()(
         program: s.program,
         reviewSeen: s.reviewSeen,
         momentsShown: s.momentsShown,
+        focusSkipped: s.focusSkipped,
       }),
-      version: 4,
+      version: 5,
       migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
         const p = withoutUnknownMissions((persisted ?? {}) as Partial<State>);
@@ -526,7 +541,17 @@ export function migrateRecordTracks(r: RecordState): RecordState {
  * codes already taken) carry over as a starting balance.
  */
 export function migrateState(p: Partial<State>, version: number): Partial<State> {
-  if (version >= 4) return p;
+  return version >= 5 ? p : toV5(version >= 4 ? p : toV4(p, version));
+}
+
+/** 4 → 5: the daily time choices became 15 / 30 / 45 / 60+ minutes (30–60 → 45, 60+ → 60). */
+function toV5(p: Partial<State>): Partial<State> {
+  const old = p.profile?.minutes as number | undefined;
+  if (!p.profile || (old !== 60 && old !== 90)) return p;
+  return { ...p, profile: { ...p.profile, minutes: old === 90 ? 60 : 45 } };
+}
+
+function toV4(p: Partial<State>, version: number): Partial<State> {
   // 3 → 4: the goal areas were renamed (focus → discipline, reset → organization; mindset folded into discipline).
   if (version >= 2) {
     const profile = (p.profile ?? DEFAULT_PROFILE) as Profile;

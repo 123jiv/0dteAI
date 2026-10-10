@@ -15,6 +15,12 @@ export const color = {
   /** Today only: the barcode bar and the week square. Never a fill, button, badge, border or text. */
   signal: '#C41E1E',
   notification: '#1F1E1C',
+  /** A card on ink: a quiet raised surface instead of a rule around it. */
+  card: '#151413',
+  /** A pressed card. */
+  cardPressed: '#1C1B19',
+  /** The empty part of a meter (progress bar). */
+  track: '#2A2825',
 } as const;
 
 export const font = {
@@ -31,7 +37,10 @@ export const font = {
 export const MARGIN = 28;
 export const hairline = StyleSheet.hairlineWidth;
 
-export const radius = { button: 2, sheet: 14 } as const;
+export const radius = { button: 2, sheet: 14, card: 12, meter: 2 } as const;
+
+/** Space between blocks on a page (cards, sections). Generous: spacing, not rules, separates things. */
+export const GAP = { tight: 8, card: 12, block: 28, section: 40 } as const;
 
 export const ease = {
   out: Easing.bezier(0.2, 0, 0, 1),
@@ -59,7 +68,10 @@ export type TextVariant =
   | 'button'
   | 'mono'
   | 'mono.s'
-  | 'mono.l';
+  | 'mono.l'
+  | 'meta'
+  | 'kicker'
+  | 'stat';
 
 interface Spec {
   fontFamily: string;
@@ -93,4 +105,10 @@ export const TYPE: Record<TextVariant, Spec> = {
   mono: { fontFamily: font.mono, fontSize: 11, lineHeight: 14, letterSpacing: 0.4, tabular: true },
   'mono.s': { fontFamily: font.mono, fontSize: 10, lineHeight: 13, letterSpacing: 0.4, tabular: true },
   'mono.l': { fontFamily: font.mono, fontSize: 17, lineHeight: 22, letterSpacing: 0.2, tabular: true },
+  /** Utility line: time, proof type, points ("30 min · Timer + photo · +15 pts"). Sentence case. */
+  meta: { fontFamily: font.sans, fontSize: 13, lineHeight: 18, tabular: true },
+  /** A small category label ("SCHOOL"). Spaced uppercase, used sparingly: one per card or section. */
+  kicker: { fontFamily: font.sansMedium, fontSize: 11, lineHeight: 14, letterSpacing: 1.4, uppercase: true },
+  /** An important number on a card (streak, points, level). Serif. */
+  stat: { fontFamily: font.serif, fontSize: 34, lineHeight: 36, letterSpacing: -0.5, serif: true, tabular: true },
 };

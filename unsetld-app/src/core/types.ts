@@ -191,11 +191,26 @@ export interface Profile {
   skills: SkillId[];
   /** Age range: 13–15, 16–17, 18+. */
   age: 'u16' | '16to17' | '18plus' | null;
-  /** Upper end of the daily time the user chose: 15, 30, 60 or 90 (60+). */
-  minutes: 15 | 30 | 60 | 90;
+  /** The daily time the user realistically has: 15, 30, 45 or 60 (60+) minutes. */
+  minutes: 15 | 30 | 45 | 60;
   intensity: 'easy' | 'lockin' | 'push';
   /** A track to lean on this week (set from the weekly review). */
   priority: TrackId | null;
+  /** "What are you working toward?" in their own words ("Launch my clothing brand"). Optional, at most 80 characters. */
+  goal?: string | null;
+  /** "What matters most this week?", for the week starting `week`. Absent or another week = not set. */
+  focus?: WeeklyFocus | null;
+}
+
+/** The weekly focus choices (core/personalize FOCUS_OPTIONS says what each one leans the plan toward). */
+export type FocusId = 'school-catchup' | 'exam' | 'business' | 'gym' | 'project' | 'routine' | 'save' | 'skill' | 'other';
+
+export interface WeeklyFocus {
+  /** Monday of the week it's for. */
+  week: DayKey;
+  id: FocusId;
+  /** 'other': what they typed (at most 60 characters). */
+  text?: string;
 }
 
 /** One mission in today's plan. */
@@ -303,6 +318,12 @@ export interface RewardTier {
   inventory?: number | null;
   /** How many a user can take each collection. */
   perCollection: number;
+  /** Smallest order in dollars the code works on; null or absent = any order. Shown on the reward, enforced by unsetld.com. */
+  minimumPurchase?: number | null;
+  /** Days after taking it before it can be taken again; null or absent = only perCollection limits it. */
+  redemptionCooldownDays?: number | null;
+  /** Can only ever be taken once per person. */
+  oneTimeOnly?: boolean;
 }
 
 /** A reward the user took. */

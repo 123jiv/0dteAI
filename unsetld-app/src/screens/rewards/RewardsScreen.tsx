@@ -8,7 +8,7 @@ import { milestoneNo } from '../../core/typography';
 import type { Milestone, RewardTier } from '../../core/types';
 import { MILESTONES, REWARD_TIERS, RULES } from '../../content';
 import { REWARDS_COPY } from '../../content/copy/rewards';
-import type { RootProps } from '../../navigation/types';
+import type { TabProps } from '../../navigation/types';
 import { openStore, redeem } from '../../services/access';
 import { light } from '../../services/haptics';
 import { useBalance, useNextReward, useRewardTiers } from '../../state/missions';
@@ -291,7 +291,7 @@ function MintedCode({ minted }: { minted: Minted }) {
  * (early access, the patch, the 365 piece). With Access off, only the points
  * and how they're earned show.
  */
-export function RewardsScreen({ navigation }: RootProps<'Rewards'>) {
+export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
   const { width, height } = useWindowDimensions();
   const w = width - MARGIN * 2;
   const record = useApp(s => s.record);

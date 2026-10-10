@@ -2,18 +2,18 @@ import { Image } from 'expo-image';
 import { useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { allDone } from '../core/progress';
-import { addDays, shortDate, type DayKey } from '../core/time';
-import type { Mission, MissionDone, ProofPhoto } from '../core/types';
-import { MISSION_BY_ID, TRACK_BY_ID } from '../content';
-import { PROGRESS } from '../content/copy/progress';
-import type { RootProps } from '../navigation/types';
-import { proofImage } from '../services/proof';
-import { useApp } from '../state/store';
-import { NavRow, PageTitle } from '../ui/kit';
-import { clockTime, ProofStamp } from '../ui/ProofStamp';
-import { T } from '../ui/text';
-import { color as C, hairline, MARGIN } from '../ui/tokens';
+import { allDone } from '../../core/progress';
+import { addDays, shortDate, type DayKey } from '../../core/time';
+import type { Mission, MissionDone, ProofPhoto } from '../../core/types';
+import { MISSION_BY_ID, TRACK_BY_ID } from '../../content';
+import { PROGRESS } from '../../content/copy/progress';
+import type { RootProps } from '../../navigation/types';
+import { proofImage } from '../../services/proof';
+import { useApp } from '../../state/store';
+import { NavRow, PageTitle } from '../../ui/kit';
+import { clockTime, ProofStamp } from '../../ui/ProofStamp';
+import { T } from '../../ui/text';
+import { color as C, hairline, MARGIN } from '../../ui/tokens';
 
 const G = PROGRESS.gallery;
 
@@ -125,7 +125,7 @@ function Photo({ photo, day, width, maxHeight, label, cleared, said }: { photo: 
 }
 
 /** Every proven mission's photo, newest first, with the mission it proved. */
-export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
+export function ProofHistoryScreen({ navigation }: RootProps<'ProofHistory'>) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const record = useApp(s => s.record);
@@ -141,7 +141,7 @@ export function ProofGalleryScreen({ navigation }: RootProps<'ProofGallery'>) {
   // it's older than the setting. One cleared under a shorter earlier setting just says cleared.
   const cutoff = keepDays > 0 ? addDays(today, -keepDays) : null;
   const clearedOn = (day: DayKey) => (cutoff && day < cutoff ? G.cleared(keepDays) : G.cleared(0));
-  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Today'));
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Today' }));
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>

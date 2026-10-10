@@ -20,7 +20,17 @@ export type IconName =
   | 'chevron-right'
   | 'chevron-up'
   | 'close'
-  | 'plus';
+  | 'plus'
+  // Proof types
+  | 'camera'
+  | 'timer'
+  | 'before-after'
+  | 'check'
+  // Tabs
+  | 'tab-today'
+  | 'tab-progress'
+  | 'tab-rewards'
+  | 'tab-you';
 
 interface Props {
   name: IconName;
@@ -76,6 +86,53 @@ export function Icon({ name, size = 24, color = C.stone }: Props) {
         <>
           <Path {...p} d="M12 5v14" />
           <Path {...p} d="M5 12h14" />
+        </>
+      )}
+      {name === 'camera' && (
+        <>
+          <Path {...p} d="M3.75 8.25h3.5l1.75-2.5h6l1.75 2.5h3.5v11H3.75z" />
+          <Path {...p} d="M12 16.75a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5z" />
+        </>
+      )}
+      {name === 'timer' && (
+        <>
+          <Path {...p} d="M12 20.75a7.75 7.75 0 1 0 0-15.5 7.75 7.75 0 0 0 0 15.5z" />
+          <Path {...p} d="M12 9v4l2.75 1.75" />
+          <Path {...p} d="M9.75 2.75h4.5" />
+        </>
+      )}
+      {name === 'before-after' && (
+        <>
+          <Path {...p} d="M2.75 6.75h7v10.5h-7z" />
+          <Path {...p} d="M14.25 6.75h7v10.5h-7z" />
+          <Path {...p} d="M10.75 12h2.25" />
+        </>
+      )}
+      {name === 'check' && <Path {...p} d="M5 12.5l4.5 4.5L19 7.5" />}
+      {name === 'tab-today' && (
+        <>
+          <Path {...p} d="M4.75 5.25h14.5v14.5H4.75z" />
+          <Path {...p} d="M4.75 9.75h14.5" />
+          <Path {...p} d="M8.5 13.75h2.5" />
+        </>
+      )}
+      {name === 'tab-progress' && (
+        <>
+          <Path {...p} d="M5.5 19.5v-5" />
+          <Path {...p} d="M12 19.5v-9" />
+          <Path {...p} d="M18.5 19.5v-14" />
+        </>
+      )}
+      {name === 'tab-rewards' && (
+        <>
+          <Path {...p} d="M3.75 8.25V5.5h16.5v2.75a2.75 2.75 0 0 0 0 5.5v2.75H3.75v-2.75a2.75 2.75 0 0 0 0-5.5z" />
+          <Path {...p} d="M14.5 6v2.5M14.5 11.25v1.5M14.5 15.5V18" />
+        </>
+      )}
+      {name === 'tab-you' && (
+        <>
+          <Path {...p} d="M12 11.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5z" />
+          <Path {...p} d="M4.75 20.25c1.1-3.6 3.9-5.5 7.25-5.5s6.15 1.9 7.25 5.5" />
         </>
       )}
     </Svg>
