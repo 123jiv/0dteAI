@@ -518,7 +518,7 @@ m('projects-build-60', PR, 'Build Your Project for 60 Minutes', 60, 25, TP,
   group='project-session')
 m('projects-work-10', PR, 'Work on Your Project for 10 Minutes', 10, 10, TP,
   'Open your project and get one small piece of it done in 10 minutes.', 'What you did, after the timer.', 1,
-  group='project-session')
+  group='project-session', anchor=True)
 m("projects-instead-of-scrolling", PR, "Spend 30 Minutes Building Instead of Scrolling", 30, 20, TP,
   "Put the phone down and build something for 30 minutes instead.", "What you built, after the timer.", 3,
   group="project-session", weight=0.5)

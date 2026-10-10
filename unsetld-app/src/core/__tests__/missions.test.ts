@@ -148,8 +148,8 @@ describe('daily missions', () => {
       if (plan.missions.some(p => p.missionId === 'discipline-anchor')) seen += 1;
       lastPlanned = { ...lastPlanned, ...Object.fromEntries(plan.missions.map(p => [p.missionId, day])) };
     }
-    // A core habit comes back on most days, but not every day.
-    expect(seen).toBeGreaterThan(12);
+    // A core habit comes back about every other day (less often the day after it was planned), never every day.
+    expect(seen).toBeGreaterThanOrEqual(9);
     expect(seen).toBeLessThan(30);
   });
 

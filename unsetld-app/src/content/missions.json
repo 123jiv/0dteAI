@@ -2941,6 +2941,7 @@
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
+  "anchor": true,
   "group": "project-session",
   "tags": [
    "projects"

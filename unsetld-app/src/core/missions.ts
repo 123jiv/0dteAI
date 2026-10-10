@@ -247,7 +247,7 @@ function weight(m: Mission, input: Pick<PlanInput, 'history' | 'day' | 'profile'
   return w;
 }
 
-/** How often a slot gets one of its area's core habits (study, train, build, learn) when one is free. */
+/** How often a slot gets one of its area's core habits (study, train, build, learn) when one is free; half that the day after. */
 export const CORE_SHARE = 0.6;
 
 /**
@@ -261,7 +261,10 @@ function pick(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day
   const core = cands.filter(m => m.anchor && m.track === track);
   const rest = cands.filter(m => !(m.anchor && m.track === track));
   if (core.length && rest.length) {
-    const useCore = mulberry32(hash32(`${seed}:core`))() < CORE_SHARE;
+    // When every core habit on offer was in yesterday's plan, today leans on the rest of the area.
+    const yesterday = addDays(input.day, -1);
+    const share = core.some(m => input.history.lastPlanned[m.id] !== yesterday) ? CORE_SHARE : CORE_SHARE / 2;
+    const useCore = mulberry32(hash32(`${seed}:core`))() < share;
     return pickWeighted(useCore ? core : rest, input, track, seed);
   }
   return pickWeighted(cands, input, track, seed);
