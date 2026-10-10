@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import promptsJson from '../../content/reminders.json';
 import { completeMission, provenInPlan } from '../complete';
-import { addSkip, available, DEFAULT_PROFILE, generatePlan, historyFrom, meetsRequirements, rerollMission, slotTracks, SLOTS_BY_INTENSITY, type MissionHistory, type PlanInput } from '../missions';
+import { addSkip, available, dayBudget, DEFAULT_PROFILE, generatePlan, historyFrom, meetsRequirements, rerollMission, slotsFor, slotTracks, SLOTS_BY_INTENSITY, tooLateForMorning, usableAreas, type MissionHistory, type PlanInput } from '../missions';
 import { programDay, programMissions, programProgress, startProgram } from '../programs';
 import { clearPhotos, fingerprint, photosToClear, usedHashes } from '../proofs';
 import { activeDays, allDone, completion, isProven, levelFor, levelStart, milestones, photosOf, totals, trackProgress } from '../progress';
@@ -157,11 +157,125 @@ describe('daily missions', () => {
     expect([plan.missions[0].missionId, next.missions[0].missionId]).not.toContain(again.missions[0].missionId);
   });
 
-  it('keeps skipped missions away for weeks', () => {
-    const plan = generatePlan(input());
-    const id = plan.missions[0].missionId;
-    const history = { ...NO_HISTORY, skips: addSkip({}, id, '2026-10-09') };
-    for (let i = 1; i < 21; i++) expect(generatePlan(input({ day: addDays('2026-10-09', i), history })).missions.map(p => p.missionId)).not.toContain(id);
+  it('keeps a swapped mission away a week, three weeks after a third swap in a month, two days for a core habit', () => {
+    const plain = LIB.find(x => x.track === 'school' && x.minutes === 20)!;
+    const core = { ...plain, id: 'school-core', anchor: true };
+    const at = (skips: MissionHistory['skips'], day: DayKey, m = plain) => available(m, input({ day, history: { ...NO_HISTORY, skips } }));
+    const once = addSkip({}, plain.id, '2026-10-01');
+    expect(at(once, '2026-10-07')).toBe(false);
+    expect(at(once, '2026-10-08')).toBe(true);
+    const thrice = addSkip(addSkip(once, plain.id, '2026-10-10'), plain.id, '2026-10-20');
+    expect(thrice[plain.id].count).toBe(3);
+    expect(at(thrice, '2026-11-09')).toBe(false);
+    expect(at(thrice, '2026-11-10')).toBe(true);
+    // A swap more than a month after the last one starts the count again.
+    expect(addSkip(thrice, plain.id, '2026-12-01')[plain.id].count).toBe(1);
+    const coreSkip = addSkip({}, core.id, '2026-10-01');
+    expect(at(coreSkip, '2026-10-02', core)).toBe(false);
+    expect(at(coreSkip, '2026-10-03', core)).toBe(true);
+  });
+
+  it('never leaves a day short, however much the user swaps', () => {
+    // A small library: two areas, a handful of missions each, three swaps a day for two months.
+    const small = (['money', 'career'] as TrackId[]).flatMap(t => [
+      ...Array.from({ length: 3 }, () => m(t, 'quick', { cooldownDays: 3 })),
+      ...Array.from({ length: 3 }, () => m(t, 'progress', { cooldownDays: 3 })),
+    ]);
+    const lib = [...small, ...LIB.filter(x => x.track === 'discipline' || x.track === 'organization')];
+    const prof = profile({ tracks: ['money', 'career'] });
+    let skips: MissionHistory['skips'] = {};
+    const plans: Record<DayKey, DayPlan> = {};
+    for (let i = 0; i < 60; i++) {
+      const day = addDays('2026-10-12', i);
+      const inp = input({ library: lib, profile: prof, day, history: historyFrom({}, plans, skips, day) });
+      let plan = generatePlan(inp);
+      for (let k = 0; k < 3; k++) {
+        const old = plan.missions[k % plan.missions.length].missionId;
+        const next = rerollMission(plan, k % plan.missions.length, { ...inp, history: historyFrom({}, plans, skips, day) });
+        if (next) {
+          plan = next;
+          skips = addSkip(skips, old, day);
+        }
+      }
+      plans[day] = plan;
+      expect(plan.missions.length).toBe(3);
+    }
+  });
+
+  it('gives the lead area a focused mission two days in three and shares the rest evenly', () => {
+    const counts: Record<string, number> = {};
+    let leadFirst = 0;
+    for (let i = 0; i < 60; i++) {
+      const t = slotTracks(profile(), SLOTS_BY_INTENSITY.lockin, addDays('2026-10-01', i));
+      expect(new Set(t).size).toBe(3);
+      for (const x of t.slice(1)) counts[x] = (counts[x] ?? 0) + 1;
+      if (t[1] === 'discipline') leadFirst += 1;
+    }
+    expect(leadFirst).toBe(40);
+    for (const a of ['discipline', 'school', 'fitness']) expect(counts[a]).toBe(40);
+    // Push me with three areas: the extra slot goes to the other areas in turn, never always the lead.
+    const easy = Array.from({ length: 30 }, (_, i) => slotTracks(profile(), SLOTS_BY_INTENSITY.push, addDays('2026-10-01', i))[0]);
+    expect(easy.filter(x => x === 'discipline').length).toBeLessThan(5);
+  });
+
+  it('fills each slot from an area not in the day yet, and records which area', () => {
+    for (let i = 0; i < 30; i++) {
+      const plan = generatePlan(input({ day: addDays('2026-10-01', i), profile: profile({ tracks: ['money', 'career', 'skills'] }) }));
+      expect(new Set(plan.missions.map(p => p.area)).size).toBe(3);
+      for (const p of plan.missions) expect(['money', 'career', 'skills']).toContain(p.area);
+    }
+  });
+
+  it('keeps to the time the user chose: 15–30 minutes is two short missions and one focused one', () => {
+    for (const intensity of ['easy', 'lockin', 'push'] as const) {
+      const prof = profile({ minutes: 30, intensity });
+      expect(slotsFor(prof)).toEqual(['easy', 'easy', 'main']);
+      for (let i = 0; i < 20; i++) {
+        const plan = generatePlan(input({ day: addDays('2026-10-01', i), profile: prof }));
+        expect(plan.missions.reduce((t, p) => t + byId.get(p.missionId)!.minutes, 0)).toBeLessThanOrEqual(dayBudget(prof));
+      }
+    }
+    expect([15, 30, 60, 90].map(minutes => dayBudget({ minutes: minutes as Profile['minutes'], intensity: 'lockin' }))).toEqual([25, 45, 75, 120]);
+  });
+
+  it('drops an area that can never get a mission (School for someone not in school)', () => {
+    const lib = LIB.map(x => (x.track === 'school' ? { ...x, requires: ['school' as const] } : x));
+    const prof = profile({ tracks: ['school', 'fitness'], school: false });
+    expect(usableAreas(lib, prof)).toEqual(['fitness']);
+    expect(usableAreas(lib, profile({ tracks: ['school'], school: false }))).toEqual(['discipline', 'organization']);
+    const plan = generatePlan(input({ library: lib, profile: prof }));
+    for (const p of plan.missions) expect(byId.get(p.missionId)!.track).not.toBe('school');
+  });
+
+  it('leaves morning missions out after noon and after midnight (the day runs to 4 AM)', () => {
+    expect([1, 3, 4, 11, 12, 23].map(tooLateForMorning)).toEqual([true, true, false, false, true, true]);
+    expect(tooLateForMorning(undefined)).toBe(false);
+    const bed = m('discipline', 'quick', { when: 'morning', anchor: true, weight: 3 });
+    const lib = [...LIB, bed];
+    const at = (hour: number) => generatePlan(input({ library: lib, profile: profile({ tracks: ['discipline'] }), hour, program: { id: 'p', missionIds: [bed.id] } }));
+    expect(at(8).missions.map(p => p.missionId)).toContain(bed.id);
+    for (const hour of [1, 3, 15]) expect(at(hour).missions.map(p => p.missionId)).not.toContain(bed.id);
+  });
+
+  it('swaps within the area the mission was in the day for, and tries a different kind of mission first', () => {
+    // A Career mission that also counts for Skills, planned for a Skills user: the swap stays in Skills.
+    const both = m('career', 'progress', { also: ['skills'] });
+    const lib = [...LIB, both];
+    const prof = profile({ tracks: ['skills', 'fitness'] });
+    const plan: DayPlan = { day: '2026-10-09', missions: [{ slot: 'main', missionId: both.id, area: 'skills' }], rerolls: 0, replaced: [] };
+    const next = rerollMission(plan, 0, input({ library: lib, profile: prof }))!;
+    expect(next.missions[0].area).toBe('skills');
+    expect(byId.get(next.missions[0].missionId)!.track).toBe('skills');
+    // Twins (same group) only when nothing else in the area is left.
+    const twinA = m('money', 'progress', { group: 'twins' });
+    const twinB = m('money', 'progress', { group: 'twins' });
+    const other = m('money', 'progress');
+    const lib2 = [twinA, twinB, other];
+    const p2: DayPlan = { day: '2026-10-09', missions: [{ slot: 'main', missionId: twinA.id, area: 'money' }], rerolls: 0, replaced: [] };
+    const inp2 = input({ library: lib2, profile: profile({ tracks: ['money'] }) });
+    const s1 = rerollMission(p2, 0, inp2)!;
+    expect(s1.missions[0].missionId).toBe(other.id);
+    expect(rerollMission(s1, 0, inp2)!.missions[0].missionId).toBe(twinB.id);
   });
 
   it("puts the lead goal (first pick or this week's priority) on a focused mission most days", () => {

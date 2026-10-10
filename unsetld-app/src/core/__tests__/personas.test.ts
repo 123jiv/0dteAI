@@ -2,7 +2,7 @@
 // `PRINT=1 npx vitest run src/core/__tests__/personas.test.ts` prints each day's plan.
 import { describe, expect, it } from 'vitest';
 import missionsJson from '../../content/missions.json';
-import { DEFAULT_PROFILE, generatePlan, historyFrom, rerollMission, serves, type PlanInput } from '../missions';
+import { dayBudget, DEFAULT_PROFILE, generatePlan, historyFrom, rerollMission, serves, usableAreas, type PlanInput } from '../missions';
 import { addDays, type DayKey } from '../time';
 import type { DayPlan, Mission, Profile, TrackId } from '../types';
 
@@ -56,6 +56,12 @@ describe('personas', () => {
         // No school missions for someone not in school; no gym missions without a gym.
         if (p.profile.school === false) expect(ms.some(m => m.requires?.includes('school'))).toBe(false);
         if (p.profile.gym !== true) expect(ms.some(m => m.requires?.includes('gym'))).toBe(false);
+        // Within the time they chose (a little over at most, when nothing shorter is left).
+        expect(ms.reduce((t, m) => t + m.minutes, 0)).toBeLessThanOrEqual(dayBudget(p.profile) + 15);
+        // Each mission is in the day for one of their areas, and the day covers as many areas as it can.
+        const areas = usableAreas(LIBRARY, p.profile);
+        for (const x of plan.missions) expect(x.area && serves(BY_ID.get(x.missionId)!, x.area)).toBeTruthy();
+        expect(new Set(plan.missions.map(x => x.area)).size).toBe(Math.min(areas.length, plan.missions.length));
         // Missions tied to a school day keep to their days ("Review Today's Notes" never on a Saturday).
         const weekday = new Date(`${plan.day}T12:00:00`).getDay();
         for (const m of ms) if (m.days) expect(m.days).toContain(weekday);
@@ -80,7 +86,9 @@ describe('personas', () => {
         const next = rerollMission(plan, i, input);
         expect(next).not.toBeNull();
         const after = BY_ID.get(next!.missions[i].missionId)!;
-        expect(after.track as TrackId).toBe(before.track);
+        // Same area it was in the day for, same size.
+        expect(next!.missions[i].area).toBe(plan.missions[i].area);
+        expect(serves(after, plan.missions[i].area as TrackId)).toBe(true);
         expect(after.minutes <= 15).toBe(before.minutes <= 15);
         lines.push(`    swap ${before.title} → ${after.title}`);
         plan = next;

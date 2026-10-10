@@ -77,14 +77,15 @@ The library is written in **`scripts/missions/library.py`**, one readable `m(...
 | `minutes` | the real time it takes; 15 or less makes it an easy mission |
 | `points` | set by `minutes` (below) |
 | `timerMinutes` | the focus timer for `TIMER` and `TIMER_AND_PHOTO` (5–60, no more than `minutes`) |
-| `requires` | `school`, `work`, `gym`, `project`, `age16`, `age18`, or a skill: `coding`, `design`, `video`, `writing`, `language`, `music` |
+| `requires` | `school`, `highschool`, `work`, `gym`, `project`, `age16`, `age18`, or a skill: `coding`, `design`, `video`, `writing`, `language`, `music` |
 | `cooldownDays` | days before it can come back after it was done (1–365) |
 | `repeatable` | `false` for a one-off (`Write the First Draft of Your Resume`) |
 | `anchor` | a core habit that should come back most days (study, train, build, plan tomorrow); repeatable, cooldown 3 days or less |
 | `group` | missions that overlap share one; a day never holds two from one group |
 | `weight` | how often the planner picks it, relative to 1 (0.1–3) |
-| `when` | `morning` (left out of a plan made from noon on) or `evening` (a label for now; the planner doesn't act on it) |
+| `when` | `morning` (left out of a plan made between noon and 4 AM) or `evening` (a label for now; the planner doesn't act on it) |
 | `days` | Days of the week it can be planned, 0 = Sunday. Only for missions tied to a school day: `Review Today's Notes` Monday–Friday, `Finish Tonight's Homework` Sunday–Thursday. Program days skip it on other days. |
+| `fits` | skills a medium-specific mission suits (`Edit One Video`: video); a soft hint for users who named skills, never a requirement |
 | `tags`, `active` | 1–4 tags; `active: false` retires it |
 
 There is no `slot`, `difficulty`, `why` or `how` any more; the validator rejects them.
@@ -103,7 +104,7 @@ A perfect day (every mission in the day's plan proven) adds 15 (`rules.json` `pe
 
 ### Requirements
 
-A mission is offered only when the user's answers allow it. `school`: unless they said they're not in school (a skipped answer allows it). `work`, `gym`, `project`: only after a yes. `age16`: not for 13–15. `age18`: only for 18+. A skill: only when they named it under What are you learning?
+A mission is offered only when the user's answers allow it. `school`: unless they said they're not in school (a skipped answer allows it). `highschool` (SAT/ACT, college essays and research): in school, and not when they said college. `work`, `gym`, `project`: only after a yes. `age16`: not for 13–15. `age18`: only for 18+. A skill: only when they named it under What are you learning?
 
 ### Content rules (`npm run validate`, scripts/validate-content.mjs)
 
@@ -111,15 +112,15 @@ Errors fail the run: every field above; points that don't match the time; `"!"`,
 
 ### The daily plan (src/core/missions.ts)
 
-- **Shape.** One easy mission (15 minutes or less) and two focused ones on Start easy and Lock in; Push me adds a third focused one. With 5–15 minutes a day it's three easy missions, whatever the intensity (`slotsFor`). The longest single mission is 30 minutes on Start easy, 45 on Lock in, 60 on Push me (`MAIN_MAX_MINUTES`). The day aims to fit 25 / 65 / 120 / 180 minutes for the four time choices (`DAY_BUDGET`); when nothing fits, the shortest few are used.
-- **Areas first.** Every mission comes from one of the user's areas (its own area, or one it `also` serves). Focused missions are placed first: the lead area (the first pick, or the week's priority from the weekly review) on two days in three, then the others in rotation; the easy mission takes the next area. A day covers as many of the user's areas as it has missions.
+- **Shape.** The time the user chose decides first (`slotsFor`): 5–15 minutes is three easy missions (15 minutes or less) and 15–30 is two easy missions and one focused one, whatever the intensity. With 30 minutes or more: one easy mission and two focused ones on Start easy and Lock in; Push me adds a third focused one. The longest single mission is 30 minutes on Start easy, 45 on Lock in, 60 on Push me (`MAIN_MAX_MINUTES`). The day fits 25 / 45 / 75 / 120 minutes for the four time choices, 100 / 180 on Push me at 30–60 / 60+ (`dayBudget`). Only when nothing in the user's areas fits does a slot take one of the shortest few, at most 15 minutes over.
+- **Areas first.** Every mission comes from one of the user's areas (its own area, or one it `also` serves), and the plan records which area each mission is in the day for (`PlannedMission.area`; the row shows it and a swap stays in it). Areas that can never get a mission with the user's answers drop out (School for someone not in school; `usableAreas`). Focused missions are placed first: the lead area (the first pick, or the week's priority from the weekly review) leads on two days in three and the other areas go first on the third, in rotation; easy missions take the next areas, and slots beyond the areas go to the other areas in turn. Each slot takes an area not in the day yet when it can, so a day covers as many of the user's areas as it has missions.
 - **Core habits come back.** When an area has a core habit free, a slot takes it 60% of the time (`CORE_SHARE`), and core habits skip the "shown lately" gap, so studying, training, building and planning come back on most days while the rest of the area fills the other days.
-- **Variety.** Never planned before counts 1.3×; planned yesterday 0.3×, two days ago 0.6×; each skip divides the weight by one more; a mission that only `also` serves the area counts 0.6×.
-- **Filters.** Active; requirements met; morning missions (`Make Your Bed`, `Write Your Top 3 Priorities`) left out of a plan made from noon on; not within its cooldown after it was done; one-offs once; a swapped-out mission away 14 days (60 after three swaps); a mission shown but not done waits up to 3 days (core habits excepted); never two from one group.
-- **When an area runs dry.** The slot's area, then the user's other areas not used yet today, then any of their areas, then (easy slot only) the universal basics from Discipline and Organization. A focused slot with nothing that fits gets an easy mission.
-- **Programs.** An active program's missions for its day go in first, each in a slot of its size or the first free one.
+- **Variety.** Never planned before counts 1.3×; planned yesterday 0.3×, two days ago 0.6×; each recent swap divides the weight by one more; a mission that only `also` serves the area counts 0.6×. When the user named skills under What are you learning?, a drill for one of them counts 2×, and a mission whose `fits` names a medium counts 1.5× when it matches and 0.25× when it doesn't.
+- **Filters.** Active; requirements met; morning missions (`Make Your Bed`, `Write Your Top 3 Priorities`) left out of a plan made between noon and 4 AM (the hours after midnight still belong to the day before); `days` respected; not within its cooldown after it was done; one-offs once; a swapped-out mission away 7 days, 21 after a third swap within a month, 2 for a core habit (swaps more than 30 days old are forgotten); a mission shown but not done waits 2–3 days before it's shown again (core habits excepted); never two from one group.
+- **When an area runs dry.** In order: the slot's area, then the user's areas not in the day yet, at the slot's size, then (focused slot) a shorter mission from the same areas; then the areas already in the day; then missions the user swapped away lately; then the universal basics from Discipline and Organization; then the shortest few of their areas' missions. A day is never left short while anything is left.
+- **Programs.** An active program's missions for its day go in first, each in a slot of its size or the first free one (a morning mission after noon, or a mission on the wrong day of the week, is left out; the day's other missions still move the program on).
 - The plan is generated once per day (deterministic for the install, the day and the history) and stored, with its swaps.
-- **Swap**: `Swap` on an unproven mission. The new mission comes from the same area and is the same size, never overlaps the rest of the day, and falls back to the user's other areas only when that area has nothing left. One swap a day, three with Full Edition. A swap counts as a skip.
+- **Swap**: `Swap` on an unproven mission. The new mission comes from the area the old one was in the day for and is the same size, never overlaps the rest of the day, tries a different kind of mission first (not `Lock In for 30 Minutes` for `Do a 20-Minute Focus Session`), and falls back to the user's other areas only when that area has nothing left. One swap a day, three with Full Edition. A swap counts as a skip.
 
 ## 5. Home (root screen, route `Today`)
 
