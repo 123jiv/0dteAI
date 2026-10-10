@@ -85,10 +85,10 @@ describe('daily missions', () => {
     expect(plan.missions.length).toBe(3);
   });
 
-  it('on a 5–15 minute day: three missions at most, and every chosen track gets one even when its short missions run long', () => {
+  it('on a 15-minute day: three missions at most, and every chosen track gets one even when its short missions run long', () => {
     const lib = [
       ...Array.from({ length: 4 }, () => m('money', 'quick', { minutes: 5 })),
-      ...Array.from({ length: 4 }, () => m('skills', 'quick', { minutes: 12 })),
+      ...Array.from({ length: 4 }, () => m('skills', 'quick', { minutes: 10 })),
       ...Array.from({ length: 3 }, () => m('money', 'progress')),
       ...Array.from({ length: 3 }, () => m('skills', 'challenge')),
       ...Array.from({ length: 3 }, () => m('organization', 'quick', { minutes: 3 })),
@@ -259,19 +259,18 @@ describe('daily missions', () => {
   });
 
   it('shares a short day between its easy missions instead of squeezing the last one', () => {
-    // Three easy slots on a 25-minute day: no slot is left only 5 minutes while the first takes 15.
+    // Three easy slots on a 20-minute day: no slot takes 15 while the others are left 5 and 0.
     const lib = (['discipline', 'school', 'fitness'] as TrackId[]).flatMap(t => [5, 10, 10, 15, 15].map(minutes => m(t, 'quick', { minutes, points: minutes <= 5 ? 5 : 10 })));
     const prof = profile({ minutes: 15 });
     let tens = 0;
     for (let i = 0; i < 20; i++) {
       const plan = generatePlan(input({ library: lib, profile: prof, day: addDays('2026-10-01', i) }));
       const mins = plan.missions.map(p => lib.find(x => x.id === p.missionId)!.minutes);
-      expect(mins.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(25);
-      // The first two never take 15 and leave 5 + 5; the last can, when the first two were short.
-      expect(Math.max(mins[0], mins[1])).toBeLessThanOrEqual(10);
+      expect(mins.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(20);
+      expect(mins).not.toContain(15);
       tens += mins.filter(x => x === 10).length;
     }
-    expect(tens).toBeGreaterThanOrEqual(30);
+    expect(tens).toBeGreaterThanOrEqual(15);
   });
 
   it('keeps to the time the user chose: 15–30 minutes is two short missions and one focused one', () => {
@@ -283,7 +282,7 @@ describe('daily missions', () => {
         expect(plan.missions.reduce((t, p) => t + byId.get(p.missionId)!.minutes, 0)).toBeLessThanOrEqual(dayBudget(prof));
       }
     }
-    expect([15, 30, 60, 90].map(minutes => dayBudget({ minutes: minutes as Profile['minutes'], intensity: 'lockin' }))).toEqual([25, 45, 75, 120]);
+    expect([15, 30, 45, 60].map(minutes => dayBudget({ minutes: minutes as Profile['minutes'], intensity: 'lockin' }))).toEqual([20, 40, 55, 90]);
   });
 
   it('drops an area that can never get a mission (School for someone not in school)', () => {
