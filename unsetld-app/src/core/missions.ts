@@ -246,8 +246,9 @@ export function slotTracks(
   leadOverride?: TrackId,
   /** The lead never rests (a weekly focus: the user asked for it all week; or the user's first day). */
   alwaysLead = false,
-  /** On a rest day, these (the other areas the goal points at) go first among the others. */
+  /** On a rest day (and every day with `preferAlways`), these (the other areas the goal points at) go first among the others. */
   preferred: readonly TrackId[] = [],
+  preferAlways = false,
 ): TrackId[] {
   const tracks = areas?.length ? [...areas] : profile.tracks.length ? profile.tracks : DEFAULT_PROFILE.tracks;
   const d = dayNumber(day);
@@ -257,7 +258,7 @@ export function slotTracks(
   const rest = !alwaysLead && pool.length > 0 && mod(d, 3) === 0;
   // The others' order moves on every day, so the one that goes first changes (on the third day too).
   const turn = rotate(pool, mod(d, 3) === 0 ? Math.floor(d / 3) : d - Math.floor(d / 3));
-  const others = rest ? [...turn.filter(t => preferred.includes(t)), ...turn.filter(t => !preferred.includes(t))] : turn;
+  const others = rest || preferAlways ? [...turn.filter(t => preferred.includes(t)), ...turn.filter(t => !preferred.includes(t))] : turn;
   const queue = rest ? [...others, lead] : [lead, ...others];
   const at = (k: number) =>
     k < queue.length ? queue[k] : pool.length > 1 ? others[mod(k - queue.length + d, others.length)] : queue[mod(k - queue.length + d, queue.length)];
@@ -383,14 +384,14 @@ export function chooseForSlot(
 
   // Only when the area has nothing else that fits: a niche mission (a plank set, typing practice)
   // or one made for a medium (Film One Video) the user never named, unless the week's focus or the
-  // goal points at it; and on Day 1 before 3 PM, a mission for tonight (the first list should be
-  // doable now).
+  // goal points at it; and on Day 1, a follow-up to an earlier session (Review Yesterday's Notes)
+  // and, before 3 PM, a mission for tonight (the first list should be doable now).
   const lean = leanFor(input.profile, input.day);
   const firstDay = Object.keys(input.history.lastPlanned).length === 0;
   const morning = input.hour != null && input.hour >= DAY_START_HOUR && input.hour < AFTERNOON_HOUR + 3;
   const lastResort = (m: Mission) =>
     ((Boolean(m.tags?.includes('niche')) || (named.length === 0 && Boolean(m.fits?.length))) && !leansTo(m, lean)) ||
-    (firstDay && morning && m.when === 'evening');
+    (firstDay && ((morning && m.when === 'evening') || Boolean(m.tags?.includes('follow-up'))));
 
   const tryAreas = (list: readonly TrackId[], size: MissionSlot, relaxShown: boolean, ignoreSkips: boolean, cap: number): SlotPick | null => {
     for (const area of list) {
@@ -471,7 +472,8 @@ export function generatePlan(input: PlanInput): DayPlan {
   // Day 1 (nothing planned before) leads with the area they came for, whatever the date.
   const firstDay = Object.keys(input.history.lastPlanned).length === 0;
   const goalAreas = lean.goalAreas.filter(a => areas.includes(a));
-  const tracks = slotTracks(profile, slots, day, areas, lead, firstDay || Boolean(lead && lead === lean.focusArea), goalAreas);
+  // Day 1 also gives the goal's other areas the next slots: the first list is what they came for.
+  const tracks = slotTracks(profile, slots, day, areas, lead, firstDay || Boolean(lead && lead === lean.focusArea), goalAreas, firstDay);
   const budget = dayBudget(profile);
   const chosenSlots: PlannedMission[] = [];
   const used = new Set<string>();

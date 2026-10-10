@@ -1686,7 +1686,8 @@
   "weight": 0.5,
   "tags": [
    "fitness",
-   "tracking"
+   "tracking",
+   "follow-up"
   ],
   "active": true
  },
@@ -4550,7 +4551,8 @@
   "tags": [
    "skills",
    "learn",
-   "notes"
+   "notes",
+   "follow-up"
   ],
   "active": true
  },
@@ -4571,7 +4573,8 @@
   "tags": [
    "skills",
    "learn",
-   "notes"
+   "notes",
+   "follow-up"
   ],
   "active": true
  },

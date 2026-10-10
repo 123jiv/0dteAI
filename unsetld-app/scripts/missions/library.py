@@ -330,7 +330,7 @@ m('fitness-plan-week', F, "Plan This Week's Workouts", 10, 10, P,
   group='planning-week', tags=['planning'])
 m('fitness-log-workout', F, 'Log Your Last Workout', 5, 5, P,
   'Write down every exercise, set and rep from your last workout, and circle one to beat next time.',
-  'Your workout log.', 2, requires=['gym'], weight=0.5, tags=['tracking'])
+  'Your workout log.', 2, requires=['gym'], weight=0.5, tags=['tracking', 'follow-up'])
 m('fitness-meal-prep', F, 'Meal Prep for the Next 3 Days', 60, 25, P,
   'Cook and pack lunches or dinners for the next 3 days.', 'Your packed meals.', 6, group='meal', weight=0.6,
   tags=['meal', 'food', 'cooking'])
@@ -763,10 +763,10 @@ m('skills-spreadsheets', K, 'Learn One Spreadsheet Skill', 20, 10, TP,
 
 m('skills-review-yesterday', K, "Review Yesterday's Notes for 10 Minutes", 10, 10, P,
   "Go over what you learned yesterday before you learn anything new.", 'Your notes.', 2, group='skill-review', weight=0.5,
-  tags=['learn', 'notes'])
+  tags=['learn', 'notes', 'follow-up'])
 m('skills-quiz-yourself', K, "Test Yourself on Last Week's Lessons", 10, 10, P,
   "Write down what you remember from last week's lessons without looking, then check your notes.",
-  'What you wrote, checked against your notes.', 5, group='skill-review', weight=0.5, tags=['learn', 'notes'])
+  'What you wrote, checked against your notes.', 5, group='skill-review', weight=0.5, tags=['learn', 'notes', 'follow-up'])
 m("skills-practice-exercise", K, "Do One Practice Exercise for Your Skill", 15, 10, P,
   "Do one short exercise for the skill you are learning.", "What you made.", 1,
   weight=0.5, group='skill-session', tags=['practice', 'skill'])
