@@ -127,7 +127,7 @@ Status fields (`StatusTier` in `src/core/types.ts`):
 | Field | Type | Notes |
 |---|---|---|
 | `id` | string, ≤64 characters | `early-access`, `patch` and `piece-365` are the app's own: they keep their action, pause and letter from `milestones.json`. Any other id is a display-only tier. The 365 piece's letter says "A full year", so keep `piece-365` at day 365 (or change its letter in `milestones.json` with it). |
-| `day` (`activeDays`) | whole number ≥1 | Active days needed. Moving an own tier's day moves its status, its page and its letter: Today asks `accessLetter` (`src/screens/access.ts`, `pendingStatusLetter` in `src/core/rewards.ts`) for the letter with the tiers in effect, and the letter page shows nothing for a tier the config has since moved or switched off. A letter's sub never names the number of days. The pause still starts at 7 active days (`PAUSABLE_DAYS` in `src/core/record.ts`). |
+| `day` (`activeDays`) | whole number ≥1 | Active days needed. Moving an own tier's day moves its status, its page and its letter: Today asks `accessLetter` (`src/screens/access.ts`, `pendingStatusLetter` in `src/core/rewards.ts`) for the letter with the tiers in effect, and the letter page shows nothing for a tier the config has since moved or switched off. A letter's sub never names the number of days. The pause rule starts at the early-access tier's `day` in effect (`statusAccess` / `pauseOpensAt` in `src/core/rewards.ts`; 7 by default), and nothing pauses while early access is switched off. |
 | `title` | string, ≤40 characters | |
 | `short` | string | One line on Status. Optional: an own tier left without one keeps the built-in line; others default to "". |
 | `detail` | string | The tier's page. Same defaults as `short`. |
@@ -141,7 +141,7 @@ The browser preview simulates `accessEnabled: true` so the whole product can be 
 ## Drops
 
 The app also reads `https://www.unsetld.com/api/app/drops.json`; see [`Web/api/app/drops.json`](../Web/api/app/drops.json). Drop alerts are a separate opt-in switch in You (and the early access page) and are off by default. When they're on:
-- 7 active days and up, with rewards on and early access not paused: a notification at `earlyAt` ("Collection 004 is open to you now. Everyone else gets it tomorrow at 9:00 PM.").
+- At early access's day (7 by default) and up, with rewards on and early access not paused: a notification at `earlyAt` ("Collection 004 is open to you now. Everyone else gets it tomorrow at 9:00 PM.").
 - Everyone else (including paused users): a heads-up at the same time ("Collection 004 opens tomorrow at 9:00 PM.").
 - Tapping the early alert opens the early access page. While a drop is in its early window, that page shows `Open Collection 004`, which claims `early-access` (account needed) and opens the returned URL in Safari.
 - Turning alerts on asks for notification permission first; if it's denied, the switch stays off and the app points to Settings.

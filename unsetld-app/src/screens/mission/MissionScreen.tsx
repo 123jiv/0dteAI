@@ -12,14 +12,14 @@ import { Platform, View } from 'react-native';
 import { activeDays } from '../../core/progress';
 import { usedHashes } from '../../core/proofs';
 import { elapsedSeconds, endsAt, timerDone, type FocusTimer } from '../../core/timer';
-import type { DayKey } from '../../core/time';
+import { nextDayStart, type DayKey } from '../../core/time';
 import type { Mission, ProofPhoto, Verification, VerificationCheck } from '../../core/types';
 import { requiredPhotos } from '../../core/verify';
 import { MISSION_BY_ID } from '../../content';
 import { MISSION } from '../../content/copy/mission';
 import type { RootProps } from '../../navigation/types';
 import { syncProof } from '../../services/access';
-import { today } from '../../services/clock';
+import { now, today } from '../../services/clock';
 import { cameraPermission, capture, deletePhoto, PROOF_FROM_CAMERA, proofImage, savePhoto } from '../../services/proof';
 import { cancelTimerDone, syncTimerDone } from '../../services/timerNotify';
 import { checkTrustedTime, type TimeCheck } from '../../services/trustedTime';
@@ -258,6 +258,13 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
 
   const beginTimer = () => {
     if (today() !== day) return dayOver([]);
+    // A timer that can't finish before 4:00 AM can't count: say so instead of starting it.
+    const minutes = mission.timerMinutes ?? mission.minutes;
+    const at = now();
+    if (at.getTime() + minutes * 60_000 > nextDayStart(at).getTime()) {
+      showDialog(MISSION.lateTimer.title, MISSION.lateTimer.body(minutes), [{ label: MISSION.lateTimer.ok, cancel: true }]);
+      return;
+    }
     const s = useApp.getState();
     s.startTimer(missionId);
     // Starting is when to ask for notifications: the screen says it will ring.

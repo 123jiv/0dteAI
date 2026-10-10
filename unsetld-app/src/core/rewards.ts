@@ -327,10 +327,22 @@ export function effectiveStatus(defaults: readonly StatusTier[], remote: readonl
  * accessRecord): the same rules as core/record milestoneStatus, for any tier.
  * A display-only tier is 'open' once reached.
  */
+/** The active days the pause rule starts from: the earliest pausable tier in effect (early access), or null when none is. */
+export function pauseOpensAt(tiers: readonly StatusTier[]): number | null {
+  const days = tiers.filter(t => t.pausable).map(t => t.day);
+  return days.length ? Math.min(...days) : null;
+}
+
+/** core/record accessState with the pause rule starting at the configured early-access day; never paused without one. */
+export function statusAccess(r: RecordState, today: DayKey, tiers: readonly StatusTier[]): ReturnType<typeof accessState> {
+  const from = pauseOpensAt(tiers);
+  return from == null ? { paused: false, reopenProgress: 0, lastComeback: null } : accessState(r, today, from);
+}
+
 export function statusState(r: RecordState, t: StatusTier, today: DayKey): MilestoneStatus {
   const n = dayCount(r);
   if (n < t.day) return { kind: 'locked', daysLeft: t.day - n };
-  if (t.pausable && accessState(r, today).paused) return { kind: 'paused' };
+  if (t.pausable && accessState(r, today, t.day).paused) return { kind: 'paused' };
   if (t.id === 'patch' && r.patchClaimed) return { kind: 'used' };
   return { kind: 'open' };
 }
@@ -347,7 +359,7 @@ export function nextStatus(n: number, tiers: readonly StatusTier[]): StatusTier 
  */
 export function pendingStatusLetter(r: RecordState, today: DayKey, tiers: readonly StatusTier[]): Letter | null {
   const n = dayCount(r);
-  const a = accessState(r, today);
+  const a = statusAccess(r, today, tiers);
   // Only the highest reached, unseen tier: someone restoring a long record gets one letter, not five.
   const reached = tiers.filter(t => isKnownStatus(t.id) && t.letter && n >= t.day).sort((x, y) => x.day - y.day);
   const top = reached[reached.length - 1];

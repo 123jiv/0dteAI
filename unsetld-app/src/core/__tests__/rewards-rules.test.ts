@@ -21,6 +21,7 @@ import {
   redeem,
   rewardStatus,
   roadAt,
+  statusAccess,
   statusFromMilestones,
   statusState,
   upNext,
@@ -395,5 +396,26 @@ describe('status letters follow the status config', () => {
     for (const n of [0, 1, 7, 12, 90, 200, 365, 400]) expect(roadAt(n, days)).toBeCloseTo(roadPosition(n));
     expect(roadAt(15, [7, 30, 90, 365])).toBeCloseTo((1 + 8 / 23) / 4);
     expect(roadAt(5, [])).toBe(0);
+  });
+});
+
+describe('the pause rule follows the configured early-access day', () => {
+  // 8 active days, then 15 days without a proven mission.
+  const r = onRecord(emptyRecord(), '2026-09-01', 8);
+  const today = addDays('2026-09-08', 16);
+
+  it('pauses after 14 missed days once early access is open (built-in day 7)', () => {
+    expect(statusAccess(r, today, DEFAULTS).paused).toBe(true);
+  });
+
+  it("doesn't pause before a moved early access (day 10) has opened", () => {
+    const moved = DEFAULTS.map(t => (t.id === 'early-access' ? { ...t, day: 10 } : t));
+    expect(statusAccess(r, today, moved).paused).toBe(false);
+    const ea = moved.find(t => t.id === 'early-access')!;
+    expect(statusState(r, ea, today).kind).toBe('locked');
+  });
+
+  it('never pauses when early access is switched off', () => {
+    expect(statusAccess(r, today, DEFAULTS.filter(t => t.id !== 'early-access')).paused).toBe(false);
   });
 });

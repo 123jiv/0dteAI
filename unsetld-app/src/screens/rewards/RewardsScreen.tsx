@@ -1,7 +1,6 @@
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { accessState } from '../../core/record';
-import { cooldownEnds, nextStatus, pointsEarned, rewardStatus, upNext } from '../../core/rewards';
+import { cooldownEnds, nextStatus, pointsEarned, rewardStatus, statusAccess, upNext } from '../../core/rewards';
 import { shortDate } from '../../core/time';
 import type { RewardTier } from '../../core/types';
 import { REWARDS_COPY } from '../../content/copy/rewards';
@@ -57,7 +56,7 @@ export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
   const ar = accessRecord(record);
   const activeN = accessDays(record);
   const nextTier = nextStatus(activeN, status);
-  const paused = accessState(ar, day).paused && status.some(t => t.pausable && activeN >= t.day);
+  const paused = statusAccess(ar, day, status).paused && status.some(t => t.pausable && activeN >= t.day);
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>

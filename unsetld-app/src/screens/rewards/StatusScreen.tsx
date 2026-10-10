@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, useWindowDimensions, View } from 'react-native';
 import type { MilestoneStatus } from '../../core/record';
-import { accessState, REOPEN_AFTER } from '../../core/record';
-import { isKnownStatus, nextStatus, roadAt, statusState } from '../../core/rewards';
+import { REOPEN_AFTER } from '../../core/record';
+import { isKnownStatus, nextStatus, roadAt, statusAccess, statusState } from '../../core/rewards';
 import type { StatusTier } from '../../core/types';
 import { DOCS } from '../../content';
 import { REWARDS_COPY } from '../../content/copy/rewards';
@@ -96,7 +96,7 @@ export function StatusScreen({ navigation }: RootProps<'Status'>) {
   const tiers = useStatusTiers();
   const ar = accessRecord(record);
   const n = accessDays(record);
-  const access = accessState(ar, day);
+  const access = statusAccess(ar, day, tiers);
   const coming = nextStatus(n, tiers);
   const paused = access.paused && tiers.some(t => t.pausable && n >= t.day);
 

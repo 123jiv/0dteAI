@@ -257,8 +257,8 @@ export function useSideEffects() {
   // config moves it; none when the config switches it off), access on and no
   // pause. A failed fetch keeps the alerts already scheduled.
   const accessEnabled = useAccessEnabled();
-  const paused = useMemo(() => accessState(accessRecord(record), day).paused, [record, day]);
   const earlyDay = earlyAccessDay(useStatusTiers());
+  const paused = useMemo(() => earlyDay !== null && accessState(accessRecord(record), day, earlyDay).paused, [record, day, earlyDay]);
   const early = accessEnabled && earlyDay !== null && accessDays(record) >= earlyDay && !paused;
   const dropAlerts = useApp(s => s.settings.dropAlerts);
   useEffect(() => {

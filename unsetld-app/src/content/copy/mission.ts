@@ -181,6 +181,13 @@ export const MISSION = {
     preview: 'Preview build: pick any photo. The app only takes them live.',
   },
 
+  /** Starting a timer that would run past 4:00 AM, when the day's missions close. */
+  lateTimer: {
+    title: 'Not enough time left today.',
+    body: (minutes: number) => `A ${minutes}-minute timer would end after 4:00 AM, when today’s missions close, so it wouldn’t count. Tomorrow has its own missions.`,
+    ok: 'OK',
+  },
+
   dayEnded: {
     title: 'The day ended at 4:00 AM.',
     body: 'That proof was for yesterday’s plan. Today has its own missions.',

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Linking, View, type StyleProp, type ViewStyle } from 'react-native';
-import { accessState, REOPEN_AFTER } from '../core/record';
-import { isKnownStatus, statusState } from '../core/rewards';
+import { REOPEN_AFTER } from '../core/record';
+import { isKnownStatus, statusAccess, statusState } from '../core/rewards';
 import { DOCS } from '../content';
 import { REWARDS_COPY } from '../content/copy/rewards';
 import type { RootProps } from '../navigation/types';
@@ -12,7 +12,7 @@ import { Card, Meter } from '../ui/blocks';
 import { Button, InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, GAP } from '../ui/tokens';
-import { accessDays, accessRecord, earlyDrop, enableDropAlerts, findStatus, nextDropChange, runMilestoneAction, useStatusTiers, type ActionResult } from './access';
+import { accessDays, accessRecord, earlyDrop, enableDropAlerts, findStatus, nextDropChange, runMilestoneAction, statusTiers, useStatusTiers, type ActionResult } from './access';
 import { LINING } from './rewards/redeem';
 import { statusStateText } from './rewards/StatusScreen';
 
@@ -22,7 +22,7 @@ const R = REWARDS_COPY;
 export function errorText(r: ActionResult): string | null {
   if (r === 'paused') {
     const s = useApp.getState();
-    return R.milestone.pausedError(Math.max(1, REOPEN_AFTER - accessState(accessRecord(s.record), s.currentDay).reopenProgress));
+    return R.milestone.pausedError(Math.max(1, REOPEN_AFTER - statusAccess(accessRecord(s.record), s.currentDay, statusTiers(s.remote.status)).reopenProgress));
   }
   if (r === 'network') return R.milestone.networkError;
   if (r === 'notifications-off') return R.milestone.notificationsOff;
@@ -133,7 +133,7 @@ export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
       ) : null}
       {status.kind === 'paused' ? (
         <T v="note" color={C.stone} style={{ marginTop: 16 }}>
-          {R.status.pausedNote(Math.max(1, REOPEN_AFTER - accessState(ar, day).reopenProgress))}
+          {R.status.pausedNote(Math.max(1, REOPEN_AFTER - statusAccess(ar, day, tiers).reopenProgress))}
         </T>
       ) : null}
       {showAction ? (

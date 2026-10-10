@@ -53,11 +53,11 @@ export interface AccessState {
 /**
  * Walks the record: a gap of PAUSE_AFTER_MISSED or more missed days pauses
  * access; REOPEN_AFTER more days on record reopens it. The count never drops.
- * Nothing pauses before early access has opened, since nothing is open yet.
+ * Nothing pauses before early access has opened (`opensAt` active days: 7 by
+ * default, or the day unsetld.com's status config gives it), since nothing is open yet.
  */
-export function accessState(r: RecordState, today: DayKey): AccessState {
+export function accessState(r: RecordState, today: DayKey, opensAt: number = Math.min(...PAUSABLE_DAYS)): AccessState {
   const days = sortedDays(r);
-  const opensAt = Math.min(...PAUSABLE_DAYS);
   let paused = false;
   let progress = 0;
   let lastComeback: DayKey | null = null;
@@ -134,7 +134,8 @@ export function markLetterShown(r: RecordState, letter: Letter): RecordState {
   if (letter.kind === 'milestone') {
     for (const d of ROAD) if (d <= letter.day) keys.add(String(d));
     const days = sortedDays(r);
-    const back = days.length ? accessState(r, days[days.length - 1]).lastComeback : null;
+    // A moved early access pauses from its own day.
+    const back = days.length ? accessState(r, days[days.length - 1], letter.pausable ? letter.day : undefined).lastComeback : null;
     if (back && (letter.pausable ?? PAUSABLE_DAYS.includes(letter.day))) keys.add(`comeback:${back}`);
   }
   return { ...r, lettersShown: [...keys] };
