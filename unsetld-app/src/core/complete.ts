@@ -28,10 +28,12 @@ export function completeMission(
   // A mission is proven once a day: a second proof changes nothing and earns nothing.
   if (prev?.verification?.status === 'accepted') return { record: r, points: 0, bonus: 0 };
   const points = accepted ? mission.points : 0;
+  const planned = plan?.missions.find(p => p.missionId === mission.id);
   const done: MissionDone = {
     missionId: mission.id,
-    slot: plan?.missions.find(p => p.missionId === mission.id)?.slot ?? sizeOf(mission),
-    track: mission.track,
+    slot: planned?.slot ?? sizeOf(mission),
+    // The area the row showed: "Work on Your Portfolio" proven for Projects counts for Projects.
+    track: planned?.area ?? mission.track,
     points,
     doneAt: opts.at,
     photos,

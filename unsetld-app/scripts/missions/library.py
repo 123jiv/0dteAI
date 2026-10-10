@@ -435,7 +435,7 @@ m('career-target-skills', C, 'Find 3 Skills Your Target Job Asks For', 10, 10, P
 # ── BUSINESS ───────────────────────────────────────────────────────────────
 B = 'business'
 m('business-work-30', B, 'Work on Your Business for 30 Minutes', 30, 20, TP,
-  'Spend 30 focused minutes on the part of your business that moves it forward.',
+  'Spend 30 focused minutes moving your business or business idea forward.',
   'What you worked on, after the timer.', 1, anchor=True, group='business-session')
 m('business-work-60', B, 'Work on Your Business for 60 Minutes', 60, 25, TP,
   'Put your phone away and spend one focused hour on your business, one task at a time.',
@@ -443,7 +443,7 @@ m('business-work-60', B, 'Work on Your Business for 60 Minutes', 60, 25, TP,
   group='business-session')
 m("business-content", B, "Create One Piece of Content", 30, 15, P,
   "Make one post, video or graphic for your business or project.", "Your setup or draft, or the finished piece on a computer.", 1,
-  anchor=True, also=['projects'])
+  anchor=True, also=['projects'], requires=['building'])
 m('business-post', B, 'Post Something for Your Business', 15, 10, P,
   'Post one piece of content on your business account.', 'A note of what you posted and where.', 1,
   requires=['project'])
@@ -456,7 +456,8 @@ m('business-reach-customer', B, 'Reach Out to One Potential Customer', 15, 10, P
   'Contact one person or business who might buy from you.', 'A note of who (initials) and what you offered.', 2,
   requires=['age16'])
 m('business-product', B, 'Work on Your Product', 30, 20, TP,
-  'Spend 30 minutes making your product or service better.', 'Your product or your work, after the timer.', 2)
+  'Spend 30 minutes making your product or service better.', 'Your product or your work, after the timer.', 2,
+  requires=['building'])
 m('business-fix-problem', B, 'Fix One Problem With Your Business', 30, 15, P,
   "Pick one thing that's broken or slowing you down and fix it.", 'The fix, or your notes on what changed.', 3)
 m('business-product-page', B, 'Improve One Product Page', 20, 10, P,
@@ -487,9 +488,11 @@ m('business-customer-interviews', B, 'Talk to 3 Potential Customers', 30, 15, P,
 m('business-profit-per-sale', B, 'Work Out Your Profit per Sale', 20, 10, P,
   'Add up what one sale costs you and set a price that leaves a profit.', 'Your math on paper.', 21)
 m('business-ideas', B, 'Write Down 10 Business Ideas', 15, 10, P,
-  'List 10 things people around you would pay for that you could make, sell or do.', 'Your list of ten.', 14)
+  'List 10 things people around you would pay for that you could make, sell or do.', 'Your list of ten.', 14,
+  requires=['starting'])
 m('business-pick-idea', B, 'Pick One Business Idea and Plan It', 20, 10, P,
-  'Pick one idea and write who it is for, what you would charge and your first three steps.', 'Your plan on paper.', 14)
+  'Pick one idea and write who it is for, what you would charge and your first three steps.', 'Your plan on paper.', 14,
+  requires=['starting'])
 m('business-pitch', B, 'Write Your One-Sentence Pitch', 5, 5, P,
   "Write one sentence that says what you sell, who it's for and why they'd pick you.", 'Your sentence on paper.', 14)
 m('business-month-goal', B, "Set This Month's Business Goal", 5, 5, P,
@@ -500,7 +503,7 @@ m('business-learn-concept', B, 'Learn One Business Concept', 15, 10, TP,
   'Your notes, after the timer.', 3)
 m('business-read-10', B, 'Read 10 Pages of a Business Book', 15, 10, P,
   'Read 10 pages of a book about starting or running a business.', 'The book open to where you stopped.', 2,
-  group='reading')
+  group='reading', anchor=True)
 m('business-review-request', B, 'Ask a Happy Customer for a Review', 10, 10, P,
   'Ask one happy customer to leave a review or send you someone who might buy.', 'A note of who (initials) and what you asked.', 7,
   requires=['project'])

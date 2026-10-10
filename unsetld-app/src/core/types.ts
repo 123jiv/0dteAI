@@ -127,8 +127,10 @@ export type SkillId = 'coding' | 'design' | 'video' | 'writing' | 'language' | '
 /**
  * What a mission needs from the user's life; a mission is only offered when they match.
  * 'highschool': in school and not in college (SAT/ACT, college applications).
+ * 'building': not for someone who said they aren't building a business or project yet;
+ * 'starting': not for someone who said they are (Write Down 10 Business Ideas).
  */
-export type Requirement = 'school' | 'highschool' | 'work' | 'gym' | 'project' | 'age16' | 'age18' | SkillId;
+export type Requirement = 'school' | 'highschool' | 'work' | 'gym' | 'project' | 'building' | 'starting' | 'age16' | 'age18' | SkillId;
 
 export interface Mission {
   /** Permanent id, "<track>-<slug>": "school-study-30". Completions and programs refer to it. */

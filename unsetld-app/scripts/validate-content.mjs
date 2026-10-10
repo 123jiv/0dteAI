@@ -22,9 +22,9 @@ const warnings = [];
 const TRACK_IDS = ['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization'];
 const PROOF = ['PHOTO', 'PHOTO_AFTER', 'BEFORE_AFTER', 'TIMER_AND_PHOTO', 'TIMER'];
 const SKILLS = ['coding', 'design', 'video', 'writing', 'language', 'music'];
-const REQ = ['school', 'highschool', 'work', 'gym', 'project', 'age16', 'age18', ...SKILLS];
+const REQ = ['school', 'highschool', 'work', 'gym', 'project', 'building', 'starting', 'age16', 'age18', ...SKILLS];
 // What an 18+ user who skipped every About-you question can get: no yes answer or named skill needed.
-const OPEN_TO_ADULT = new Set(['school', 'highschool', 'age16', 'age18']);
+const OPEN_TO_ADULT = new Set(['school', 'highschool', 'building', 'starting', 'age16', 'age18']);
 const openToAdult = m => (m.requires ?? []).every(r => OPEN_TO_ADULT.has(r));
 // Points by time: up to 5 min = 5, 6–20 = 10, 21–35 = 15 or 20, 36–59 = 20, 60+ = 25.
 const pointsFor = min => (min <= 5 ? [5] : min <= 20 ? [10] : min <= 35 ? [15, 20] : min < 60 ? [20] : [25]);

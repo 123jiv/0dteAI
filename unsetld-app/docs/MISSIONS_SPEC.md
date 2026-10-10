@@ -39,19 +39,19 @@ The UI says "areas"; the code calls them tracks (`TrackId`, `Mission.track`, `Pr
 | projects | PROJECTS | Projects | Building, making, shipping your thing. |
 | organization | ORGANIZATION | Organization | Your room, your stuff, your files. |
 
-`short` is what rows, levels, swaps and widgets show ("School · 30 min · +15"). Earlier 3.0 builds had seven tracks; the store's migration (version 4) maps the ids that went away: `focus` → discipline, `reset` → organization, `mindset` → discipline, in the user's areas, their weekly priority and the area stored on each proven mission. From then on a proven mission keeps the area it was proven in, even if the library later moves it.
+`short` is what rows, levels, swaps and widgets show ("School · 30 min · +15"). Earlier 3.0 builds had seven tracks; the store's migration (version 4) maps the ids that went away: `focus` → discipline, `reset` → organization, `mindset` → discipline, in the user's areas, their weekly priority and the area stored on each proven mission. The same mapping runs on a tester's saved snapshot and on a record restored from the Keychain backup. A saved timer or before photo for a mission the library no longer has is dropped on load (its notification cancelled, its photo deleted). A proven mission is stored with the area it was in the day for (the planned area, else its own), and keeps it even if the library later moves it.
 
 ## 3. Onboarding
 
 1. **Name** (unchanged): "unsettled", "Never settle for less." → Begin. Not numbered; the five steps below are `01 / 05` to `05 / 05`.
 2. **Areas** — title `What are you trying to improve right now?`, body `Pick up to four.` Nine tiles, numbered 01–09: the area name (label style) and its scope (small, stone); 1px rule border, chosen = bone border. Counter `0 OF 4`; a fifth tap says `Four is the most. Take one off first.` `Continue` needs at least one.
-3. **About you** (optional) — title `A few quick ones.`, body `So the missions fit your life. Skip anything.` Yes / No: `In school or college?` · `Working?` · `Building a business or project?` (`A brand, a channel, an app, art.`) · `Gym access?`. `Age` 13–15 / 16–17 / 18+. `What are you learning?` (`Pick any that apply.`): Coding, Design, Video editing, Writing, A language, Music. Buttons `Continue` and `Skip`.
-4. **Pace** — `How much time a day?` 5–15 / 15–30 / 30–60 / 60+ MIN. `How hard?` three cards: **START EASY** `Three missions a day, shorter ones.` · **LOCK IN** `Three missions a day: one easy, two that take real focus.` · **PUSH ME** `Four missions a day, longer sessions.` With 5–15 minutes chosen: `With 5–15 minutes, you get three short missions a day, whatever you pick.`
+3. **About you** (optional) — title `A few quick ones.`, body `So the missions fit your life. Skip anything.` Yes / No: `In school or college?` · `Working?` · `Building a business or project?` (`A brand, a channel, an app, art.`) · `Gym access?`. `Age` 13–15 / 16–17 / 18+. `What are you learning?` (`Pick any that apply.`): Coding, Design, Video editing, Writing, A language, Music. After `In school or college? Yes`, `High school or college?` High school / College (sets `schoolLevel`; cleared on No). Answering No while School is one of the areas shows `School missions need a yes here. Continue and School comes off your areas.` (Save in edit mode) and drops School on Continue / Skip / Save; when School is the only area the note says `Answer Yes, or pick another area first.`, Continue is disabled and `Change areas` goes back. Areas shows a matching note if School is picked after a No. Buttons `Continue` and `Skip`.
+4. **Pace** — `How much time a day?` 5–15 / 15–30 / 30–60 / 60+ MIN. `How hard?` three cards: **START EASY** `Three missions a day, shorter ones.` · **LOCK IN** `Three missions a day: one easy, two that take real focus.` · **PUSH ME** `Four missions a day, longer sessions.` With 5–15 minutes chosen: `With 5–15 minutes, you get three short missions a day, whatever you pick.` With 15–30: `With 15–30 minutes, you get two short missions and one focused one a day, whatever you pick.` On those two, the cards draw the same day shape and their text starts `With more time a day:`.
 5. **Reminders** (DayScreen).
 6. **Widget** (the widget guide).
 7. **Paywall**, then Home with today's plan already built.
 
-Edit mode: Settings → Your plan opens the same Areas / About you / Pace screens with `Save`, which rebuilds today's plan if nothing in it was proven or swapped yet.
+Edit mode: Settings → Your plan opens the same Areas / About you / Pace screens with `Save`, which rebuilds today's plan if nothing in it was started (a timer running or a before photo waiting), proven or swapped yet.
 
 ## 4. Missions
 
@@ -80,11 +80,11 @@ The library is written in **`scripts/missions/library.py`**, one readable `m(...
 | `requires` | `school`, `highschool`, `work`, `gym`, `project`, `age16`, `age18`, or a skill: `coding`, `design`, `video`, `writing`, `language`, `music` |
 | `cooldownDays` | days before it can come back after it was done (1–365) |
 | `repeatable` | `false` for a one-off (`Write the First Draft of Your Resume`) |
-| `anchor` | a core habit that should come back most days (study, train, build, plan tomorrow); repeatable, cooldown 3 days or less |
+| `anchor` | a core habit that should come back most days (study, train, build, plan tomorrow, the drills for skills the user named, apply to a job, read a business book); repeatable, cooldown 3 days or less |
 | `group` | missions that overlap share one; a day never holds two from one group |
 | `weight` | how often the planner picks it, relative to 1 (0.1–3) |
 | `when` | `morning` (left out of a plan made between noon and 4 AM) or `evening` (a label for now; the planner doesn't act on it) |
-| `days` | Days of the week it can be planned, 0 = Sunday. Only for missions tied to a school day: `Review Today's Notes` Monday–Friday, `Finish Tonight's Homework` Sunday–Thursday. Program days skip it on other days. |
+| `days` | Days of the week it can be planned, 0 = Sunday. Only for missions tied to a school day or the night before one: `Review Today's Notes` Monday–Friday; `Finish Tonight's Homework`, `Pack Your Bag for Tomorrow`, `Prepare Everything You Need for Tomorrow` and `Prepare Tomorrow's Meal` Sunday–Thursday. Program days skip it on other days. |
 | `fits` | skills a medium-specific mission suits (`Edit One Video`: video); a soft hint for users who named skills, never a requirement |
 | `tags`, `active` | 1–4 tags; `active: false` retires it |
 
@@ -104,11 +104,11 @@ A perfect day (every mission in the day's plan proven) adds 15 (`rules.json` `pe
 
 ### Requirements
 
-A mission is offered only when the user's answers allow it. `school`: unless they said they're not in school (a skipped answer allows it). `highschool` (SAT/ACT, college essays and research): in school, and not when they said college. `work`, `gym`, `project`: only after a yes. `age16`: not for 13–15. `age18`: only for 18+. A skill: only when they named it under What are you learning?
+A mission is offered only when the user's answers allow it. `school`: unless they said they're not in school (a skipped answer allows it). `highschool` (SAT/ACT, college essays and research): in school, and not when they said college. `work`, `gym`, `project`: only after a yes. `building` (`Work on Your Product`, `Create One Piece of Content`): not after a no to Building a business or project?; `starting` (`Write Down 10 Business Ideas`, `Pick One Business Idea and Plan It`): not after a yes. `age16`: not for 13–15. `age18`: only for 18+. A skill: only when they named it under What are you learning?
 
 ### Content rules (`npm run validate`, scripts/validate-content.mjs)
 
-Errors fail the run: every field above; points that don't match the time; `"!"`, `"…"`, emoji or swearing; hustle and therapy words (grind, level up, mindset, journey, your potential, you got this ...); anything unsafe for a teen (calorie deficits, water or dry fasts, weigh-ins and body photos, no sleep, alcohol, vaping, nicotine, day or options trading, casinos, betting, dares); any mention of points, codes, merch or UNSETLD. Warnings: words worth a second look for safety or privacy (diet, caffeine, crypto, selfie, face, grades, bedroom, address, location ...). It also prints, per area, the easy, focused, core, timed and before/after counts, and warns when an area has fewer than 4 easy or 5 focused missions or no core habit.
+Errors fail the run: every field above; points that don't match the time; `"!"`, `"…"`, emoji or swearing; hustle and therapy words (grind, level up, mindset, journey, your potential, you got this ...); anything unsafe for a teen (calorie deficits, water or dry fasts, weigh-ins and body photos, no sleep, alcohol, vaping, nicotine, day or options trading, casinos, betting, dares); any mention of points, codes, merch or UNSETLD. Warnings: words worth a second look for safety or privacy (diet, caffeine, crypto, selfie, face, grades, bedroom, address, location ...). A `short` with more than one sentence is an error (safety notes go inside the one sentence); `fits` must be a non-empty list of distinct skills; a program day can't be all morning-only or weekday-only missions. It also prints, per area, the easy, focused, core, timed and before/after counts, and what an 18+ user who skipped About you can get, and warns when an area has fewer than 4 easy or 5 focused missions, no core habit, fewer than 8 easy missions or fewer than 3 focused missions with a cooldown of 3 days or less open to that user.
 
 ### The daily plan (src/core/missions.ts)
 
@@ -119,7 +119,8 @@ Errors fail the run: every field above; points that don't match the time; `"!"`,
 - **Filters.** Active; requirements met; morning missions (`Make Your Bed`, `Write Your Top 3 Priorities`) left out of a plan made between noon and 4 AM (the hours after midnight still belong to the day before); `days` respected; not within its cooldown after it was done; one-offs once; a swapped-out mission away 7 days, 21 after a third swap within a month, 2 for a core habit (swaps more than 30 days old are forgotten); a mission shown but not done waits 2–3 days before it's shown again (core habits excepted); never two from one group.
 - **When an area runs dry.** In order: the slot's area, then the user's areas not in the day yet, at the slot's size, then (focused slot) a shorter mission from the same areas; then the areas already in the day; then missions the user swapped away lately; then the universal basics from Discipline and Organization; then the shortest few of their areas' missions. A day is never left short while anything is left.
 - **Programs.** An active program's missions for its day go in first, each in a slot of its size or the first free one (a morning mission after noon, or a mission on the wrong day of the week, is left out; the day's other missions still move the program on).
-- The plan is generated once per day (deterministic for the install, the day and the history) and stored, with its swaps.
+- **Short days.** Easy slots share what's left of the day evenly (10 + 10 + 5 on a 25-minute day, not 15 + 5 + 5). For a user who named skills, a mission made for another medium (`fits`) is used only when nothing else in the area is left.
+- The plan is generated once per day (deterministic for the install, the day and the history) and stored, with its swaps. A stored day with nothing left to prove (an update removed its missions) is planned again, keeping its swaps; a started day keeps what's left.
 - **Swap**: `Swap` on an unproven mission. The new mission comes from the area the old one was in the day for and is the same size, never overlaps the rest of the day, tries a different kind of mission first (not `Lock In for 30 Minutes` for `Do a 20-Minute Focus Session`), and falls back to the user's other areas only when that area has nothing left. One swap a day, three with Full Edition. A swap counts as a skip.
 
 ## 5. Home (root screen, route `Today`)
@@ -158,11 +159,11 @@ Swap this mission
 Close X and `DAY 12` in the nav row. Title, then time and points, then the mission's one sentence (`short`). `PROOF`: a line for the proof type (`Take one photo.` · `Take a photo before you start and one when you're done.` · `Run the 30-minute focus timer. When it ends, take a photo.` · `Run the 30-minute timer to the end.`), then the mission's own proof line. One button: `Start 30 min timer` (TIMER and TIMER_AND_PHOTO), `Take the before photo` (BEFORE_AFTER) or `Prove it` (PHOTO). `Swap this mission` while swaps are left. No WHY THIS MATTERS, no HOW TO DO IT, no steps.
 
 Then:
-1. **Timer** (TIMER and TIMER_AND_PHOTO) — a big mono countdown, the title, `Phone down. Come back when it rings.` `Pause` / `Resume`, `End timer` (asks; ending early earns nothing). It runs on the wall clock while the app is closed, and a local notification fires at zero. At zero: TIMER_AND_PHOTO → `Time. Take the proof photo.` and the camera; TIMER → `Time. Mark it done.` and `Mark it done` (no photo).
+1. **Timer** (TIMER and TIMER_AND_PHOTO) — a big mono countdown, the title, `Phone down. Come back when it rings.` `Pause` / `Resume` (Pause does nothing once the time is up), `End timer` (asks; ending early earns nothing). It runs on the wall clock while the app is closed, and a local notification fires at zero. At zero: TIMER_AND_PHOTO → `Time. Take the proof photo.` and the camera; TIMER → `Time. Mark it done.` and `Mark it done` (no photo).
 2. **Before taken** (BEFORE_AFTER) — the before photo small, `Before saved. Now do it.` `Take the after photo`. It waits even if the app closes.
 3. **Review** — the photo(s) with the proof stamp; `Submit proof`, `Retake`.
 4. **Checking** — `Checking proof…` (on-device, instant).
-5. **Done** — `PROVEN.`, the title, `+15 POINTS` counting up, `365 → 380 POINTS`, the next reward line, the streak line, and `PERFECT DAY` `+15 BONUS` when the day is complete. `Done`.
+5. **Done** — `PROVEN.`, the title, `+15 POINTS` counting up, `365 → 380 POINTS`, the next reward line, the streak line (`Streak started.` or `Streak: 12 days. Still alive.`, never a day number), and `PERFECT DAY` `+15 BONUS` when the day is complete. `Done`.
    - **Rejected** — `Not counted.` and each failed check's note (e.g. `Take the photo again. Proof has to be from the last 30 minutes.`), `Try again`.
 
 Copy never says a photo was verified by AI. Wording: `Proof saved.` / `Checked on this phone: taken just now, timer finished, new photo.`
@@ -186,7 +187,7 @@ Copy never says a photo was verified by AI. Wording: `Proof saved.` / `Checked o
 
 ## 9. Weekly review (WeeklyReview screen)
 
-`THIS WEEK` (label) + dates. Big numbers: missions completed, focused time, points earned, perfect days. `Strongest area: School`. If one of the user's areas was left out: `Didn't get to: Fitness.` (never shaming). `NEXT WEEK` — `Pick one area to focus on.` chips of the user's areas → sets `profile.priority`, which leads the plan on two days in three. Footer: `Never settle for less.` Button `Done`.
+`THIS WEEK` (label) + dates. Big numbers: missions completed, focused time, points earned, perfect days. `Strongest area: School`. Each proof counts for the area its day's plan put it in. If one of the user's areas was left out: `Didn't get to: Fitness.` (never shaming). Only areas that can get missions with the user's answers are named, offered or promised (no School for someone not in school). `NEXT WEEK` — `Pick one area to focus on.` chips of those areas → sets `profile.priority`, which leads the plan on two days in three. Footer: `Never settle for less.` Button `Done`.
 
 ## 10. Rewards
 
@@ -196,7 +197,7 @@ Copy never says a photo was verified by AI. Wording: `Proof saved.` / `Checked o
 
 ## 11. Programs
 
-Optional multi-day runs (content/programs.json): id, title, short, days, tracks (areas), free, plan (1–2 mission ids per program day; no two from one group; only missions every user can do, `school` excepted). Programs screen: list with the edition, title, what it is, `7 days · Discipline`, `Start`; the active program at the top with `DAY 3 OF 7`, today's (or tomorrow's) missions as rows like Home's (`Lock In for 30 Minutes` / `Discipline · 30 min · +15`), `Leave program`. A program day moves on once one of its missions is proven, so missing a day never fails it. One program at a time. Free: 7 Day Lock In and Get Organized; the rest are Full Edition.
+Optional multi-day runs (content/programs.json): id, title, short, days, tracks (areas), free, plan (1–2 mission ids per program day; no two from one group; only missions every user can do, `school` excepted). Programs screen: list with the edition, title, what it is, `7 days · Discipline`, `Start`; the active program at the top with `DAY 3 OF 7`, today's (or tomorrow's) missions as rows like Home's (`Lock In for 30 Minutes` / `Discipline · 30 min · +15 · Timer`, with Home's VoiceOver wording), `Leave program`. A run with every day proven shows FINISHED with `Clear`, even without a finish date. Business Week's id is `business-week` (an earlier build used `project-mode` for a different program; that id is cleared). A program day moves on once one of its missions is proven, so missing a day never fails it. One program at a time. Free: 7 Day Lock In and Get Organized; the rest are Full Edition.
 
 ## 12. Full Edition
 
@@ -223,7 +224,7 @@ Quote library and everything on it (line on Today, line share card, saved lines,
 
 Where these notes and the sections above differ, the notes describe the app as built.
 
-- **Library: 176 missions**, written in `scripts/missions/library.py`: School 29, Career 23, Organization 23, Fitness 20, Business 20, Projects 17, Skills 17, Money 16, Discipline 11. 67 easy and 109 focused. By proof: 107 PHOTO, 49 TIMER_AND_PHOTO, 16 BEFORE_AFTER, 4 TIMER. By points: 13 at 5, 81 at 10, 54 at 15, 21 at 20, 7 at 25. 24 core habits, 29 groups, 1 one-off, 2 morning and 9 evening missions, 18 with a weight. `npm run validate` prints the current per-area counts.
+- **Library: 218 missions, 217 active** (`Bike for 30 Minutes` retired), written in `scripts/missions/library.py`: School 32, Career 29, Skills 27, Business 26, Fitness 25, Organization 23, Money 21, Projects 21, Discipline 14. 103 easy and 114 focused, 38 core habits; most are photo proofs, then timer + photo, before + after and timer only. `npm run validate` prints the current per-area counts.
 - **Groups.** Missions that overlap share a `group` (`deep-work`, `study`, `assignment`, `workout`, `cardio`, `tomorrow-ready`, `skill-session`, `room`, `computer` ...). A day never holds two from one group: the planner, swaps and program days all respect it, and the validator rejects a program day with two.
 - **Six programs** (`src/content/programs.json`): 7 Day Lock In (7 days, Discipline, free), Get Organized (5 days, Organization, free), School Reset (7 days, School), Build Something (7 days, Projects), Fitness Base (7 days, Fitness), Business Week (7 days, Business).
 - **Off Days** (`src/core/streak.ts`, `rules.json`: `offDayEvery` 7, `offDayMax` 2): one is earned on every 7th active day, up to 2 banked, and a missed day uses one automatically. A covered day keeps the streak going but doesn't add to it. Off Days cover the streak only; Access counts proven days.

@@ -118,6 +118,15 @@ describe('daily missions', () => {
     }
   });
 
+  it('keeps "your product" missions from people with no business yet, and "pick an idea" ones from people with one', () => {
+    const p = (project: boolean | null) => profile({ project });
+    expect([true, null, false].map(x => meetsRequirements(['building'], p(x)))).toEqual([true, true, false]);
+    expect([true, null, false].map(x => meetsRequirements(['starting'], p(x)))).toEqual([false, true, true]);
+    expect(meetsRequirements(['school', 'highschool'], profile({ school: true, schoolLevel: 'college' }))).toBe(false);
+    expect(meetsRequirements(['school', 'highschool'], profile({ school: true, schoolLevel: 'high' }))).toBe(true);
+    expect(meetsRequirements(['school', 'highschool'], profile({ school: null }))).toBe(true);
+  });
+
   it('rests a mission after it was done (cooldown) and drops one-off missions for good', () => {
     const plan = generatePlan(input());
     const id = plan.missions[1].missionId;
@@ -224,6 +233,22 @@ describe('daily missions', () => {
       expect(new Set(plan.missions.map(p => p.area)).size).toBe(3);
       for (const p of plan.missions) expect(['money', 'career', 'skills']).toContain(p.area);
     }
+  });
+
+  it('shares a short day between its easy missions instead of squeezing the last one', () => {
+    // Three easy slots on a 25-minute day: no slot is left only 5 minutes while the first takes 15.
+    const lib = (['discipline', 'school', 'fitness'] as TrackId[]).flatMap(t => [5, 10, 10, 15, 15].map(minutes => m(t, 'quick', { minutes, points: minutes <= 5 ? 5 : 10 })));
+    const prof = profile({ minutes: 15 });
+    let tens = 0;
+    for (let i = 0; i < 20; i++) {
+      const plan = generatePlan(input({ library: lib, profile: prof, day: addDays('2026-10-01', i) }));
+      const mins = plan.missions.map(p => lib.find(x => x.id === p.missionId)!.minutes);
+      expect(mins.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(25);
+      // The first two never take 15 and leave 5 + 5; the last can, when the first two were short.
+      expect(Math.max(mins[0], mins[1])).toBeLessThanOrEqual(10);
+      tens += mins.filter(x => x === 10).length;
+    }
+    expect(tens).toBeGreaterThanOrEqual(30);
   });
 
   it('keeps to the time the user chose: 15–30 minutes is two short missions and one focused one', () => {
@@ -414,6 +439,16 @@ describe('proving a mission', () => {
     const again = completeMission(r, plan.day, plan, byId.get(plan.missions[0].missionId)!, [photo('h9')], accepted, { at: 9, verifiedClock: true });
     expect(again.points).toBe(0);
     expect(balance(again.record)).toBe(balance(r));
+  });
+
+  it('counts a proof for the area the plan put it in', () => {
+    const both = m('career', 'progress', { also: ['projects'] });
+    const plan: DayPlan = { day: '2026-10-09', missions: [{ slot: 'main', missionId: both.id, area: 'projects' }], rerolls: 0, replaced: [] };
+    const c = completeMission(emptyRecord(), plan.day, plan, both, [photo('hp')], accepted, { at: 1, verifiedClock: true });
+    expect(c.record.missions[plan.day][both.id].track).toBe('projects');
+    // A plan from an earlier build has no area: the mission's own.
+    const old: DayPlan = { ...plan, missions: [{ slot: 'main', missionId: both.id }] };
+    expect(completeMission(emptyRecord(), plan.day, old, both, [photo('hq')], accepted, { at: 1, verifiedClock: true }).record.missions[plan.day][both.id].track).toBe('career');
   });
 
   it('a rejected proof earns nothing and does not count as a day', () => {

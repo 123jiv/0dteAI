@@ -85,15 +85,15 @@
  {
   "id": "business-week",
   "title": "Business Week",
-  "short": "Seven days of real work on your business: product, customers, content, numbers.",
+  "short": "Seven days of real work on your business: product, customers, your pitch, numbers.",
   "days": 7,
   "tracks": ["business"],
   "free": false,
   "plan": [
    ["business-plan-tomorrow", "business-work-30"],
    ["business-competitors"],
-   ["business-marketing-idea", "business-product"],
-   ["business-content"],
+   ["business-marketing-idea", "business-idea-to-real"],
+   ["business-pitch", "business-learn-concept"],
    ["business-fix-problem"],
    ["business-profit-per-sale", "business-work-30"],
    ["business-work-60"]

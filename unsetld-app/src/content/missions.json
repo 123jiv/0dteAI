@@ -2403,7 +2403,7 @@
   "id": "business-work-30",
   "track": "business",
   "title": "Work on Your Business for 30 Minutes",
-  "short": "Spend 30 focused minutes on the part of your business that moves it forward.",
+  "short": "Spend 30 focused minutes moving your business or business idea forward.",
   "proof": "What you worked on, after the timer.",
   "proofType": "TIMER_AND_PHOTO",
   "points": 20,
@@ -2450,7 +2450,9 @@
   "also": [
    "projects"
   ],
-  "requires": [],
+  "requires": [
+   "building"
+  ],
   "cooldownDays": 1,
   "repeatable": true,
   "anchor": true,
@@ -2544,7 +2546,9 @@
   "points": 20,
   "minutes": 30,
   "timerMinutes": 30,
-  "requires": [],
+  "requires": [
+   "building"
+  ],
   "cooldownDays": 2,
   "repeatable": true,
   "tags": [
@@ -2766,7 +2770,9 @@
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 15,
-  "requires": [],
+  "requires": [
+   "starting"
+  ],
   "cooldownDays": 14,
   "repeatable": true,
   "tags": [
@@ -2783,7 +2789,9 @@
   "proofType": "PHOTO",
   "points": 10,
   "minutes": 20,
-  "requires": [],
+  "requires": [
+   "starting"
+  ],
   "cooldownDays": 14,
   "repeatable": true,
   "tags": [
@@ -2855,6 +2863,7 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
+  "anchor": true,
   "group": "reading",
   "tags": [
    "business"

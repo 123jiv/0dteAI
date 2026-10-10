@@ -123,8 +123,10 @@ const SKILLS: readonly SkillId[] = ['coding', 'design', 'video', 'writing', 'lan
 /**
  * Whether the user's answers allow a mission. School missions only for people
  * who didn't say they're out of school (high-school ones not for college students);
- * work, gym and "your customers" missions only for people who said yes; skill
- * drills only for the skills they named.
+ * work, gym and "your customers" missions only for people who said yes; "your
+ * product" missions not for people who said they have no business yet, and "pick a
+ * business idea" ones not for people who have one; skill drills only for the skills
+ * they named.
  */
 export function meetsRequirements(requires: readonly Requirement[] | undefined, p: Profile): boolean {
   for (const r of requires ?? []) {
@@ -133,6 +135,8 @@ export function meetsRequirements(requires: readonly Requirement[] | undefined, 
     if (r === 'work' && p.work !== true) return false;
     if (r === 'gym' && p.gym !== true) return false;
     if (r === 'project' && p.project !== true) return false;
+    if (r === 'building' && p.project === false) return false;
+    if (r === 'starting' && p.project === true) return false;
     if (r === 'age16' && p.age === 'u16') return false;
     if (r === 'age18' && p.age !== '18plus') return false;
     if ((SKILLS as readonly string[]).includes(r) && !(p.skills ?? []).includes(r as SkillId)) return false;
@@ -314,9 +318,16 @@ export function chooseForSlot(
   const fits = (m: Mission, size: MissionSlot, cap: number) =>
     sizeOf(m) === size && m.minutes <= cap && (size === 'easy' || m.minutes <= mainMax) && !exclude.has(m.id);
 
+  // For a user who named skills, a mission made for another medium ("Edit One Video" for a coder)
+  // only when nothing else in the area is left.
+  const named = input.profile.skills ?? [];
+  const offMedium = (m: Mission) => named.length > 0 && Boolean(m.fits?.length) && !m.fits!.some(x => named.includes(x));
+
   const tryAreas = (list: readonly TrackId[], size: MissionSlot, relaxShown: boolean, ignoreSkips: boolean, cap: number): SlotPick | null => {
     for (const area of list) {
-      const cands = input.library.filter(m => serves(m, area) && fits(m, size, cap) && available(m, input, relaxShown, ignoreSkips));
+      const all = input.library.filter(m => serves(m, area) && fits(m, size, cap) && available(m, input, relaxShown, ignoreSkips));
+      const onMedium = all.filter(m => !offMedium(m));
+      const cands = onMedium.length ? onMedium : all;
       const m = pick(cands, input, area, `${seed}:${size}:${area}`);
       if (m) return { mission: m, area };
     }
@@ -408,8 +419,14 @@ export function generatePlan(input: PlanInput): DayPlan {
   for (const { s, i } of order) {
     if (filled.has(i)) continue;
     const later = order.filter(o => !filled.has(o.i) && o.i !== i && !chosenSlots[o.i]);
-    const reserve = later.reduce((t, o) => t + (o.s === 'main' ? 20 : 5), 0);
-    const room = Math.max(s === 'main' ? 20 : 5, budget - spent - reserve);
+    const laterMain = later.filter(o => o.s === 'main').length;
+    const laterEasy = later.length - laterMain;
+    // A focused slot takes what the later slots don't need; easy slots share what's left evenly
+    // (10 + 10 + 5 on a 25-minute day, not 15 + 5 + 5), so the last one isn't squeezed to 5 minutes.
+    const room =
+      s === 'main'
+        ? Math.max(20, budget - spent - laterMain * 20 - laterEasy * 5)
+        : Math.max(5, Math.min(EASY_MAX_MINUTES, Math.ceil((budget - spent - laterMain * 20) / (laterEasy + 1) / 5) * 5));
     // The slot's area, or the first of the user's areas not in the day yet.
     const area = usedTracks.includes(tracks[i]) ? (areas.find(t => !usedTracks.includes(t)) ?? tracks[i]) : tracks[i];
     const got = chooseForSlot(input, s, area, used, room, `${salt}:${day}:${i}`, usedTracks);
