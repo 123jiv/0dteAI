@@ -2,7 +2,7 @@
 
 Updated for 3.0 (9 Oct 2026). Everything is earned by proving missions, and none of it can be bought. Full Edition doesn't change any of it.
 
-- **Proven missions earn points; points become rewards.** Each mission proven in the app earns its points (5 to 25, by how long it takes), plus 15 when every mission in the day's plan is proven. Points trade for single-use discount codes at unsetld.com: 10% off and 15% off.
+- **Proven missions earn points; points become rewards.** Each mission proven in the app earns its points (5 to 25, by how long it takes), plus 15 when every mission in the day's plan is proven. Points trade for single-use discount codes at unsetld.com: 5% off, 10% off and 15% off.
 - **Days with a proven mission open Access.** A day counts once at least one mission is proven that day. Those days open early access (Day 7), the patch (Day 90) and the 365 piece (Day 365). Days on record from 2.x carry over.
 
 The app has to make sense for someone who never buys a hoodie, so rewards stay quiet: the Rewards screen, one line on Home and on the done screen after a proof (never a popup), milestone letters and milestone pages. They never appear in widgets, notifications, the paywall or mission text.
@@ -30,6 +30,7 @@ The default tiers:
 
 | Reward | Points | What | Limits |
 |---|---|---|---|
+| 5% off (`five-off`) | 300 | 5% off one order | Up to $25 off, one each collection, 30 days |
 | 10% off (`ten-off`) | 600 | 10% off one order | Up to $25 off, one each collection, 30 days |
 | 15% off (`fifteen-off`) | 1,000 | 15% off one order | Up to $25 off, one each collection, 30 days |
 | Limited piece (`limited-drop`) | 2,000 | First pick of a limited run at full price | Switched off (`active: false`) |
@@ -55,7 +56,7 @@ The default tiers:
 
 ## Why this costs little
 
-A typical perfect day on Lock in with 30–60 minutes is about 55 points (5 + 15 + 20, plus the 15 bonus), so 10% off takes about 11 perfect days, 15% off about 18, and both about 29 perfect days in one collection, which few people keep up. The worst case per person per collection is two codes worth at most $25 each, one patch ever, and early access, which costs nothing. Assume 4 collections a year and that 15–20% of active users take a percentage code each collection. Then 1,000 active users cost at most about 1,000 × 20% × 4 × $50 = **$40,000 of discount a year**, and only against full-price orders those people chose to place. In practice it's far less, because most people don't buy every collection. Tiers and points can be changed from the config without an app update.
+A typical perfect day on Lock in with 30–60 minutes is about 55 points (5 + 15 + 20, plus the 15 bonus), so 5% off takes about 6 perfect days, 10% off about 11, 15% off about 18, and all three about 35 perfect days in one collection, which few people keep up. The worst case per person per collection is three codes worth at most $25 each, one patch ever, and early access, which costs nothing. Assume 4 collections a year and that 15–20% of active users take a percentage code each collection. Then 1,000 active users cost at most about 1,000 × 20% × 4 × $75 = **$60,000 of discount a year**, and only against full-price orders those people chose to place. In practice it's far less, because most people don't buy every collection. Tiers and points can be changed from the config without an app update.
 
 ## Feature flag and reward config
 
@@ -66,6 +67,7 @@ The app reads `https://www.unsetld.com/api/app/config.json` on launch and on eve
   "accessEnabled": false,
   "collection": "004",
   "rewards": [
+    { "id": "five-off", "title": "5% off", "detail": "One order at unsetld.com. Up to $25 off.", "type": "discount", "points": 300, "percent": 5, "maxOff": 25, "active": true, "availableFrom": null, "availableUntil": null, "codeValidDays": 30, "inventory": null, "perCollection": 1 }
   ]
 }
 ```

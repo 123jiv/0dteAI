@@ -113,7 +113,6 @@ export const MISSION = {
     timerDone: 'Timer finished.',
     timerShort: 'Finish the timer first.',
     photoBeforeTimer: 'Take the photo after the timer.',
-    timerOld: (fresh: number) => `The timer ended more than ${fresh} minutes ago. Run it again and mark it done when it ends.`,
     newPhoto: 'New photo.',
     duplicate: 'That photo was already used. Take a new one.',
   },

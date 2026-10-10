@@ -70,18 +70,11 @@ describe('TIMER proof type', () => {
     expect(v.checks[0].note).toBe(MISSION.check.timerShort);
   });
 
-  it(`rejects a timer that ended more than ${RULES.proofFreshMinutes} minutes ago, and says so`, () => {
-    const fresh = RULES.proofFreshMinutes * 60_000;
-    expect(localChecks(ran(600, fresh)).status).toBe('accepted');
-    const v = localChecks(ran(600, fresh + 1000));
-    expect(v.status).toBe('rejected');
-    expect(v.checks).toEqual([{ id: 'timer', ok: false, note: MISSION.check.timerOld(RULES.proofFreshMinutes) }]);
-    expect(v.checks[0].note).toContain(`${RULES.proofFreshMinutes} minutes`);
-  });
-
-  it('uses the freshness window it is given', () => {
-    expect(localChecks(ran(600, 6 * 60_000), 5).status).toBe('rejected');
-    expect(localChecks(ran(600, 4 * 60_000), 5).status).toBe('accepted');
+  it('accepts a timer marked done hours after it ended, the same day', () => {
+    expect(localChecks(ran(600, (RULES.proofFreshMinutes + 1) * 60_000)).status).toBe('accepted');
+    expect(localChecks(ran(600, 6 * 3600_000)).status).toBe('accepted');
+    // The photo window doesn't apply: there's no photo.
+    expect(localChecks(ran(600, 6 * 3600_000), 5).status).toBe('accepted');
   });
 
   it('rejects a TIMER mission with no timer length', () => {

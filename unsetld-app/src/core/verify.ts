@@ -16,7 +16,7 @@ export interface ProofSubmission {
   timerSeconds?: number;
   /**
    * When the timer reached zero (TIMER_AND_PHOTO and TIMER). TIMER_AND_PHOTO: the photo
-   * must come after it. TIMER: it must be in the past, and recent.
+   * must come after it. TIMER: it must be in the past, any time that day.
    */
   timerEndedAt?: number;
   now: number;
@@ -35,15 +35,15 @@ export function requiredPhotos(type: Mission['proofType']): ProofPhoto['kind'][]
 }
 
 /**
- * TIMER: the timer ran its full length, reached zero before now, and did so in the
- * last `fresh` minutes (a timer left finished all day isn't proof of today's effort).
+ * TIMER: the timer ran its full length and reached zero before now. It can be marked
+ * done any time that day: the timer itself is the proof, and a timer from an earlier
+ * day is cleared (and a day that has ended can't be proven) before it gets here.
  */
-function timerRan(s: ProofSubmission, fresh: number): VerificationCheck {
+function timerRan(s: ProofSubmission): VerificationCheck {
   const need = (s.mission.timerMinutes ?? 0) * 60;
   const ran = s.timerSeconds ?? 0;
   const end = s.timerEndedAt;
   if (need <= 0 || ran < need || end == null || end > s.now) return { id: 'timer', ok: false, note: N.timerShort };
-  if (s.now - end > fresh * 60_000) return { id: 'timer', ok: false, note: N.timerOld(fresh) };
   return { id: 'timer', ok: true, note: N.timerDone };
 }
 
@@ -79,7 +79,7 @@ export function localChecks(s: ProofSubmission, fresh = RULES.proofFreshMinutes,
     checks.push({ id: 'timer', ok, note: ok ? N.timerDone : ran < needS - 1 ? N.timerShort : N.photoBeforeTimer });
   }
 
-  if (type === 'TIMER') checks.push(timerRan(s, fresh));
+  if (type === 'TIMER') checks.push(timerRan(s));
 
   if (photoChecks) {
     const hashes = s.photos.map(p => p.hash).filter(Boolean);
