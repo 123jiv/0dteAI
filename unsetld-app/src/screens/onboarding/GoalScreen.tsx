@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, TextInput, View } from 'react-native';
+import { goalLean } from '../../core/personalize';
 import { GOAL_MAX, ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
@@ -15,6 +16,26 @@ const COPY = ONBOARDING.goal;
 function clean(text: string): string | null {
   const t = text.replace(/\s+/g, ' ').trim().slice(0, GOAL_MAX);
   return t.length ? t : null;
+}
+
+const steersNothing = (text: string) => {
+  const lean = goalLean(text);
+  return lean.areas.length === 0 && lean.tags.length === 0;
+};
+
+/**
+ * True when what's typed matches nothing the plan can lean toward (core/personalize goalLean),
+ * so the screen says so rather than promise a lean. It waits for a pause in typing, so a
+ * half-typed word ("gy") doesn't flash the note; a match hides it at once. Also used by
+ * "Something else" on the weekly focus.
+ */
+export function useSteersNothing(text: string): boolean {
+  const [settled, setSettled] = useState(text);
+  useEffect(() => {
+    const t = setTimeout(() => setSettled(text), 600);
+    return () => clearTimeout(t);
+  }, [text]);
+  return Boolean(text.trim() && settled.trim()) && steersNothing(text) && steersNothing(settled);
 }
 
 /**
@@ -47,6 +68,7 @@ export function GoalScreen({ navigation, route }: RootProps<'Goal'>) {
   };
 
   const length = text.length;
+  const noMatch = useSteersNothing(text);
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.ink }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -105,6 +127,11 @@ export function GoalScreen({ navigation, route }: RootProps<'Goal'>) {
             {COPY.count(length)}
           </T>
         </View>
+        {noMatch ? (
+          <T v="note" color={C.muted} accessibilityLiveRegion="polite" style={{ marginBottom: GAP.tight }}>
+            {COPY.noMatch}
+          </T>
+        ) : null}
 
         <T v="note" color={C.stone} style={{ marginTop: GAP.tight }}>
           {COPY.examplesLabel}

@@ -1,18 +1,16 @@
 import { View } from 'react-native';
 import { parseDay } from '../core/time';
-import { DOCS, type DocId } from '../content';
+import { DOCS, type LegalSection } from '../content';
 import type { RootProps } from '../navigation/types';
 import { useAccessEnabled } from '../state/store';
 import { NavRow, PageTitle, Screen } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, GAP } from '../ui/tokens';
 
-// Sections that only make sense once access is live: the Rewards and UNSETLD status parts
-// of "How missions work", and the Terms of Use pointer to the Access terms.
-const ACCESS_ONLY: Partial<Record<DocId, Set<string>>> = {
-  record: new Set(['Access', 'Rewards', 'UNSETLD status', 'Keeping it', 'Limits', "It can't be bought", 'Account']),
-  terms: new Set(['Access']),
-};
+// Sections that only make sense while rewards are on (the rewards and status parts of "How
+// missions work", the Terms of Use pointer to the rewards and status terms) carry
+// `accessOnly: true` in legal.json: a flag, so renaming a heading can't break it.
+const accessOnly = (s: LegalSection & { accessOnly?: boolean }) => s.accessOnly === true;
 
 function updated(date?: string): string | null {
   if (!date) return null;
@@ -24,7 +22,7 @@ function updated(date?: string): string | null {
 export function DocScreen({ navigation, route }: RootProps<'Doc' | 'DocSheet'>) {
   const doc = DOCS[route.params.id];
   const accessEnabled = useAccessEnabled();
-  const sections = doc.sections.filter(s => accessEnabled || !ACCESS_ONLY[route.params.id]?.has(s.h));
+  const sections = doc.sections.filter(s => accessEnabled || !accessOnly(s));
   const sheet = route.name === 'DocSheet';
   return (
     <Screen nav={sheet ? <NavRow onClose={() => navigation.goBack()} /> : <NavRow onBack={() => navigation.goBack()} />}>

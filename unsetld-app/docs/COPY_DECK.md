@@ -237,20 +237,21 @@ MILESTONE DETAIL
 - Not signed in (Inter 13 stone above the button): Sign in to use access. It takes one tap.
 
 MILESTONE LETTERS
+- Each letter comes at its tier's day in the status config (7, 90 and 365 by default) and only while the tier is switched on, so a sub never names the number of days. Active days needn't be in a row or in the morning: nothing here says they were.
 - DAY 007 · Day 7.
-  - A week of mornings. You came back every time.
+  - You kept coming back.
   - Early access is open. Every UNSETLD drop opens to you 24 hours before the public.
   - [Turn on drop alerts] · Not now
   - Notifications off (under the buttons): Notifications are off for unsetld. · Open Settings
 - DAY 090 · Day 90.
-  - Ninety days. This isn't a phase anymore.
+  - This isn't a phase anymore.
   - Your patch is numbered and waiting. It ships free with your next order.
   - [Add it to my next order] · Details
 - DAY 365 · Day 365.
   - A full year. You didn't settle.
   - The 365 piece is open to you. Made only for people who reach a year, numbered, never restocked.
   - [View at unsetld.com] · Details
-- Comeback · Day 52. (uses the current day)
+- Comeback · Day 52. (uses the current day; only while early access is switched on and reached)
   - You came back. That's the part that counts.
   - Early access is open again.
   - [Close]

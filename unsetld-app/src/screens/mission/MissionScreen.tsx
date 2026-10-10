@@ -60,6 +60,24 @@ function afterDialog(fn: () => void) {
 const ours = (missionId: string, day: DayKey) => (x: { missionId: string; day: DayKey } | null | undefined) =>
   Boolean(x && x.missionId === missionId && x.day === day);
 
+/**
+ * 4:00 AM passed with this mission's timer or before photo still going: that day's plan is
+ * closed, so they go (the photo, and the timer's notification), and the dialog says why.
+ */
+function endDay(missionId: string, day: DayKey, close: () => void) {
+  const isOurs = ours(missionId, day);
+  const s = useApp.getState();
+  if (isOurs(s.pendingBefore)) {
+    deletePhoto(s.pendingBefore!.photo.uri);
+    s.setPendingBefore(null);
+  }
+  if (isOurs(s.timer)) {
+    s.cancelTimer();
+    cancelTimerDone();
+  }
+  showDialog(MISSION.dayEnded.title, MISSION.dayEnded.body, [{ label: MISSION.dayEnded.ok, cancel: true, onPress: close }]);
+}
+
 export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const { missionId } = route.params;
   const mission: Mission | undefined = MISSION_BY_ID[missionId];
@@ -98,10 +116,16 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     if (!useApp.getState().plans[day]) useApp.getState().ensurePlan(day);
   }, [day]);
 
-  // Nothing in progress and the day turned over: back to the new day.
+  // The day turned over. Nothing in progress: back to the new day. A timer or a before photo
+  // on screen was for the day that ended: say so before closing (once).
+  const holding = inPlan && Boolean(timerHere || beforeHere);
+  const ended = useRef(false);
   useEffect(() => {
-    if (current !== day && stage.kind === 'detail') navigation.goBack();
-  }, [current, day, stage.kind, navigation]);
+    if (current === day || stage.kind !== 'detail' || ended.current) return;
+    ended.current = true;
+    if (holding) endDay(missionId, day, () => navigation.goBack());
+    else navigation.goBack();
+  }, [current, day, stage.kind, holding, missionId, navigation]);
 
   // Camera access, checked again on coming back from Settings.
   useEffect(() => {
@@ -174,16 +198,9 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     photos.forEach(p => deletePhoto(p.uri));
     unsent.current = [];
     clockCheck.current = null;
-    const s = useApp.getState();
-    if (isOurs(s.pendingBefore)) {
-      deletePhoto(s.pendingBefore!.photo.uri);
-      s.setPendingBefore(null);
-    }
-    if (isOurs(s.timer)) {
-      s.cancelTimer();
-      cancelTimerDone();
-    }
-    showDialog(MISSION.dayEnded.title, MISSION.dayEnded.body, [{ label: MISSION.dayEnded.ok, cancel: true, onPress: close }]);
+    // The dialog's OK closes the screen; the day-turned effect doesn't close it under the dialog.
+    ended.current = true;
+    endDay(missionId, day, close);
   };
 
   /** The proof photo itself: the single photo, the result, or the after. */

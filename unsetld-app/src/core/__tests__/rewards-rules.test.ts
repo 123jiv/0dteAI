@@ -10,6 +10,7 @@ import {
   cooldownLeft,
   effectiveStatus,
   isKnownStatus,
+  letterTier,
   nextReward,
   nextStatus,
   parseRewardTier,
@@ -315,10 +316,78 @@ describe('status on the record', () => {
     let r = onRecord(emptyRecord(), '2026-01-01', 7);
     expect(pendingStatusLetter(r, '2026-01-07', moved)).toBeNull();
     r = onRecord(r, '2026-01-08', 3);
-    expect(pendingStatusLetter(r, '2026-01-10', moved)).toEqual({ kind: 'milestone', day: 10, key: '10' });
+    expect(pendingStatusLetter(r, '2026-01-10', moved)).toEqual({ kind: 'milestone', day: 10, key: '10', pausable: true });
     r = markLetterShown(r, { kind: 'milestone', day: 10, key: '10' });
     r = onRecord(r, '2026-01-11', 25);
     expect(pendingStatusLetter(r, '2026-02-04', [...moved, special])).toBeNull();
+  });
+});
+
+describe('status letters follow the status config', () => {
+  // The tiers in effect for a config that sends the built-in list with some fields changed.
+  const config = (over: Record<string, Record<string, unknown>>) =>
+    effectiveStatus(DEFAULTS, parseStatus(DEFAULTS.map(t => ({ id: t.id, day: t.day, title: t.title, ...over[t.id] })), DEFAULTS));
+  const milestone = (day: number) => ({ kind: 'milestone' as const, day, key: String(day) });
+
+  it('sends the early-access letter at the day the config moved it to, not at 7', () => {
+    const moved = config({ 'early-access': { day: 10 } });
+    let r = onRecord(emptyRecord(), '2026-01-01', 7);
+    expect(pendingStatusLetter(r, '2026-01-07', moved)).toBeNull();
+    // A day-7 letter left open from before the move has no tier: the letter screen closes it.
+    expect(letterTier(milestone(7), moved)).toBeNull();
+    r = onRecord(r, '2026-01-08', 3);
+    const ten = pendingStatusLetter(r, '2026-01-10', moved)!;
+    expect(ten).toEqual({ kind: 'milestone', day: 10, key: '10', pausable: true });
+    expect(letterTier(ten, moved)).toMatchObject({ id: 'early-access', day: 10, letter: DEFAULTS[0].letter });
+    r = markLetterShown(r, ten);
+    expect(r.lettersShown).toContain('10');
+    expect(pendingStatusLetter(r, '2026-01-10', moved)).toBeNull();
+  });
+
+  it('sends no early-access letter and no comeback letter while early access is switched off', () => {
+    const off = config({ 'early-access': { active: false } });
+    let r = onRecord(emptyRecord(), '2026-01-01', 7);
+    expect(pendingStatusLetter(r, '2026-01-07', DEFAULTS)).toMatchObject({ day: 7 });
+    expect(pendingStatusLetter(r, '2026-01-07', off)).toBeNull();
+    expect(letterTier(milestone(7), off)).toBeNull();
+    // Paused, then back on 7 more days: the comeback letter would say early access is open again.
+    r = markLetterShown(r, milestone(7));
+    r = onRecord(r, '2026-01-25', 7);
+    expect(pendingStatusLetter(r, '2026-01-31', DEFAULTS)).toMatchObject({ kind: 'comeback', day: '2026-01-31' });
+    expect(pendingStatusLetter(r, '2026-01-31', off)).toBeNull();
+    expect(letterTier({ kind: 'comeback', day: '2026-01-31', key: 'comeback:2026-01-31' }, off)).toBeNull();
+  });
+
+  it('sends no patch letter while the patch is switched off, and the 365 letter still comes', () => {
+    const off = config({ patch: { active: false } });
+    let r = markLetterShown(onRecord(emptyRecord(), '2025-01-01', 90), milestone(7));
+    expect(pendingStatusLetter(r, '2025-03-31', DEFAULTS)).toMatchObject({ day: 90 });
+    expect(pendingStatusLetter(r, '2025-03-31', off)).toBeNull();
+    expect(letterTier(milestone(90), off)).toBeNull();
+    r = onRecord(r, '2025-04-01', 275);
+    expect(pendingStatusLetter(r, '2025-12-31', off)).toEqual({ kind: 'milestone', day: 365, key: '365', pausable: false });
+    expect(letterTier(milestone(365), off)?.id).toBe('piece-365');
+  });
+
+  it("doesn't bring back an older letter when a higher tier is switched off later", () => {
+    const moved = config({ 'early-access': { day: 10 } });
+    let r = onRecord(emptyRecord(), '2025-01-01', 100);
+    const patch = pendingStatusLetter(r, '2025-04-10', moved)!;
+    expect(patch).toMatchObject({ day: 90 });
+    r = markLetterShown(r, patch);
+    expect(pendingStatusLetter(r, '2025-04-10', config({ 'early-access': { day: 10 }, patch: { active: false } }))).toBeNull();
+  });
+
+  it('after a pause, sends one letter for a moved early access, and no comeback letter before reaching it', () => {
+    // 8 days, 16 missed (paused), then 7 more: access reopens on 31 Jan with 15 active days.
+    const r = onRecord(onRecord(emptyRecord(), '2026-01-01', 8), '2026-01-25', 7);
+    const at10 = config({ 'early-access': { day: 10 } });
+    const letter = pendingStatusLetter(r, '2026-01-31', at10)!;
+    expect(letter).toEqual({ kind: 'milestone', day: 10, key: '10', pausable: true });
+    // Its letter already says early access is open, so it covers the comeback letter.
+    expect(pendingStatusLetter(markLetterShown(r, letter), '2026-01-31', at10)).toBeNull();
+    // Moved past the 15 days: nothing is open yet, so nothing says it's open again.
+    expect(pendingStatusLetter(r, '2026-01-31', config({ 'early-access': { day: 20 } }))).toBeNull();
   });
 
   it('places the walker the same as before for the built-in days, and for any others', () => {

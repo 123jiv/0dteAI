@@ -43,7 +43,7 @@ Blocks (src/ui/blocks.tsx): `Card` (raised surface, radius 12, padding 18, optio
 Rules:
 - **No hairline between list items.** Use `GAP` spacing, `Card`s, and `SectionLabel`s. `Rule`/`hairline` only where a real boundary exists (a sheet edge, the tab bar is borderless).
 - **Uppercase tracking sparingly:** kickers and the primary button label. Body, meta, links and secondary buttons are sentence case.
-- On Today (colorway backgrounds) a card's surface is translucent: dark colorways (`statusBar: 'light'`) `rgba(237,233,227,0.07)`, light ones `rgba(10,10,10,0.085)` (strong enough to hold on mid-grey Concrete); text uses `colorway.ink` / `colorway.secondary`.
+- On Today (colorway backgrounds) a card's surface is translucent: dark colorways (`statusBar: 'light'`) `rgba(237,233,227,0.07)`; Bone `rgba(10,10,10,0.085)`; the mid-tone light ones (background luminance under 0.6: Snow Wash, Concrete) a lighter card, `rgba(237,233,227,0.14)`, because an ink tint there takes `colorway.secondary` under 4.5:1 on the plate's darker texture. Text uses `colorway.ink` / `colorway.secondary`, and every text under 18pt on a card meets 4.5:1.
 - Buttons are obvious without being huge: the primary `Button` (54 tall) for the one main action of a screen; a small filled button (START) on cards; `TextButton`/`LinkRow` for the rest.
 - Tab screens have no back arrow; their title is the first thing on the page (serif `title.l`), except Today, whose top row is the wordmark and the day.
 - Motion: short, eased (`ease.out`), never bouncy; respect Reduce Motion. Haptics: `selection` on taps, `success` on a proof, `soft` on a perfect day.
@@ -164,7 +164,7 @@ Real, deterministic rules — never called AI. Inputs: areas, answers (school, l
 - **Weekly focus:** asked on Today from the second active day in a week with none set ("Not this week" skips it); also in You and in Sunday's review, which sets next week's (kept aside until Monday, so Sunday's missions don't change). Only options the user's answers can get missions for are offered. Each option leans the plan toward an area and specific missions (e.g. "Prepare for an exam" → practice tests, flashcards, study sessions; "Get back in the gym" → workouts).
 - **Goal text:** keywords map to missions and areas ("GPA", "grades" → school study; "brand", "clothing" → business; "internship" → career applications; "muscle", "gym" → workouts; "coding", "app" → coding drills and project builds; "save" → savings).
 - **Learning from behaviour** (last 28 days): missions swapped repeatedly come up less; missions planned and left undone (ignored) come up less; if long missions are mostly left undone while shorter ones get proven, the day prefers shorter missions; an area proven consistently gets slightly bigger missions; areas rarely completed keep their place (no punishment).
-- **Staples first:** each area's staple missions (Complete Your Workout, Study for 30 Minutes ...) come up far more than niche ones (a 5-minute plank set appears only when nothing else fits). Day 1 is the areas' core habits wherever one fits.
+- **Staples first:** each area's staple missions (Complete Your Workout, Study for 30 Minutes ...) come up far more than niche ones (a 5-minute plank set appears only when nothing else fits; so do medium-specific missions like Film One Video until the user names that medium). Day 1 leads with an area the goal names, is the areas' core habits wherever one fits, and in the morning holds nothing meant for tonight. A running plan never pushes the weekly focus out of the day.
 
 ## 14. Copy
 

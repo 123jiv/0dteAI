@@ -8,7 +8,7 @@ import type { RootProps } from '../navigation/types';
 import { notificationStatus, requestNotifications, type Permission } from '../services/notifications';
 import { useApp, useEntitlements } from '../state/store';
 import { Card } from '../ui/blocks';
-import { Button, InlineLink, NavRow, PageTitle, Screen, Segmented, TextButton } from '../ui/kit';
+import { Button, InlineLink, NavRow, PageTitle, Screen, Segmented, TextButton, Toggle } from '../ui/kit';
 import { T } from '../ui/text';
 import { TimeSheet } from '../ui/TimeSheet';
 import { color as C, GAP, hairline } from '../ui/tokens';
@@ -62,6 +62,9 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   const [first, setFirst] = useState(settings.reminders.first);
   const [last, setLast] = useState(settings.reminders.last);
   const [picker, setPicker] = useState<'first' | 'last' | null>(null);
+  /** You › Reminders only: the switch at the top. Off hides the rest and saves on:false. */
+  const [on, setOn] = useState(settings.reminders.on);
+  const shown = !edit || on;
   const [perm, setPerm] = useState<Permission>('undetermined');
 
   // Checked again on return from iOS Settings, where Open Settings sends people.
@@ -74,7 +77,10 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
     return () => sub.remove();
   }, []);
 
+  // Onboarding offers only the counts the user can pick; You › Reminders also shows the
+  // UNSETLD+ ones, locked, with the note.
   const disabled = REMINDER_COUNTS.filter(n => n > ent.maxReminders);
+  const options: readonly (typeof REMINDER_COUNTS)[number][] = edit ? REMINDER_COUNTS : REMINDER_COUNTS.filter(n => n <= ent.maxReminders);
 
   // Today's missions, as the first reminder of the day names them.
   const plan = useApp(s => s.plans[s.currentDay]);
@@ -96,6 +102,12 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   };
 
   const saveEdit = async () => {
+    // Off needs no permission. Saved as on:false, the scheduled reminders are cancelled (state/lifecycle).
+    if (!on) {
+      save(false);
+      navigation.goBack();
+      return;
+    }
     const now = await notificationStatus().catch(() => perm);
     let ok = now === 'granted' || Platform.OS === 'web';
     if (now === 'undetermined') ok = await requestNotifications().catch(() => false);
@@ -128,7 +140,7 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
           )
         }>
         <PageTitle title={edit ? COPY.remindersTitle : COPY.title} body={edit ? undefined : COPY.body} />
-        {edit && perm === 'denied' ? (
+        {edit && on && perm === 'denied' ? (
           <Card style={{ marginTop: 20, gap: 4 }}>
             <T v="small">{COPY.permOff}</T>
             <InlineLink title={COPY.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
@@ -138,7 +150,7 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
         <View
           accessible
           accessibilityLabel={COPY.a11yPreview(formatTime(first), previewBody)}
-          style={{ marginTop: 24, backgroundColor: C.notification, borderRadius: 20, padding: 14, flexDirection: 'row', gap: 10 }}>
+          style={{ marginTop: 24, backgroundColor: C.notification, borderRadius: 20, padding: 14, flexDirection: 'row', gap: 10, opacity: shown ? 1 : 0.4 }}>
           <View style={{ width: 38, height: 38, borderRadius: 9, backgroundColor: C.ink, borderWidth: hairline, borderColor: C.ruleStrong, alignItems: 'center', justifyContent: 'center' }}>
             <Walker height={26} />
           </View>
@@ -158,32 +170,43 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
         </View>
 
         <Card padding={0} style={{ marginTop: GAP.block, paddingHorizontal: 18, paddingVertical: 6 }}>
-          {/* The count on its own line, the control full width under it. */}
-          <View style={{ paddingTop: 14, paddingBottom: 8, gap: 12 }}>
-            <T v="row">{COPY.perDay}</T>
-            <Segmented
-              options={REMINDER_COUNTS}
-              value={count as (typeof REMINDER_COUNTS)[number]}
-              onChange={setCount}
-              disabled={disabled}
-              style={{ alignSelf: 'stretch' }}
-            />
-            {!ent.premium ? (
-              <T v="note" color={C.stone}>
-                {COPY.perDayNote}
-              </T>
-            ) : null}
-          </View>
-          <Row title={COPY.first}>
-            <TimeValue label={COPY.first} value={first} onPress={() => setPicker('first')} />
-          </Row>
-          <Row title={COPY.last}>
-            <TimeValue label={COPY.last} value={last} onPress={() => setPicker('last')} disabled={count === 1} />
-          </Row>
+          {edit ? (
+            <Row title={COPY.toggle}>
+              <Toggle label={COPY.toggle} value={on} onChange={setOn} />
+            </Row>
+          ) : null}
+          {shown ? (
+            <>
+              {/* The count on its own line, the control full width under it. */}
+              <View style={{ paddingTop: 14, paddingBottom: 8, gap: 12 }}>
+                <T v="row">{COPY.perDay}</T>
+                <Segmented
+                  options={options}
+                  value={count as (typeof REMINDER_COUNTS)[number]}
+                  onChange={setCount}
+                  disabled={disabled}
+                  style={{ alignSelf: 'stretch' }}
+                />
+                {edit && !ent.premium ? (
+                  <T v="note" color={C.stone}>
+                    {COPY.perDayNote}
+                  </T>
+                ) : null}
+              </View>
+              <Row title={COPY.first}>
+                <TimeValue label={COPY.first} value={first} onPress={() => setPicker('first')} />
+              </Row>
+              <Row title={COPY.last}>
+                <TimeValue label={COPY.last} value={last} onPress={() => setPicker('last')} disabled={count === 1} />
+              </Row>
+            </>
+          ) : null}
         </Card>
-        <T v="note" color={C.stone} style={{ marginTop: 10 }}>
-          {COPY.note}
-        </T>
+        {shown ? (
+          <T v="note" color={C.stone} style={{ marginTop: 10 }}>
+            {COPY.note}
+          </T>
+        ) : null}
       </Screen>
 
       <TimeSheet

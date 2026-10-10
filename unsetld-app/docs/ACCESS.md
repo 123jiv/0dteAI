@@ -9,7 +9,7 @@ There are two separate things, and the app keeps them apart:
 
 Both lists come from configuration: `src/content/rewards.json` and `src/content/milestones.json` are the defaults, and unsetld.com's `config.json` (`rewards`, `status`) replaces them without an app update (below). No threshold, price or product is written into a screen.
 
-The app has to make sense for someone who never buys a hoodie, so rewards stay quiet: the Rewards tab, one line on Today and on the done screen after a proof (never a popup), status letters and the status pages. They never appear in widgets, notifications, the paywall or mission text.
+The app has to make sense for someone who never buys a hoodie, so rewards stay quiet: the Rewards tab, one line on Today and on the done screen after a proof (never a popup), status letters and the status pages. They never appear in widgets, notifications or mission text. The paywall names them only in its Always free line, as staying free, and only while rewards are on.
 
 ## Where it shows
 
@@ -67,8 +67,8 @@ None of the defaults has a minimum purchase, a cooldown or a one-time limit (`mi
 
 **Pause rule**
 - Only once early access is open (7 or more active days when the gap began): if 14 days pass without a proven mission, early access shows Paused. Before that nothing can pause.
-- While paused, the Day 7 letter for someone who reaches 7 during the pause waits until access reopens; the comeback letter then stands in for it.
-- It reopens once a mission is proven on 7 more days, and a comeback letter arrives.
+- While paused, the early-access letter for someone who reaches early access during the pause waits until access reopens; that letter then stands in for the comeback letter.
+- It reopens once a mission is proven on 7 more days, and a comeback letter arrives ("Early access is open again."), only while early access is switched on and reached.
 - The count and the tiers never drop, and points don't expire. The patch, the 365 piece and display-only tiers don't pause.
 - The streak is separate: Off Days cover missed days for the streak, not for Access.
 
@@ -95,7 +95,7 @@ The app reads `https://www.unsetld.com/api/app/config.json` on launch and on eve
 }
 ```
 
-- **`accessEnabled`** (required; a file without it is ignored). `false` (the default until the backend below exists) hides the next reward and up next, All rewards, Reward history, the status card and Status, the next-reward line on Today and on the done screen, the Day 3 note, status letters and pages, the Account row (unless someone is already signed in) and the terms. The Rewards tab then shows the points (or, before any, how the first ones come), one calm line ("Rewards aren't open right now. Your points keep counting.") and How points work, which shows only how points are earned. Missions, proof, points, the streak and levels work unchanged. The app never says "coming soon".
+- **`accessEnabled`** (required; a file without it is ignored). `false` (the default until the backend below exists) hides the next reward and up next, All rewards, Reward history, the status card and Status, the next-reward line on Today and on the done screen, the rewards in the paywall's Always free line, status letters and pages, the Account row (unless someone is already signed in) and the terms. The Rewards tab then shows the points (or, before any, how the first ones come), one calm line ("Rewards aren't open right now. Your points keep counting.") and How points work, which shows only how points are earned. Missions, proof, points, the streak and levels work unchanged. The app never says "coming soon".
 - **`collection`** is the current collection. Rewards are counted per collection, so when this value changes everyone can take each tier again (except one-time rewards, and a tier still cooling down waits out its days).
 - **`rewards`** (optional) replaces the app's built-in tiers (`src/content/rewards.json`) as a whole list. Leave it out, or send an empty list, to use the built-in ones. Each entry is checked on the phone (`parseRewardTier` in `src/core/rewards.ts`) and dropped if anything in it is off; repeated ids are dropped too (the first wins). If no entry is valid, the built-in tiers are used.
 - **`status`** (optional) replaces the built-in status tiers (`src/content/milestones.json`) the same way (`parseStatus` in `src/core/rewards.ts`).
@@ -114,7 +114,7 @@ Reward fields (`RewardTier` in `src/core/types.ts`). The second name in brackets
 | `minimumPurchase` | number ≥0 (dollars) or `null` | Smallest order the code works on (`0`/`null` = none). Shown as "Orders of $50 or more"; sent with `redeem`; **enforced by unsetld.com** on the minted code. Optional. |
 | `redemptionCooldownDays` (`redemptionCooldown`) | whole number ≥0 or `null` | Days after taking it before it can be taken again (also across collections). While inside them the tier shows **Cooling down** and the day it opens again. `0`/`null` = none. Optional. |
 | `oneTimeOnly` | boolean | Can be taken once per person, ever (any collection). Afterwards it shows **Used**. Optional, defaults to `false`. |
-| `active` | boolean | Defaults to `true`. `false` shows **Not available**. |
+| `active` | boolean | Defaults to `true`. `false`: not listed anywhere (nothing is promised that can't be had). |
 | `availableFrom` (`startDate`), `availableUntil` (`endDate`) | ISO date (`YYYY-MM-DD`, a time may follow) or `null` | Outside the window the tier shows **Not available**. |
 | `codeValidDays` | whole number ≥1 | Days a minted code works. Defaults to 30. |
 | `inventory` | whole number ≥0 or `null` | `null` = unlimited, `0` = sold out (**Not available**). The server enforces it. |
@@ -127,11 +127,11 @@ Status fields (`StatusTier` in `src/core/types.ts`):
 | Field | Type | Notes |
 |---|---|---|
 | `id` | string, ≤64 characters | `early-access`, `patch` and `piece-365` are the app's own: they keep their action, pause and letter from `milestones.json`. Any other id is a display-only tier. |
-| `day` (`activeDays`) | whole number ≥1 | Active days needed. Moving an own tier's day moves its status, its page and its letter (`accessLetter` in `src/screens/access.ts`). The pause still starts at 7 active days (`PAUSABLE_DAYS` in `src/core/record.ts`). |
+| `day` (`activeDays`) | whole number ≥1 | Active days needed. Moving an own tier's day moves its status, its page and its letter: Today asks `accessLetter` (`src/screens/access.ts`, `pendingStatusLetter` in `src/core/rewards.ts`) for the letter with the tiers in effect, and the letter page shows nothing for a tier the config has since moved or switched off. A letter's sub never names the number of days. The pause still starts at 7 active days (`PAUSABLE_DAYS` in `src/core/record.ts`). |
 | `title` | string, ≤40 characters | |
 | `short` | string | One line on Status. Optional: an own tier left without one keeps the built-in line; others default to "". |
 | `detail` | string | The tier's page. Same defaults as `short`. |
-| `active` | boolean | Defaults to `true`. `false` hides the tier everywhere. |
+| `active` | boolean | Defaults to `true`. `false` hides the tier everywhere, its letter included (for early access, the comeback letter too). |
 | `action` | string, ≤40 characters | The button on an own tier's page (e.g. "Add it to my next order"). Ignored for other ids. |
 
 The app shows what the config says; the server checks the tier again at redeem and claim time (active, dates, inventory, per collection, one-time, cooldown, minimum purchase, active days), so a stale config on a phone can't mint anything the server wouldn't. The server should read the same `rewards` and `status` lists it serves.

@@ -53,8 +53,8 @@ export type RootParams = {
   Share: undefined;
   /** "What matters most this week?" */
   WeeklyFocus: undefined;
-  /** A progress milestone reached (first 10 missions, 7 days ...). */
-  Moment: { key: MilestoneKey };
+  /** A progress milestone reached (first 10 missions, 7 days ...). `revisit`: opened again from Achievements. */
+  Moment: { key: MilestoneKey; revisit?: boolean };
   Day: { edit?: boolean } | undefined;
   Widget: { guide?: boolean } | undefined;
   Paywall: { from: PaywallFrom } | undefined;

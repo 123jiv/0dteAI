@@ -25,6 +25,8 @@ export const FOCUS = {
   otherPlaceholder: 'In a few words',
   otherA11y: 'What matters most this week, in your words',
   otherCount: (n: number, max: number) => `${n} / ${max}`,
+  /** Under the field when what's typed matches nothing the plan can lean toward (core/personalize goalLean). */
+  otherNoMatch: "This doesn't match any missions yet. Pick an option above to steer them.",
   save: 'Set this week',
   skip: 'Not this week',
   clear: 'Clear this week',

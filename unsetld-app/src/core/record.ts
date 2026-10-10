@@ -101,7 +101,8 @@ export function milestoneStatus(r: RecordState, m: Milestone, today: DayKey): Mi
   return { kind: 'open' };
 }
 
-export type Letter = { kind: 'milestone'; day: number; key: string } | { kind: 'comeback'; day: DayKey; key: string };
+/** `pausable`: the milestone's tier pauses (early access), so its letter also covers the latest comeback. */
+export type Letter = { kind: 'milestone'; day: number; key: string; pausable?: boolean } | { kind: 'comeback'; day: DayKey; key: string };
 
 /** The letter to show on this open, if any. Milestones first; one at a time. */
 export function pendingLetter(r: RecordState, today: DayKey): Letter | null {
@@ -112,7 +113,7 @@ export function pendingLetter(r: RecordState, today: DayKey): Letter | null {
   const top = reached[reached.length - 1];
   // A paused perk's letter waits for access to reopen, so it never says "open" next to PAUSED.
   const held = a.paused && top !== undefined && PAUSABLE_DAYS.includes(top);
-  if (top && !held && !r.lettersShown.includes(String(top))) return { kind: 'milestone', day: top, key: String(top) };
+  if (top && !held && !r.lettersShown.includes(String(top))) return { kind: 'milestone', day: top, key: String(top), pausable: PAUSABLE_DAYS.includes(top) };
   // Pending until shown, not just on the day access reopened; never while paused again.
   if (a.lastComeback && !a.paused) {
     const key = `comeback:${a.lastComeback}`;
@@ -124,6 +125,8 @@ export function pendingLetter(r: RecordState, today: DayKey): Letter | null {
 /**
  * Marks a letter shown, and every lower milestone with it. A pausable
  * milestone's letter also covers the latest comeback: it already says access is open.
+ * The letter says whether its tier pauses, so a tier the config moved keeps this; a
+ * letter without the flag goes by the built-in days.
  */
 export function markLetterShown(r: RecordState, letter: Letter): RecordState {
   const keys = new Set(r.lettersShown);
@@ -132,7 +135,7 @@ export function markLetterShown(r: RecordState, letter: Letter): RecordState {
     for (const d of ROAD) if (d <= letter.day) keys.add(String(d));
     const days = sortedDays(r);
     const back = days.length ? accessState(r, days[days.length - 1]).lastComeback : null;
-    if (back && PAUSABLE_DAYS.includes(letter.day)) keys.add(`comeback:${back}`);
+    if (back && (letter.pausable ?? PAUSABLE_DAYS.includes(letter.day))) keys.add(`comeback:${back}`);
   }
   return { ...r, lettersShown: [...keys] };
 }

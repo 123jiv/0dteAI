@@ -117,6 +117,8 @@ export const PLATFORM = {
     },
     freeLabel: 'ALWAYS FREE',
     free: 'Daily missions, proof, points, your streak, progress and UNSETLD rewards. Membership never changes what you earn.',
+    /** The same while rewards are switched off: they're not named. */
+    freeNoRewards: 'Daily missions, proof, points, your streak and progress. Membership never changes what you earn.',
     planLabel: 'CHOOSE A PLAN',
     plans: {
       annual: 'Annual',

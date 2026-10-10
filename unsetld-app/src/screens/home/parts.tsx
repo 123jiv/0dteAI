@@ -38,14 +38,25 @@ function withMotion(run: (reduce: boolean) => void): () => void {
   };
 }
 
+/** WCAG relative luminance of a #RRGGBB colour: 0 for black, 1 for white. */
+function luminance(hex: string): number {
+  const [r, g, b] = [1, 3, 5].map(i => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 /**
- * A card's surface on a colorway (brief §2): translucent bone on dark colorways, translucent
- * ink on light ones, so the colorway shows through. `quiet` is a proven card's, a step back.
+ * A card's surface on a colorway (brief §2), translucent so the colorway shows through: bone on
+ * dark colorways; on light ones ink, except where the background is mid-tone (Snow Wash,
+ * Concrete) and an ink tint would take the secondary text under 4.5:1, so bone there too.
+ * `quiet` is a proven card's, a step back.
  */
 export function surfacesFor(colorway: Colorway): { card: string; pressed: string; quiet: string } {
-  return colorway.statusBar === 'light'
-    ? { card: 'rgba(237,233,227,0.07)', pressed: 'rgba(237,233,227,0.12)', quiet: 'rgba(237,233,227,0.035)' }
-    : { card: 'rgba(10,10,10,0.085)', pressed: 'rgba(10,10,10,0.14)', quiet: 'rgba(10,10,10,0.045)' };
+  if (colorway.statusBar === 'light') return { card: 'rgba(237,233,227,0.07)', pressed: 'rgba(237,233,227,0.12)', quiet: 'rgba(237,233,227,0.035)' };
+  if (luminance(colorway.bg) < 0.6) return { card: 'rgba(237,233,227,0.14)', pressed: 'rgba(237,233,227,0.22)', quiet: 'rgba(237,233,227,0.07)' };
+  return { card: 'rgba(10,10,10,0.085)', pressed: 'rgba(10,10,10,0.14)', quiet: 'rgba(10,10,10,0.045)' };
 }
 
 /** UNSETLD on the left, DAY 12 on the right. */

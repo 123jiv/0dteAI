@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { isKnownStatus } from '../core/rewards';
+import { isKnownStatus, letterTier } from '../core/rewards';
 import { COPY } from '../content/copy';
 import type { RootProps } from '../navigation/types';
 import { useApp } from '../state/store';
@@ -10,14 +10,14 @@ import { Button, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, MARGIN } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
-import { STATUS_DEFAULTS } from '../services/access';
 import { accessDays, enableDropAlerts, runMilestoneAction, useStatusTiers, type ActionResult } from './access';
 import { ActionError } from './MilestoneScreen';
 
 /**
  * A status letter (one of the app's own tiers, reached) or the comeback letter. Shown once;
  * opaque ink, fades in from black. The tier is the one at the letter's day in the status
- * tiers in effect (the built-in one at that day when the config moved it).
+ * tiers in effect; when there's none (the config moved it or switched it off since), the
+ * letter is marked shown and closes without showing.
  */
 export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
   const { letter } = route.params;
@@ -32,12 +32,16 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
   }, [letter]);
 
   const tiers = useStatusTiers();
-  const atDay = (t: { id: string; day: number; letter?: unknown }) => letter.kind === 'milestone' && t.day === letter.day && isKnownStatus(t.id) && Boolean(t.letter);
-  const m = letter.kind === 'milestone' ? (tiers.find(atDay) ?? STATUS_DEFAULTS.find(atDay) ?? null) : null;
+  const tier = letterTier(letter, tiers);
+  const m = letter.kind === 'milestone' ? tier : null;
   const L = m?.letter ?? null;
   const id = m && isKnownStatus(m.id) ? m.id : null;
   const day = letter.kind === 'milestone' ? letter.day : n;
   const close = () => navigation.goBack();
+  const gone = !tier;
+  useEffect(() => {
+    if (gone) navigation.goBack();
+  }, [gone, navigation]);
 
   // Day 7's button turns on drop alerts; the others claim, which needs an account.
   const primary = async () => {
@@ -54,6 +58,7 @@ export function LetterScreen({ navigation, route }: RootProps<'Letter'>) {
     else close();
   };
 
+  if (gone) return <View style={{ flex: 1, backgroundColor: C.ink }} />;
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
       <Pressable

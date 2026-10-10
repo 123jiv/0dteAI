@@ -48,38 +48,33 @@
       },
       {
         "h": "Rewards",
-        "p": "Points trade for rewards at unsetld.com. What's on offer can change with each collection; Rewards shows what's open now.",
-        "list": [
-          "300 points: 5% off one order, up to $25 off.",
-          "600 points: 10% off one order, up to $25 off.",
-          "1,000 points: 15% off one order, up to $25 off.",
-          "One code for each reward each collection. Codes work for 30 days."
-        ]
+        "p": "Points trade for rewards at unsetld.com, like a discount on one order. Taking one spends its points. What's on offer, what each one costs and its limits can change with each collection: Rewards shows what's open now, and All rewards shows each one with its limits.",
+        "accessOnly": true
       },
       {
         "h": "UNSETLD status",
-        "p": "Status is separate from points: it counts the days you prove at least one mission, and spending points never lowers it.",
-        "list": [
-          "Day 7: every UNSETLD drop opens to you 24 hours before the public.",
-          "Day 90: a woven patch with your number, free with your next order.",
-          "Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked."
-        ]
+        "p": "Status is separate from points: it counts the days you prove at least one mission, and spending points never lowers it. Each status tier opens at a number of those days. Status, in Rewards, shows the tiers on offer and how far you are from each.",
+        "accessOnly": true
       },
       {
         "h": "Keeping it",
-        "p": "Once early access is open, if 14 days pass without a proven mission, it pauses until you prove a mission on 7 more days. Your count, points and milestones stay."
+        "p": "Once early access is open, if 14 days pass without a proven mission, it pauses until you prove a mission on 7 more days. Your count, points and milestones stay.",
+        "accessOnly": true
       },
       {
         "h": "Limits",
-        "p": "One code for each reward each collection, and one code per order. Up to $25 off an order. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece. One patch per person."
+        "p": "One code per order. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece. Each reward's own limits, such as how many you can take each collection, the most it takes off or a minimum order, are shown with it in All rewards, and a status tier's are on its page.",
+        "accessOnly": true
       },
       {
         "h": "It can't be bought",
-        "p": "Points and status come only from proven missions. UNSETLD+ doesn't change them, and none of it is for sale."
+        "p": "Points and status come only from proven missions. UNSETLD+ doesn't change them, and none of it is for sale.",
+        "accessOnly": true
       },
       {
         "h": "Account",
-        "p": "To use a reward or access you need a free account, made with Sign in with Apple, so unsetld.com can hold your place. Your photos stay on this phone."
+        "p": "To use a reward or access you need a free account, made with Sign in with Apple, so unsetld.com can hold your place. Your photos stay on this phone.",
+        "accessOnly": true
       }
     ]
   },
@@ -101,11 +96,11 @@
       },
       {
         "h": "Rewards",
-        "p": "300 points can be traded for 5% off one order, 600 points for 10% off one order and 1,000 points for 15% off one order, each up to $25 off. You can take one code for each reward each collection. Codes are single use, work for 30 days and are only valid at unsetld.com. The rewards on offer, their points and their dates are shown in the app and may change with each collection."
+        "p": "Points can be traded for the rewards shown in the app, such as a discount on one order at unsetld.com. The rewards on offer, the points each one costs, their dates and their limits (how many you can take each collection, the most a code takes off, any minimum order and how long a code works) are shown in the app and may change with each collection. Codes are single use and only valid at unsetld.com."
       },
       {
         "h": "UNSETLD status",
-        "p": "Status counts the days you prove at least one mission. Early access opens drops 24 hours before the public from Day 7. The patch is one per person and ships free with an order from Day 90. The 365 piece is sold at full price from Day 365."
+        "p": "Status counts the days you prove at least one mission. The status tiers on offer, the number of those days each one opens at, what each one includes and its limits are shown in the app and may change with each collection."
       },
       {
         "h": "Limits",
@@ -143,7 +138,8 @@
       },
       {
         "h": "Rewards and status",
-        "p": "Rewards and UNSETLD status have their own terms, in You and on the Rewards screen."
+        "p": "Rewards and UNSETLD status have their own terms, in You and on the Rewards screen.",
+        "accessOnly": true
       },
       {
         "h": "Content",

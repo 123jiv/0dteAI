@@ -145,6 +145,8 @@ export const ONBOARDING = {
     examples: ['Get my GPA up', 'Launch my clothing brand', 'Get an internship', 'Build muscle', 'Learn coding', 'Save $1,000'],
     a11yExample: (text: string) => `Use ${text}`,
     clear: 'Clear',
+    /** Under the field when what's typed matches nothing the plan can lean toward (core/personalize goalLean). Each word named here does. */
+    noMatch: "This doesn't match any missions yet. Words like gym, grades, job, savings or coding steer them.",
   },
 
   /** Reminders: onboarding, and You › Reminders. */
@@ -157,7 +159,10 @@ export const ONBOARDING = {
     previewBody: (titles: string[]) =>
       `Today: ${(titles.length ? titles : ['Study for 30 Minutes', 'Complete Your Workout', 'Plan Tomorrow']).join(', ')}.`,
     a11yPreview: (time: string, body: string) => `Notification preview. unsetld, ${time}. ${body}`,
+    /** You › Reminders: the switch that turns them all off. */
+    toggle: 'Remind me',
     perDay: 'Reminders a day',
+    /** You › Reminders only, under the locked counts. Onboarding shows just the counts the user can pick. */
     perDayNote: 'More than 3 a day comes with UNSETLD+.',
     first: 'First reminder',
     last: 'Last reminder',

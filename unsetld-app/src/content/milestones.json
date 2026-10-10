@@ -9,7 +9,7 @@
     "action": "Turn on drop alerts",
     "pausable": true,
     "letter": {
-      "sub": "A week of mornings. You came back every time.",
+      "sub": "You kept coming back.",
       "body": "Early access is open. Every UNSETLD drop opens to you 24 hours before the public.",
       "primary": "Turn on drop alerts",
       "secondary": "Not now"
@@ -25,7 +25,7 @@
     "action": "Add it to my next order",
     "pausable": false,
     "letter": {
-      "sub": "Ninety days. This isn't a phase anymore.",
+      "sub": "This isn't a phase anymore.",
       "body": "Your patch is numbered and waiting. It ships free with your next order.",
       "primary": "Add it to my next order",
       "secondary": "Details"

@@ -1,11 +1,12 @@
 // The redeem flow, shared by the Rewards tab (the next reward's "Get the code") and All
 // rewards (any ready tier): sign in if needed, confirm, ask unsetld.com for the code, then
 // show it in a sheet to copy or use. Plus the small pieces those pages share.
+import { useIsFocused } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Pressable, useWindowDimensions, View } from 'react-native';
 import { shortDate, type DayKey } from '../../core/time';
-import type { RewardStatus } from '../../core/rewards';
+import { rewardStatus, type RewardStatus } from '../../core/rewards';
 import type { RewardTier } from '../../core/types';
 import { REWARDS_COPY } from '../../content/copy/rewards';
 import { openStore, redeem } from '../../services/access';
@@ -105,7 +106,7 @@ function MintedCode({ minted }: { minted: Minted }) {
           }}
           hitSlop={8}
           style={({ pressed }) => ({ minHeight: 44, minWidth: 64, paddingHorizontal: 10, alignItems: 'flex-end', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
-          <T v="button" color={C.bone}>
+          <T v="body" color={C.bone}>
             {copied ? R.copied : R.copy}
           </T>
         </Pressable>
@@ -128,8 +129,10 @@ function MintedCode({ minted }: { minted: Minted }) {
 /**
  * Taking a reward. `take(tier)` signs in first when there's no account (the code needs
  * one), then confirms, then asks unsetld.com for the code and shows it in `sheet`, which
- * the page renders last so it sits over everything. `busy` is the tier being taken;
- * `noteFor(id)` is the line to show under that tier ("Getting your code…" or what went wrong).
+ * the page renders last so it sits over everything. Back from signing in, the confirm
+ * opens without another tap; back without an account, nothing does. `busy` is the tier
+ * being taken; `noteFor(id)` is the line to show under that tier ("Getting your code…" or
+ * what went wrong).
  */
 export function useRedeem(onNeedsAccount: () => void): {
   busy: string | null;
@@ -142,6 +145,12 @@ export function useRedeem(onNeedsAccount: () => void): {
   const [error, setError] = useState<{ id: string; text: string } | null>(null);
   const [minted, setMinted] = useState<Minted | null>(null);
   const [open, setOpen] = useState(false);
+  // The tier that sent the user to sign in, until the page is back in focus.
+  const pending = useRef<RewardTier | null>(null);
+  const needsAccount = (tier: RewardTier) => {
+    pending.current = tier;
+    onNeedsAccount();
+  };
 
   const run = async (tier: RewardTier) => {
     setBusy(tier.id);
@@ -161,21 +170,34 @@ export function useRedeem(onNeedsAccount: () => void): {
       light();
       setMinted({ title: tier.title, code: r.code, url: r.url, expires: taken?.expires ?? useApp.getState().currentDay, simulated: Boolean(r.simulated) });
       setOpen(true);
-    } else if (r.reason === 'needs-account') onNeedsAccount();
+    } else if (r.reason === 'needs-account') needsAccount(tier);
     else setError({ id: tier.id, text: R.errors[r.reason] });
   };
 
-  const take = (tier: RewardTier) => {
-    if (busy) return;
-    if (!useApp.getState().account.userId) {
-      onNeedsAccount();
-      return;
-    }
+  const confirm = (tier: RewardTier) =>
     showDialog(R.confirmTitle(tier.points), R.confirmBody(tier), [
       { label: R.confirmNo, cancel: true },
       { label: R.confirmYes, onPress: () => void run(tier) },
     ]);
+
+  const take = (tier: RewardTier) => {
+    if (busy) return;
+    if (!useApp.getState().account.userId) return needsAccount(tier);
+    confirm(tier);
   };
+
+  // Back on the page: signed in now, so carry on to the confirm if the reward is still
+  // ready; no account (sign-in cancelled or backed out of), so forget it.
+  const focused = useIsFocused();
+  const resume = useEffectEvent(() => {
+    const tier = pending.current;
+    pending.current = null;
+    const s = useApp.getState();
+    if (tier && s.account.userId && rewardStatus(s.record, tier, s.remote.collection, s.currentDay) === 'ready') confirm(tier);
+  });
+  useEffect(() => {
+    if (focused) resume();
+  }, [focused]);
 
   const sheet = (
     <Sheet

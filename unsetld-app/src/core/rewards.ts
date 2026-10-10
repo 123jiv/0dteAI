@@ -341,9 +341,9 @@ export function nextStatus(n: number, tiers: readonly StatusTier[]): StatusTier 
 }
 
 /**
- * The status letter to show, if any: core/record pendingLetter, with the reached
- * tiers' own days (only the app's own ids have letters). With the default tiers
- * it gives the same letter as pendingLetter.
+ * The status letter to show, if any: core/record pendingLetter, with the tiers in
+ * effect (switched-on ones, at their own days; only the app's own ids have letters).
+ * With the default tiers it gives the same letter as pendingLetter.
  */
 export function pendingStatusLetter(r: RecordState, today: DayKey, tiers: readonly StatusTier[]): Letter | null {
   const n = dayCount(r);
@@ -353,12 +353,29 @@ export function pendingStatusLetter(r: RecordState, today: DayKey, tiers: readon
   const top = reached[reached.length - 1];
   // A paused perk's letter waits for access to reopen, so it never says "open" next to Paused.
   const held = a.paused && top?.pausable;
-  if (top && !held && !r.lettersShown.includes(String(top.day))) return { kind: 'milestone', day: top.day, key: String(top.day) };
-  if (a.lastComeback && !a.paused) {
+  // A letter at this day or a later one covers it (markLetterShown marks the built-in days
+  // below a letter, not ones the config moved), so a higher tier switched off later doesn't
+  // bring back an old letter.
+  const seen = (day: number) => r.lettersShown.some(k => /^\d+$/.test(k) && Number(k) >= day);
+  if (top && !held && !seen(top.day)) return { kind: 'milestone', day: top.day, key: String(top.day), pausable: top.pausable };
+  // The comeback letter says early access is open again: only while a pausable tier is in effect and reached.
+  const reopened = tiers.some(t => isKnownStatus(t.id) && t.pausable && n >= t.day);
+  if (reopened && a.lastComeback && !a.paused) {
     const key = `comeback:${a.lastComeback}`;
     if (!r.lettersShown.includes(key)) return { kind: 'comeback', day: a.lastComeback, key };
   }
   return null;
+}
+
+/**
+ * The tier a status letter speaks for, among the tiers in effect: the app's own tier at
+ * a milestone letter's day, or the pausable one (early access) a comeback letter says is
+ * open again. null when the config has since moved it or switched it off: the letter
+ * isn't shown.
+ */
+export function letterTier(letter: Letter, tiers: readonly StatusTier[]): StatusTier | null {
+  if (letter.kind === 'comeback') return tiers.find(t => isKnownStatus(t.id) && t.pausable) ?? null;
+  return tiers.find(t => isKnownStatus(t.id) && Boolean(t.letter) && t.day === letter.day) ?? null;
 }
 
 /** The walker's place on the road, 0..1: piecewise-linear over 0 and each tier's day (core/record roadPosition for any tiers). */

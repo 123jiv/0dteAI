@@ -21,8 +21,7 @@ function markSeen(key: MilestoneKey) {
 
 /** A progress milestone reached: shown once, letter-style, on opaque ink. */
 export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
-  const { key } = route.params;
-  const routeKey = route.key;
+  const { key, revisit } = route.params;
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const today = useApp(s => s.currentDay);
@@ -32,14 +31,10 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
   const words = M.byKey[key] ?? { title: '', line: '' };
   const [rise] = useState(() => new Animated.Value(0));
 
-  // The page settles in (Reduce Motion: no movement), with a soft tap the first time it shows.
-  // Home marks a moment shown as it opens it, so a revisit is told apart by where it was
-  // opened from: a reached milestone tapped on Progress.
+  // The page settles in (Reduce Motion: no movement), with a soft tap the first time it shows,
+  // not when it's opened again from Achievements.
   useEffect(() => {
     let live = true;
-    const { routes } = navigation.getState();
-    const at = routes.findIndex(r => r.key === routeKey);
-    const revisit = at > 0 && routes[at - 1].name === 'Main' && useApp.getState().momentsShown.includes(key);
     if (!revisit) soft();
     AccessibilityInfo.isReduceMotionEnabled()
       .catch(() => false)
@@ -51,7 +46,7 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
     return () => {
       live = false;
     };
-  }, [key, rise, navigation, routeKey]);
+  }, [key, rise, revisit]);
 
   // However the page is left (Close, the X, a swipe), the moment has been seen. Only once it's
   // reached, though: a moment opened early must still show when the milestone comes.

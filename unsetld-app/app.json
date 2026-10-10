@@ -3,7 +3,7 @@
     "name": "UNSETLD",
     "slug": "unsetld",
     "scheme": "unsetld",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.unsetld.app",
       "supportsTablet": false,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryAddUsageDescription": "unsetld saves your share card to Photos only when you choose Save Image."
       },
       "usesAppleSignIn": true
     },

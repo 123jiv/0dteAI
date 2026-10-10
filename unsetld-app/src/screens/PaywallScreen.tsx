@@ -11,7 +11,7 @@ import type { RootProps } from '../navigation/types';
 import { selection } from '../services/haptics';
 import { scheduleTrialReminder } from '../services/notifications';
 import { getPlans, purchase, restore, type Plan, type PlanKind } from '../services/purchases';
-import { useApp } from '../state/store';
+import { useAccessEnabled, useApp } from '../state/store';
 import { showDialog } from '../ui/actions';
 import { Card, SectionLabel } from '../ui/blocks';
 import { Icon } from '../ui/icons';
@@ -38,6 +38,8 @@ const PLUS_ROWS = (Object.keys(FEATURES) as Feature[])
 export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
   const insets = useSafeAreaInsets();
   const setPremium = useApp(s => s.setPremium);
+  // Rewards are named as staying free only while they're on.
+  const accessEnabled = useAccessEnabled();
   const [plans, setPlans] = useState<Plan[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [kind, setKind] = useState<PlanKind>('annual');
@@ -163,7 +165,7 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
         <View style={{ marginTop: GAP.block }}>
           <SectionLabel>{P.freeLabel}</SectionLabel>
           <T v="small" color={C.muted}>
-            {P.free}
+            {accessEnabled ? P.free : P.freeNoRewards}
           </T>
         </View>
 

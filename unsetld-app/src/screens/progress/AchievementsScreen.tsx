@@ -77,7 +77,7 @@ export function AchievementsScreen({ navigation }: RootProps<'Achievements'>) {
           <SectionLabel>{A.reached}</SectionLabel>
           <Card style={{ paddingVertical: 8 }}>
             {reached.map(m => (
-              <Reached key={m.key} m={m} onOpen={() => navigation.navigate('Moment', { key: m.key })} />
+              <Reached key={m.key} m={m} onOpen={() => navigation.navigate('Moment', { key: m.key, revisit: true })} />
             ))}
           </Card>
         </View>

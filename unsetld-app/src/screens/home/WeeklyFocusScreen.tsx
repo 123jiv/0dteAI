@@ -16,6 +16,7 @@ import { useApp } from '../../state/store';
 import { Button, NavRow, PageTitle, Square, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, font, GAP, MARGIN, radius } from '../../ui/tokens';
+import { useSteersNothing } from '../onboarding/GoalScreen';
 
 /** iOS scrolls the focused field above the keyboard itself; the prop means nothing elsewhere. */
 const KEYBOARD = Platform.OS === 'ios' ? { automaticallyAdjustKeyboardInsets: true } : undefined;
@@ -70,6 +71,8 @@ export function WeeklyFocusScreen({ navigation }: RootProps<'WeeklyFocus'>) {
   const [typing, setTyping] = useState(false);
   const other = id === 'other';
   const valid = Boolean(id) && (!other || text.trim().length > 0);
+  // Typed words that match no missions change nothing: say so instead of promising a lean.
+  const noMatch = useSteersNothing(other ? text : '');
   const insets = useSafeAreaInsets();
   // "Something else" opens a field at the end of the list: bring it into view once it's laid out.
   const scroll = useRef<ScrollView>(null);
@@ -160,6 +163,12 @@ export function WeeklyFocusScreen({ navigation }: RootProps<'WeeklyFocus'>) {
             <T v="mono.s" color={C.stone} align="right" style={{ marginTop: 8 }} accessibilityElementsHidden importantForAccessibility="no">
               {FOCUS.otherCount(text.length, FOCUS.otherMax)}
             </T>
+            {noMatch ? (
+              // Brought into view as it appears: it sits at the end of the list, behind the footer.
+              <T v="note" color={C.muted} accessibilityLiveRegion="polite" style={{ marginTop: 4 }} onLayout={() => scroll.current?.scrollToEnd({ animated: true })}>
+                {FOCUS.otherNoMatch}
+              </T>
+            ) : null}
           </View>
         ) : null}
       </ScrollView>

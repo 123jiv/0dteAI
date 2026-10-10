@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { swapArea } from '../../core/missions';
 import { programDay } from '../../core/programs';
 import { activeDays, milestones, type MilestoneKey } from '../../core/progress';
-import { pendingLetter } from '../../core/record';
 import { reviewWeekFor, weeklyReview } from '../../core/review';
 import { addDays, type DayKey } from '../../core/time';
 import type { MissionDone, RecordState } from '../../core/types';
@@ -22,7 +21,7 @@ import { useAccessEnabled, useApp, useAppActive, useReaderColorway } from '../..
 import { showDialog } from '../../ui/actions';
 import { ColorwayBackground } from '../../ui/ColorwayBackground';
 import { GAP, MARGIN } from '../../ui/tokens';
-import { accessRecord } from '../access';
+import { accessLetter, statusTiers } from '../access';
 import { ColorwaySheet } from '../today/ColorwaySheet';
 import {
   ActivePlanCard,
@@ -49,17 +48,25 @@ function accepted(done: MissionDone | null): MissionDone | null {
 }
 
 /**
- * The milestone moment to show: the newest one reached and not shown yet, and
- * the older unseen ones it stands in for (so a restored record gets one moment, not five).
+ * Milestones the Done stage has already celebrated ("Streak started.", PERFECT DAY): they're
+ * marked shown without a second full-screen moment, and stay on Achievements.
  */
-function dueMoment(record: RecordState, day: DayKey, shown: readonly string[]): { key: MilestoneKey; covers: MilestoneKey[] } | null {
+const DONE_SAYS: readonly MilestoneKey[] = ['first-mission', 'perfect-day'];
+
+/**
+ * The milestone moment to show: the newest one reached and not shown yet (null when the unseen
+ * ones are all ones Done celebrated), and the older unseen ones it stands in for (so a restored
+ * record gets one moment, not five).
+ */
+function dueMoment(record: RecordState, day: DayKey, shown: readonly string[]): { key: MilestoneKey | null; covers: MilestoneKey[] } | null {
   const order = milestones(record, day);
   const unseen = order
     .map((m, i) => ({ key: m.key, reached: m.reached, i }))
     .filter((m): m is { key: MilestoneKey; reached: DayKey; i: number } => m.reached !== null && !shown.includes(m.key));
   if (!unseen.length) return null;
-  const newest = [...unseen].sort((a, b) => (a.reached === b.reached ? a.i - b.i : a.reached < b.reached ? -1 : 1))[unseen.length - 1];
-  return { key: newest.key, covers: unseen.map(m => m.key) };
+  const opens = unseen.filter(m => !DONE_SAYS.includes(m.key));
+  const newest = opens.sort((a, b) => (a.reached === b.reached ? a.i - b.i : a.reached < b.reached ? -1 : 1))[opens.length - 1];
+  return { key: newest?.key ?? null, covers: unseen.map(m => m.key) };
 }
 
 /**
@@ -152,27 +159,33 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
     navigation.navigate('WeeklyFocus');
   }, [wantsFocus, navigation]);
 
-  // Milestone moments first, then Access letters: one at a time, a beat after Today
-  // settles, and only on a day with something proven.
+  // Milestone moments first, then Access letters (at the status tiers' days in effect, so a
+  // tier the config moves or switches off moves or drops its letter): one at a time, a beat
+  // after Today settles, and only on a day with something proven.
   const activeToday = streak.activeToday;
   const lettersShown = record.lettersShown;
+  const remoteStatus = useApp(s => s.remote.status);
   useEffect(() => {
     if (!isFocused || !active || !activeToday || sheet) return;
     const st = useApp.getState();
     const moment = dueMoment(st.record, day, st.momentsShown);
-    if (moment) {
+    if (moment && !moment.key) {
+      // Nothing Done didn't already say: seen, without a moment.
+      for (const k of moment.covers) st.markMomentShown(k);
+    } else if (moment?.key) {
+      const key = moment.key;
       const t = setTimeout(() => {
         for (const k of moment.covers) useApp.getState().markMomentShown(k);
-        navigation.navigate('Moment', { key: moment.key });
+        navigation.navigate('Moment', { key });
       }, MOMENT_DELAY);
       return () => clearTimeout(t);
     }
     if (!accessEnabled) return;
-    const letter = pendingLetter(accessRecord(st.record), day);
+    const letter = accessLetter(st.record, day, statusTiers(remoteStatus));
     if (!letter) return;
     const t = setTimeout(() => navigation.navigate('Letter', { letter }), LETTER_DELAY);
     return () => clearTimeout(t);
-  }, [isFocused, active, activeToday, sheet, day, momentsShown, lettersShown, accessEnabled, navigation, provenKey]);
+  }, [isFocused, active, activeToday, sheet, day, momentsShown, lettersShown, accessEnabled, remoteStatus, navigation, provenKey]);
 
   // No swaps left: say so, and where more come from.
   const showSwapLimit = () => {

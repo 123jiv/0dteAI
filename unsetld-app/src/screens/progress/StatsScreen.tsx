@@ -2,6 +2,7 @@ import { useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { activeDays, areaProgress, completion, totals, TRACK_IDS } from '../../core/progress';
 import { weekStart } from '../../core/review';
+import { pointsEarned } from '../../core/rewards';
 import { computeStreak } from '../../core/streak';
 import { addDays, diffDays, type DayKey } from '../../core/time';
 import { MISSION_BY_ID, RULES, TRACK_BY_ID } from '../../content';
@@ -106,8 +107,8 @@ function Figure({ value, label }: { value: string; label: string }) {
 
 /**
  * Progress › Stats: the detailed numbers the Progress tab leaves out. Longest streak, missions,
- * points earned and focused time; this week's completion; active days; Off Days with how they
- * work; and every area's totals.
+ * points earned (all time, 2.x points included, as on the share card) and focused time; this
+ * week's completion; active days; Off Days with how they work; and every area's totals.
  */
 export function StatsScreen({ navigation }: RootProps<'Stats'>) {
   const { width } = useWindowDimensions();
@@ -147,7 +148,7 @@ export function StatsScreen({ navigation }: RootProps<'Stats'>) {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             <Figure value={S.streakDays(streak.longest)} label={S.longest} />
             <Figure value={PROGRESS.number(t.missions)} label={S.missions} />
-            <Figure value={PROGRESS.number(t.points)} label={S.points} />
+            <Figure value={PROGRESS.number(pointsEarned(record))} label={S.points} />
             {t.focusMinutes > 0 ? <Figure value={PROGRESS.focused(t.focusMinutes)} label={S.focused} /> : null}
           </View>
         </Card>
