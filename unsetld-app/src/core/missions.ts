@@ -210,14 +210,21 @@ export function planAreas(input: Pick<PlanInput, 'library' | 'profile' | 'day'>)
   return ok ? [f, ...base] : base;
 }
 
-/** The area that leads the day: this week's focus, else the weekly priority, else the first area the goal points at, else the first pick. */
+const mod = (a: number, n: number) => ((a % n) + n) % n;
+
+/**
+ * The area that leads the day: this week's focus, else the weekly priority, else an area the
+ * goal points at (a goal naming two of their areas, "Improve grades and work out consistently",
+ * has them take turns day by day), else the first pick.
+ */
 export function leadArea(input: Pick<PlanInput, 'profile' | 'day'>, areas: readonly TrackId[]): TrackId | undefined {
   const lean = leanFor(input.profile, input.day);
-  const pick = [lean.focusArea, input.profile.priority, ...lean.goalAreas].find(a => a && areas.includes(a));
-  return pick ?? undefined;
+  const set = [lean.focusArea, input.profile.priority].find(a => a && areas.includes(a));
+  if (set) return set;
+  const goal = lean.goalAreas.filter(a => areas.includes(a));
+  return goal.length ? goal[mod(dayNumber(input.day), goal.length)] : undefined;
 }
 
-const mod = (a: number, n: number) => ((a % n) + n) % n;
 const rotate = <T,>(xs: readonly T[], k: number): T[] => (xs.length ? [...xs.slice(mod(k, xs.length)), ...xs.slice(0, mod(k, xs.length))] : []);
 
 /**

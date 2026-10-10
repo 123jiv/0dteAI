@@ -224,10 +224,11 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
     return plan?.replaced.includes(id) ? 'swapped' : 'later';
   };
 
-  // The running plan sits at the top, so the list leaves it out. In each section, plans for the
-  // user's areas come first and ones their answers rule out (School Reset outside school) last.
+  // The running or finished plan sits at the top, so the list leaves it out (Clear puts a finished
+  // one back). In each section, plans for the user's areas come first and ones their answers rule
+  // out (School Reset outside school) last.
   const rank = (p: Program) => (fits(p) ? 0 : 2) + (p.tracks.some(t => profile.tracks.includes(t)) ? 0 : 1);
-  const list = PROGRAMS.filter(p => p.id !== running?.id)
+  const list = PROGRAMS.filter(p => p.id !== current?.id)
     .map((p, i) => ({ p, i, r: rank(p) }))
     .sort((a, b) => a.r - b.r || a.i - b.i)
     .map(x => x.p);

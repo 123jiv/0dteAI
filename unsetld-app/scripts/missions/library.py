@@ -198,6 +198,9 @@ m('school-review-flashcards', S, 'Review Flashcards for 20 Minutes', 20, 10, TP,
 m('school-flashcards-10', S, 'Review Flashcards for 10 Minutes', 10, 10, TP,
   'Go through one set of flashcards and put aside the ones you miss to go over again.',
   'Your flashcards, after the timer.', 1, group='flashcards', requires=SC, tags=['test', 'exam', 'flashcards'])
+m('school-flashcards-5', S, 'Review Flashcards for 5 Minutes', 5, 5, T,
+  'Go through flashcards for 5 minutes and say each answer before you flip the card.',
+  'Run the 5-minute timer to the end.', 1, group='flashcards', requires=SC, tags=['test', 'exam', 'flashcards'])
 m('school-upcoming-project', S, 'Work on an Upcoming School Project', 30, 15, TP,
   "Spend 30 minutes on a school project that's due soon.", 'What you got done, after the timer.', 2,
   requires=SC, tags=['homework'])
@@ -427,7 +430,7 @@ m('career-apply-internship', C, 'Apply to One Internship', 30, 20, P,
 m("career-find-opportunities", C, "Find 3 Jobs or Internships to Apply For", 20, 10, P,
   "Find three jobs, internships, programs or competitions you're old enough for, and save each link and deadline.", "Your list of three with deadlines.", 4,
   group="opportunities", weight=1.2, tags=['job', 'internship'])
-m('career-find-one', C, 'Find One Job or Internship to Apply For', 5, 5, P,
+m('career-find-one', C, 'Find One Job or Internship to Apply For', 10, 10, P,
   "Find one job, internship or program you're old enough for and write down the link and the deadline.",
   'Your note of what it is and the deadline.', 2, group='opportunities', tags=['job', 'internship'])
 m("career-research-internships", C, "Research Internships for 20 Minutes", 20, 10, TP,
@@ -610,6 +613,9 @@ m('projects-build-60', PR, 'Build Your Project for 60 Minutes', 60, 25, TP,
 m('projects-work-10', PR, 'Work on Your Project for 10 Minutes', 10, 10, TP,
   'Open your project and get one small piece of it done in 10 minutes.', 'What you did, after the timer.', 1,
   group='project-session', anchor=True, tags=['build', 'project'])
+m('projects-work-5', PR, 'Work on Your Project for 5 Minutes', 5, 5, T,
+  'Open your project and do the next small thing on it for 5 minutes.',
+  'Run the 5-minute timer to the end.', 1, group='project-session', tags=['build', 'project'])
 m("projects-instead-of-scrolling", PR, "Spend 30 Minutes Building Instead of Scrolling", 30, 20, TP,
   "Put the phone down and build something for 30 minutes instead.", "What you built, after the timer.", 3,
   group="project-session", weight=0.5, tags=['build', 'project', 'phone'])
@@ -733,6 +739,9 @@ m('skills-read-30', K, 'Read for 30 Minutes', 30, 15, TP,
 m('skills-practice-10', K, 'Practice Your Skill for 10 Minutes', 10, 10, TP,
   "Spend 10 focused minutes practicing the skill you're learning, without a tutorial.",
   'What you practiced, after the timer.', 1, group='skill-session', tags=['practice', 'skill'])
+m('skills-practice-5', K, 'Practice Your Skill for 5 Minutes', 5, 5, T,
+  "Spend 5 minutes practicing the skill you're learning: one drill, one exercise, no tutorial.",
+  'Run the 5-minute timer to the end.', 1, group='skill-session', tags=['practice', 'skill'])
 m('skills-notes-learned', K, 'Take Notes on Something You Learned Today', 5, 5, P,
   'Write one thing you learned today in your own words, with an example.', 'Your note.', 2, group='skill-review',
   tags=['learn', 'notes'])

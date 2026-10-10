@@ -163,11 +163,22 @@ export interface Adaptation {
 
 export const NO_ADAPTATION: Adaptation = { ignored: {}, swappedKinds: {}, preferShort: false, stepUp: [], timeOfDay: null };
 
-/** The kinds a mission belongs to, for "this kind keeps getting swapped": its group and its non-area tags. */
+/**
+ * Tags that name a kind of activity (what you'd be doing), as opposed to the goal keywords
+ * (gpa, job, brand ...) that cover most of an area: swapping two planning missions should turn
+ * down planning, not the whole area.
+ */
+const KIND_TAGS: ReadonlySet<string> = new Set([
+  'planning', 'reading', 'writing', 'notes', 'flashcards', 'research',
+  'cardio', 'run', 'walk', 'stretch', 'mobility', 'meal', 'cooking',
+  'chores', 'declutter', 'video', 'editing', 'interview', 'resume', 'content',
+]);
+
+/** The kinds a mission belongs to, for "this kind keeps getting swapped": its group and its activity tags. */
 export function kindsOf(m: Pick<Mission, 'group' | 'tags' | 'track'>): string[] {
   const out: string[] = [];
   if (m.group) out.push(`g:${m.group}`);
-  for (const t of m.tags ?? []) if (t !== m.track && t !== 'niche') out.push(`t:${t}`);
+  for (const t of m.tags ?? []) if (KIND_TAGS.has(t)) out.push(`t:${t}`);
   return out;
 }
 

@@ -756,6 +756,30 @@
   "active": true
  },
  {
+  "id": "school-flashcards-5",
+  "track": "school",
+  "title": "Review Flashcards for 5 Minutes",
+  "short": "Go through flashcards for 5 minutes and say each answer before you flip the card.",
+  "proof": "Run the 5-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 5,
+  "minutes": 5,
+  "timerMinutes": 5,
+  "requires": [
+   "school"
+  ],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "flashcards",
+  "tags": [
+   "school",
+   "test",
+   "exam",
+   "flashcards"
+  ],
+  "active": true
+ },
+ {
   "id": "school-upcoming-project",
   "track": "school",
   "title": "Work on an Upcoming School Project",
@@ -2290,8 +2314,8 @@
   "short": "Find one job, internship or program you're old enough for and write down the link and the deadline.",
   "proof": "Your note of what it is and the deadline.",
   "proofType": "PHOTO",
-  "points": 5,
-  "minutes": 5,
+  "points": 10,
+  "minutes": 10,
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
@@ -3497,6 +3521,27 @@
   "active": true
  },
  {
+  "id": "projects-work-5",
+  "track": "projects",
+  "title": "Work on Your Project for 5 Minutes",
+  "short": "Open your project and do the next small thing on it for 5 minutes.",
+  "proof": "Run the 5-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 5,
+  "minutes": 5,
+  "timerMinutes": 5,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "project-session",
+  "tags": [
+   "projects",
+   "build",
+   "project"
+  ],
+  "active": true
+ },
+ {
   "id": "projects-instead-of-scrolling",
   "track": "projects",
   "title": "Spend 30 Minutes Building Instead of Scrolling",
@@ -4326,6 +4371,27 @@
   "points": 10,
   "minutes": 10,
   "timerMinutes": 10,
+  "requires": [],
+  "cooldownDays": 1,
+  "repeatable": true,
+  "group": "skill-session",
+  "tags": [
+   "skills",
+   "practice",
+   "skill"
+  ],
+  "active": true
+ },
+ {
+  "id": "skills-practice-5",
+  "track": "skills",
+  "title": "Practice Your Skill for 5 Minutes",
+  "short": "Spend 5 minutes practicing the skill you're learning: one drill, one exercise, no tutorial.",
+  "proof": "Run the 5-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 5,
+  "minutes": 5,
+  "timerMinutes": 5,
   "requires": [],
   "cooldownDays": 1,
   "repeatable": true,
