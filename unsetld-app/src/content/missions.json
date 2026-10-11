@@ -38,6 +38,7 @@
   "repeatable": true,
   "anchor": true,
   "group": "planning",
+  "when": "evening",
   "weight": 1.5,
   "tags": [
    "discipline",
@@ -2506,12 +2507,93 @@
   "points": 5,
   "minutes": 5,
   "requires": [],
-  "cooldownDays": 30,
+  "cooldownDays": 7,
   "repeatable": true,
   "tags": [
    "career",
    "goal",
    "planning"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-one-skill",
+  "track": "career",
+  "title": "Write Down One Skill Your Next Job Needs",
+  "short": "Look at one job you want and write down one skill it asks for that you don't have yet.",
+  "proof": "Your note.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "tags": [
+   "career",
+   "skill",
+   "research"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-question",
+  "track": "career",
+  "title": "Write One Question for Someone in a Job You Want",
+  "short": "Write one question you'd ask someone who does the job you want, and who you could ask it.",
+  "proof": "Your question on paper.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [],
+  "cooldownDays": 3,
+  "repeatable": true,
+  "tags": [
+   "career",
+   "network",
+   "research"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-intro-out-loud",
+  "track": "career",
+  "title": "Say Your Introduction Out Loud",
+  "short": "Say who you are and what you're working toward in 30 seconds, three times, out loud.",
+  "proof": "Run the 5-minute timer to the end.",
+  "proofType": "TIMER",
+  "points": 5,
+  "minutes": 5,
+  "timerMinutes": 5,
+  "requires": [
+   "age16"
+  ],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "tags": [
+   "career",
+   "interview"
+  ],
+  "active": true
+ },
+ {
+  "id": "career-win-today",
+  "track": "career",
+  "title": "Write Down One Win From Work Today",
+  "short": "Write one thing you did well at work today, with a number if it has one.",
+  "proof": "Your note.",
+  "proofType": "PHOTO",
+  "points": 5,
+  "minutes": 5,
+  "requires": [
+   "work"
+  ],
+  "cooldownDays": 2,
+  "repeatable": true,
+  "when": "evening",
+  "tags": [
+   "career",
+   "work",
+   "resume"
   ],
   "active": true
  },
@@ -3134,6 +3216,7 @@
   "repeatable": true,
   "anchor": true,
   "group": "planning",
+  "when": "evening",
   "tags": [
    "business",
    "planning"

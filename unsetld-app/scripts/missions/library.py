@@ -94,7 +94,7 @@ m('discipline-make-your-bed', D, 'Make Your Bed', 3, 5, P,
   also=['organization'], tags=['routine', 'habits', 'morning'])
 m('discipline-plan-tomorrow', D, 'Plan Tomorrow', 5, 5, P,
   "Write tomorrow's 3 most important tasks and when you'll do each one.", 'Your written plan for tomorrow.', 1,
-  anchor=True, group='planning', weight=1.5, tags=['routine', 'habits', 'planning'])
+  anchor=True, group='planning', when='evening', weight=1.5, tags=['routine', 'habits', 'planning'])
 m('discipline-top-3', D, 'Write Your Top 3 Priorities', 5, 5, P,
   'Write the 3 things that matter most today, most important first.', 'Your list of three.', 1,
   anchor=True, group='planning', when='morning', tags=['routine', 'planning', 'morning'])
@@ -457,8 +457,21 @@ m('career-portfolio', C, 'Work on Your Portfolio', 30, 20, TP,
   'Add or improve one piece in your portfolio.', 'Your portfolio on a computer, or the piece you added.', 2,
   also=['projects', 'skills'], weight=0.6, fits=['coding', 'design', 'video', 'writing'], tags=['portfolio'])
 m('career-goal', C, 'Write Down Your Career Goal', 5, 5, P,
-  'Write the job you want next, when you want it by and the next three steps to get there.', 'Your goal on paper.', 30,
+  'Write the job you want next, when you want it by and the next three steps to get there.', 'Your goal on paper.', 7,
   tags=['goal', 'planning'])
+# Short Career missions anyone can do on a 15- or 30-minute day, so Career stays in it.
+m('career-one-skill', C, 'Write Down One Skill Your Next Job Needs', 5, 5, P,
+  "Look at one job you want and write down one skill it asks for that you don't have yet.", 'Your note.', 3,
+  tags=['skill', 'research'])
+m('career-question', C, 'Write One Question for Someone in a Job You Want', 5, 5, P,
+  "Write one question you'd ask someone who does the job you want, and who you could ask it.", 'Your question on paper.', 3,
+  tags=['network', 'research'])
+m('career-intro-out-loud', C, 'Say Your Introduction Out Loud', 5, 5, T,
+  "Say who you are and what you're working toward in 30 seconds, three times, out loud.", 'Run the 5-minute timer to the end.', 2,
+  requires=['age16'], tags=['interview'])
+m('career-win-today', C, 'Write Down One Win From Work Today', 5, 5, P,
+  'Write one thing you did well at work today, with a number if it has one.', 'Your note.', 2,
+  requires=['work'], when='evening', tags=['work', 'resume'])
 m('career-learn-career', C, "Learn About One Career You're Interested In", 20, 10, P,
   'Find out what the job pays, what it takes to get in, and the first step toward it.', 'Your notes.', 7,
   weight=0.8, tags=['research'])
@@ -554,7 +567,7 @@ m('business-product-page', B, 'Improve One Product Page', 20, 10, P,
   tags=['shop', 'sell', 'product', 'clothing'])
 m('business-plan-tomorrow', B, "Plan Tomorrow's Business Tasks", 5, 5, P,
   "Write the 3 business tasks you'll do tomorrow, most important first.", 'Your list.', 1, group='planning', anchor=True,
-  tags=['planning'])
+  when='evening', tags=['planning'])
 m("business-marketing-idea", B, "Try One New Way to Get Customers", 10, 10, P,
   "Come up with one new way to get customers and do the first step today.", "What you made, or a note of what you did.", 3,
   tags=['customers', 'marketing', 'sell'])

@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import missionsJson from '../../content/missions.json';
 import { dayBudget, DEFAULT_PROFILE, generatePlan, historyFrom, rerollMission, serves, usableAreas, type PlanInput } from '../missions';
-import { goalLean } from '../personalize';
+import { goalLean, leanFor } from '../personalize';
 import { addDays, type DayKey } from '../time';
 import type { DayPlan, Mission, Profile, TrackId } from '../types';
 
@@ -216,7 +216,7 @@ describe('the founder personas, from the goal they typed', () => {
       return t.includes('internship') && !t.includes('job');
     };
     const weeks = [0, 1, 2, 3].flatMap(k => simulateWeek(e, addDays('2026-10-12', k * 7), 7));
-    expect(weeks.flatMap(p => p.missions).filter(x => internshipOnly(x.missionId)).length).toBeLessThanOrEqual(1);
+    expect(weeks.flatMap(p => p.missions).filter(x => internshipOnly(x.missionId)).length).toBe(0);
   });
 
   it('missions made for one medium (Film One Video) wait for a user who named it', () => {
@@ -276,6 +276,69 @@ describe('short days stay useful', () => {
         const plan = generatePlan({ library: LIBRARY, profile: { ...d, minutes }, day: addDays('2026-10-12', i), salt: 'd1', history: { lastDone: {}, lastPlanned: {}, skips: {} }, hour: 9 });
         expect(plan.missions.some(x => x.area === 'projects' && BY_ID.get(x.missionId)!.minutes >= 20), `${minutes} min, day ${i}`).toBe(true);
       }
+    }
+  });
+});
+
+describe('the founder test, round 3', () => {
+  const run = (profile: Profile, days: number, salt: string) => {
+    const done: Record<DayKey, Record<string, { missionId: string }>> = {};
+    const plans: Record<DayKey, DayPlan> = {};
+    const out: DayPlan[] = [];
+    for (let i = 0; i < days; i++) {
+      const day = addDays('2026-10-12', i);
+      const plan = generatePlan({ library: LIBRARY, profile, day, salt, history: historyFrom(done, plans, {}, day), hour: 9 });
+      plans[day] = plan;
+      done[day] = Object.fromEntries(plan.missions.map(p => [p.missionId, { missionId: p.missionId }]));
+      out.push(plan);
+    }
+    return out;
+  };
+  const A = PERSONAS.find(x => x.key === 'A')!.profile;
+  const MOVE = new Set(['workout', 'cardio', 'stretch', 'core']);
+
+  it('a gym week always has real exercise in it, and an eating goal still gets meals', () => {
+    for (const minutes of [30, 45] as const) {
+      const p = { ...A, minutes, focus: { week: '2026-10-12', id: 'gym' as const } };
+      for (let k = 0; k < 10; k++) {
+        for (const plan of run(p, 7, `g${k}`)) {
+          const fit = plan.missions.filter(x => x.area === 'fitness').map(x => BY_ID.get(x.missionId)!);
+          if (fit.length) expect(fit.some(m => MOVE.has(m.group ?? '')), `${minutes} ${plan.day}`).toBe(true);
+        }
+      }
+    }
+    const eat = { ...A, goal: 'Eat healthier and get better grades' };
+    const days = Array.from({ length: 10 }, (_, k) => run(eat, 14, `e${k}`)).flat();
+    expect(days.some(plan => plan.missions.some(x => BY_ID.get(x.missionId)!.group === 'meal'))).toBe(true);
+  });
+
+  it('every area stays in the day for C and E at 15, 30 and 45 minutes', () => {
+    for (const key of ['C', 'E']) {
+      for (const minutes of [15, 30, 45] as const) {
+        const p = { ...PERSONAS.find(x => x.key === key)!.profile, minutes };
+        const areas = usableAreas(LIBRARY, p);
+        const days = Array.from({ length: 6 }, (_, k) => run(p, 28, `c${k}`)).flat();
+        const missing = days.filter(plan => areas.some(a => !plan.missions.some(x => x.area === a))).length;
+        expect(missing / days.length, `${key} ${minutes}`).toBeLessThanOrEqual(0.05);
+      }
+    }
+  });
+
+  it('the weekly focus steers its own slot ("Prepare for an exam" gets exam missions)', () => {
+    for (const minutes of [30, 45] as const) {
+      const p = { ...A, minutes, focus: { week: '2026-10-12', id: 'exam' as const } };
+      const lean = leanFor(p, '2026-10-13');
+      let hit = 0;
+      let n = 0;
+      for (let k = 0; k < 30; k++) {
+        for (const plan of run(p, 5, `x${k}`)) {
+          const school = plan.missions.filter(x => x.area === 'school').map(x => BY_ID.get(x.missionId)!);
+          if (!school.length) continue;
+          n += 1;
+          if (school.some(m => lean.ids.has(m.id) || (m.tags ?? []).some(t => lean.focusTags.has(t)))) hit += 1;
+        }
+      }
+      expect(hit / n, `${minutes} min`).toBeGreaterThanOrEqual(0.85);
     }
   });
 });

@@ -284,8 +284,6 @@ function weight(m: Mission, input: Pick<PlanInput, 'history' | 'day' | 'profile'
     if (m.requires?.some(r => (skills as readonly string[]).includes(r))) w *= 2;
     if (m.fits?.length) w *= m.fits.some(s => skills.includes(s)) ? 1.5 : 0.25;
   }
-  // Internship searches are for students: someone working and not in school gets job missions instead.
-  if (input.profile.work === true && input.profile.school !== true && m.tags?.includes('internship') && !m.tags.includes('job')) w *= 0.2;
   const shown = input.history.lastPlanned[m.id];
   if (!shown) w *= 1.3;
   else {
@@ -300,6 +298,9 @@ function weight(m: Mission, input: Pick<PlanInput, 'history' | 'day' | 'profile'
   return w;
 }
 
+/** How often the week's focus area gets a mission the focus names or tags, when one fits. */
+export const FOCUS_SHARE = 0.8;
+
 /** How often a slot gets one of its area's core habits (study, train, build, learn) when one is free; half that the day after. */
 export const CORE_SHARE = 0.6;
 
@@ -310,6 +311,13 @@ export const CORE_SHARE = 0.6;
  */
 function pick(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day' | 'profile' | 'adapt' | 'hour'>, track: TrackId, seed: string): Mission | null {
   if (!cands.length) return null;
+  // The week's focus area: most days, a mission the focus names or tags ("Prepare for an exam":
+  // practice tests, flashcards, study sessions), not just any mission in its area.
+  const lean = leanFor(input.profile, input.day);
+  if (lean.focusArea === track) {
+    const on = cands.filter(m => lean.ids.has(m.id) || (m.tags ?? []).some(t => lean.focusTags.has(t)));
+    if (on.length && on.length < cands.length && mulberry32(hash32(`${seed}:focus`))() < FOCUS_SHARE) return pickWeighted(on, input, track, seed);
+  }
   // A core habit counts as core only in its own area (Learn a Career Skill is core for Career, not Skills).
   const core = cands.filter(m => m.anchor && m.track === track);
   const rest = cands.filter(m => !(m.anchor && m.track === track));
@@ -395,13 +403,20 @@ export function chooseForSlot(
   const lean = leanFor(input.profile, input.day);
   const firstDay = Object.keys(input.history.lastPlanned).length === 0;
   const morning = input.hour != null && input.hour >= DAY_START_HOUR && input.hour < AFTERNOON_HOUR + 3;
+  // Internship searches are for students: someone working and not in school gets job missions,
+  // unless their goal or focus names internships.
+  const workingAdult = input.profile.work === true && input.profile.school !== true;
+  const internshipOnly = (m: Mission) => workingAdult && Boolean(m.tags?.includes('internship')) && !m.tags!.includes('job') && !leansTo(m, lean);
   const lastResort = (m: Mission) =>
+    internshipOnly(m) ||
     ((Boolean(m.tags?.includes('niche')) || (named.length === 0 && Boolean(m.fits?.length))) && !leansTo(m, lean)) ||
     (firstDay && ((morning && m.when === 'evening') || Boolean(m.tags?.includes('follow-up'))));
 
   // A support task (Plan Tomorrow's Workout, Pack Your Gym Bag) is never an area's only mission
   // of the day while a real one (a workout, a study session) fits.
-  const supportOnly = (m: Mission, area: TrackId) => Boolean(m.tags?.includes('support')) && !usedTracks.includes(area);
+  // A meal counts the same way unless the goal or focus is about food ("Eat healthier").
+  const supportOnly = (m: Mission, area: TrackId) =>
+    (Boolean(m.tags?.includes('support')) || (m.group === 'meal' && !leansTo(m, lean))) && !usedTracks.includes(area);
 
   const tryAreas = (list: readonly TrackId[], size: MissionSlot, relaxShown: boolean, ignoreSkips: boolean, cap: number): SlotPick | null => {
     for (const area of list) {
