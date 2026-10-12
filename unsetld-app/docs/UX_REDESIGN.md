@@ -104,7 +104,7 @@ Study for 30 Minutes                     (serif, list 23)
 
 A Story-size (9:16) card, the user's colorway as background: `UNSETLD`, `DAY 47`, `3 / 3 TODAY`, `47 DAY STREAK`, `2,420 POINTS EARNED` (all-time points earned, so spending a reward never shrinks the card; a line that would be zero is left off), `NEVER SETTLE FOR LESS.` **No proof photos, ever, by default.** Nothing leaves the phone unless the user taps Share. iOS: capture the card view (`react-native-view-shot`, already installed) and open the system share sheet (`Share.share({ url })`). Browser preview: no capture is possible — the screen says "Take a screenshot to share it." and has no Share button (never a fake one). Opened from the perfect-day Done state, from Today on a perfect day, and from Progress.
 
-## 7. Progress
+## 7. Progress (3.2: renamed Record and redesigned: see docs/RECORD.md, which supersedes this section)
 
 ```
 Progress

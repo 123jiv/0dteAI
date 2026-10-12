@@ -10,7 +10,7 @@ UNSETLD 3.1 is a mission app for ages 13–25, from the clothing brand of the sa
 - **Prove it.** Each mission is a title, its time and points, one sentence and how to prove it: a photo, before and after photos, the in-app focus timer and then a photo, or the timer on its own. The checks run on the phone and the photo stays there.
 - **Points.** By how long a mission takes: 5 (up to 5 minutes), 10 (up to 20), 15 or 20 (about 30), 20 (about 45), 25 (an hour). A perfect day (every mission in the plan proven) adds 15.
 - **Streak.** Days in a row with at least one proven mission. Off Days: you earn one every 7 days you show up and can bank two; a missed day uses one automatically.
-- **Progress.** Your streak, today, the week, a level per area with the time you've put in, proof history by month, achievements and stats, a weekly review, and optional multi-day plans. A perfect day can be shared as a 9:16 card with no photos on it.
+- **Record** (3.2, was Progress; docs/RECORD.md). The month as a grid of days proven (one mission, two, a perfect day), each day's page with its proofs and points, your areas' levels, recent proof and a private proof history by date, mission or area. Stats, achievements, a weekly review and optional multi-day plans are a tap away. A perfect day can be shared as a 9:16 card with no photos on it.
 - **Rewards.** Points trade for discount codes at unsetld.com: 5% off (300), 10% off (600) and 15% off (1,000), up to $25 off, one of each per collection. Every tier's points, discount, cap, dates, cooldown and limits come from configuration. Separately, days with a proven mission build UNSETLD status: early access to drops (Day 7), a numbered patch (Day 90) and the 365 piece (Day 365), also configurable. None of it can be bought. See [docs/ACCESS.md](docs/ACCESS.md).
 
 The screens, navigation and copy are specified in [docs/UX_REDESIGN.md](docs/UX_REDESIGN.md); the mission model, planner, proof and rewards rules in [docs/MISSIONS_SPEC.md](docs/MISSIONS_SPEC.md). Where an older spec disagrees, these win. Tokens, type, colorways, the walker and the paywall layout are still in [docs/DESIGN_SPEC.md](docs/DESIGN_SPEC.md). Every UI string is in `src/content/copy/*.ts`. Built with **Expo SDK 57** (React Native, TypeScript), `expo-widgets` for the iOS widgets and RevenueCat for UNSETLD+.
@@ -164,7 +164,7 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
 | `src/screens/home/` | The Today tab: day and points, the next reward, the weekly focus card, TODAY x / 3, the mission cards, the active plan, the weekly card; the weekly focus page |
 | `src/screens/mission/` | Mission (full-screen): the detail page with its proof card, focus timer, before and after, review, the on-device checks, the done stage and the perfect day |
 | `src/screens/share/` | The 9:16 share card (iOS share sheet; a screenshot note in the browser preview) |
-| `src/screens/progress/` | The Progress tab, Proof history, Achievements, Stats, the weekly review, milestone moments |
+| `src/screens/progress/` | The Record tab, a day's page, Proof history, Achievements, Stats, the weekly review, milestone moments |
 | `src/screens/rewards/` | The Rewards tab, All rewards, Reward history, How points work, UNSETLD status, the redeem flow |
 | `src/screens/plans/` | Plans: start, follow and leave a plan (`program` in code) |
 | `src/screens/you/` | The You tab: goals, your day, membership, appearance, proof photos, account, help |

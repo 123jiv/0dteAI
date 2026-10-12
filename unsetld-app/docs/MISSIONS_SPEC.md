@@ -183,6 +183,8 @@ Copy never says a photo was verified by AI. Wording: `Proof saved.` / `Checked o
 
 ## 8. Streak, progress, milestones (Progress screen; replaces Record)
 
+> 3.2: the Progress screen is the **Record** again, redesigned around a calendar of days proven; swaps take a reason and missions of your own exist. See docs/RECORD.md.
+
 - Streak = days in a row with at least one proven mission (today counts once proven; until then yesterday's streak stands).
 - **Off Days**: one earned every 7 active days, up to 2 banked; a missed day uses one automatically. Copy: `OFF DAY` · `An Off Day covered Tuesday. Streak's still going.` · Settings/Progress explain: `Miss a day and an Off Day covers it. You earn one every 7 days you show up. You can bank two.`
 - Progress screen: title `Progress`; stats grid: `STREAK` / `LONGEST` / `MISSIONS` / `POINTS` / `FOCUSED` (4h 20m) / `THIS WEEK` (completion %); the active-days barcode; **Levels**: each chosen area first, then any other area with points: `SCHOOL` `LEVEL 4` thin bar `60 / 150`; **Milestones**: First mission, First 10 missions, First perfect day, 7 days, 30 missions, 100 missions, 30-day streak (reached = bone square + date; not yet = outline + progress `12 / 30`); **This week** block with `See the week →`; Proof gallery link; Settings link (top right). Access (early access / patch / 365 piece) lives on Rewards; its day counts are active days.
