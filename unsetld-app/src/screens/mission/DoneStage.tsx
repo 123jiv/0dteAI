@@ -34,6 +34,8 @@ const DOT_DELAY = 420;
 const DOT_MS = 360;
 /** The points count up, and the reward meter fills, while the dot waits and moves. */
 const COUNT_MS = 560;
+/** The meters start a moment after the entrance. The points don't: they count as their line fades in. */
+const FILL_DELAY = 200;
 /** A week cell: the dot (with room for today's ring) and its letter. */
 const DOT = 30;
 
@@ -133,7 +135,8 @@ export function DoneStage({
   const up = gain?.up ? gain : null;
   const levelFill = up ? share(up.after.into, up.after.span) : 0;
 
-  const [shown, setShown] = useState(0);
+  // The count starts at 1, not 0: "+0 pts" never shows, even faintly.
+  const [shown, setShown] = useState(() => Math.min(1, points));
   const [rise] = useState(() => new Animated.Value(0));
   const [fill] = useState(() => new Animated.Value(fromShare));
   const [morph] = useState(() => new Animated.Value(0));
@@ -144,7 +147,7 @@ export function DoneStage({
   useEffect(() => {
     let live = true;
     let later: ReturnType<typeof setTimeout> | undefined;
-    const count = new Animated.Value(0);
+    const count = new Animated.Value(Math.min(1, points));
     const sub = count.addListener(({ value }) => setShown(Math.round(value)));
     // Today's dot has landed: the success haptic, then the bonus or the new level a beat later.
     const land = (reduce: boolean) => {
@@ -182,9 +185,9 @@ export function DoneStage({
         }
         Animated.parallel([
           Animated.timing(rise, { toValue: 1, duration: 320, easing: ease.out, useNativeDriver: false }),
-          Animated.timing(count, { toValue: points, duration: COUNT_MS, delay: 200, easing: ease.out, useNativeDriver: false }),
-          Animated.timing(fill, { toValue: toShare, duration: COUNT_MS, delay: 200, easing: ease.out, useNativeDriver: false }),
-          ...(up ? [Animated.timing(level, { toValue: 1, duration: COUNT_MS, delay: 200, easing: ease.out, useNativeDriver: false })] : []),
+          Animated.timing(count, { toValue: points, duration: COUNT_MS, easing: ease.out, useNativeDriver: false }),
+          Animated.timing(fill, { toValue: toShare, duration: COUNT_MS, delay: FILL_DELAY, easing: ease.out, useNativeDriver: false }),
+          ...(up ? [Animated.timing(level, { toValue: 1, duration: COUNT_MS, delay: FILL_DELAY, easing: ease.out, useNativeDriver: false })] : []),
           // Last to finish, so the haptic lands with it.
           Animated.timing(morph, { toValue: 1, duration: DOT_MS, delay: DOT_DELAY, easing: ease.out, useNativeDriver: false }),
         ]).start(({ finished }) => {
@@ -244,7 +247,7 @@ export function DoneStage({
         </T>
         {/* Secondary: the points are what showing up earns, not the moment itself. */}
         <T v="kicker" color={C.bone} style={{ marginTop: 14 }} accessibilityLabel={MISSION.a11y.points(points)}>
-          {MISSION.done.pts(shown)}
+          {MISSION.done.pts(shown, points)}
         </T>
 
         {/* The record moment. */}

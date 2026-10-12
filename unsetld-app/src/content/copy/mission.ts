@@ -134,8 +134,12 @@ export const MISSION = {
    */
   done: {
     title: 'PROVEN.',
-    /** Under the title, small: "+15 pts" (a kicker, so it reads +15 PTS). */
-    pts: (n: number) => `+${num(n)}\u00a0${n === 1 ? 'pt' : 'pts'}`,
+    /**
+     * Under the title, small: "+15 pts" (a kicker, so it reads +15 PTS). While it counts up, `n`
+     * is the running number and `total` what it lands on: the unit is the total's, so it never
+     * flips from "pt" to "pts" on the way.
+     */
+    pts: (n: number, total = n) => `+${num(n)}\u00a0${total === 1 ? 'pt' : 'pts'}`,
     /** The first proof of the day: the day goes on the record. "Day N" is the nav row's DAY N. */
     dayAdded: (n: number) => `Day ${num(n)} added to your record.`,
     /** "1 / 3" in serif, then "today" (or "Perfect day" once every mission is proven). */

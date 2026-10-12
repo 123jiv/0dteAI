@@ -46,6 +46,10 @@ describe('the done stage', () => {
     expect(MISSION.done.pts(15)).toBe(`+15${NB}pts`);
     expect(MISSION.done.pts(1)).toBe(`+1${NB}pt`);
     expect(MISSION.done.pts(1200)).toBe(`+1,200${NB}pts`);
+    // Counting up: the unit is the total's all the way, never "+1 pt" on the way to 15.
+    expect(MISSION.done.pts(1, 15)).toBe(`+1${NB}pts`);
+    expect(MISSION.done.pts(8, 15)).toBe(`+8${NB}pts`);
+    expect(MISSION.done.pts(1, 1)).toBe(`+1${NB}pt`);
   });
 
   it('the record moment: the day added, the count, the perfect day and the streak', () => {
