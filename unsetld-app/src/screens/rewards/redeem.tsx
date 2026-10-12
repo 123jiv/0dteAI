@@ -1,12 +1,13 @@
-// The redeem flow, shared by the Rewards tab (the next reward's "Get the code") and All
-// rewards (any ready tier): sign in if needed, confirm, ask unsetld.com for the code, then
-// show it in a sheet to copy or use. Plus the small pieces those pages share.
+// The redeem flow, shared by the Rewards tab (the next reward's "Get the code"), All rewards
+// (any ready tier), Status and a status tier's page (a status code, core/rewards
+// statusReward): sign in if needed, confirm, ask unsetld.com for the code, then show it in a
+// sheet to copy or use. Plus the small pieces those pages share.
 import { useIsFocused } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Pressable, useWindowDimensions, View } from 'react-native';
 import { shortDate, type DayKey } from '../../core/time';
-import { rewardStatus, type RewardStatus } from '../../core/rewards';
+import { rewardStatus, statusState, type RewardStatus } from '../../core/rewards';
 import type { RewardTier } from '../../core/types';
 import { REWARDS_COPY } from '../../content/copy/rewards';
 import { openStore, redeem } from '../../services/access';
@@ -17,8 +18,20 @@ import { Button, TextButton } from '../../ui/kit';
 import { Sheet } from '../../ui/Sheet';
 import { T } from '../../ui/text';
 import { color as C, MARGIN, radius } from '../../ui/tokens';
+import { findStatus, statusTiers } from '../access';
 
 const R = REWARDS_COPY;
+
+/** A status code (core/rewards statusReward) costs no points; every points reward costs at least one. */
+const isStatus = (tier: RewardTier) => tier.points === 0;
+
+/** Whether the tier can still be taken: a points reward by its status, a status code by its days and whether it's taken. */
+function stillReady(tier: RewardTier): boolean {
+  const s = useApp.getState();
+  if (!isStatus(tier)) return rewardStatus(s.record, tier, s.remote.collection, s.currentDay) === 'ready';
+  const t = findStatus(statusTiers(s.remote.status), tier.id);
+  return t !== null && statusState(s.record, t, s.currentDay).kind === 'ready';
+}
 
 /** Serif numbers in lining figures ("10% off", "1,000"): Cormorant's old-style 1 reads as an I. */
 export const LINING = { fontVariant: ['lining-nums' as const] };
@@ -164,18 +177,24 @@ export function useRedeem(onNeedsAccount: () => void): {
       setBusy(null);
     }
     if (r.ok) {
-      useApp.getState().redeemReward(tier, { code: r.code, url: r.url });
+      useApp.getState().redeemReward(tier, { code: r.code, url: r.url, expires: r.expires });
       const all = useApp.getState().record.redemptions ?? [];
       const taken = all[all.length - 1];
       light();
       setMinted({ title: tier.title, code: r.code, url: r.url, expires: taken?.expires ?? useApp.getState().currentDay, simulated: Boolean(r.simulated) });
       setOpen(true);
     } else if (r.reason === 'needs-account') needsAccount(tier);
-    else setError({ id: tier.id, text: R.errors[r.reason] });
+    else if (r.reason === 'used' && isStatus(tier)) {
+      // Taken before (on another phone, or the reply never got here) and this server didn't
+      // send the code again: mark it taken with no code, so it stops reading Ready.
+      useApp.getState().redeemReward(tier, { code: '', url: '' });
+      AccessibilityInfo.announceForAccessibility(R.status.takenElsewhere);
+    } else setError({ id: tier.id, text: (isStatus(tier) ? R.status.errors : R.errors)[r.reason] });
   };
 
+  // A status code spends no points: its confirm says what it is and that it's one per person.
   const confirm = (tier: RewardTier) =>
-    showDialog(R.confirmTitle(tier.points), R.confirmBody(tier), [
+    showDialog(isStatus(tier) ? R.status.confirmTitle(tier.title) : R.confirmTitle(tier.points), isStatus(tier) ? R.status.confirmBody(tier) : R.confirmBody(tier), [
       { label: R.confirmNo, cancel: true },
       { label: R.confirmYes, onPress: () => void run(tier) },
     ]);
@@ -192,8 +211,7 @@ export function useRedeem(onNeedsAccount: () => void): {
   const resume = useEffectEvent(() => {
     const tier = pending.current;
     pending.current = null;
-    const s = useApp.getState();
-    if (tier && s.account.userId && rewardStatus(s.record, tier, s.remote.collection, s.currentDay) === 'ready') confirm(tier);
+    if (tier && useApp.getState().account.userId && stillReady(tier)) confirm(tier);
   });
   useEffect(() => {
     if (focused) resume();

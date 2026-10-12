@@ -59,7 +59,8 @@ export const PLATFORM = {
     remindersValue: (n: number, a: string, b: string) => (n === 0 ? 'Off' : n === 1 ? `1 a day at ${a}` : `${n} a day, ${a} to ${b}`),
     remindersOff: 'Off',
     dropAlerts: 'Drop alerts',
-    dropNote: 'When a collection opens. Off unless you turn it on.',
+    /** Opt-in only: a heads-up before each public drop (services/notifications scheduleDropAlerts). */
+    dropNote: 'A heads-up 24 hours before a new UNSETLD drop.',
     permOff: 'Notifications are off for UNSETLD.',
     openSettings: 'Open Settings',
 
@@ -239,7 +240,7 @@ export const PLATFORM = {
     /** A day the app hasn't planned yet names no mission. */
     waiting: (n: number) => `${word(n)} missions are waiting.`,
     trial: (p: string) => `Your free trial ends tomorrow. ${p} for the year starts then. Cancel any time in Settings.`,
-    dropEarly: (c: string, when: string) => `Collection ${c} is open to you now. Everyone else gets it ${when}.`,
+    /** The drop alert, 24 hours before a drop opens: "Collection 005 opens tomorrow at 9:00 AM." */
     dropPublic: (c: string, when: string) => `Collection ${c} opens ${when}.`,
     whenToday: (time: string) => `today at ${time}`,
     whenTomorrow: (time: string) => `tomorrow at ${time}`,

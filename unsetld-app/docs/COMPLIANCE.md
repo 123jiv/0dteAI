@@ -48,7 +48,7 @@ Sources were checked on 2026-10-07: the App Review Guidelines (last updated 2026
 - **Widgets show the mission side only:** the next mission (title, area, minutes, points), today's missions with done squares, and the streak with points and the active-days barcode. No drop, discount or reward banners in widgets (2.5.16).
 - **Notification permissions:**
   - Mission reminders and the focus timer's "done" alert are local notifications and use the normal prompt.
-  - Drop alerts have their own opt-in switch in You (and on the early access page), are off by default, and are never marked Time Sensitive (4.5.4).
+  - Drop alerts (a heads-up 24 hours before a drop opens to everyone) have their own opt-in switch in You, are off by default, and are never marked Time Sensitive (4.5.4).
 - Missions, proof, the streak and widgets all work with notifications off.
 
 ## Rewards and money
@@ -63,6 +63,7 @@ Sources were checked on 2026-10-07: the App Review Guidelines (last updated 2026
 - **Clothes** are paid for only through Shopify checkout at unsetld.com, opened in Safari (3.1.3(e)). Discount codes for physical goods are fine.
 - **No cash value.** Points and codes are not transferable and can't be sold, bought or exchanged for money. Codes are percent-off discounts, never store credit or gift cards (gift card law).
 - **The tiers** (default, `src/content/rewards.json`): 5% off at 300 points, 10% off at 600 and 15% off at 1,000, each up to $25 off, one code per tier per collection, codes valid 30 days. unsetld.com's config can change them; the server checks every redeem against its own list and its own count of points.
+- **UNSETLD status** (default, `src/content/milestones.json`): one discount code per tier, once per person, for days with a proven mission: 10% off at 7, 15% at 30, 20% at 90 and 25% at 365, each up to $25 off, codes valid 30 days. Free, earned only by proving missions; the server counts the days itself at redeem. Every reward in the app is a discount: no merchandise, no early access.
 - **Minors:** rewards are for US residents 13 and over; under 18s need a parent's or guardian's OK to place an order. This is in the in-app rewards terms.
 - **Not a contest.** Fixed thresholds, no chance, no leaderboard. If prizes are ever added, the program becomes a contest (5.3): official rules, "Apple is not a sponsor", free entry, adults only, $5,000 total or less (more needs registration in NY and FL), and a W-9 or 1099 above $2,000. **No prizes at launch.**
 - **Positioning (4.2.2, 4.3(b)):** an app that is mainly a storefront gets rejected. Missions and proof are the product; rewards stay quiet (the Rewards tab and one line on Today and the done screen, never a popup, never in widgets, notifications or mission text; the paywall names them only as staying free, and only while they're on). In the App Review notes, explain that points come only from missions proven in the app, that nothing can be bought, and that photos stay on the phone. Tester tools aren't in release builds, so show the rewards flow with screenshots or a screen recording from a development build.

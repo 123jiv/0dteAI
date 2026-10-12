@@ -1,5 +1,7 @@
 # UNSETLD copy deck
 
+> **3.2 note (12 Oct 2026):** every reward is a discount. UNSETLD status is one discount code per tier (10% off at 7 days proven, 15% at 30, 20% at 90, 25% at 365, each up to $25 off, once per person); early access, the patch, the 365 piece, the pause and the comeback letter are gone, and drop alerts are a plain heads-up. The status strings below (Status, a tier's page, the status letter, drop alerts) are the 3.2 ones; the live strings are in `src/content/copy/rewards.ts` and `src/content/copy/platform.ts`.
+>
 > **3.1 note (10 Oct 2026):** the screens and their copy follow [UX_REDESIGN.md](UX_REDESIGN.md). "Full Edition" is UNSETLD+, "programs" are Plans, Access is UNSETLD status, Settings is You. The live strings are only in `src/content/copy/`; anything below that says otherwise is history.
 >
 > **3.0 note (9 Oct 2026):** UNSETLD 3.0 supersedes this deck's lines, quotes, chapters, the standard (three rules), the night check, Today, Record and the paywall rows. The 3.0 strings live in `src/content/copy/*.ts` (and `src/content/copy.ts`), specified in [MISSIONS_SPEC.md](MISSIONS_SPEC.md); where they disagree with this file, they win. The App Store listing below is updated for 3.0; the rest of this file is kept as the 2.x record, so check `src/content/copy/` before reusing a string from it.
@@ -133,7 +135,7 @@ ONE-TIME PAGES
 - Day 3:
   - Label: ACCESS
   - Title: The days add up to something.
-  - Body: Day 7 opens early access to every UNSETLD drop. Proof of the work earns points toward codes at unsetld.com. None of it can be bought.
+  - Body: Proof of the work earns points toward codes at unsetld.com. None of it can be bought.
   - Link: See your record
 - New volume:
   - Label: VOLUME 002
@@ -206,14 +208,7 @@ RECORD
 - 41 days on record (singular: 1 day on record)
 - Barcode: 23 AUG … TODAY
 - Stats: RUN 12 days · LONGEST 19 days · HELD 33 of 41
-- Access header: Access · Details
-- Note: Earned with days on record. It can't be bought.
-- Rows:
-  - 007 Early access — Every drop opens to you 24 hours early.
-  - 090 The patch — Numbered. Free with your next order.
-  - 365 The 365 piece — Made only for people who reach a year.
-- Statuses: OPEN · USED · PAUSED · 49 DAYS (singular: 1 DAY)
-- Paused note (Inter 13 stone, under the road): Early access is paused. Put 7 days on record to open it again.
+- Status: see UNSETLD STATUS (3.2) below.
 - Proof: Proof · A photo of each task you prove, taken in the app. Each one is 10 points. · Today: 2 tasks proven. · See all
 - Codes header: CODES
   - Tier rows: 10% off one order — 600 points. Up to $25 off at unsetld.com. · 15% off one order — 1,000 points. Up to $25 off at unsetld.com.
@@ -223,40 +218,31 @@ RECORD
   - Got one: {CODE} · Works until 7 Nov. One order. · Use it at unsetld.com
   - Used this collection: One code each collection. The next one opens with the next collection.
 
-MILESTONE DETAIL
-- 007 Early access:
-  - Every UNSETLD drop opens to you 24 hours before the public. When a drop is announced, open it from here.
-  - Button: Turn on drop alerts
-  - While a drop is open early (button, needs an account): Open Collection 004
-  - Notifications off (under the button): Notifications are off for UNSETLD. · Open Settings
-- 090 The patch:
-  - A woven UNSETLD patch with your number. It ships free with your next order. One per person.
-  - Button: Add it to my next order
-- 365 The 365 piece:
-  - A numbered piece made only for people who reach a year. Sold at full price. Never restocked.
-  - Button: View at unsetld.com
-- Footer link: Access terms
-- Not signed in (Inter 13 stone above the button): Sign in to use access. It takes one tap.
+UNSETLD STATUS (3.2)
+- Rewards card: UNSETLD STATUS · 10% off is ready / Earned with 7 days proven. — else Next: 15% off at 30 days / [meter] / 29 / 30 days proven (no day proven yet: Starts with your first proven mission.) — else Every status reward earned / 400 days proven.
+- Page title: UNSETLD status · Earned with days you prove a mission. It can't be bought.
+- Count: 29 days proven (no day yet: Prove a mission today and it's your first day proven.)
+- Rows (serif day number, then the discount and its cap): 7 days proven · 10% off · Up to $25 off — 30 · 15% off — 90 · 20% off — 365 · 25% off
+- States: Ready [Get the code] · Taken (the code, Works until 27 Nov / Ran out 27 Nov, Copy; taken before with no code on this phone: Taken before, maybe on another phone. There's one per person.) · 12 days to go (singular: 1 day to go), a quiet meter on the next tier only
+- Signed out, under the list: Codes need a free account. It takes one tap.
+- Confirm: Get your 10% off code? / One order at unsetld.com, up to $25 off. The code works for 30 days from today, and there's one per person. / Cancel · Get the code
+- The code: the same sheet as a points code (YOUR CODE · 10% off · {CODE} · Copy · Works until 27 Nov. One order. · Use it at unsetld.com · Done)
+- Errors: You've already taken this code. There's one per person. · unsetld.com hasn't counted all your days yet. Try again in a moment. · This code isn't available right now. · Couldn't reach unsetld.com. Try again in a moment.
+- Reward history: 10% off · 7 days proven
+- Footer link: Rewards and status terms
 
-MILESTONE LETTERS
-- Each letter comes at its tier's day in the status config (7, 90 and 365 by default) and only while the tier is switched on, so a sub never names the number of days. Active days needn't be in a row or in the morning: nothing here says they were.
-- DAY 007 · Day 7.
-  - You kept coming back.
-  - Early access is open. Every UNSETLD drop opens to you 24 hours before the public.
-  - [Turn on drop alerts] · Not now
-  - Notifications off (under the buttons): Notifications are off for UNSETLD. · Open Settings
-- DAY 090 · Day 90.
-  - This isn't a phase anymore.
-  - Your patch is numbered and waiting. It ships free with your next order.
-  - [Add it to my next order] · Details
-- DAY 365 · Day 365.
-  - A full year. You didn't settle.
-  - The 365 piece is open to you. Made only for people who reach a year, numbered, never restocked.
-  - [View at unsetld.com] · Details
-- Comeback · Day 52. (uses the current day; only while early access is switched on and reached)
-  - You came back. That's the part that counts.
-  - Early access is open again.
-  - [Close]
+STATUS TIER PAGE (3.2)
+- 7 days proven · Ready
+- 10% off · Up to $25 off
+- Earned with 7 days proven. One code for 10% off one order at unsetld.com, up to $25 off. It works for 30 days after you take it. One per person.
+- [Get the code] (taken: YOUR CODE · {CODE} · Works until 27 Nov · Copy · One order at unsetld.com. · [Use it at unsetld.com]; locked: [meter] 29 / 30 days proven · 1 day to go)
+
+STATUS LETTER (3.2)
+- Comes once, at the highest tier reached whose code isn't taken; one letter covers the tiers below it.
+- 7 DAYS PROVEN.
+  - 10% off is yours.
+  - One order at unsetld.com, up to $25 off. The code works 30 days from when you take it.
+  - [Get the code] (opens the tier's page) · Not now
 
 HOW THE RECORD WORKS (Details)
 - Title: How the record works
@@ -264,12 +250,8 @@ HOW THE RECORD WORKS (Details)
 - Today's work: Each day's work is your three rules, one task from UNSETLD and up to three of your own. Prove a task with a photo taken in the app; the photo stays on this phone. Each proven task is 10 points, up to 40 a day.
 - It only goes up: Missed days don't erase the ones on record.
 - The night check: It's between you and you. Saying Not today keeps the day on record.
-- Access:
-  - Day 7: every UNSETLD drop opens to you 24 hours before the public.
-  - Day 90: a woven patch with your number, free with your next order.
-  - Day 365: the 365 piece, made only for people who reach a year. It's sold at full price and never restocked.
-- Keeping it: Once early access is open, if 14 days pass with nothing on record, it pauses until you put 7 more days on record. Your count, points and milestones stay.
-- Limits: One code each collection. Up to $25 off an order. Codes don't combine with other codes, including the 10% first-order code, and exclude the 365 piece. One patch per person.
+- UNSETLD status: one discount code at each tier of days proven (10% off at 7, 15% at 30, 20% at 90, 25% at 365), each up to $25 off, once per person.
+- Limits: One code each collection. Up to $25 off an order. Codes don't combine with other codes, including the 10% first-order code.
 - It can't be bought: UNSETLD+ doesn't change any of this. Points and UNSETLD status are the same for everyone.
 - Account: To use rewards or UNSETLD status you need a free account, made with Sign in with Apple, so we can hold your place.
 
@@ -283,7 +265,7 @@ ACCESS TERMS (legal page, lawyer review before launch)
 
 ACCOUNT
 - Title: Account
-- Body: You only need an account to use codes and access: discount codes, early access and the patch. Your record, proof photos, saved lines and your lines stay on this phone.
+- Body: You only need an account to use rewards and UNSETLD status. Your missions, proof photos and points stay on this phone.
 - Legal line: By signing in you confirm you're 13 or over and live in the US. If you're under 18, check with a parent first.
 - Button: Sign in with Apple (system button)
 - Signed in: Signed in as {relay email} · Sign out
@@ -399,9 +381,8 @@ NOTIFICATIONS (title always: unsetld)
   - Did you hold your standard today?
   - Actions: Held · Not today
 - Trial day 2: Your free trial ends tomorrow. $24.99 for the year starts then. Cancel any time in Settings.
-- Drop alerts (opt-in only):
-  - Day ≥7: Collection 004 is open to you now. Everyone else gets it tomorrow at 9:00 PM.
-  - Below Day 7: Collection 004 opens tomorrow at 9:00 PM.
+- Drop alerts (opt-in only; You: Drop alerts · A heads-up 24 hours before a new UNSETLD drop.):
+  - Collection 004 opens tomorrow at 9:00 PM.
 
 WIDGET GALLERY (app.json)
 - Line — Today's line, then a new one with each reminder.
@@ -412,8 +393,6 @@ WIDGET GALLERY (app.json)
 - Medium/large header: LONER-style chapter label · No. 0412 · WED 7 OCT
 
 ERRORS AND EMPTY STATES
-- Access claim network error: Couldn't reach unsetld.com. Try again in a moment.
-- Access paused claim: Access is paused. Put 7 days on record to open it again.
 - Code used this collection: USED (row) / One code each collection. The next one opens with the next collection.
 - No toasts anywhere. Confirmations are haptics or inline label swaps.
 

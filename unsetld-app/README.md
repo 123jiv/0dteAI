@@ -11,7 +11,7 @@ UNSETLD 3.1 is a mission app for ages 13–25, from the clothing brand of the sa
 - **Points.** By how long a mission takes: 5 (up to 5 minutes), 10 (up to 20), 15 or 20 (about 30), 20 (about 45), 25 (an hour). A perfect day (every mission in the plan proven) adds 15.
 - **Streak.** Days in a row with at least one proven mission. Off Days: you earn one every 7 days you show up and can bank two; a missed day uses one automatically.
 - **Record** (3.2, was Progress; docs/RECORD.md). The month as a grid of days proven (one mission, two, a perfect day), each day's page with its proofs and points, your areas' levels, recent proof and a private proof history by date, mission or area. Stats, achievements, a weekly review and optional multi-day plans are a tap away. A perfect day can be shared as a 9:16 card with no photos on it.
-- **Rewards.** Points trade for discount codes at unsetld.com: 5% off (300), 10% off (600) and 15% off (1,000), up to $25 off, one of each per collection. Every tier's points, discount, cap, dates, cooldown and limits come from configuration. Separately, days with a proven mission build UNSETLD status: early access to drops (Day 7), a numbered patch (Day 90) and the 365 piece (Day 365), also configurable. None of it can be bought. See [docs/ACCESS.md](docs/ACCESS.md).
+- **Rewards.** Points trade for discount codes at unsetld.com: 5% off (300), 10% off (600) and 15% off (1,000), up to $25 off, one of each per collection. Every tier's points, discount, cap, dates, cooldown and limits come from configuration. Separately, days with a proven mission build UNSETLD status: one discount code at each tier, once per person (10% off at 7 days proven, 15% at 30, 20% at 90, 25% at 365, each up to $25 off), also configurable. Every reward is a discount, and none of it can be bought. See [docs/ACCESS.md](docs/ACCESS.md).
 
 The screens, navigation and copy are specified in [docs/UX_REDESIGN.md](docs/UX_REDESIGN.md); the mission model, planner, proof and rewards rules in [docs/MISSIONS_SPEC.md](docs/MISSIONS_SPEC.md). Where an older spec disagrees, these win. Tokens, type, colorways, the walker and the paywall layout are still in [docs/DESIGN_SPEC.md](docs/DESIGN_SPEC.md). Every UI string is in `src/content/copy/*.ts`. Built with **Expo SDK 57** (React Native, TypeScript), `expo-widgets` for the iOS widgets and RevenueCat for UNSETLD+.
 
@@ -44,7 +44,7 @@ The whole app runs in the browser. Proof picks a file instead of opening the cam
 - **Time travel** (notifications still use the real clock; after a jump, go back to Home, which builds the day's plan and shows any milestone or letter)
   - Next day.
   - Jump 6, 23 or 60 days, proving one mission each day. Used in that order from an empty record, each one lands on the day that becomes Day 7, Day 30 and Day 90 once you prove a mission there.
-  - Disappear for 15 days: Off Days get used, the streak breaks, and once early access is open it pauses (prove a mission on 7 more days for the comeback letter).
+  - Disappear for 15 days: Off Days get used and the streak breaks. Days proven and UNSETLD status never drop.
   - Back to the real today, with the record as it was before the first jump (whatever was proven while travelling goes).
 - **Reset**
   - Restart onboarding.
@@ -74,7 +74,7 @@ To add a widget, follow the in-app guide: You → Widgets. There are three: **Ne
 | Colorways | Black | All ten, in the app and on widgets |
 | Reminders | Up to 3 a day | Up to 10 a day |
 
-Points, rewards and status are the same for everyone. UNSETLD+ never changes what you earn, and no clothing reward is members-only.
+Points, rewards and status are the same for everyone. UNSETLD+ never changes what you earn, and no reward is members-only.
 
 ---
 
@@ -98,7 +98,7 @@ Prices live in App Store Connect and RevenueCat, never in the code. The paywall 
 
 Rewards and Access stay hidden until `https://www.unsetld.com/api/app/config.json` says `"accessEnabled": true`. With it off, missions, proof, points, the streak and levels all work; the reward tiers, codes, the next-reward line and Access just don't show, and the app never says "coming soon".
 
-Build the small routes in [docs/ACCESS.md](docs/ACCESS.md) first (sync, check-in, proof, redeem, claim, account delete), then upload `Web/api/app/config.json` and `Web/api/app/drops.json` to the site. The config can also send a `rewards` list that replaces the app's built-in tiers without an app update.
+Build the small routes in [docs/ACCESS.md](docs/ACCESS.md) first (sync, check-in, proof, redeem for points rewards and status codes, account delete), then upload `Web/api/app/config.json` and `Web/api/app/drops.json` to the site. The config can also send `rewards` and `status` lists that replace the app's built-in tiers without an app update. Drop alerts are a plain opt-in heads-up 24 hours before each drop opens to everyone.
 
 ### 3. Content
 
@@ -116,13 +116,13 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
   - `tags` (1–4), `active`
   - There are no slots, difficulty, why or how: the validator rejects them. It also enforces the voice and safety rules. It fails on "!", "…", emoji, swearing and banned hustle words; on anything unsafe for a teen (calorie deficits, water or dry fasts, weigh-ins and body photos, skipping sleep, alcohol, vaping, nicotine, day or options trading, casinos, sports betting, dares); and on missions that mention points, discount codes, merch or UNSETLD. Words worth a second look for safety or privacy (diets, fasting, supplements, caffeine, crypto, betting, selfies, faces, grades, a bedroom, an address, a location) are listed as warnings.
 - **Plans:** `programs.json`: `id`, `title`, `short`, `days`, `tracks` (areas), `free`, and `plan` (one entry per program day, 1–2 mission ids, no two from one group, no missions that need anything but school: no work, gym, project, age or skill). At least two must be free.
-- **Rewards:** `rewards.json`, the default tiers: 5% off (300, up to $25), 10% off (600, up to $25), 15% off (1,000, up to $25), and a limited piece that is switched off. Fields: `id`, `title`, `detail`, `type`, `points`, `percent`, `maxOff`, `active`, `availableFrom` / `availableUntil`, `codeValidDays`, `inventory`, `perCollection`. Change them here, or send `rewards` from unsetld.com's config.json to replace the whole list without an update ([docs/ACCESS.md](docs/ACCESS.md)).
+- **Rewards:** `rewards.json`, the default tiers: 5% off (300, up to $25), 10% off (600, up to $25), 15% off (1,000, up to $25). Every reward is a discount: the validator and the app take no other `type`. Fields: `id`, `title`, `detail`, `type`, `points`, `percent`, `maxOff`, `active`, `availableFrom` / `availableUntil`, `codeValidDays`, `inventory`, `perCollection`. Change them here, or send `rewards` from unsetld.com's config.json to replace the whole list without an update ([docs/ACCESS.md](docs/ACCESS.md)).
 - **Rules:** `rules.json`: perfect-day bonus (15), swaps a day (free 1, UNSETLD+ 3), Off Days (one every 7 active days, up to 2), how fresh a proof photo must be (30 minutes), the gap between before and after photos (120 seconds), and the default photo retention (30 days).
 - **Other content:**
   - areas: `tracks.json` (nine, in a fixed order)
   - reminder prompts for days without a plan: `reminders.json`
   - colorways: `colorways.json` (ten, only Black is free; plates come from `npm run colorways`)
-  - Access milestones and letters: `milestones.json`
+  - UNSETLD status tiers (one discount code each, by days proven): `milestones.json`
   - legal pages and How missions work: `legal.json`
   - all UI strings: `copy.ts` and `copy/*.ts`
 - **Widget guide:** the in-app guide (`src/screens/WidgetScreen.tsx`) draws the Next mission, Today and Streak widgets from the same copy the real widgets use, on an example day, so there are no screenshots to replace. If a mission it names (`discipline-make-your-bed`, `school-study-30`, `fitness-workout`) is retired, the example drops it.
@@ -168,8 +168,8 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
 | `src/screens/rewards/` | The Rewards tab, All rewards, Reward history, How points work, UNSETLD status, the redeem flow |
 | `src/screens/plans/` | Plans: start, follow and leave a plan (`program` in code) |
 | `src/screens/you/` | The You tab: goals, your day, membership, appearance, proof photos, account, help |
-| `src/screens/` | Reminders (Day), Widget guide, Paywall (UNSETLD+), Account, Doc, Milestone, Letter, Tester tools; `today/ColorwaySheet.tsx` |
-| `src/core/` | Pure, unit-tested rules: the 4:00 AM day, the daily plan from the user's areas and swaps within an area, completion and points, streak and Off Days, levels and milestones, the weekly review, programs, rewards and the config parser, proof checks (photo and timer), fingerprints and retention, the focus timer, Access and the pause rule, reminders, 2.x carry-over |
+| `src/screens/` | Reminders (Day), Widget guide, Paywall (UNSETLD+), Account, Doc, Milestone (a status tier's page), Letter (the status letter), Tester tools; `today/ColorwaySheet.tsx` |
+| `src/core/` | Pure, unit-tested rules: the 4:00 AM day, the daily plan from the user's areas and swaps within an area, completion and points, streak and Off Days, levels and milestones, the weekly review, programs, rewards, UNSETLD status and the config parsers, proof checks (photo and timer), fingerprints and retention, the focus timer, status letters, reminders, 2.x carry-over |
 | `src/state/` | Zustand store (persisted), mission hooks, app lifecycle (4:00 AM rollover, rescheduling, photo expiry, deep links), intents |
 | `src/services/` | Camera and proof storage, the verifier interface, notifications and the timer-done alert, widgets, Access network calls, Sign in with Apple, purchases, Keychain backup, time check |
 | `src/content/` | Missions (generated from `scripts/missions/library.py`), programs, rewards, rules, areas, colorways, milestones, legal pages, every string |

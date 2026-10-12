@@ -1,5 +1,5 @@
 // All editable content lives in JSON next to this file. Edit the JSON, not the code.
-import type { Colorway, Milestone, Mission, Program, ReminderPrompt, RewardTier, Track, TrackId } from '../core/types';
+import type { Colorway, Mission, Program, ReminderPrompt, RewardTier, StatusTier, Track, TrackId } from '../core/types';
 import colorwaysJson from './colorways.json';
 import legalJson from './legal.json';
 import milestonesJson from './milestones.json';
@@ -12,8 +12,12 @@ import tracksJson from './tracks.json';
 
 export const COLORWAYS = colorwaysJson as Colorway[];
 export const COLORWAY_BY_ID = Object.fromEntries(COLORWAYS.map(c => [c.id, c])) as Record<string, Colorway>;
-/** Access milestones (Day 7, 90, 365). */
-export const MILESTONES = milestonesJson as Milestone[];
+/**
+ * UNSETLD status tiers as the file holds them: a discount code at 7, 30, 90 and 365 active
+ * days. services/access STATUS_DEFAULTS reads them (core/rewards statusFromMilestones);
+ * unsetld.com's config `status` list can replace them.
+ */
+export const MILESTONES = milestonesJson as StatusTier[];
 /** Reminder prompts for days without a plan yet. */
 export const PROMPTS = remindersJson as ReminderPrompt[];
 

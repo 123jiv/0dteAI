@@ -16,40 +16,29 @@ export interface Colorway {
   kind: 'solid' | 'plate' | 'gradient';
 }
 
-export type MilestoneId = 'early-access' | 'patch' | 'piece-365';
-
-export interface Milestone {
-  id: MilestoneId;
-  day: number;
-  title: string;
-  short: string;
-  detail: string;
-  action: string;
-  pausable: boolean;
-  letter: { sub: string; body: string; primary: string; secondary: string };
-}
-
 /**
- * An UNSETLD status tier, earned by active days (days with a proven mission). Defaults come
- * from content/milestones.json; unsetld.com's config `status` can replace them (core/rewards
- * parseStatus). Only the ids the app knows (MilestoneId) carry an action, a pause and a
- * letter; any other id is shown as a display-only tier.
+ * An UNSETLD status tier: one discount code, earned by active days (days with a proven
+ * mission). Defaults come from content/milestones.json; unsetld.com's config `status` list can
+ * replace them (core/rewards parseStatus). The code is taken through the same redeem flow as
+ * a points reward (core/rewards statusReward), for no points, once per person.
  */
 export interface StatusTier {
   id: string;
   /** Active days needed. */
   day: number;
+  /** "10% off" */
   title: string;
+  /** One line: "10% off your next order, up to $25." */
   short: string;
   detail: string;
   /** false: not shown. */
   active: boolean;
-  /** Pauses with early access (core/record). The app's own ids only. */
-  pausable: boolean;
-  /** The milestone page's button. The app's own ids only. */
-  action?: string;
-  /** The letter when it's reached. The app's own ids only. */
-  letter?: Milestone['letter'];
+  /** Percent off one order, 1 to 90. */
+  percent: number;
+  /** Cap in dollars (25: "up to $25 off"). null or absent: no cap. */
+  maxOff?: number | null;
+  /** Days a minted code works. */
+  codeValidDays: number;
 }
 
 export interface ReminderPrompt {
@@ -98,8 +87,12 @@ export interface RecordState {
   days: Record<DayKey, DayEntry>;
   /** 2.x night check answers (no longer asked). */
   nights: Record<DayKey, boolean>;
-  /** Milestone letters already shown: '7', '90', '365', or 'comeback:YYYY-MM-DD'. */
+  /**
+   * Status letters already shown: 'status:<day>' (core/record letterKey). Keys from earlier
+   * builds ('7', '90', '365', 'comeback:YYYY-MM-DD') stay but are no longer read.
+   */
   lettersShown: string[];
+  /** 2.x/3.x: the day the patch was claimed. No longer used; kept so old saved data loads. */
   patchClaimed: DayKey | null;
   /** 2.x finished tasks per day. */
   work: Record<DayKey, Record<string, TaskDone>>;
@@ -354,7 +347,11 @@ export interface Program {
   plan: string[][];
 }
 
-export type RewardType = 'discount' | 'free-shipping' | 'early-access' | 'limited' | 'drop';
+/**
+ * Every reward is a discount code for one order at unsetld.com (3.2). The free-shipping,
+ * limited and drop types of earlier builds are gone: a config entry of any of them is dropped.
+ */
+export type RewardType = 'discount';
 
 /** A reward tier. Defaults live in content/rewards.json; unsetld.com's config can replace them. */
 export interface RewardTier {
@@ -364,7 +361,7 @@ export interface RewardTier {
   detail: string;
   type: RewardType;
   points: number;
-  /** Discount rewards only. */
+  /** The percent off. Every tier read from content/rewards.json or the config has one (parseRewardTier requires it). */
   percent?: number;
   /** Cap in dollars for percentage discounts. */
   maxOff?: number;

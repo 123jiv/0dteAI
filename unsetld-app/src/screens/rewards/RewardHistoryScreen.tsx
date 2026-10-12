@@ -11,6 +11,8 @@ import { EmptyState } from '../../ui/blocks';
 import { NavRow, PageTitle, Screen } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP, radius } from '../../ui/tokens';
+import { findStatus, useStatusTiers } from '../access';
+import { redemptionsWithCode } from './codes';
 import { copyCode, LINING } from './redeem';
 
 const R = REWARDS_COPY;
@@ -59,20 +61,25 @@ function CodeCard({ item, expired }: { item: CodeItem; expired: boolean }) {
 }
 
 /**
- * Your codes, newest first: every reward taken since 3.0 and the 2.x codes, each with when
- * it was taken and when it runs out. A code whose reward has since left the list keeps its
- * name. Tap one to copy it or use it at unsetld.com. The codes show even while rewards are
- * switched off: they were paid for with points.
+ * Your codes, newest first: every reward taken since 3.0 (points rewards and status codes,
+ * "10% off · 7 days proven") and the 2.x codes, each with when it was taken and when it runs
+ * out. A code whose reward has since left the list keeps its name. Tap one to copy it or use it
+ * at unsetld.com. The codes show even while rewards are switched off: they were earned.
  */
 export function RewardHistoryScreen({ navigation }: RootProps<'RewardHistory'>) {
   const record = useApp(s => s.record);
   const day = useApp(s => s.currentDay);
   const accessEnabled = useAccessEnabled();
   const tiers = useRewardTiers();
+  const status = useStatusTiers();
 
-  const titleOf = (id: string) => (tiers.find(t => t.id === id) ?? REWARD_TIERS.find(t => t.id === id))?.title ?? H.retiredRewards[id] ?? H.unknownReward;
+  const titleOf = (id: string) => {
+    const s = findStatus(status, id);
+    if (s) return H.statusTitle(s.title, s.day);
+    return (tiers.find(t => t.id === id) ?? REWARD_TIERS.find(t => t.id === id))?.title ?? H.retiredRewards[id] ?? H.unknownReward;
+  };
   const codes: CodeItem[] = [
-    ...(record.redemptions ?? []).map((r, i) => ({ key: `r${i}:${r.code}`, title: titleOf(r.rewardId), code: r.code, url: r.url, day: r.day, expires: r.expires })),
+    ...redemptionsWithCode(record).map((r, i) => ({ key: `r${i}:${r.code}`, title: titleOf(r.rewardId), code: r.code, url: r.url, day: r.day, expires: r.expires })),
     ...(Array.isArray(record.codes) ? record.codes : []).map((c, i) => ({ key: `c${i}:${c.code}`, title: H.legacyTitle(c.percent), code: c.code, url: c.url, day: c.day, expires: c.expires })),
   ].sort((a, b) => (a.day < b.day ? 1 : a.day > b.day ? -1 : 0));
 

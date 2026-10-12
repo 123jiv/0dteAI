@@ -1,4 +1,4 @@
-// Access: the remote switch, drops, check-in sync and claims, all on
+// Access: the remote switch, drops, check-in sync and reward codes, all on
 // unsetld.com (see docs/ACCESS.md). Every call fails quietly; the app works
 // without the network. Signed-in calls send the server's session token; a
 // missing or rejected one (401) signs the phone out so the app asks to sign in
@@ -95,18 +95,19 @@ export async function fetchConfig(): Promise<RemoteConfig | null> {
     accessEnabled: json.accessEnabled,
     collection: String(json.collection ?? AppConfig.defaultCollection),
     rewards: parseRewards(json.rewards),
-    status: parseStatus(json.status, STATUS_DEFAULTS),
+    status: parseStatus(json.status),
   };
 }
 
-/** A drop as drops.json should send it: an id, a collection, and an early window that opens before it ends. */
-function isDrop(d: unknown): d is Drop {
-  if (!d || typeof d !== 'object') return false;
-  const { id, collection, earlyAt, publicAt } = d as Record<string, unknown>;
-  if (typeof id !== 'string' || typeof collection !== 'string' || typeof earlyAt !== 'string' || typeof publicAt !== 'string') return false;
-  const early = Date.parse(earlyAt);
-  const open = Date.parse(publicAt);
-  return Number.isFinite(early) && Number.isFinite(open) && early <= open;
+/**
+ * A drop as drops.json should send it: an id, a collection and the time it opens to everyone.
+ * Anything else an entry carries (an older file's `earlyAt`) is left out.
+ */
+function toDrop(d: unknown): Drop | null {
+  if (!d || typeof d !== 'object') return null;
+  const { id, collection, publicAt } = d as Record<string, unknown>;
+  if (typeof id !== 'string' || typeof collection !== 'string' || typeof publicAt !== 'string') return null;
+  return Number.isFinite(Date.parse(publicAt)) ? { id, collection, publicAt } : null;
 }
 
 /**
@@ -115,7 +116,7 @@ function isDrop(d: unknown): d is Drop {
  */
 export async function fetchDrops(): Promise<Drop[] | null> {
   const json = await getJson<{ drops?: unknown }>(AppConfig.dropsUrl);
-  return Array.isArray(json?.drops) ? json.drops.filter(isDrop) : null;
+  return Array.isArray(json?.drops) ? json.drops.map(toDrop).filter((d): d is Drop => d !== null) : null;
 }
 
 /** One check-in per account per server day. */
@@ -147,57 +148,57 @@ export async function syncProof(day: DayKey, count: number, points?: number) {
   await post('proof', { dayKey: day, count, ...(points === undefined ? {} : { points }) });
 }
 
-export type Perk = 'patch' | 'early-access' | 'piece-365';
-
-/** 'needs-account': the session was gone or rejected, and the phone is now signed out. */
-export type ClaimResult =
-  | { ok: true; url: string; simulated?: boolean }
-  | { ok: false; reason: 'network' | 'paused' | 'used' | 'needs-account' };
-
 /**
- * 'used': taken as many times as allowed this collection (or ever, for a
- * one-time reward). 'cooldown': taken within its redemptionCooldownDays.
- * 'short': the server counts fewer points. 'unavailable': switched off, out of
- * its dates or sold out.
+ * ok: the code, the URL that applies it and, when the server sends it, its last day
+ * (`expires`, YYYY-MM-DD). A status code taken before comes back this way too, with its own
+ * last day, so a phone that never got the first reply still gets the code.
+ * 'used': taken as many times as allowed this collection (or ever, for a one-time
+ * reward); for a status code, only from a server that doesn't send the code again.
+ * 'cooldown': taken within its redemptionCooldownDays. 'short': the server counts
+ * fewer points (for a status code: fewer active days). 'unavailable': switched
+ * off, out of its dates or sold out. 'needs-account': the session was gone or
+ * rejected, and the phone is now signed out.
  */
 export type RedeemResult =
-  | { ok: true; code: string; url: string; simulated?: boolean }
+  | { ok: true; code: string; url: string; expires?: string; simulated?: boolean }
   | { ok: false; reason: 'network' | 'used' | 'cooldown' | 'short' | 'unavailable' | 'needs-account' };
 
-/** The preview's made-up code, shaped like the real ones: UNSETLD10-, UNSETLDSHIP-, UNSETLD-. */
+/** The preview's made-up code, shaped like the real ones: UNSETLD10-XXXXXX. */
 function previewCode(tier: RewardTier): string {
-  const kind = tier.type === 'discount' && tier.percent ? String(tier.percent) : tier.type === 'free-shipping' ? 'SHIP' : '';
-  return `UNSETLD${kind}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  return `UNSETLD${tier.percent ?? ''}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
 /**
- * Trades points for a reward. The server recounts points from its own proof
- * days, checks the tier against its own config (dates, inventory, per
- * collection, one-time, cooldown, minimum purchase), mints the code and
- * returns it with the URL that applies it.
+ * The status tier a reward stands for, when it's one (core/rewards statusReward: no points,
+ * one time only): from the config's status list, else the built-in tiers.
+ */
+function statusFor(tier: RewardTier): StatusTier | null {
+  if (tier.points !== 0 || !tier.oneTimeOnly) return null;
+  const remote = useApp.getState().remote.status ?? [];
+  return remote.find(t => t.id === tier.id) ?? STATUS_DEFAULTS.find(t => t.id === tier.id) ?? null;
+}
+
+/**
+ * Trades points for a reward, or takes a status code. For points, the server
+ * recounts them from its own proof days; for a status code (`kind: 'status'`) it
+ * counts the user's active days itself. Either way it checks the tier against its
+ * own config (dates, inventory, per collection, one-time, cooldown, minimum
+ * purchase), mints the code and returns it with the URL that applies it. A status
+ * code the user already took comes back again rather than as 'used' (one per
+ * person, ever, so a reply lost to the timeout must not lose the code).
  * The browser preview simulates it.
  */
 export async function redeem(tier: RewardTier): Promise<RedeemResult> {
   if (IS_PREVIEW && Platform.OS === 'web') return { ok: true, code: previewCode(tier), url: AppConfig.storeUrl, simulated: true };
   // The server checks the tier against its own config; these are sent so it can log a mismatch.
-  const body = { rewardId: tier.id, points: tier.points, type: tier.type, percent: tier.percent ?? null, minimumPurchase: tier.minimumPurchase ?? null };
-  const res = await post<{ code?: string; url?: string; error?: string }>('redeem', body);
+  const status = statusFor(tier);
+  const body = status
+    ? { rewardId: tier.id, kind: 'status', day: status.day, percent: status.percent, maxOff: status.maxOff ?? null, codeValidDays: status.codeValidDays }
+    : { rewardId: tier.id, points: tier.points, type: tier.type, percent: tier.percent ?? null, minimumPurchase: tier.minimumPurchase ?? null };
+  const res = await post<{ code?: string; url?: string; expires?: string; error?: string }>('redeem', body);
   if (res === 'signed-out') return { ok: false, reason: 'needs-account' };
-  if (res?.code && res.url) return { ok: true, code: res.code, url: res.url };
+  if (res?.code && res.url) return { ok: true, code: res.code, url: res.url, ...(typeof res.expires === 'string' ? { expires: res.expires } : {}) };
   if (res?.error === 'used' || res?.error === 'cooldown' || res?.error === 'short' || res?.error === 'unavailable') return { ok: false, reason: res.error };
-  return { ok: false, reason: 'network' };
-}
-
-/**
- * Claims a milestone (patch, early access, the 365 piece) and returns the store URL.
- * Preview builds simulate the claim and open the store front.
- */
-export async function claim(perk: Perk): Promise<ClaimResult> {
-  if (IS_PREVIEW && Platform.OS === 'web') return { ok: true, url: AppConfig.storeUrl, simulated: true };
-  const res = await post<{ url?: string; error?: string }>('claim', { perk });
-  if (res === 'signed-out') return { ok: false, reason: 'needs-account' };
-  if (res?.url) return { ok: true, url: res.url };
-  if (res?.error === 'paused' || res?.error === 'used') return { ok: false, reason: res.error };
   return { ok: false, reason: 'network' };
 }
 

@@ -134,18 +134,18 @@ Rewards
 380 points
 NEXT REWARD
 10% off                 [meter]  380 / 600 · 220 points left
-UP NEXT   1,000  15% off     2,000  Special reward
+UP NEXT   1,000  15% off
 All rewards  →   Reward history  →   How points work  →
-UNSETLD STATUS  12 active days · Next: Early access at 7  →
+UNSETLD STATUS  Next: 15% off at 30 days  [meter]  29 / 30 days proven  →
 ```
 
-- **Point rewards** (spent with points: discounts) and **UNSETLD status** (earned by active days: early access, the patch, the 365 piece) are separate. Status is a card linking to Status.
+- **Point rewards** (spent with points: discounts) and **UNSETLD status** (earned by days proven: one discount code per tier, once per person; 10% off at 7, 15% at 30, 20% at 90, 25% at 365) are separate. Status is a card linking to Status: "10% off is ready" when a status code is reached and not taken, else the next tier with its meter, else "Every status reward earned". Every reward is a discount.
 - When a reward is ready: the next-reward card says "Ready" with `Get the code` (existing redeem flow, Account sign-in if needed).
 - No paragraphs of rules on the main page; HowPoints holds them. HowPoints also says, whether rewards are on or off, that each mission's points count as XP toward its area's level on Progress.
 - **Rewards off** (`accessEnabled` false, the iOS default until unsetld.com's backend exists): no Rewards tab, so no near-empty page and no promise of rewards later. The one exception is a code the user already took that still works: then the tab stays with the points, "Rewards aren't open. Points still count toward your area levels on Progress.", Reward history (every code, copyable) and How points work. Reward history lists codes whether rewards are on or off.
 - All values come from configuration: `content/rewards.json` and `content/milestones.json` as defaults, unsetld.com's `config.json` (`rewards`, `status`) as the override. Reward fields: `points` (pointsRequired), `type` (rewardType), `percent` (discountPercent), `maxOff` (maxDiscount), `minimumPurchase`, `redemptionCooldownDays`, `oneTimeOnly`, `active`, `inventory`, `availableFrom`/`availableUntil` (startDate/endDate), `codeValidDays`, `perCollection`. unsetld.com's config may also use the alias names (the built-in JSON files use the canonical ones; the validator enforces it). UI components never hardcode thresholds or prices.
 - A tier with `active: false` is not listed anywhere (nothing is promised that can't be had); one outside its dates or sold out shows as Not available in All rewards.
-- Status tiers: `id`, `title`, `day` (or `activeDays`), `active`. `active: false` hides a tier. The app's own ids (`early-access`, `patch`, `piece-365`) keep their action, pause and letter; any other id the config sends is display only (a page, no button, no letter). Early-access drop alerts follow the configured day.
+- Status tiers: `id`, `title`, `day` (or `activeDays`), `percent` (or `discountPercent`), `maxOff`, `codeValidDays`, `short`, `detail`, `active`. `active: false` hides a tier. No id is special: every tier is a discount code taken through the same redeem flow as a points reward, for no points (docs/ACCESS.md). The Status page lists the tiers in day order (serif day number, "days proven", the discount and its cap; Ready → `Get the code`, Taken → the code and when it runs out, Locked → "12 days to go" with a quiet meter on the next tier); a tier's page (`Milestone`) is the same, larger; the status letter says "7 DAYS PROVEN." / "10% off is yours." with `Get the code` and `Not now`. Drop alerts are a plain opt-in heads-up 24 hours before a drop, from You.
 
 ## 10. Plans
 

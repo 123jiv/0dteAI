@@ -628,18 +628,18 @@ describe('old or damaged records', () => {
 
 describe('rewards', () => {
   const tiers: RewardTier[] = [
-    { id: 'ship', title: 'Free shipping', detail: '', type: 'free-shipping', points: 300, active: true, codeValidDays: 30, perCollection: 1 },
+    { id: 'five', title: '5% off', detail: '', type: 'discount', points: 300, percent: 5, maxOff: 25, active: true, codeValidDays: 30, perCollection: 1 },
     { id: 'ten', title: '10% off', detail: '', type: 'discount', points: 600, percent: 10, maxOff: 25, active: true, codeValidDays: 30, perCollection: 1 },
-    { id: 'off', title: 'Off', detail: '', type: 'limited', points: 100, active: false, codeValidDays: 30, perCollection: 1 },
-    { id: 'gone', title: 'Gone', detail: '', type: 'limited', points: 100, active: true, inventory: 0, codeValidDays: 30, perCollection: 1 },
-    { id: 'later', title: 'Later', detail: '', type: 'drop', points: 100, active: true, availableFrom: '2027-01-01', codeValidDays: 30, perCollection: 1 },
+    { id: 'off', title: 'Off', detail: '', type: 'discount', points: 100, percent: 20, active: false, codeValidDays: 30, perCollection: 1 },
+    { id: 'gone', title: 'Gone', detail: '', type: 'discount', points: 100, percent: 20, active: true, inventory: 0, codeValidDays: 30, perCollection: 1 },
+    { id: 'later', title: 'Later', detail: '', type: 'discount', points: 100, percent: 20, active: true, availableFrom: '2027-01-01', codeValidDays: 30, perCollection: 1 },
   ];
   const r450: RecordState = { ...emptyRecord(), legacyPoints: 450 };
   it('shows how close the next reward is', () => {
     const r250: RecordState = { ...emptyRecord(), legacyPoints: 250 };
-    expect(nextReward(r250, tiers, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, have: 250, need: 50, ready: false });
-    // Free shipping is in reach at 450: that's the news, not the 150 left to 10% off.
-    expect(nextReward(r450, tiers, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, have: 450, need: 0, ready: true });
+    expect(nextReward(r250, tiers, '004', '2026-10-09')).toMatchObject({ tier: { id: 'five' }, have: 250, need: 50, ready: false });
+    // 5% off is in reach at 450: that's the news, not the 150 left to 10% off.
+    expect(nextReward(r450, tiers, '004', '2026-10-09')).toMatchObject({ tier: { id: 'five' }, have: 450, need: 0, ready: true });
     expect(rewardStatus(r450, tiers[0], '004', '2026-10-09')).toBe('ready');
     for (const t of tiers.slice(2)) expect(isAvailable(t, '2026-10-09')).toBe(false);
   });
@@ -654,11 +654,11 @@ describe('rewards', () => {
     // Same price: the bigger discount.
     const twelve: RewardTier = { ...tiers[1], id: 'twelve', percent: 12 };
     expect(nextReward(r700, [tiers[1], twelve], '004', '2026-10-09')!.tier.id).toBe('twelve');
-    // 15% off taken leaves 200: nothing is in reach, so the cheapest one out of reach (shipping) is next.
+    // 15% off taken leaves 200: nothing is in reach, so the cheapest one out of reach (5% off) is next.
     const took = redeem(r1200, fifteen, '004', '2026-10-09', { code: 'C', url: 'u' });
-    expect(nextReward(took, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, have: 200, need: 100, ready: false });
+    expect(nextReward(took, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'five' }, have: 200, need: 100, ready: false });
     const both = redeem({ ...took, legacyPoints: 2000 }, tiers[1], '004', '2026-10-09', { code: 'D', url: 'u' });
-    expect(nextReward(both, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, ready: true });
+    expect(nextReward(both, all, '004', '2026-10-09')).toMatchObject({ tier: { id: 'five' }, ready: true });
     const none = redeem(both, tiers[0], '004', '2026-10-09', { code: 'E', url: 'u' });
     expect(nextReward(none, all, '004', '2026-10-09')).toBeNull();
   });
@@ -669,11 +669,11 @@ describe('rewards', () => {
     expect(takenThisCollection(r, tiers[1], '004')).toBe(1);
     expect(rewardStatus(r, tiers[1], '004', '2026-10-09')).toBe('used');
     expect(rewardStatus(r, tiers[1], '005', '2026-10-09')).toBe('ready');
-    // No percent, or another percent: untouched.
+    // Another percent: untouched.
     expect(rewardStatus(r, tiers[0], '004', '2026-10-09')).toBe('ready');
     const fifteen: RewardTier = { ...tiers[1], id: 'fifteen', points: 1000, percent: 15 };
     expect(rewardStatus(r, fifteen, '004', '2026-10-09')).toBe('ready');
-    expect(nextReward(r, [tiers[0], tiers[1]], '004', '2026-10-09')).toMatchObject({ tier: { id: 'ship' }, ready: true });
+    expect(nextReward(r, [tiers[0], tiers[1]], '004', '2026-10-09')).toMatchObject({ tier: { id: 'five' }, ready: true });
     // Two allowed per collection: one 2.x code leaves one.
     const twice: RewardTier = { ...tiers[1], perCollection: 2 };
     expect(rewardStatus(r, twice, '004', '2026-10-09')).toBe('ready');
@@ -685,7 +685,7 @@ describe('rewards', () => {
   it('spends points once per collection and takes the server list when there is one', () => {
     const r = redeem(r450, tiers[0], '004', '2026-10-09', { code: 'C', url: 'u' });
     expect(balance(r)).toBe(150);
-    expect(r.redemptions[0]).toMatchObject({ rewardId: 'ship', expires: '2026-11-08' });
+    expect(r.redemptions[0]).toMatchObject({ rewardId: 'five', expires: '2026-11-08' });
     expect(rewardStatus(r, tiers[0], '004', '2026-10-09')).toBe('used');
     expect(rewardStatus(r, tiers[0], '005', '2026-10-09')).toBe('short');
     expect(effectiveTiers(tiers, null)).toHaveLength(5);

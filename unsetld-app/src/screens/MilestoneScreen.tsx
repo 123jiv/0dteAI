@@ -1,156 +1,133 @@
-import { useEffect, useState } from 'react';
-import { Linking, View, type StyleProp, type ViewStyle } from 'react-native';
-import { REOPEN_AFTER } from '../core/record';
-import { isKnownStatus, statusAccess, statusState } from '../core/rewards';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import { statusReward, statusState } from '../core/rewards';
 import { DOCS } from '../content';
 import { REWARDS_COPY } from '../content/copy/rewards';
 import type { RootProps } from '../navigation/types';
-import { STATUS_DEFAULTS } from '../services/access';
-import { useDrops } from '../state/lifecycle';
+import { openStore } from '../services/access';
 import { useAccessEnabled, useApp } from '../state/store';
 import { Card, Meter } from '../ui/blocks';
-import { Button, InlineLink, NavRow, Screen, TextButton } from '../ui/kit';
+import { Button, NavRow, Screen, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C, GAP } from '../ui/tokens';
-import { useAnnounce } from '../ui/useAnnounce';
-import { accessDays, accessRecord, earlyDrop, enableDropAlerts, findStatus, nextDropChange, runMilestoneAction, statusTiers, useStatusTiers, type ActionResult } from './access';
-import { LINING } from './rewards/redeem';
-import { statusStateText } from './rewards/StatusScreen';
+import { accessDays, findStatus, useStatusTiers } from './access';
+import { LINING, RedeemNote, useRedeem } from './rewards/redeem';
+import { statusStateText, TakenCode } from './rewards/StatusScreen';
 
 const R = REWARDS_COPY;
-
-/** No line for 'used': only the patch can be used, and its status then reads Used. */
-export function errorText(r: ActionResult): string | null {
-  if (r === 'paused') {
-    const s = useApp.getState();
-    return R.milestone.pausedError(Math.max(1, REOPEN_AFTER - statusAccess(accessRecord(s.record), s.currentDay, statusTiers(s.remote.status)).reopenProgress));
-  }
-  if (r === 'network') return R.milestone.networkError;
-  if (r === 'notifications-off') return R.milestone.notificationsOff;
-  return null;
-}
-
-/** The error under an action, with Open Settings when notifications are off. */
-export function ActionError({ result, style }: { result: ActionResult | null; style?: StyleProp<ViewStyle> }) {
-  const text = result ? errorText(result) : null;
-  // VoiceOver on iOS reads no live region: the error is said as it shows.
-  useAnnounce(text);
-  if (!text) return null;
-  return (
-    <View style={[{ gap: 4 }, style]}>
-      <T v="note" color={C.stone} accessibilityLiveRegion="polite">
-        {text}
-      </T>
-      {result === 'notifications-off' ? (
-        <InlineLink title={R.milestone.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
-      ) : null}
-    </View>
-  );
-}
+const S = R.status;
 
 /**
- * One UNSETLD status tier: what it is, where it stands, and one action when there is one
- * (early access: drop alerts, or the drop that's open early now; the patch and the 365
- * piece: claim at unsetld.com). Its days are active days, the days a mission was proven.
- * A tier the app doesn't know (added in the status config) is shown without an action.
+ * One UNSETLD status tier (route Milestone {id}): the same as its row on Status, larger, with
+ * its full detail and Get the code. Opened from the status letter. A tier shows while it's in
+ * effect, or once its code was taken (an old link to a tier the config has since switched off
+ * still finds the code); any other id falls back to the Status page.
  */
 export function MilestoneScreen({ navigation, route }: RootProps<'Milestone'>) {
   const tiers = useStatusTiers();
-  // An id that isn't a tier (an old link) falls back to the first one rather than crashing.
-  const m = findStatus(tiers, route.params?.id ?? '') ?? tiers[0] ?? STATUS_DEFAULTS[0];
-  const known = isKnownStatus(m.id) ? m.id : null;
   const record = useApp(s => s.record);
   const day = useApp(s => s.currentDay);
   const signedIn = useApp(s => Boolean(s.account.userId));
-  const dropAlerts = useApp(s => s.settings.dropAlerts);
-  const drops = useDrops(s => s.drops);
   const accessEnabled = useAccessEnabled();
-  const [result, setResult] = useState<ActionResult | null>(null);
-  const [busy, setBusy] = useState(false);
-  const ar = accessRecord(record);
-  const status = statusState(ar, m, day);
-  const proven = accessDays(record);
+  const { busy, noteFor, take, sheet } = useRedeem(() => navigation.navigate('Account'));
 
-  // Real time for the drop windows, moved on when one opens or closes while this page is up.
-  const [now, setNow] = useState(() => Date.now());
+  const found = findStatus(tiers, route.params?.id ?? '');
+  const state = found ? statusState(record, found, day) : null;
+  const t = found && state && (state.kind === 'taken' || tiers.some(x => x.id === found.id)) ? found : null;
   useEffect(() => {
-    const next = nextDropChange(drops, now);
-    if (next === null) return;
-    const timer = setTimeout(() => setNow(Date.now()), Math.min(Math.max(0, next - Date.now() + 500), 2 ** 31 - 1));
-    return () => clearTimeout(timer);
-  }, [drops, now]);
+    if (!t) navigation.replace('Status');
+  }, [t, navigation]);
+  if (!t || !state) return <View style={{ flex: 1, backgroundColor: C.ink }} />;
 
-  // Early access opens the drop that's open early now; with none, it turns on
-  // drop alerts (until they're on). Claims need an account. Display-only tiers have no action,
-  // and neither does a tier the status config switched off (an old link or alert still opens it).
-  const inEffect = tiers.some(t => t.id === m.id);
-  const drop = known === 'early-access' && accessEnabled && inEffect ? earlyDrop(drops, now) : null;
-  const claims = known !== 'early-access' || drop !== null;
-  const showAction = known !== null && inEffect && Boolean(m.action) && status.kind === 'open' && (claims || !dropAlerts);
-  const needsAccount = claims && !signedIn;
-
-  const act = async () => {
-    if (!known) return;
-    if (needsAccount) return navigation.navigate('Account');
-    setBusy(true);
-    setResult(null);
-    let r: ActionResult;
-    try {
-      r = claims ? await runMilestoneAction(known) : await enableDropAlerts();
-    } catch {
-      r = 'network';
-    } finally {
-      setBusy(false);
-    }
-    if (r === 'needs-account') navigation.navigate('Account');
-    else setResult(r);
-  };
+  const n = accessDays(record);
+  const word = statusStateText(state);
 
   return (
-    <Screen nav={<NavRow onBack={() => navigation.goBack()} />}>
-      <View style={{ marginTop: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-        <T v="kicker" color={C.stone}>
-          {R.status.tierKicker(m.day)}
-        </T>
-        <T v="meta" color={status.kind === 'open' ? C.bone : C.stone}>
-          {statusStateText(status, m)}
-        </T>
-      </View>
-      <T v="title.xl" style={[LINING, { marginTop: 12 }]} accessibilityRole="header">
-        {m.title}
-      </T>
-      {m.detail ? (
-        <T v="body" color={C.muted} style={{ marginTop: 16 }}>
-          {m.detail}
-        </T>
-      ) : null}
-      {status.kind === 'locked' ? (
-        <Card style={{ marginTop: GAP.block }}>
-          <View accessible accessibilityLabel={R.milestone.progressA11y(proven, m.day)}>
-            <Meter value={proven} max={m.day} />
-            <T v="meta" color={C.stone} style={{ marginTop: 10 }}>
-              {R.milestone.progress(proven, m.day)}
+    <View style={{ flex: 1, backgroundColor: C.ink }}>
+      <Screen nav={<NavRow onBack={() => navigation.goBack()} />}>
+        <View style={{ marginTop: 24, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10 }} accessible accessibilityLabel={S.daysA11y(t.day)}>
+            <T v="stat" style={LINING}>
+              {String(t.day)}
+            </T>
+            <T v="meta" color={C.stone}>
+              {S.tierUnit(t.day)}
             </T>
           </View>
-        </Card>
-      ) : null}
-      {status.kind === 'paused' ? (
-        <T v="note" color={C.stone} style={{ marginTop: 16 }}>
-          {R.status.pausedNote(Math.max(1, REOPEN_AFTER - statusAccess(ar, day, tiers).reopenProgress))}
-        </T>
-      ) : null}
-      {showAction ? (
-        <View style={{ marginTop: 32, gap: 12 }}>
-          {needsAccount ? (
-            <T v="note" color={C.stone}>
-              {R.milestone.signInNote}
-            </T>
-          ) : null}
-          <Button title={drop ? R.milestone.openDrop(drop.collection) : (m.action ?? '')} onPress={act} disabled={busy} />
-          <ActionError result={result} />
+          <T v="meta" color={state.kind === 'ready' ? C.bone : C.stone}>
+            {word}
+          </T>
         </View>
-      ) : null}
-      <TextButton title={DOCS.access.title} align="left" onPress={() => navigation.navigate('Doc', { id: 'access' })} style={{ marginTop: 16 }} />
-    </Screen>
+        <T v="title.xl" style={[LINING, { marginTop: 14 }]} accessibilityRole="header">
+          {t.title}
+        </T>
+        <T v="body" color={C.stone} style={{ marginTop: 8 }}>
+          {S.cap(t)}
+        </T>
+        {t.detail ? (
+          <T v="body" color={C.muted} style={{ marginTop: 20 }}>
+            {t.detail}
+          </T>
+        ) : null}
+
+        {state.kind === 'ready' ? (
+          accessEnabled ? (
+            <View style={{ marginTop: GAP.section }}>
+              <Button title={R.getCode} onPress={() => take(statusReward(t))} disabled={busy !== null} accessibilityLabel={`${R.getCode}: ${t.title}`} />
+              {!signedIn ? (
+                <T v="note" color={C.stone} style={{ marginTop: 10 }}>
+                  {R.signInNote}
+                </T>
+              ) : null}
+              <RedeemNote text={noteFor(t.id)} />
+            </View>
+          ) : (
+            <T v="small" color={C.stone} style={{ marginTop: GAP.block }}>
+              {R.off}
+            </T>
+          )
+        ) : state.kind === 'taken' && state.code ? (
+          <>
+            <Card style={{ marginTop: GAP.block }}>
+              <T v="kicker" color={C.stone}>
+                {R.codeLabel}
+              </T>
+              <View style={{ marginTop: 10 }}>
+                <TakenCode code={state.code} today={day} large />
+              </View>
+            </Card>
+            {day <= state.code.expires ? (
+              <>
+                <T v="note" color={C.stone} style={{ marginTop: 10 }}>
+                  {R.milestone.oneOrder}
+                </T>
+                <Button title={R.use} onPress={() => openStore(state.code?.url)} style={{ marginTop: GAP.block }} />
+              </>
+            ) : null}
+          </>
+        ) : state.kind === 'taken' ? (
+          <T v="note" color={C.stone} style={{ marginTop: GAP.block }}>
+            {S.takenElsewhere}
+          </T>
+        ) : state.kind === 'locked' ? (
+          <Card style={{ marginTop: GAP.block }}>
+            <View accessible accessibilityLabel={`${S.progressA11y(n, t.day)}. ${word}`}>
+              <Meter value={n} max={t.day} />
+              <View style={{ marginTop: 10, flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
+                <T v="meta" color={C.stone}>
+                  {S.progress(n, t.day)}
+                </T>
+                <T v="meta" color={C.stone}>
+                  {word}
+                </T>
+              </View>
+            </View>
+          </Card>
+        ) : null}
+
+        <TextButton title={DOCS.access.title} align="left" onPress={() => navigation.navigate('Doc', { id: 'access' })} style={{ marginTop: GAP.block }} />
+      </Screen>
+      {sheet}
+    </View>
   );
 }

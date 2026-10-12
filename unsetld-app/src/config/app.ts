@@ -20,7 +20,7 @@ export const AppConfig = {
   timeCheckUrl: 'https://www.unsetld.com',
   /** { accessEnabled, collection, collectionName } */
   configUrl: 'https://www.unsetld.com/api/app/config.json',
-  /** { drops: [{ id, collection, publicAt, earlyAt }] } */
+  /** { drops: [{ id, collection, publicAt }] }: drop alerts, a heads-up 24 hours before publicAt. */
   dropsUrl: 'https://www.unsetld.com/api/app/drops.json',
   apiBase: 'https://www.unsetld.com/api/app',
   privacyUrl: 'https://www.unsetld.com/pages/app-privacy',
@@ -30,7 +30,7 @@ export const AppConfig = {
   contactEmail: 'unsetldclothing@gmail.com',
 
   /**
-   * Access stays hidden until unsetld.com's config says it's on (the claim
+   * Access stays hidden until unsetld.com's config says it's on (the redeem
    * backend has to exist first). The browser preview simulates it so the
    * whole product can be seen.
    */

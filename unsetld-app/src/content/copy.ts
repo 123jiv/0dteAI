@@ -1,5 +1,6 @@
-// Shared strings: the wordmark, the first screen, letters, the account page and a few
-// accessibility labels. Each 3.0 screen group keeps its own strings in copy/<group>.ts.
+// Shared strings: the wordmark, the first screen, the account page and a few accessibility
+// labels. Each 3.0 screen group keeps its own strings in copy/<group>.ts (the status letter's
+// are in copy/rewards.ts).
 // Sentence case, no exclamation marks. Straight quotes here become typographic at display time.
 
 export const COPY = {
@@ -20,13 +21,6 @@ export const COPY = {
       close: 'Close',
       back: 'Back',
     },
-  },
-  letter: {
-    dayLabel: (d: number) => `DAY ${String(d).padStart(3, '0')}`,
-    dayTitle: (d: number) => `Day ${d}.`,
-    comebackSub: "You came back. That's the part that counts.",
-    comebackBody: 'Early access is open again.',
-    close: 'Close',
   },
   account: {
     title: 'Account',

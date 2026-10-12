@@ -27,14 +27,14 @@ import { learnFrom, mondayOf } from '../core/personalize';
 import { programMissions, programProgress, startProgram as startProgramCore } from '../core/programs';
 import { clearPhotos, oldestPhotos, photosToClear, photoUris } from '../core/proofs';
 import { activeDays } from '../core/progress';
-import { balance, redeem } from '../core/rewards';
+import { balance, effectiveStatus, parseRewards, parseStatus, redeem, statusFromMilestones } from '../core/rewards';
 import { computeStreak } from '../core/streak';
 import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as startCore, type FocusTimer } from '../core/timer';
-import { claimPatch, emptyRecord, markLetterShown, type Letter } from '../core/record';
+import { emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
 import type { ChapterId, Colorway, DayPlan, Mission, Profile, Program, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, SwapReason, TrackId, Verification, WeeklyFocus } from '../core/types';
-import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
+import { COLORWAY_BY_ID, COLORWAYS, MILESTONES, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
 import { deletePhoto, webPhotoKeys } from '../services/proof';
@@ -153,8 +153,8 @@ interface State {
   signIn: (a: Account) => void;
   signOut: () => void;
   setRemote: (r: Partial<Remote>) => void;
+  /** A status letter was seen: it, and every lower tier's letter in effect, won't come again. */
   letterShown: (l: Letter) => void;
-  claimPatch: () => void;
   markAccessIntro: () => void;
   markRoad: (n: number) => void;
   setPreviewColorway: (id: string | null) => void;
@@ -183,7 +183,11 @@ interface State {
   cancelTimer: () => void;
   setPendingBefore: (p: PendingBefore | null) => void;
   completeMission: (missionId: string, photos: ProofPhoto[], verification: Verification, opts: { verifiedClock: boolean; timerSeconds?: number }) => MissionResult;
-  redeemReward: (tier: RewardTier, minted: { code: string; url: string }) => void;
+  /**
+   * Records a code taken (core/rewards redeem): its last day is the server's `expires` when it
+   * sent one. `code: ''` marks a status tier taken whose code never reached this phone.
+   */
+  redeemReward: (tier: RewardTier, minted: { code: string; url: string; expires?: string }) => void;
   startProgram: (id: string) => void;
   leaveProgram: () => void;
   markReviewSeen: (weekStart: DayKey) => void;
@@ -213,6 +217,12 @@ const EMPTY_READING: Reading = {
   accessIntroShown: false,
   road: 0,
 };
+
+/**
+ * The built-in status tiers (content/milestones.json), for the letters' lower tiers: the same
+ * list as services/access STATUS_DEFAULTS, which imports this store.
+ */
+const STATUS_BUILT_IN = statusFromMilestones(MILESTONES);
 
 export const useApp = create<State>()(
   persist(
@@ -489,8 +499,7 @@ export const useApp = create<State>()(
       signOut: () => set({ account: { userId: null, email: null } }),
       setRemote: r => set(s => ({ remote: { ...s.remote, ...r } })),
 
-      letterShown: l => set(s => ({ record: markLetterShown(s.record, l) })),
-      claimPatch: () => set(s => ({ record: claimPatch(s.record, today()) })),
+      letterShown: l => set(s => ({ record: markLetterShown(s.record, l, effectiveStatus(STATUS_BUILT_IN, s.remote.status)) })),
       markAccessIntro: () => set(s => ({ reading: { ...s.reading, accessIntroShown: true } })),
       markRoad: n => {
         if (get().reading.road !== n) set(s => ({ reading: { ...s.reading, road: n } }));
@@ -562,6 +571,10 @@ export const useApp = create<State>()(
           ...p,
           settings: known(DEFAULT_SETTINGS, p.settings),
           reading: known(EMPTY_READING, p.reading),
+          // A status list saved by an earlier build (early access, the patch) isn't a list of
+          // discount codes, and a saved reward list may hold a tier that isn't a discount: read
+          // both again like a new config, so what's left over falls back to the built-in tiers.
+          remote: { ...current.remote, ...p.remote, rewards: parseRewards(p.remote?.rewards), status: parseStatus(p.remote?.status) },
           record: { ...emptyRecord(), ...p.record },
           profile: { ...DEFAULT_PROFILE, ...p.profile },
         };

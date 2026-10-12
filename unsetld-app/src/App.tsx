@@ -15,10 +15,9 @@ import { newNonce } from './navigation/nonce';
 import { RootNavigator } from './navigation/RootNavigator';
 import type { RootParams } from './navigation/types';
 import { today } from './services/clock';
-import { takeEarlyDropTap } from './services/notifications';
 import { useIntent, type Intent } from './state/intents';
 import { useBootstrap, useSideEffects } from './state/lifecycle';
-import { useAccessEnabled, useApp } from './state/store';
+import { useApp } from './state/store';
 import { ActionHost } from './ui/actions';
 import { PhoneFrame } from './ui/PhoneFrame';
 import { color as C } from './ui/tokens';
@@ -44,20 +43,16 @@ function openMission(intent: Intent): string | null {
 function useIntents(ready: boolean) {
   const intent = useIntent(s => s.intent);
   const nonce = useIntent(s => s.nonce);
-  const accessEnabled = useAccessEnabled();
   useEffect(() => {
     if (!intent || !ready || !navigationRef.isReady()) return;
     useIntent.getState().clear();
-    const earlyDrop = takeEarlyDropTap();
     if (!useApp.getState().settings.onboarded) return;
     // Every intent starts from Today, with whatever was open on top of it closed.
     navigationRef.dispatch(StackActions.popTo('Main', { screen: 'Today', params: { nonce: newNonce() } }));
     const missionId = openMission(intent);
     if (intent.kind === 'record') navigationRef.navigate('Main', { screen: 'Record' });
     else if (missionId) navigationRef.navigate('Mission', { missionId });
-    // An early drop alert opens the early-access page, where the drop opens.
-    else if (earlyDrop && accessEnabled) navigationRef.navigate('Milestone', { id: 'early-access' });
-  }, [intent, nonce, ready, accessEnabled]);
+  }, [intent, nonce, ready]);
 }
 
 function Shell() {

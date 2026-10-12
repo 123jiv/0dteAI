@@ -225,7 +225,7 @@ export function YouScreen({ navigation }: TabProps<'You'>) {
           onPress={() => navigation.navigate('Plans')}
         />
         <LinkRow title={S.reminders} detail={reminders} onPress={() => navigation.navigate('Day', { edit: true })} />
-        {/* Drops only matter once rewards and access are on; someone who turned alerts on can always turn them off. */}
+        {/* Drop alerts (a heads-up before each drop) show while rewards are on; someone who turned them on can always turn them off. */}
         {accessEnabled || settings.dropAlerts ? (
           <ToggleRow title={S.dropAlerts} detail={S.dropNote} value={settings.dropAlerts} onChange={setDropAlerts} />
         ) : null}

@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cooldownEnds, nextStatus, pointsEarned, rewardStatus, statusAccess, upNext } from '../../core/rewards';
+import { cooldownEnds, nextStatus, pointsEarned, rewardStatus, statusState, upNext } from '../../core/rewards';
 import { shortDate } from '../../core/time';
 import type { RewardTier } from '../../core/types';
 import { REWARDS_COPY } from '../../content/copy/rewards';
@@ -12,7 +12,7 @@ import { Icon } from '../../ui/icons';
 import { Button, Screen } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP } from '../../ui/tokens';
-import { accessDays, accessRecord, useStatusTiers } from '../access';
+import { accessDays, useStatusTiers } from '../access';
 import { codeCount } from './codes';
 import { LINING, RedeemNote, useRedeem } from './redeem';
 
@@ -32,8 +32,9 @@ function nothingOpenText(statuses: { tier: RewardTier; status: ReturnType<typeof
 /**
  * Rewards (docs/UX_REDESIGN.md section 9): points, the next reward with its meter (and
  * "Get the code" once it's ready), the two after it, links to every reward, your codes and
- * how points work, and a separate UNSETLD status card. No rules on this page: How points
- * work holds them. With rewards switched off (accessEnabled false) the tab only shows while a
+ * how points work, and a separate UNSETLD status card (a status code ready to take, else the
+ * next tier and its meter, else every one earned), which opens Status. No rules on this page:
+ * How points work holds them. With rewards switched off (accessEnabled false) the tab only shows while a
  * code taken still works (RootNavigator): then the points, your codes and how points are
  * earned.
  */
@@ -54,11 +55,16 @@ export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
   const codes = codeCount(record);
   const later = next ? upNext(record, tiers, collection, day, next.tier) : [];
 
-  // Status counts active days on the record as Access sees it.
-  const ar = accessRecord(record);
+  // Status counts days proven. A code reached and not taken comes first (the highest, when
+  // there are more); then the next tier; with neither, every status reward has been earned.
   const activeN = accessDays(record);
+  const readyTier = [...status].reverse().find(t => statusState(record, t, day).kind === 'ready') ?? null;
   const nextTier = nextStatus(activeN, status);
-  const paused = statusAccess(ar, day, status).paused && status.some(t => t.pausable && activeN >= t.day);
+  const statusA11y = readyTier
+    ? R.statusCard.a11yReady(readyTier.title, readyTier.day)
+    : nextTier
+      ? R.statusCard.a11y(nextTier.title, activeN, nextTier.day)
+      : R.statusCard.a11yAll(activeN);
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
@@ -161,20 +167,26 @@ export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
             </View>
 
             {status.length ? (
-              <Card
-                style={{ marginTop: GAP.block - 6 }}
-                onPress={() => navigation.navigate('Status')}
-                accessibilityLabel={nextTier ? R.statusCard.a11y(nextTier.title, activeN, nextTier.day) : R.statusCard.a11yAll(activeN)}>
+              <Card style={{ marginTop: GAP.block - 6 }} onPress={() => navigation.navigate('Status')} accessibilityLabel={statusA11y}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <T v="kicker" color={C.stone}>
                     {R.statusCard.kicker}
                   </T>
                   <Icon name="chevron-right" size={18} color={C.stone} />
                 </View>
-                {nextTier ? (
+                {readyTier ? (
+                  <>
+                    <T v="list" color={C.bone} style={[LINING, { marginTop: 8 }]}>
+                      {R.statusCard.ready(readyTier.title)}
+                    </T>
+                    <T v="meta" color={C.stone} style={{ marginTop: 6 }}>
+                      {R.statusCard.readyLine(readyTier.day)}
+                    </T>
+                  </>
+                ) : nextTier ? (
                   <>
                     <T v="list" style={[LINING, { marginTop: 8 }]}>
-                      {R.statusCard.next(nextTier.title)}
+                      {R.statusCard.next(nextTier.title, nextTier.day)}
                     </T>
                     <View style={{ marginTop: 14 }}>
                       <Meter value={activeN} max={nextTier.day} />
@@ -186,18 +198,13 @@ export function RewardsScreen({ navigation }: TabProps<'Rewards'>) {
                 ) : (
                   <>
                     <T v="list" style={{ marginTop: 8 }}>
-                      {R.statusCard.allReachedTitle}
+                      {R.statusCard.allTaken}
                     </T>
                     <T v="meta" color={C.stone} style={{ marginTop: 6 }}>
-                      {R.statusCard.allReached(activeN)}
+                      {R.statusCard.allTakenLine(activeN)}
                     </T>
                   </>
                 )}
-                {paused ? (
-                  <T v="meta" color={C.stone} style={{ marginTop: 4 }}>
-                    {R.statusCard.paused}
-                  </T>
-                ) : null}
               </Card>
             ) : null}
           </>

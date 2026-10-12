@@ -64,7 +64,7 @@ export type RootParams = {
   Doc: { id: DocId };
   /** The same page presented as a sheet (from the paywall, which is itself a modal). */
   DocSheet: { id: DocId };
-  /** A status tier's page: one of the app's own (MilestoneId) or a display-only tier from the config. */
+  /** A status tier's page, by its id ('status-7' …, or one from the status config). */
   Milestone: { id: string };
   Letter: { letter: Letter };
   DevTools: undefined;

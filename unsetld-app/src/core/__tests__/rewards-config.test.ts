@@ -25,12 +25,13 @@ describe("unsetld.com's reward config", () => {
   });
 
   it('fills what the server leaves out with the defaults from content/rewards.json', () => {
-    expect(parseRewardTier({ id: ' ship ', title: ' Free shipping ', type: 'free-shipping', points: 300 })).toEqual({
-      id: 'ship',
-      title: 'Free shipping',
+    expect(parseRewardTier({ id: ' five-off ', title: ' 5% off ', type: 'discount', points: 300, percent: 5 })).toEqual({
+      id: 'five-off',
+      title: '5% off',
       detail: '',
-      type: 'free-shipping',
+      type: 'discount',
       points: 300,
+      percent: 5,
       active: true,
       availableFrom: null,
       availableUntil: null,
@@ -67,8 +68,12 @@ describe("unsetld.com's reward config", () => {
     for (const raw of [null, undefined, 'ten-off', 600, [good]]) expect(parseRewardTier(raw)).toBeNull();
     // Out of stock is a real answer, not a bad field.
     expect(parseRewardTier({ ...good, inventory: 0 })).toMatchObject({ inventory: 0 });
-    // A non-discount may carry a sane percent, or none.
-    expect(parseRewardTier({ ...good, type: 'limited', percent: null })).not.toHaveProperty('percent');
+    // Every reward is a discount: the types of earlier builds are dropped, with or without a percent.
+    for (const type of ['free-shipping', 'limited', 'drop']) {
+      expect(parseRewardTier({ ...good, type })).toBeNull();
+      expect(parseRewardTier({ ...good, type, percent: null })).toBeNull();
+    }
+    expect(parseRewardTier({ ...good, percent: null })).toBeNull();
   });
 
   it('keeps the good tiers of a list, drops the bad ones and repeated ids (first one wins)', () => {

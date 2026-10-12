@@ -97,10 +97,11 @@ photo, Before & after) and a timer length. They can't be used to farm points (co
 
 ## 7. Rewards and status (unchanged systems, checked)
 
-Points (from proven missions) buy rewards; status comes from days shown up (7 early access,
-90 the patch, 365 the piece by default). Both stay configurable from unsetld.com (`rewards`
-and `status` config). A 30-day tier can be added there as a display-only tier without an app
-update; no new reward was invented in the app.
+Points (from proven missions) buy rewards; status comes from days shown up. Since 12 Oct 2026
+every reward is a discount: each status tier is one code, once per person (10% off at 7 days
+proven, 15% at 30, 20% at 90, 25% at 365, each up to $25 off; see docs/ACCESS.md). Both stay
+configurable from unsetld.com (`rewards` and `status` config); no other reward was invented in
+the app.
 
 ## 8. Not built (by design)
 

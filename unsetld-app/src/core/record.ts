@@ -1,16 +1,7 @@
-// The record: which days the user showed up, and what that opens.
+// The record: which days the user showed up, and the status letters already shown.
 // Pure functions over RecordState so they can be tested without React.
 import { addDays, diffDays, type DayKey } from './time';
-import type { Milestone, MilestoneId, RecordState } from './types';
-
-/** Days with nothing on record before access pauses. */
-export const PAUSE_AFTER_MISSED = 14;
-/** Days on record needed after a pause to open access again. */
-export const REOPEN_AFTER = 7;
-/** Road milestones, in order. */
-export const ROAD = [7, 90, 365] as const;
-/** Milestones that pause (early access). Matches `pausable` in milestones.json. */
-export const PAUSABLE_DAYS: readonly number[] = [7];
+import type { RecordState } from './types';
 
 export function emptyRecord(): RecordState {
   return { days: {}, nights: {}, lettersShown: [], patchClaimed: null, work: {}, codes: [], missions: {}, bonuses: {}, redemptions: [], legacyPoints: 0 };
@@ -42,107 +33,30 @@ export function dayCount(r: RecordState): number {
   return Object.keys(r.days).length;
 }
 
-export interface AccessState {
-  paused: boolean;
-  /** Days on record since the pause began (counts toward REOPEN_AFTER). */
-  reopenProgress: number;
-  /** The most recent day access reopened after a pause. */
-  lastComeback: DayKey | null;
+/**
+ * A status letter: the tier reached at `day` active days (core/rewards pendingStatusLetter).
+ * `key` is what goes into lettersShown once it's seen: 'status:<day>' (letterKey).
+ */
+export type Letter = { kind: 'status'; day: number; key: string };
+
+/**
+ * The lettersShown key for the status letter at `day` active days. New in 3.2: the earlier
+ * early-access letters used '7', '90', '365', so someone who saw one of those still hears
+ * about a status code once.
+ */
+export function letterKey(day: number): string {
+  return `status:${day}`;
 }
 
 /**
- * Walks the record: a gap of PAUSE_AFTER_MISSED or more missed days pauses
- * access; REOPEN_AFTER more days on record reopens it. The count never drops.
- * Nothing pauses before early access has opened (`opensAt` active days: 7 by
- * default, or the day unsetld.com's status config gives it), since nothing is open yet.
+ * Marks a letter shown, and every lower tier's letter with it (`tiers`: the status tiers in
+ * effect), so reaching 30 days after the 7-day letter was never shown doesn't then show it.
  */
-export function accessState(r: RecordState, today: DayKey, opensAt: number = Math.min(...PAUSABLE_DAYS)): AccessState {
-  const days = sortedDays(r);
-  let paused = false;
-  let progress = 0;
-  let lastComeback: DayKey | null = null;
-  let prev: DayKey | null = null;
-  for (let i = 0; i < days.length; i++) {
-    const d = days[i];
-    // `i` days were on record when this gap began.
-    if (prev && i >= opensAt && diffDays(prev, d) - 1 >= PAUSE_AFTER_MISSED) {
-      paused = true;
-      progress = 0;
-    }
-    if (paused) {
-      progress++;
-      if (progress >= REOPEN_AFTER) {
-        paused = false;
-        progress = 0;
-        lastComeback = d;
-      }
-    }
-    prev = d;
-  }
-  if (prev && days.length >= opensAt && prev < today && diffDays(prev, today) - 1 >= PAUSE_AFTER_MISSED) {
-    paused = true;
-    progress = 0;
-  }
-  return { paused, reopenProgress: paused ? progress : 0, lastComeback };
-}
-
-export type MilestoneStatus =
-  | { kind: 'open' }
-  | { kind: 'used' }
-  | { kind: 'paused' }
-  | { kind: 'locked'; daysLeft: number };
-
-/** Early access pauses; the patch is used once claimed; the 365 piece stays open. */
-export function milestoneStatus(r: RecordState, m: Milestone, today: DayKey): MilestoneStatus {
-  const n = dayCount(r);
-  if (n < m.day) return { kind: 'locked', daysLeft: m.day - n };
-  if (m.pausable && accessState(r, today).paused) return { kind: 'paused' };
-  if (m.id === 'patch' && r.patchClaimed) return { kind: 'used' };
-  return { kind: 'open' };
-}
-
-/** `pausable`: the milestone's tier pauses (early access), so its letter also covers the latest comeback. */
-export type Letter = { kind: 'milestone'; day: number; key: string; pausable?: boolean } | { kind: 'comeback'; day: DayKey; key: string };
-
-/** The letter to show on this open, if any. Milestones first; one at a time. */
-export function pendingLetter(r: RecordState, today: DayKey): Letter | null {
-  const n = dayCount(r);
-  const a = accessState(r, today);
-  // Only the highest reached, unseen milestone: someone restoring a long record gets one letter, not five.
-  const reached = ROAD.filter(d => n >= d);
-  const top = reached[reached.length - 1];
-  // A paused perk's letter waits for access to reopen, so it never says "open" next to PAUSED.
-  const held = a.paused && top !== undefined && PAUSABLE_DAYS.includes(top);
-  if (top && !held && !r.lettersShown.includes(String(top))) return { kind: 'milestone', day: top, key: String(top), pausable: PAUSABLE_DAYS.includes(top) };
-  // Pending until shown, not just on the day access reopened; never while paused again.
-  if (a.lastComeback && !a.paused) {
-    const key = `comeback:${a.lastComeback}`;
-    if (!r.lettersShown.includes(key)) return { kind: 'comeback', day: a.lastComeback, key };
-  }
-  return null;
-}
-
-/**
- * Marks a letter shown, and every lower milestone with it. A pausable
- * milestone's letter also covers the latest comeback: it already says access is open.
- * The letter says whether its tier pauses, so a tier the config moved keeps this; a
- * letter without the flag goes by the built-in days.
- */
-export function markLetterShown(r: RecordState, letter: Letter): RecordState {
-  const keys = new Set(r.lettersShown);
+export function markLetterShown(r: RecordState, letter: Letter, tiers: readonly { day: number }[] = []): RecordState {
+  const keys = new Set(Array.isArray(r.lettersShown) ? r.lettersShown : []);
   keys.add(letter.key);
-  if (letter.kind === 'milestone') {
-    for (const d of ROAD) if (d <= letter.day) keys.add(String(d));
-    const days = sortedDays(r);
-    // A moved early access pauses from its own day.
-    const back = days.length ? accessState(r, days[days.length - 1], letter.pausable ? letter.day : undefined).lastComeback : null;
-    if (back && (letter.pausable ?? PAUSABLE_DAYS.includes(letter.day))) keys.add(`comeback:${back}`);
-  }
+  for (const t of tiers) if (t.day < letter.day) keys.add(letterKey(t.day));
   return { ...r, lettersShown: [...keys] };
-}
-
-export function claimPatch(r: RecordState, day: DayKey): RecordState {
-  return r.patchClaimed ? r : { ...r, patchClaimed: day };
 }
 
 export interface BarcodeBar {
@@ -176,19 +90,3 @@ export function week(r: RecordState, today: DayKey): { day: DayKey; on: boolean;
     return { day: d, on: Boolean(r.days[d]), today: d === today };
   });
 }
-
-/** Walker position along the road, 0..1. Piecewise-linear over 0, 7, 90, 365. */
-export function roadPosition(n: number): number {
-  const stops = [0, ...ROAD];
-  if (n <= 0) return 0;
-  if (n >= 365) return 1;
-  for (let i = 1; i < stops.length; i++) {
-    if (n <= stops[i]) {
-      const t = (n - stops[i - 1]) / (stops[i] - stops[i - 1]);
-      return (i - 1 + t) / (stops.length - 1);
-    }
-  }
-  return 1;
-}
-
-export type { MilestoneId };

@@ -1,5 +1,7 @@
 # UNSETLD 2.1: Today (addendum to DESIGN_SPEC.md)
 
+> **3.2 note (12 Oct 2026):** every reward is a discount. Access is UNSETLD status: one discount code per tier of days proven (10% off at 7, 15% at 30, 20% at 90, 25% at 365, each up to $25 off, once per person), and drop alerts are a plain heads-up before each public drop. The early access, patch, 365 piece, pause and comeback letter described below are retired; see [ACCESS.md](ACCESS.md).
+>
 > **3.0 note (9 Oct 2026):** superseded. Today became Home with three daily missions, the task modal became the Mission screen, and the daily line, the three rules, the night check, own tasks, chapters and the 10-points-a-task scheme are retired. See [MISSIONS_SPEC.md](MISSIONS_SPEC.md). This file is kept as a record of 2.1 and 2.2.
 
 This addendum supersedes the parts of `DESIGN_SPEC.md` noted below. Everything else there (tokens, type, colorways, the walker, Record, Access, paywall layout, onboarding look, widgets) still applies.

@@ -48,22 +48,17 @@
       },
       {
         "h": "Rewards",
-        "p": "Points trade for rewards at unsetld.com, like a discount on one order. Taking one spends its points. What's on offer, what each one costs and its limits can change with each collection: Rewards shows what's open now, and All rewards shows each one with its limits.",
+        "p": "Points trade for discount codes at unsetld.com, each for one order. Taking one spends its points. What's on offer, what each one costs and its limits can change with each collection: Rewards shows what's open now, and All rewards shows each one with its limits.",
         "accessOnly": true
       },
       {
         "h": "UNSETLD status",
-        "p": "Status is separate from points: it counts the days you prove at least one mission, and spending points never lowers it. Each status tier opens at a number of those days. Status, in Rewards, shows the tiers on offer and how far you are from each.",
-        "accessOnly": true
-      },
-      {
-        "h": "Keeping it",
-        "p": "Once early access is open, if 14 days pass without a proven mission, it pauses until you prove a mission on 7 more days. Your count, points and milestones stay.",
+        "p": "Status is separate from points: it counts the days you prove at least one mission, and spending points never lowers it. Each status tier is one discount code for one order at unsetld.com, yours once you reach its number of days. Status, in Rewards, shows the tiers on offer, how far you are from each and the codes you've taken.",
         "accessOnly": true
       },
       {
         "h": "Limits",
-        "p": "One code per order. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece. Each reward's own limits, such as how many you can take each collection, the most it takes off or a minimum order, are shown with it in All rewards, and a status tier's are on its page.",
+        "p": "One code per order. Codes don't combine with other codes, including the first-order code. Each reward's own limits, such as how many you can take each collection, the most it takes off or a minimum order, are shown with it in All rewards, and a status tier's are on its page. Each status code can be taken once.",
         "accessOnly": true
       },
       {
@@ -80,7 +75,7 @@
   },
   "access": {
     "title": "Rewards and status terms",
-    "updated": "2026-10-10",
+    "updated": "2026-10-12",
     "sections": [
       {
         "h": "Who can take part",
@@ -96,19 +91,15 @@
       },
       {
         "h": "Rewards",
-        "p": "Points can be traded for the rewards shown in the app, such as a discount on one order at unsetld.com. The rewards on offer, the points each one costs, their dates and their limits (how many you can take each collection, the most a code takes off, any minimum order and how long a code works) are shown in the app and may change with each collection. Codes are single use and only valid at unsetld.com."
+        "p": "Points can be traded for the discount codes shown in the app, each for one order at unsetld.com. The rewards on offer, the points each one costs, their dates and their limits (how many you can take each collection, the most a code takes off, any minimum order and how long a code works) are shown in the app and may change with each collection. Codes are single use and only valid at unsetld.com."
       },
       {
         "h": "UNSETLD status",
-        "p": "Status counts the days you prove at least one mission. The status tiers on offer, the number of those days each one opens at, what each one includes and its limits are shown in the app and may change with each collection."
+        "p": "Status counts the days you prove at least one mission. Each status tier gives one discount code for one order at unsetld.com, once per person, when you reach its number of those days. Taking it doesn't spend points. The tiers on offer, the days each one needs, its discount, the most it takes off and how long its code works are shown in the app and may change with each collection."
       },
       {
         "h": "Limits",
-        "p": "No cash value. Not transferable. Points, codes and status can't be sold, bought or exchanged for money. One code per order. Codes don't combine with other codes, including the first-order code, and exclude the 365 piece."
-      },
-      {
-        "h": "Pauses",
-        "p": "Once early access is open, if 14 days pass without a proven mission, it pauses until you prove a mission on 7 more days. Your count, points and milestones stay."
+        "p": "No cash value. Not transferable. Points, codes and status can't be sold, bought or exchanged for money. One code per order. Codes don't combine with other codes, including the first-order code."
       },
       {
         "h": "Changes",

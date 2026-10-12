@@ -1,10 +1,11 @@
-// Points in and out, the reward tiers they open, and UNSETLD status (tiers earned by active
-// days). Point tiers come from content/rewards.json and status tiers from
+// Points in and out, the reward tiers they open, and UNSETLD status (a discount code for
+// each tier of active days). Point tiers come from content/rewards.json and status tiers from
 // content/milestones.json; unsetld.com's config can replace either list (docs/ACCESS.md).
 // Nothing here knows a threshold, a price or a product: they all come from those lists.
-import { accessState, dayCount, type Letter, type MilestoneStatus } from './record';
+import { activeDays } from './progress';
+import { letterKey, type Letter } from './record';
 import { addDays, diffDays, type DayKey } from './time';
-import type { Milestone, MilestoneId, RecordState, Redemption, RewardTier, RewardType, StatusTier } from './types';
+import type { RecordState, Redemption, RewardTier, RewardType, StatusTier } from './types';
 
 /** Points as stored, or 0 when an old or damaged entry has none. */
 const pts = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
@@ -40,9 +41,12 @@ export function isAvailable(t: RewardTier, today: DayKey): boolean {
  */
 export type RewardStatus = 'ready' | 'short' | 'used' | 'cooldown' | 'unavailable';
 
-/** A 2.x discount code counts as taking the tier with the same percent. */
+/**
+ * A 2.x discount code counts as taking the points tier with the same percent. 2.x codes were
+ * bought with points, so they never count against a status code (no points: statusReward).
+ */
 function legacyFor(r: RecordState, t: RewardTier) {
-  if (typeof t.percent !== 'number') return [];
+  if (typeof t.percent !== 'number' || !(t.points > 0)) return [];
   return (Array.isArray(r.codes) ? r.codes : []).filter(c => c?.percent === t.percent);
 }
 
@@ -130,7 +134,18 @@ export function upNext(r: RecordState, tiers: readonly RewardTier[], collection:
   return open.slice(from, from + count);
 }
 
-export function redeem(r: RecordState, t: RewardTier, collection: string, today: DayKey, minted: { code: string; url: string }): RecordState {
+/** A whole day as YYYY-MM-DD (the shape of a DayKey), or undefined for anything else. */
+function dayKeyOrUndefined(v: unknown): DayKey | undefined {
+  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)) ? v : undefined;
+}
+
+/**
+ * Records a code taken. Its last day is the one unsetld.com sent with it (`expires`: a status
+ * code taken before, on another phone or when the reply never arrived, comes back with its
+ * own last day), else `codeValidDays` from today. A code-less one (`code: ''`) marks a status
+ * tier taken whose code never reached this phone (see statusState); the code lists leave it out.
+ */
+export function redeem(r: RecordState, t: RewardTier, collection: string, today: DayKey, minted: { code: string; url: string; expires?: string }): RecordState {
   const red: Redemption = {
     rewardId: t.id,
     points: t.points,
@@ -138,7 +153,7 @@ export function redeem(r: RecordState, t: RewardTier, collection: string, today:
     day: today,
     code: minted.code,
     url: minted.url,
-    expires: addDays(today, t.codeValidDays),
+    expires: dayKeyOrUndefined(minted.expires) ?? addDays(today, t.codeValidDays),
   };
   return { ...r, redemptions: [...(r.redemptions ?? []), red] };
 }
@@ -150,7 +165,8 @@ export function effectiveTiers(defaults: readonly RewardTier[], remote: readonly
 
 // ── The server's reward config ──────────────────────────────────────────────
 
-const REWARD_TYPES: readonly RewardType[] = ['discount', 'free-shipping', 'early-access', 'limited', 'drop'];
+/** Every reward is a discount: a config entry of another type (free-shipping, limited, drop from earlier builds) is dropped. */
+const REWARD_TYPES: readonly RewardType[] = ['discount'];
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}/;
 
 const isCount = (v: unknown, min: number): v is number => typeof v === 'number' && Number.isInteger(v) && v >= min;
@@ -185,8 +201,9 @@ function withAliases(o: Record<string, unknown>, aliases: Record<string, string[
 }
 
 /**
- * One tier from the server's config, or null if anything in it is off. Fields
- * the server leaves out get the same defaults as content/rewards.json. The rule
+ * One tier from the server's config, or null if anything in it is off (a tier
+ * that isn't a discount with its percent is off). Fields the server leaves out
+ * get the same defaults as content/rewards.json. The rule
  * fields (minimumPurchase, redemptionCooldownDays, oneTimeOnly) are kept only
  * when sent.
  */
@@ -198,10 +215,9 @@ export function parseRewardTier(raw: unknown): RewardTier | null {
   if (typeof o.type !== 'string' || !REWARD_TYPES.includes(o.type as RewardType)) return null;
   const type = o.type as RewardType;
   if (!isCount(o.points, 1)) return null;
-  // A discount needs its percent; anything else may carry one only if it's sane.
+  // Every reward is a discount, so it needs its percent.
   const percent = o.percent;
-  if (percent !== undefined && percent !== null && !(typeof percent === 'number' && percent > 0 && percent <= 100)) return null;
-  if (type === 'discount' && typeof percent !== 'number') return null;
+  if (!(typeof percent === 'number' && percent > 0 && percent <= 100)) return null;
   const maxOff = o.maxOff;
   if (maxOff !== undefined && maxOff !== null && !isMoney(maxOff)) return null;
   if (o.active !== undefined && typeof o.active !== 'boolean') return null;
@@ -223,7 +239,7 @@ export function parseRewardTier(raw: unknown): RewardTier | null {
     detail: typeof o.detail === 'string' ? o.detail.trim() : '',
     type,
     points: o.points,
-    ...(typeof percent === 'number' ? { percent } : {}),
+    percent,
     ...(typeof maxOff === 'number' ? { maxOff } : {}),
     active: o.active ?? true,
     availableFrom: from,
@@ -256,64 +272,56 @@ export function parseRewards(raw: unknown): RewardTier[] | null {
   return parseList(raw, parseRewardTier);
 }
 
-// ── UNSETLD status: tiers earned by active days ─────────────────────────────
+// ── UNSETLD status: a discount code for each tier of active days ────────────
 
-/** The status ids the app can act on: early access (drop alerts, early drops), the patch, the 365 piece. */
-export const KNOWN_STATUS: readonly MilestoneId[] = ['early-access', 'patch', 'piece-365'];
-
-export function isKnownStatus(id: string): id is MilestoneId {
-  return (KNOWN_STATUS as readonly string[]).includes(id);
-}
-
-/** content/milestones.json as status tiers (switched on unless the file says `active: false`). */
-export function statusFromMilestones(ms: readonly (Milestone & { active?: boolean })[]): StatusTier[] {
-  return ms.map(m => ({
-    id: m.id,
-    day: m.day,
-    title: m.title,
-    short: m.short,
-    detail: m.detail,
-    active: m.active ?? true,
-    pausable: m.pausable,
-    action: m.action,
-    letter: m.letter,
+/** content/milestones.json as status tiers: switched on unless the file says `active: false`, no cap unless it gives one. */
+export function statusFromMilestones(json: readonly (Omit<StatusTier, 'active'> & { active?: boolean })[]): StatusTier[] {
+  return json.map(t => ({
+    id: t.id,
+    day: t.day,
+    title: t.title,
+    short: t.short ?? '',
+    detail: t.detail ?? '',
+    active: t.active ?? true,
+    percent: t.percent,
+    maxOff: t.maxOff ?? null,
+    codeValidDays: t.codeValidDays ?? 30,
   }));
 }
 
-const STATUS_ALIASES: Record<string, string[]> = { day: ['activeDays'] };
+const STATUS_ALIASES: Record<string, string[]> = { day: ['activeDays'], percent: ['discountPercent'], maxOff: ['maxDiscount'] };
 
 /**
- * One status tier from the server's config, or null if anything in it is off. An id
- * the app knows keeps its action, pause and letter from `defaults` (the config may
- * rename its button with `action`) and takes any text it leaves out from there too.
- * Any other id becomes a display-only tier: no action, no pause, no letter.
+ * One status tier from the server's config, or null if anything in it is off. It needs an
+ * id, a title, the active days (`day`, or `activeDays`) and a whole percent off from 1 to 90.
+ * short and detail default to empty, active to true, maxOff to no cap, codeValidDays to 30.
  */
-export function parseStatusTier(raw: unknown, defaults: readonly StatusTier[]): StatusTier | null {
+export function parseStatusTier(raw: unknown): StatusTier | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const o = withAliases(raw as Record<string, unknown>, STATUS_ALIASES);
   if (!isText(o.id, 64) || !isText(o.title, 40) || !isCount(o.day, 1)) return null;
+  if (!isCount(o.percent, 1) || o.percent > 90) return null;
   for (const k of ['short', 'detail']) if (o[k] !== undefined && typeof o[k] !== 'string') return null;
   if (o.active !== undefined && typeof o.active !== 'boolean') return null;
-  if (o.action !== undefined && !isText(o.action, 40)) return null;
-  const id = o.id.trim();
-  const base = isKnownStatus(id) ? defaults.find(d => d.id === id) : undefined;
-  const text = (v: unknown, fallback = '') => (typeof v === 'string' ? v.trim() : fallback);
+  if (o.maxOff !== undefined && o.maxOff !== null && !isMoney(o.maxOff)) return null;
+  if (o.codeValidDays !== undefined && !isCount(o.codeValidDays, 1)) return null;
+  const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
   return {
-    id,
+    id: o.id.trim(),
     day: o.day,
     title: o.title.trim(),
-    short: text(o.short, base?.short),
-    detail: text(o.detail, base?.detail),
+    short: text(o.short),
+    detail: text(o.detail),
     active: (o.active as boolean | undefined) ?? true,
-    pausable: base?.pausable ?? false,
-    ...(base ? { action: typeof o.action === 'string' ? o.action.trim() : base.action } : {}),
-    ...(base?.letter ? { letter: base.letter } : {}),
+    percent: o.percent,
+    maxOff: typeof o.maxOff === 'number' ? o.maxOff : null,
+    codeValidDays: (o.codeValidDays as number | undefined) ?? 30,
   };
 }
 
 /** The config's `status` list: bad entries and repeated ids are dropped. null when nothing usable came. */
-export function parseStatus(raw: unknown, defaults: readonly StatusTier[]): StatusTier[] | null {
-  return parseList(raw, item => parseStatusTier(item, defaults));
+export function parseStatus(raw: unknown): StatusTier[] | null {
+  return parseList(raw, parseStatusTier);
 }
 
 /** The status tiers in effect: the server's list when it sent one, else the defaults; switched-on ones only, by day. */
@@ -323,28 +331,64 @@ export function effectiveStatus(defaults: readonly StatusTier[], remote: readonl
 }
 
 /**
- * Where a status tier stands, on the record as Access sees it (screens/access
- * accessRecord): the same rules as core/record milestoneStatus, for any tier.
- * A display-only tier is 'open' once reached.
+ * The days that count toward status: days on record (2.x days stay counted, so nothing
+ * earned before 3.0 is taken away) and days with a proven mission. Since 3.0 a day only goes
+ * on record with a proven mission, so every new day is one of these.
  */
-/** The active days the pause rule starts from: the earliest pausable tier in effect (early access), or null when none is. */
-export function pauseOpensAt(tiers: readonly StatusTier[]): number | null {
-  const days = tiers.filter(t => t.pausable).map(t => t.day);
-  return days.length ? Math.min(...days) : null;
+export function statusDays(r: RecordState): number {
+  const days = new Set(Object.keys(r.days ?? {}));
+  for (const d of activeDays(r)) days.add(d);
+  return days.size;
 }
 
-/** core/record accessState with the pause rule starting at the configured early-access day; never paused without one. */
-export function statusAccess(r: RecordState, today: DayKey, tiers: readonly StatusTier[]): ReturnType<typeof accessState> {
-  const from = pauseOpensAt(tiers);
-  return from == null ? { paused: false, reopenProgress: 0, lastComeback: null } : accessState(r, today, from);
+/**
+ * A status tier as a reward the redeem flow can take (screens/rewards/redeem useRedeem →
+ * services/access redeem → store redeemReward): one discount code, for no points, once per
+ * person. Its redemption leaves the points balance as it was.
+ */
+export function statusReward(t: StatusTier): RewardTier {
+  return {
+    id: t.id,
+    title: t.title,
+    detail: t.short,
+    type: 'discount',
+    points: 0,
+    percent: t.percent,
+    ...(typeof t.maxOff === 'number' ? { maxOff: t.maxOff } : {}),
+    active: t.active,
+    codeValidDays: t.codeValidDays,
+    perCollection: 1,
+    oneTimeOnly: true,
+  };
 }
 
-export function statusState(r: RecordState, t: StatusTier, today: DayKey): MilestoneStatus {
-  const n = dayCount(r);
+/** The redemption for this tier, if any: the latest one with its id (a code, or the code-less marker). */
+function statusCode(r: RecordState, t: StatusTier): Redemption | undefined {
+  const taken = (r.redemptions ?? []).filter(x => x?.rewardId === t.id);
+  return taken[taken.length - 1];
+}
+
+/** The tier's code has been taken: a redemption with its id, with its code or without one. */
+export function statusTaken(r: RecordState, t: StatusTier): boolean {
+  return statusCode(r, t) !== undefined;
+}
+
+/**
+ * locked: not enough active days yet (`daysLeft` to go). ready: reached, the code can be
+ * taken. taken: the code was taken (`code`: its redemption, for the code and its last day;
+ * `expired`: that day has passed). A tier unsetld.com says was taken before, without sending
+ * the code again, is taken with no `code` (core/rewards redeem with `code: ''`).
+ */
+export type StatusState = { kind: 'locked'; daysLeft: number } | { kind: 'ready' } | { kind: 'taken'; code?: Redemption; expired: boolean };
+
+/** Where a status tier stands on `today`. A code taken stays taken, even if the config later moves the tier's day. */
+export function statusState(r: RecordState, t: StatusTier, today: DayKey): StatusState {
+  const code = statusCode(r, t);
+  if (code && !code.code) return { kind: 'taken', expired: false };
+  if (code) return { kind: 'taken', code, expired: typeof code.expires === 'string' && today > code.expires };
+  const n = statusDays(r);
   if (n < t.day) return { kind: 'locked', daysLeft: t.day - n };
-  if (t.pausable && accessState(r, today, t.day).paused) return { kind: 'paused' };
-  if (t.id === 'patch' && r.patchClaimed) return { kind: 'used' };
-  return { kind: 'open' };
+  return { kind: 'ready' };
 }
 
 /** The next tier to reach with `n` active days, or null when every one is reached. */
@@ -352,45 +396,40 @@ export function nextStatus(n: number, tiers: readonly StatusTier[]): StatusTier 
   return [...tiers].sort((a, b) => a.day - b.day).find(t => t.day > n) ?? null;
 }
 
+/** The highest day a status letter was shown for, or 0: it covers every tier at that day or lower. */
+function shownUpTo(r: RecordState): number {
+  let top = 0;
+  for (const k of Array.isArray(r.lettersShown) ? r.lettersShown : []) {
+    const m = typeof k === 'string' ? /^status:(\d+)$/.exec(k) : null;
+    if (m) top = Math.max(top, Number(m[1]));
+  }
+  return top;
+}
+
 /**
- * The status letter to show, if any: core/record pendingLetter, with the tiers in
- * effect (switched-on ones, at their own days; only the app's own ids have letters).
- * With the default tiers it gives the same letter as pendingLetter.
+ * The status letter to show, if any: the highest tier in effect that's reached, whose code
+ * isn't taken, and that no letter has covered yet (a letter covers its own tier and every
+ * lower one). One at a time: someone restoring a long record gets one letter, not four.
+ * The rule doesn't depend on the date; `today` is taken so callers pass the same arguments
+ * as statusState.
  */
 export function pendingStatusLetter(r: RecordState, today: DayKey, tiers: readonly StatusTier[]): Letter | null {
-  const n = dayCount(r);
-  const a = statusAccess(r, today, tiers);
-  // Only the highest reached, unseen tier: someone restoring a long record gets one letter, not five.
-  const reached = tiers.filter(t => isKnownStatus(t.id) && t.letter && n >= t.day).sort((x, y) => x.day - y.day);
-  const top = reached[reached.length - 1];
-  // A paused perk's letter waits for access to reopen, so it never says "open" next to Paused.
-  const held = a.paused && top?.pausable;
-  // A letter at this day or a later one covers it (markLetterShown marks the built-in days
-  // below a letter, not ones the config moved), so a higher tier switched off later doesn't
-  // bring back an old letter.
-  const seen = (day: number) => r.lettersShown.some(k => /^\d+$/.test(k) && Number(k) >= day);
-  if (top && !held && !seen(top.day)) return { kind: 'milestone', day: top.day, key: String(top.day), pausable: top.pausable };
-  // The comeback letter says early access is open again: only while a pausable tier is in effect and reached.
-  const reopened = tiers.some(t => isKnownStatus(t.id) && t.pausable && n >= t.day);
-  if (reopened && a.lastComeback && !a.paused) {
-    const key = `comeback:${a.lastComeback}`;
-    if (!r.lettersShown.includes(key)) return { kind: 'comeback', day: a.lastComeback, key };
-  }
-  return null;
+  const n = statusDays(r);
+  const covered = shownUpTo(r);
+  const due = tiers.filter(t => t.active && n >= t.day && t.day > covered && !statusTaken(r, t)).sort((a, b) => a.day - b.day);
+  const top = due[due.length - 1];
+  return top ? { kind: 'status', day: top.day, key: letterKey(top.day) } : null;
 }
 
 /**
- * The tier a status letter speaks for, among the tiers in effect: the app's own tier at
- * a milestone letter's day, or the pausable one (early access) a comeback letter says is
- * open again. null when the config has since moved it or switched it off: the letter
- * isn't shown.
+ * The tier a status letter speaks for: the one in effect at the letter's day. null when the
+ * config has since moved it or switched it off: the letter isn't shown.
  */
 export function letterTier(letter: Letter, tiers: readonly StatusTier[]): StatusTier | null {
-  if (letter.kind === 'comeback') return tiers.find(t => isKnownStatus(t.id) && t.pausable) ?? null;
-  return tiers.find(t => isKnownStatus(t.id) && Boolean(t.letter) && t.day === letter.day) ?? null;
+  return tiers.find(t => t.active && t.day === letter.day) ?? null;
 }
 
-/** The walker's place on the road, 0..1: piecewise-linear over 0 and each tier's day (core/record roadPosition for any tiers). */
+/** The walker's place on the road, 0..1: piecewise-linear over 0 and each tier's day. */
 export function roadAt(n: number, days: readonly number[]): number {
   const stops = [0, ...[...new Set(days.filter(d => d > 0))].sort((a, b) => a - b)];
   if (stops.length < 2 || n <= 0) return 0;

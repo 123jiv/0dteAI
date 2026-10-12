@@ -1,15 +1,16 @@
 // Reward rules from configuration (minimum purchase, cooldown, one time only, the alias
-// names), "up next", and UNSETLD status tiers from the config (docs/ACCESS.md).
+// names), "up next", and UNSETLD status: a discount code for each tier of active days, from
+// content/milestones.json or the config (docs/ACCESS.md).
 import { describe, expect, it } from 'vitest';
 import configJson from '../../../Web/api/app/config.json';
 import milestonesJson from '../../content/milestones.json';
 import rewardsJson from '../../content/rewards.json';
-import { emptyRecord, markLetterShown, milestoneStatus, pendingLetter, recordDay, roadPosition } from '../record';
+import { emptyRecord, markLetterShown, recordDay } from '../record';
 import {
+  balance,
   cooldownEnds,
   cooldownLeft,
   effectiveStatus,
-  isKnownStatus,
   letterTier,
   nextReward,
   nextStatus,
@@ -18,18 +19,21 @@ import {
   parseStatus,
   parseStatusTier,
   pendingStatusLetter,
+  pointsSpent,
   redeem,
   rewardStatus,
   roadAt,
-  statusAccess,
+  statusDays,
   statusFromMilestones,
+  statusReward,
   statusState,
+  statusTaken,
   upNext,
 } from '../rewards';
 import { addDays } from '../time';
-import type { CodeClaim, Milestone, RecordState, RewardTier, StatusTier } from '../types';
+import type { CodeClaim, MissionDone, RecordState, RewardTier } from '../types';
 
-const DEFAULTS = statusFromMilestones(milestonesJson as Milestone[]);
+const DEFAULTS = statusFromMilestones(milestonesJson);
 const TODAY = '2026-10-14';
 
 const tier = (over: Partial<RewardTier> = {}): RewardTier => ({
@@ -89,7 +93,7 @@ describe('reward config: names and rule fields', () => {
   });
 
   it('lets the canonical name win when both are sent', () => {
-    const both = { ...canonical, pointsRequired: 900, rewardType: 'limited', discountPercent: 50, maxDiscount: 99, startDate: '2027-01-01', endDate: '2027-02-01', redemptionCooldown: 3, redemptionCooldownDays: 7 };
+    const both = { ...canonical, pointsRequired: 900, rewardType: 'free-shipping', discountPercent: 50, maxDiscount: 99, startDate: '2027-01-01', endDate: '2027-02-01', redemptionCooldown: 3, redemptionCooldownDays: 7 };
     expect(parseRewardTier(both)).toMatchObject({ points: 600, type: 'discount', percent: 10, maxOff: 25, availableFrom: '2026-10-01', availableUntil: '2026-12-31', redemptionCooldownDays: 7 });
     // A bad alias next to a good canonical value doesn't matter; a bad alias alone does.
     expect(parseRewardTier({ ...canonical, pointsRequired: 'lots' })).not.toBeNull();
@@ -184,14 +188,14 @@ describe('reward rules', () => {
       tier({ id: 'ten-off', points: 600, percent: 10 }),
       tier({ id: 'fifteen-off', points: 1000, percent: 15 }),
       tier({ id: 'twenty-off', points: 1500, percent: 20 }),
-      tier({ id: 'limited', type: 'limited', percent: undefined, points: 2000, active: false }),
+      tier({ id: 'thirty-off', points: 2000, percent: 30, active: false }),
     ];
     // 380 points: 5% off is in reach, so it's next; the two after it are up next.
     const r380 = withPoints(380);
     const next = nextReward(r380, tiers, '004', TODAY)!;
     expect(next.tier.id).toBe('five-off');
     expect(upNext(r380, tiers, '004', TODAY, next.tier).map(t => t.id)).toEqual(['ten-off', 'fifteen-off']);
-    // 5% taken: 10% off is next, then 15% and 20%; the switched-off piece never shows.
+    // 5% taken: 10% off is next, then 15% and 20%; the switched-off tier never shows.
     const took = redeem(r380, tiers[0], '004', TODAY, { code: 'C', url: 'u' });
     const n2 = nextReward(took, tiers, '004', TODAY)!;
     expect(n2).toMatchObject({ tier: { id: 'ten-off' }, have: 80, need: 520 });
@@ -203,219 +207,292 @@ describe('reward rules', () => {
 });
 
 describe('status config', () => {
-  it('builds the defaults from milestones.json: switched on, with their actions and letters', () => {
-    expect(DEFAULTS.map(t => [t.id, t.day, t.active, t.pausable])).toEqual([
-      ['early-access', 7, true, true],
-      ['patch', 90, true, false],
-      ['piece-365', 365, true, false],
+  it('builds the four discount tiers from milestones.json', () => {
+    expect(DEFAULTS.map(t => [t.id, t.day, t.percent, t.maxOff, t.codeValidDays, t.active])).toEqual([
+      ['status-7', 7, 10, 25, 30, true],
+      ['status-30', 30, 15, 25, 30, true],
+      ['status-90', 90, 20, 25, 30, true],
+      ['status-365', 365, 25, 25, 30, true],
     ]);
     for (const t of DEFAULTS) {
-      expect(isKnownStatus(t.id)).toBe(true);
-      expect(t.action).toBeTruthy();
-      expect(t.letter?.primary).toBeTruthy();
+      expect(t.title).toBe(`${t.percent}% off`);
+      expect(t.short).toBe(`${t.percent}% off your next order, up to $25.`);
+      expect(t.detail).toBeTruthy();
+      for (const k of ['pausable', 'action', 'letter']) expect(t).not.toHaveProperty(k);
     }
   });
 
-  it('reads a known id with its own action, pause and letter, and an unknown id as display only', () => {
-    const early = parseStatusTier({ id: 'early-access', activeDays: 10, title: 'Early access' }, DEFAULTS)!;
-    expect(early).toMatchObject({ id: 'early-access', day: 10, active: true, pausable: true, action: 'Turn on drop alerts' });
-    // Text it leaves out comes from the built-in tier.
-    expect(early.short).toBe(DEFAULTS[0].short);
-    expect(early.letter).toEqual(DEFAULTS[0].letter);
-    expect(parseStatusTier({ id: 'patch', day: 90, title: 'The patch', action: 'Claim the patch' }, DEFAULTS)).toMatchObject({ action: 'Claim the patch', pausable: false });
-
-    const special = parseStatusTier({ id: 'special-30', day: 30, title: 'Special access', short: 'A members-only page.', action: 'Do something' }, DEFAULTS)!;
-    expect(special).toEqual({ id: 'special-30', day: 30, title: 'Special access', short: 'A members-only page.', detail: '', active: true, pausable: false });
-    expect(special).not.toHaveProperty('action');
-    expect(special).not.toHaveProperty('letter');
-    expect(isKnownStatus(special.id)).toBe(false);
+  it('reads a tier from the config, with defaults for what it leaves out, and no special ids', () => {
+    expect(parseStatusTier({ id: 'status-7', activeDays: 10, title: '10% off', discountPercent: 10 })).toEqual({
+      id: 'status-7',
+      day: 10,
+      title: '10% off',
+      short: '',
+      detail: '',
+      active: true,
+      percent: 10,
+      maxOff: null,
+      codeValidDays: 30,
+    });
+    expect(parseStatusTier({ id: ' x ', day: 14, title: ' 12% off ', percent: 12, maxDiscount: 30, codeValidDays: 14, short: ' One line. ', detail: ' More. ', active: false })).toEqual({
+      id: 'x',
+      day: 14,
+      title: '12% off',
+      short: 'One line.',
+      detail: 'More.',
+      active: false,
+      percent: 12,
+      maxOff: 30,
+      codeValidDays: 14,
+    });
+    expect(parseStatusTier({ id: 'x', day: 14, title: 'X', percent: 12, maxOff: null })).toMatchObject({ maxOff: null });
   });
 
-  it('lets day win over activeDays, and drops bad entries', () => {
-    expect(parseStatusTier({ id: 'x', day: 30, activeDays: 40, title: 'X' }, DEFAULTS)).toMatchObject({ day: 30 });
-    const good = { id: 'x', day: 30, title: 'X' };
-    for (const bad of [{ id: '' }, { day: 0 }, { day: 2.5 }, { day: '30' }, { title: 'x'.repeat(41) }, { short: 3 }, { detail: false }, { active: 'yes' }, { action: '' }]) {
-      expect(parseStatusTier({ ...good, ...bad }, DEFAULTS)).toBeNull();
-    }
-    for (const raw of [null, 'patch', 90, [good]]) expect(parseStatusTier(raw, DEFAULTS)).toBeNull();
-    expect(parseStatus([good, { ...good, title: 'Again' }, { id: 'y' }], DEFAULTS)).toEqual([{ id: 'x', day: 30, title: 'X', short: '', detail: '', active: true, pausable: false }]);
-    expect(parseStatus([], DEFAULTS)).toBeNull();
-    expect(parseStatus(undefined, DEFAULTS)).toBeNull();
-    expect(parseStatus({ status: [good] }, DEFAULTS)).toBeNull();
+  it('lets the canonical name win over its alias, and drops bad entries', () => {
+    expect(parseStatusTier({ id: 'x', day: 30, activeDays: 40, title: 'X', percent: 10, discountPercent: 20, maxOff: 25, maxDiscount: 50 })).toMatchObject({ day: 30, percent: 10, maxOff: 25 });
+    const good = { id: 'x', day: 30, title: 'X', percent: 15 };
+    const bads = [
+      { id: '' },
+      { day: 0 },
+      { day: 2.5 },
+      { day: '30' },
+      { title: 'x'.repeat(41) },
+      { percent: undefined },
+      { percent: 0 },
+      { percent: 91 },
+      { percent: 12.5 },
+      { percent: '10' },
+      { short: 3 },
+      { detail: false },
+      { active: 'yes' },
+      { maxOff: 0 },
+      { maxOff: -5 },
+      { maxOff: '25' },
+      { codeValidDays: 0 },
+      { codeValidDays: 1.5 },
+    ];
+    for (const bad of bads) expect(parseStatusTier({ ...good, ...bad })).toBeNull();
+    for (const raw of [null, 'status-7', 90, [good]]) expect(parseStatusTier(raw)).toBeNull();
+    expect(parseStatus([good, { ...good, title: 'Again' }, { id: 'y' }])).toEqual([
+      { id: 'x', day: 30, title: 'X', short: '', detail: '', active: true, percent: 15, maxOff: null, codeValidDays: 30 },
+    ]);
+    expect(parseStatus([])).toBeNull();
+    expect(parseStatus(undefined)).toBeNull();
+    expect(parseStatus({ status: [good] })).toBeNull();
+  });
+
+  it("reads an earlier build's tiers (early access, the patch, the 365 piece) as nothing usable", () => {
+    const old = [
+      { id: 'early-access', day: 7, title: 'Early access', short: '', detail: '', active: true, pausable: true, action: 'Turn on drop alerts' },
+      { id: 'patch', day: 90, title: 'The patch', active: true, pausable: false },
+      { id: 'piece-365', day: 365, title: 'The 365 piece', active: true, pausable: false },
+    ];
+    expect(parseStatus(old)).toBeNull();
+    expect(effectiveStatus(DEFAULTS, parseStatus(old))).toEqual(DEFAULTS);
   });
 
   it("reads the site's config as the built-in tiers", () => {
-    expect(parseStatus(configJson.status, DEFAULTS)).toEqual(DEFAULTS);
+    expect(parseStatus(configJson.status)).toEqual(DEFAULTS);
+    // Parsing a parsed list changes nothing (the store reads a saved list again on launch).
+    expect(parseStatus(DEFAULTS)).toEqual(DEFAULTS);
   });
 
   it('uses the server list when sent, switched-on tiers only, by day', () => {
     expect(effectiveStatus(DEFAULTS, null)).toEqual(DEFAULTS);
-    const remote = parseStatus(
-      [
-        { id: 'piece-365', day: 365, title: 'The 365 piece', active: false },
-        { id: 'special-30', day: 30, title: 'Special access' },
-        { id: 'early-access', day: 7, title: 'Early access' },
-      ],
-      DEFAULTS,
-    );
-    expect(effectiveStatus(DEFAULTS, remote).map(t => t.id)).toEqual(['early-access', 'special-30']);
+    const remote = parseStatus([
+      { id: 'status-365', day: 365, title: '25% off', percent: 25, active: false },
+      { id: 'status-60', day: 60, title: '18% off', percent: 18 },
+      { id: 'status-7', day: 7, title: '10% off', percent: 10 },
+    ]);
+    expect(effectiveStatus(DEFAULTS, remote).map(t => t.id)).toEqual(['status-7', 'status-60']);
     expect(effectiveStatus(DEFAULTS, [])).toEqual(DEFAULTS);
   });
 });
 
-describe('status on the record', () => {
-  const byId = (id: string) => DEFAULTS.find(t => t.id === id)!;
-  const ms = milestonesJson as Milestone[];
+const byId = (id: string) => DEFAULTS.find(t => t.id === id)!;
+/** `n` days in a row on record from 1 Jan 2025. */
+const at = (n: number) => onRecord(emptyRecord(), '2025-01-01', n);
+/** The day the `n`th of those days falls on. */
+const dayOf = (n: number) => addDays('2025-01-01', n - 1);
 
-  it('gives the same status as the milestone rules for the built-in tiers', () => {
-    const records: [RecordState, string][] = [
-      [emptyRecord(), TODAY],
-      [onRecord(emptyRecord(), '2026-01-01', 31), '2026-01-31'],
-      [onRecord(emptyRecord(), '2026-01-01', 31), '2026-03-01'], // paused
-      [onRecord(emptyRecord(), '2025-01-01', 95), '2025-04-05'],
-      [{ ...onRecord(emptyRecord(), '2025-01-01', 95), patchClaimed: '2025-04-05' }, '2025-04-05'],
-    ];
-    for (const [r, day] of records) for (const m of ms) expect(statusState(r, byId(m.id), day)).toEqual(milestoneStatus(r, m, day));
+describe('status rewards', () => {
+  it('turns a tier into a one-time discount for no points', () => {
+    expect(statusReward(byId('status-30'))).toEqual({
+      id: 'status-30',
+      title: '15% off',
+      detail: '15% off your next order, up to $25.',
+      type: 'discount',
+      points: 0,
+      percent: 15,
+      maxOff: 25,
+      active: true,
+      codeValidDays: 30,
+      perCollection: 1,
+      oneTimeOnly: true,
+    });
+    // No cap: no maxOff.
+    expect(statusReward({ ...byId('status-7'), maxOff: null })).not.toHaveProperty('maxOff');
   });
 
-  it('shows a display-only tier as open once reached, never paused or used', () => {
-    const special: StatusTier = { id: 'special-30', day: 30, title: 'Special access', short: '', detail: '', active: true, pausable: false };
-    const r = onRecord(emptyRecord(), '2026-01-01', 31);
-    expect(statusState(onRecord(emptyRecord(), '2026-01-01', 12), special, '2026-01-12')).toEqual({ kind: 'locked', daysLeft: 18 });
-    expect(statusState(r, special, '2026-03-01')).toEqual({ kind: 'open' });
+  it('takes the code through redeem: taken, for 0 points, with the balance as it was', () => {
+    const r: RecordState = { ...at(7), legacyPoints: 450 };
+    const t = byId('status-7');
+    expect(statusState(r, t, dayOf(7))).toEqual({ kind: 'ready' });
+    expect(rewardStatus(r, statusReward(t), '004', dayOf(7))).toBe('ready');
+    const took = redeem(r, statusReward(t), '004', dayOf(7), { code: 'UNSETLD10-ABC123', url: 'u' });
+    expect(took.redemptions).toEqual([{ rewardId: 'status-7', points: 0, collection: '004', day: '2025-01-07', code: 'UNSETLD10-ABC123', url: 'u', expires: '2025-02-06' }]);
+    expect(balance(took)).toBe(450);
+    expect(pointsSpent(took)).toBe(0);
+    expect(statusTaken(took, t)).toBe(true);
+    expect(statusTaken(took, byId('status-30'))).toBe(false);
+    expect(statusState(took, t, dayOf(7))).toEqual({ kind: 'taken', code: took.redemptions[0], expired: false });
+    expect(statusState(took, t, '2025-02-06')).toMatchObject({ kind: 'taken', expired: false });
+    expect(statusState(took, t, '2025-02-07')).toMatchObject({ kind: 'taken', expired: true });
+    // Once per person, in any collection.
+    expect(rewardStatus(took, statusReward(t), '005', '2025-06-01')).toBe('used');
+  });
+
+  it("isn't used up by a 2.x code with the same percent (those were bought with points)", () => {
+    const code: CodeClaim = { day: '2024-12-01', collection: '004', points: 600, percent: 10, code: 'OLD', url: 'u', expires: '2024-12-31' };
+    const r: RecordState = { ...at(7), codes: [code], legacyPoints: 2000 };
+    expect(rewardStatus(r, statusReward(byId('status-7')), '004', dayOf(7))).toBe('ready');
+    expect(statusState(r, byId('status-7'), dayOf(7))).toEqual({ kind: 'ready' });
+    // A points tier with that percent still counts it.
+    expect(rewardStatus(r, tier(), '004', dayOf(7))).toBe('used');
+  });
+});
+
+describe('status on the record', () => {
+  const proven = (id: string, day: string): MissionDone => ({
+    missionId: id,
+    slot: 'main',
+    track: 'school',
+    points: 10,
+    doneAt: Date.parse(`${day}T12:00:00Z`),
+    photos: [],
+    verification: { status: 'accepted', method: 'on-device', checks: [], at: Date.parse(`${day}T12:00:00Z`) },
+  });
+
+  it('counts active days: days on record and days with a proven mission, each once', () => {
+    expect(statusDays(emptyRecord())).toBe(0);
+    const r: RecordState = {
+      ...at(5),
+      missions: {
+        '2025-01-05': { a: proven('a', '2025-01-05') },
+        '2025-02-01': { a: proven('a', '2025-02-01') },
+        '2025-02-02': { b: { ...proven('b', '2025-02-02'), verification: { status: 'rejected', method: 'on-device', checks: [], at: 0 } } },
+      },
+    };
+    expect(statusDays(r)).toBe(6);
+  });
+
+  it('locks a tier until its day, then it is ready, and a long gap takes nothing away', () => {
+    expect(statusState(emptyRecord(), byId('status-365'), TODAY)).toEqual({ kind: 'locked', daysLeft: 365 });
+    expect(statusState(at(6), byId('status-7'), dayOf(6))).toEqual({ kind: 'locked', daysLeft: 1 });
+    expect(statusState(at(7), byId('status-7'), dayOf(7))).toEqual({ kind: 'ready' });
+    expect(statusState(at(7), byId('status-30'), dayOf(7))).toEqual({ kind: 'locked', daysLeft: 23 });
+    // Months without a proven mission: still ready (status never pauses).
+    expect(statusState(at(7), byId('status-7'), '2025-09-01')).toEqual({ kind: 'ready' });
+  });
+
+  it('keeps a code taken as taken, even if the config later moves the tier past the days', () => {
+    const t = byId('status-7');
+    const took = redeem(at(7), statusReward(t), '004', dayOf(7), { code: 'C', url: 'u' });
+    expect(statusState(took, { ...t, day: 10 }, dayOf(7))).toMatchObject({ kind: 'taken' });
   });
 
   it('names the next tier to reach', () => {
-    expect(nextStatus(0, DEFAULTS)?.id).toBe('early-access');
-    expect(nextStatus(7, DEFAULTS)?.id).toBe('patch');
-    expect(nextStatus(12, DEFAULTS)?.id).toBe('patch');
+    expect(nextStatus(0, DEFAULTS)?.id).toBe('status-7');
+    expect(nextStatus(7, DEFAULTS)?.id).toBe('status-30');
+    expect(nextStatus(29, DEFAULTS)?.id).toBe('status-30');
+    expect(nextStatus(30, DEFAULTS)?.id).toBe('status-90');
+    expect(nextStatus(364, DEFAULTS)?.id).toBe('status-365');
     expect(nextStatus(365, DEFAULTS)).toBeNull();
   });
-
-  it('sends the same letters as before with the built-in tiers', () => {
-    let r = onRecord(emptyRecord(), '2026-01-01', 6);
-    expect(pendingStatusLetter(r, '2026-01-06', DEFAULTS)).toBeNull();
-    r = onRecord(r, '2026-01-07', 1);
-    expect(pendingStatusLetter(r, '2026-01-07', DEFAULTS)).toEqual(pendingLetter(r, '2026-01-07'));
-    r = markLetterShown(r, pendingLetter(r, '2026-01-07')!);
-    expect(pendingStatusLetter(r, '2026-01-07', DEFAULTS)).toBeNull();
-    const big = onRecord(emptyRecord(), '2025-01-01', 100);
-    expect(pendingStatusLetter(big, '2025-04-10', DEFAULTS)).toEqual(pendingLetter(big, '2025-04-10'));
-    // Paused: the early-access letter waits; the comeback letter comes after.
-    let p = onRecord(emptyRecord(), '2026-01-01', 7);
-    expect(pendingStatusLetter(p, '2026-01-25', DEFAULTS)).toBeNull();
-    p = onRecord(p, '2026-01-25', 7);
-    expect(pendingStatusLetter(p, '2026-01-31', DEFAULTS)).toEqual(pendingLetter(p, '2026-01-31'));
-    // A comeback letter, as before.
-    r = onRecord(r, '2026-02-01', 7);
-    expect(pendingStatusLetter(r, '2026-02-07', DEFAULTS)).toEqual(pendingLetter(r, '2026-02-07'));
-  });
-
-  it("moves a known tier's letter with its day, and never writes one for a display-only tier", () => {
-    const moved = DEFAULTS.map(t => (t.id === 'early-access' ? { ...t, day: 10 } : t));
-    const special: StatusTier = { id: 'special-30', day: 30, title: 'Special access', short: '', detail: '', active: true, pausable: false };
-    let r = onRecord(emptyRecord(), '2026-01-01', 7);
-    expect(pendingStatusLetter(r, '2026-01-07', moved)).toBeNull();
-    r = onRecord(r, '2026-01-08', 3);
-    expect(pendingStatusLetter(r, '2026-01-10', moved)).toEqual({ kind: 'milestone', day: 10, key: '10', pausable: true });
-    r = markLetterShown(r, { kind: 'milestone', day: 10, key: '10' });
-    r = onRecord(r, '2026-01-11', 25);
-    expect(pendingStatusLetter(r, '2026-02-04', [...moved, special])).toBeNull();
-  });
 });
 
-describe('status letters follow the status config', () => {
-  // The tiers in effect for a config that sends the built-in list with some fields changed.
+describe('status letters', () => {
+  const take = (r: RecordState, id: string, day: string) => redeem(r, statusReward(byId(id)), '004', day, { code: 'C', url: 'u' });
   const config = (over: Record<string, Record<string, unknown>>) =>
-    effectiveStatus(DEFAULTS, parseStatus(DEFAULTS.map(t => ({ id: t.id, day: t.day, title: t.title, ...over[t.id] })), DEFAULTS));
-  const milestone = (day: number) => ({ kind: 'milestone' as const, day, key: String(day) });
+    effectiveStatus(DEFAULTS, parseStatus(DEFAULTS.map(t => ({ ...t, ...over[t.id] }))));
 
-  it('sends the early-access letter at the day the config moved it to, not at 7', () => {
-    const moved = config({ 'early-access': { day: 10 } });
-    let r = onRecord(emptyRecord(), '2026-01-01', 7);
-    expect(pendingStatusLetter(r, '2026-01-07', moved)).toBeNull();
-    // A day-7 letter left open from before the move has no tier: the letter screen closes it.
-    expect(letterTier(milestone(7), moved)).toBeNull();
-    r = onRecord(r, '2026-01-08', 3);
-    const ten = pendingStatusLetter(r, '2026-01-10', moved)!;
-    expect(ten).toEqual({ kind: 'milestone', day: 10, key: '10', pausable: true });
-    expect(letterTier(ten, moved)).toMatchObject({ id: 'early-access', day: 10, letter: DEFAULTS[0].letter });
-    r = markLetterShown(r, ten);
-    expect(r.lettersShown).toContain('10');
-    expect(pendingStatusLetter(r, '2026-01-10', moved)).toBeNull();
+  it('sends one letter when a tier is reached, then none until the next', () => {
+    expect(pendingStatusLetter(at(6), dayOf(6), DEFAULTS)).toBeNull();
+    let r = at(7);
+    const seven = pendingStatusLetter(r, dayOf(7), DEFAULTS)!;
+    expect(seven).toEqual({ kind: 'status', day: 7, key: 'status:7' });
+    expect(letterTier(seven, DEFAULTS)?.id).toBe('status-7');
+    r = markLetterShown(r, seven, DEFAULTS);
+    expect(r.lettersShown).toEqual(['status:7']);
+    expect(pendingStatusLetter(r, dayOf(7), DEFAULTS)).toBeNull();
+    r = onRecord(r, dayOf(8), 23);
+    expect(pendingStatusLetter(r, dayOf(30), DEFAULTS)).toEqual({ kind: 'status', day: 30, key: 'status:30' });
   });
 
-  it('sends no early-access letter and no comeback letter while early access is switched off', () => {
-    const off = config({ 'early-access': { active: false } });
-    let r = onRecord(emptyRecord(), '2026-01-01', 7);
-    expect(pendingStatusLetter(r, '2026-01-07', DEFAULTS)).toMatchObject({ day: 7 });
-    expect(pendingStatusLetter(r, '2026-01-07', off)).toBeNull();
-    expect(letterTier(milestone(7), off)).toBeNull();
-    // Paused, then back on 7 more days: the comeback letter would say early access is open again.
-    r = markLetterShown(r, milestone(7));
-    r = onRecord(r, '2026-01-25', 7);
-    expect(pendingStatusLetter(r, '2026-01-31', DEFAULTS)).toMatchObject({ kind: 'comeback', day: '2026-01-31' });
-    expect(pendingStatusLetter(r, '2026-01-31', off)).toBeNull();
-    expect(letterTier({ kind: 'comeback', day: '2026-01-31', key: 'comeback:2026-01-31' }, off)).toBeNull();
+  it("uses new keys: someone who saw an earlier build's letters still hears about a code once", () => {
+    expect(pendingStatusLetter({ ...at(7), lettersShown: ['7'] }, dayOf(7), DEFAULTS)).toMatchObject({ day: 7 });
+    const old = { ...at(100), lettersShown: ['7', '90', 'comeback:2025-02-01'] };
+    const letter = pendingStatusLetter(old, dayOf(100), DEFAULTS)!;
+    expect(letter).toEqual({ kind: 'status', day: 90, key: 'status:90' });
+    const seen = markLetterShown(old, letter, DEFAULTS);
+    expect(seen.lettersShown).toEqual(['7', '90', 'comeback:2025-02-01', 'status:90', 'status:7', 'status:30']);
+    expect(pendingStatusLetter(seen, dayOf(100), DEFAULTS)).toBeNull();
   });
 
-  it('sends no patch letter while the patch is switched off, and the 365 letter still comes', () => {
-    const off = config({ patch: { active: false } });
-    let r = markLetterShown(onRecord(emptyRecord(), '2025-01-01', 90), milestone(7));
-    expect(pendingStatusLetter(r, '2025-03-31', DEFAULTS)).toMatchObject({ day: 90 });
-    expect(pendingStatusLetter(r, '2025-03-31', off)).toBeNull();
-    expect(letterTier(milestone(90), off)).toBeNull();
-    r = onRecord(r, '2025-04-01', 275);
-    expect(pendingStatusLetter(r, '2025-12-31', off)).toEqual({ kind: 'milestone', day: 365, key: '365', pausable: false });
-    expect(letterTier(milestone(365), off)?.id).toBe('piece-365');
+  it('gives a long restored record one letter, not four', () => {
+    const r = at(400);
+    const letter = pendingStatusLetter(r, dayOf(400), DEFAULTS)!;
+    expect(letter).toMatchObject({ day: 365 });
+    const seen = markLetterShown(r, letter, DEFAULTS);
+    expect([...seen.lettersShown].sort()).toEqual(['status:30', 'status:365', 'status:7', 'status:90']);
+    expect(pendingStatusLetter(seen, dayOf(400), DEFAULTS)).toBeNull();
+    // Marked without the tiers, the letter still covers every tier below it.
+    const bare = markLetterShown(r, letter);
+    expect(bare.lettersShown).toEqual(['status:365']);
+    expect(pendingStatusLetter(bare, dayOf(400), DEFAULTS)).toBeNull();
   });
 
-  it("doesn't bring back an older letter when a higher tier is switched off later", () => {
-    const moved = config({ 'early-access': { day: 10 } });
-    let r = onRecord(emptyRecord(), '2025-01-01', 100);
-    const patch = pendingStatusLetter(r, '2025-04-10', moved)!;
-    expect(patch).toMatchObject({ day: 90 });
-    r = markLetterShown(r, patch);
-    expect(pendingStatusLetter(r, '2025-04-10', config({ 'early-access': { day: 10 }, patch: { active: false } }))).toBeNull();
+  it("doesn't show the 7-day letter after the 30-day one when it was skipped", () => {
+    const r = at(30);
+    const letter = pendingStatusLetter(r, dayOf(30), DEFAULTS)!;
+    expect(letter.day).toBe(30);
+    expect(pendingStatusLetter(markLetterShown(r, letter, DEFAULTS), dayOf(30), DEFAULTS)).toBeNull();
   });
 
-  it('after a pause, sends one letter for a moved early access, and no comeback letter before reaching it', () => {
-    // 8 days, 16 missed (paused), then 7 more: access reopens on 31 Jan with 15 active days.
-    const r = onRecord(onRecord(emptyRecord(), '2026-01-01', 8), '2026-01-25', 7);
-    const at10 = config({ 'early-access': { day: 10 } });
-    const letter = pendingStatusLetter(r, '2026-01-31', at10)!;
-    expect(letter).toEqual({ kind: 'milestone', day: 10, key: '10', pausable: true });
-    // Its letter already says early access is open, so it covers the comeback letter.
-    expect(pendingStatusLetter(markLetterShown(r, letter), '2026-01-31', at10)).toBeNull();
-    // Moved past the 15 days: nothing is open yet, so nothing says it's open again.
-    expect(pendingStatusLetter(r, '2026-01-31', config({ 'early-access': { day: 20 } }))).toBeNull();
+  it('skips a tier whose code is already taken, or that is switched off', () => {
+    let r = take(at(30), 'status-30', dayOf(30));
+    // 15% off was taken from the Status page before its letter: the untaken 10% off gets one.
+    expect(pendingStatusLetter(r, dayOf(30), DEFAULTS)).toMatchObject({ day: 7 });
+    r = take(r, 'status-7', dayOf(30));
+    expect(pendingStatusLetter(r, dayOf(30), DEFAULTS)).toBeNull();
+    expect(pendingStatusLetter(at(30), dayOf(30), config({ 'status-30': { active: false } }))).toMatchObject({ day: 7 });
   });
 
-  it('places the walker the same as before for the built-in days, and for any others', () => {
-    const days = DEFAULTS.map(t => t.day);
-    for (const n of [0, 1, 7, 12, 90, 200, 365, 400]) expect(roadAt(n, days)).toBeCloseTo(roadPosition(n));
-    expect(roadAt(15, [7, 30, 90, 365])).toBeCloseTo((1 + 8 / 23) / 4);
-    expect(roadAt(5, [])).toBe(0);
+  it('moves the letter with a tier the config moves, and closes one whose tier has gone', () => {
+    const moved = config({ 'status-7': { day: 10 } });
+    expect(pendingStatusLetter(at(7), dayOf(7), moved)).toBeNull();
+    expect(pendingStatusLetter(at(10), dayOf(10), moved)).toEqual({ kind: 'status', day: 10, key: 'status:10' });
+    // A 7-day letter left open from before the move has no tier: the letter screen closes it.
+    const seven = { kind: 'status' as const, day: 7, key: 'status:7' };
+    expect(letterTier(seven, moved)).toBeNull();
+    expect(letterTier(seven, config({ 'status-7': { active: false } }))).toBeNull();
+    expect(letterTier(seven, DEFAULTS)?.id).toBe('status-7');
+  });
+
+  it('sends nothing with no tiers in effect', () => {
+    expect(pendingStatusLetter(at(400), dayOf(400), [])).toBeNull();
   });
 });
 
-describe('the pause rule follows the configured early-access day', () => {
-  // 8 active days, then 15 days without a proven mission.
-  const r = onRecord(emptyRecord(), '2026-09-01', 8);
-  const today = addDays('2026-09-08', 16);
-
-  it('pauses after 14 missed days once early access is open (built-in day 7)', () => {
-    expect(statusAccess(r, today, DEFAULTS).paused).toBe(true);
-  });
-
-  it("doesn't pause before a moved early access (day 10) has opened", () => {
-    const moved = DEFAULTS.map(t => (t.id === 'early-access' ? { ...t, day: 10 } : t));
-    expect(statusAccess(r, today, moved).paused).toBe(false);
-    const ea = moved.find(t => t.id === 'early-access')!;
-    expect(statusState(r, ea, today).kind).toBe('locked');
-  });
-
-  it('never pauses when early access is switched off', () => {
-    expect(statusAccess(r, today, DEFAULTS.filter(t => t.id !== 'early-access')).paused).toBe(false);
+describe('the status road', () => {
+  it('places the walker piecewise over 0 and each tier day', () => {
+    const days = DEFAULTS.map(t => t.day);
+    expect(roadAt(0, days)).toBe(0);
+    expect(roadAt(7, days)).toBeCloseTo(1 / 4);
+    expect(roadAt(30, days)).toBeCloseTo(2 / 4);
+    expect(roadAt(15, days)).toBeCloseTo((1 + 8 / 23) / 4);
+    expect(roadAt(90, days)).toBeCloseTo(3 / 4);
+    expect(roadAt(400, days)).toBe(1);
+    expect(roadAt(5, [])).toBe(0);
   });
 });

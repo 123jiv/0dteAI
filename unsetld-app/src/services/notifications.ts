@@ -198,9 +198,8 @@ export function cancelTrialReminder() {
 export interface Drop {
   id: string;
   collection: string;
-  /** ISO times. */
+  /** ISO time it opens to everyone. */
   publicAt: string;
-  earlyAt: string;
 }
 
 function whenText(publicAt: Date, from: Date): string {
@@ -213,16 +212,11 @@ function whenText(publicAt: Date, from: Date): string {
 }
 
 /**
- * Drop alerts: opt-in only. Early access (7 active days, not paused, access on)
- * hears at early-access open; everyone else gets a heads-up 24 hours before
- * public open. One run at a time.
+ * Drop alerts: opt-in only, a heads-up 24 hours before each drop opens. One run at a time.
  */
 export const scheduleDropAlerts = oneAtATime(dropAlerts, undefined);
 
-async function dropAlerts(
-  { drops, optedIn, earlyAccess }: { drops: Drop[]; optedIn: boolean; earlyAccess: boolean },
-  stale: () => boolean,
-): Promise<void> {
+async function dropAlerts({ drops, optedIn }: { drops: Drop[]; optedIn: boolean }, stale: () => boolean): Promise<void> {
   if (!supported) return;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
@@ -232,12 +226,11 @@ async function dropAlerts(
   for (const d of drops) {
     if (stale()) return;
     const publicAt = new Date(d.publicAt);
-    const at = earlyAccess ? new Date(d.earlyAt) : new Date(publicAt.getTime() - 86_400_000);
+    const at = new Date(publicAt.getTime() - 86_400_000);
     if (Number.isNaN(at.getTime()) || at.getTime() < Date.now()) continue;
-    const body = earlyAccess ? N.dropEarly(d.collection, whenText(publicAt, at)) : N.dropPublic(d.collection, whenText(publicAt, at));
     await Notifications.scheduleNotificationAsync({
       identifier: `drop-${d.id}`,
-      content: { title: N.title, body, sound: false, data: { drop: d.id, early: earlyAccess } },
+      content: { title: N.title, body: N.dropPublic(d.collection, whenText(publicAt, at)), sound: false, data: { drop: d.id } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
     });
   }
@@ -246,17 +239,6 @@ async function dropAlerts(
 export type NotificationEvent = { kind: 'open-today' } | { kind: 'open-mission'; missionId: string; day: DayKey };
 
 const handled = new Set<string>();
-let earlyDropTapped = false;
-
-/**
- * True once after an early drop alert was tapped. That tap lands on Home like
- * any other, and the navigator then opens the early-access page.
- */
-export function takeEarlyDropTap(): boolean {
-  const t = earlyDropTapped;
-  earlyDropTapped = false;
-  return t;
-}
 
 function toEvent(r: Notifications.NotificationResponse): NotificationEvent | null {
   // The delivery time is part of the key: the timer-done notification reuses
@@ -267,15 +249,12 @@ function toEvent(r: Notifications.NotificationResponse): NotificationEvent | nul
   // Only a tap on the notification itself opens something. (A 2.x night check
   // still in Notification Center can carry Held / Not today: they do nothing now.)
   if (r.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return null;
-  const data = r.notification.request.content.data as { drop?: string; early?: boolean; mission?: string; day?: DayKey } | undefined;
-  if (data?.drop) {
-    earlyDropTapped = data.early === true;
-    return { kind: 'open-today' };
-  }
+  const data = r.notification.request.content.data as { mission?: string; day?: DayKey } | undefined;
   // The focus timer finished: back to its mission for the proof photo.
   if (typeof data?.mission === 'string' && MISSION_BY_ID[data.mission] && typeof data.day === 'string') {
     return { kind: 'open-mission', missionId: data.mission, day: data.day };
   }
+  // Reminders and drop alerts (an earlier build's early drop alert too) open Today.
   return { kind: 'open-today' };
 }
 

@@ -1,15 +1,13 @@
 import * as Linking from 'expo-linking';
 import { useEffect, useMemo, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
-import { create } from 'zustand';
 import { slotsFor } from '../core/missions';
 import { activeDays, isProven } from '../core/progress';
-import { accessState, dayCount } from '../core/record';
+import { dayCount } from '../core/record';
 import { daysAhead } from '../core/reminders';
 import { computeStreak } from '../core/streak';
 import { addDays, nextDayStart, type DayKey } from '../core/time';
 import type { DayPlan, MissionDone } from '../core/types';
-import { accessDays, accessRecord, earlyAccessDay, useStatusTiers } from '../screens/access';
 import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
 import { backupRecord, readBackup } from '../services/backup';
 import { now, today } from '../services/clock';
@@ -18,7 +16,6 @@ import {
   reminderMissions,
   reschedule,
   scheduleDropAlerts,
-  type Drop,
   type ReminderMission,
   type ScheduleInput,
 } from '../services/notifications';
@@ -30,12 +27,9 @@ import { showDialog } from '../ui/actions';
 import { PLATFORM } from '../content/copy/platform';
 import { parseUrl, useIntent } from './intents';
 import { useSaveFailed } from './storage';
-import { useAccessEnabled, useApp, useEntitlements } from './store';
+import { useApp, useEntitlements } from './store';
 
 let toldOutOfSpace = false;
-
-/** The last drops.json that loaded, for the early-access page. Fetched on launch and every foreground. */
-export const useDrops = create<{ drops: Drop[] }>(() => ({ drops: [] }));
 
 /**
  * RevenueCat's answer. Active but not renewing means the trial was cancelled
@@ -265,25 +259,21 @@ export function useSideEffects() {
     if (hydrated && account && recordedToday) syncCheckIn(day).catch(() => {});
   }, [hydrated, account, recordedToday, day]);
 
-  // Drops: fetched on launch and every foreground, for the early-access page
-  // and the opt-in alerts. Early access needs its active days (7 unless the
-  // config moves it; none when the config switches it off), access on and no
-  // pause. A failed fetch keeps the alerts already scheduled.
-  const accessEnabled = useAccessEnabled();
-  const earlyDay = earlyAccessDay(useStatusTiers());
-  const paused = useMemo(() => earlyDay !== null && accessState(accessRecord(record), day, earlyDay).paused, [record, day, earlyDay]);
-  const early = accessEnabled && earlyDay !== null && accessDays(record) >= earlyDay && !paused;
+  // Drop alerts, opted into in You: a heads-up 24 hours before each drop opens. drops.json
+  // is fetched on launch and every foreground while they're on; a failed fetch keeps the
+  // alerts already scheduled. Turned off, every drop alert goes.
   const dropAlerts = useApp(s => s.settings.dropAlerts);
   useEffect(() => {
     if (!hydrated) return;
+    if (!dropAlerts) {
+      scheduleDropAlerts({ drops: [], optedIn: false }).catch(() => {});
+      return;
+    }
     let live = true;
-    if (!dropAlerts) scheduleDropAlerts({ drops: [], optedIn: false, earlyAccess: early }).catch(() => {});
     const run = () =>
       fetchDrops()
         .then(drops => {
-          if (!drops) return;
-          useDrops.setState({ drops });
-          if (live && dropAlerts) return scheduleDropAlerts({ drops, optedIn: true, earlyAccess: early });
+          if (drops && live) return scheduleDropAlerts({ drops, optedIn: true });
         })
         .catch(() => {});
     run();
@@ -294,5 +284,5 @@ export function useSideEffects() {
       live = false;
       sub.remove();
     };
-  }, [hydrated, dropAlerts, early]);
+  }, [hydrated, dropAlerts]);
 }

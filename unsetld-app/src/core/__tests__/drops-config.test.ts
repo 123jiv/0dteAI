@@ -1,7 +1,6 @@
-// unsetld.com's drops.json: only well-formed drops reach the early-access page and the drop
-// alerts, so a hand edit that leaves a null or a half-filled entry can't crash them.
+// unsetld.com's drops.json: only well-formed drops reach the drop alerts (a heads-up 24 hours
+// before a drop opens), so a hand edit that leaves a null or a half-filled entry can't crash them.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { earlyDrop, nextDropChange } from '../../screens/access';
 import { fetchDrops } from '../../services/access';
 
 vi.hoisted(() => {
@@ -12,7 +11,7 @@ vi.mock('../../state/store', () => ({ useApp: {} }));
 vi.mock('../../services/account', () => ({}));
 vi.mock('../../services/notifications', () => ({}));
 
-const good = { id: 'c005', collection: '005', earlyAt: '2026-10-20T16:00:00Z', publicAt: '2026-10-22T16:00:00Z' };
+const good = { id: 'c005', collection: '005', publicAt: '2026-10-22T16:00:00Z' };
 
 function serve(body: unknown, ok = true) {
   vi.stubGlobal('fetch', vi.fn(async () => ({ ok, json: async () => body })));
@@ -30,18 +29,18 @@ describe("unsetld.com's drops", () => {
         'x',
         42,
         { id: 'a' },
-        { ...good, id: 'no-dates', earlyAt: undefined },
+        { ...good, id: 'no-date', publicAt: undefined },
         { ...good, id: 'bad-date', publicAt: 'soon' },
-        { ...good, id: 'backwards', earlyAt: '2026-10-23T16:00:00Z' },
         { ...good, collection: 5 },
         good,
       ],
     });
-    const drops = await fetchDrops();
-    expect(drops).toEqual([good]);
-    // What the early-access page runs on it doesn't throw.
-    expect(earlyDrop(drops!, Date.parse('2026-10-21T00:00:00Z'))).toEqual(good);
-    expect(nextDropChange(drops!, Date.parse('2026-10-21T00:00:00Z'))).toBe(Date.parse(good.publicAt));
+    expect(await fetchDrops()).toEqual([good]);
+  });
+
+  it("reads an older file's drop by its public time, and leaves its early window out", async () => {
+    serve({ drops: [{ ...good, earlyAt: '2026-10-21T16:00:00Z' }, { ...good, id: 'late-early', earlyAt: '2026-10-23T16:00:00Z' }] });
+    expect(await fetchDrops()).toEqual([good, { ...good, id: 'late-early' }]);
   });
 
   it('an empty list means no drops; no list or a failed fetch keeps the alerts already set', async () => {

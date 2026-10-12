@@ -1,9 +1,10 @@
 // Rewards (docs/UX_REDESIGN.md section 9): the Rewards tab, All rewards, Reward history,
-// How points work, UNSETLD status, the milestone pages and the code sheet.
-// Sentence case, no exclamation marks. Straight quotes become typographic at display time.
+// How points work, UNSETLD status, a status tier's page, the status letter and the code sheet.
+// Every reward is a discount code: points buy the points rewards, days proven earn the status
+// ones. Sentence case, no exclamation marks. Straight quotes become typographic at display time.
 // Thresholds, prices and limits are never written here: they come from the reward and
 // status tiers (content/rewards.json, content/milestones.json or unsetld.com's config).
-import type { RewardTier } from '../../core/types';
+import type { RewardTier, StatusTier } from '../../core/types';
 
 const pts = (n: number) => n.toLocaleString('en-US');
 const plural = (n: number, one: string, many: string) => (n === 1 ? `1 ${one}` : `${pts(n)} ${many}`);
@@ -11,6 +12,10 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? `1 ${one}` :
 const money = (n: number) => (Number.isInteger(n) ? `$${pts(n)}` : `$${n.toFixed(2)}`);
 /** core/time shortDate ('8 NOV') with the month in sentence case ('8 Nov'). */
 const date = (d: string) => d.replace(/[A-Z]{2,}/g, m => m[0] + m.slice(1).toLowerCase());
+/** Status counts days proven: days with at least one proven mission. "1 day proven", "29 days proven". */
+const proven = (n: number) => plural(n, 'day proven', 'days proven');
+/** A status tier's cap, from its maxOff: "Up to $25 off", or "One order at unsetld.com" with no cap. */
+const cap = (t: Pick<StatusTier, 'maxOff'>) => (typeof t.maxOff === 'number' ? `Up to ${money(t.maxOff)} off` : 'One order at unsetld.com');
 
 /**
  * A tier's limits, from its fields: "Up to $25 off", "Orders of $50 or more", "Code works 30
@@ -81,17 +86,19 @@ export const REWARDS_COPY = {
   // The status card on the Rewards tab
   statusCard: {
     kicker: 'UNSETLD STATUS',
-    /** The tier still ahead, so it doesn't read as one already held. */
-    next: (title: string) => `Next: ${title}`,
-    /** `n` active days of the next tier's `day`. */
-    progress: (n: number, day: number) => (n === 0 ? `At ${plural(day, 'active day', 'active days')}` : `${pts(n)} / ${pts(day)} active days · ${pts(day - n)} to go`),
-    allReached: (n: number) => `${plural(n, 'active day', 'active days')}. Every tier is open to you.`,
-    allReachedTitle: 'Every tier reached',
-    paused: 'Early access is paused.',
-    /** No active day yet: no "You have 0". */
-    a11y: (title: string, n: number, day: number) =>
-      `UNSETLD status. Next: ${title} at ${plural(day, 'active day', 'active days')}.${n > 0 ? ` You have ${plural(n, 'active day', 'active days')}.` : ''}`,
-    a11yAll: (n: number) => `UNSETLD status. ${plural(n, 'active day', 'active days')}. Every tier reached.`,
+    /** A tier reached whose code isn't taken yet: "10% off is ready". */
+    ready: (title: string) => `${title} is ready`,
+    readyLine: (day: number) => `Earned with ${proven(day)}.`,
+    /** The tier still ahead: "Next: 15% off at 30 days". */
+    next: (title: string, day: number) => `Next: ${title} at ${plural(day, 'day', 'days')}`,
+    /** Under the meter: "29 / 30 days proven". Nothing proven yet: no "0 / 7". */
+    progress: (n: number, day: number) => (n === 0 ? 'Starts with your first proven mission.' : `${pts(Math.min(n, day))} / ${pts(day)} days proven`),
+    allTaken: 'Every status reward earned',
+    allTakenLine: (n: number) => `${proven(n)}.`,
+    a11yReady: (title: string, day: number) => `UNSETLD status. ${title} is ready, earned with ${proven(day)}.`,
+    /** No day proven yet: no "You have 0". */
+    a11y: (title: string, n: number, day: number) => `UNSETLD status. Next: ${title} at ${proven(day)}.${n > 0 ? ` You have ${proven(n)}.` : ''}`,
+    a11yAll: (n: number) => `UNSETLD status. Every status reward earned. ${proven(n)}.`,
   },
 
   // All rewards
@@ -160,6 +167,8 @@ export const REWARDS_COPY = {
     emptyBody: 'Codes you take show up here, with the day each one runs out.',
     /** A 2.x code. */
     legacyTitle: (percent: number) => `${percent}% off`,
+    /** A status code: "10% off · 7 days proven". */
+    statusTitle: (title: string, day: number) => `${title} · ${proven(day)}`,
     /** A code whose reward is no longer in the list. */
     unknownReward: 'Reward',
     /** Rewards that were taken out of the list, so codes already taken keep their name. */
@@ -200,44 +209,69 @@ export const REWARDS_COPY = {
       'Most rewards can be taken once each collection. A new collection opens them again.',
     ],
     status: 'UNSETLD STATUS',
-    statusBody: "Status isn't bought with points. It comes with active days: days you prove at least one mission.",
+    statusBody: "Status isn't bought with points. It comes with days proven, the days you prove at least one mission, and each tier gives one discount code, once.",
     limits: 'LIMITS',
     limitsBody: ["One code per order. Codes don't combine with other codes.", "No cash value. Points and codes can't be sold, bought or transferred."],
   },
 
-  // UNSETLD status
+  // UNSETLD status: one discount code for each tier of days proven
   status: {
-    title: 'Status',
+    title: 'UNSETLD status',
     intro: "Earned with days you prove a mission. It can't be bought.",
-    daysUnit: (n: number) => (n === 1 ? 'active day' : 'active days'),
-    daysA11y: (n: number) => plural(n, 'active day', 'active days'),
-    /** No active day yet: no zero. */
-    first: "Prove a mission today and it's your first active day.",
-    road: (n: number, last: number) => `${plural(n, 'active day', 'active days')}, on the road to ${pts(last)}`,
-    tierKicker: (day: number) => `${pts(day)} ${day === 1 ? 'ACTIVE DAY' : 'ACTIVE DAYS'}`,
-    /** `left`: active days still needed to reopen it. */
-    pausedNote: (left: number) => `Early access is paused. Prove a mission on ${left === 1 ? '1 more day' : `${left} more days`} to open it again.`,
+    /** The count at the top: "29" and "days proven". */
+    daysUnit: (n: number) => (n === 1 ? 'day proven' : 'days proven'),
+    daysA11y: proven,
+    /** No day proven yet: no zero. */
+    first: "Prove a mission today and it's your first day proven.",
+    road: (n: number, last: number) => `${proven(n)}, on the road to ${pts(last)}`,
+    /** Beside a tier's serif day number. */
+    tierUnit: (day: number) => (day === 1 ? 'day proven' : 'days proven'),
+    cap,
     state: {
-      open: 'Open',
-      /** A display-only tier (from the config) once reached. */
-      reached: 'Reached',
-      used: 'Used',
-      paused: 'Paused',
-      left: (n: number) => `${pts(n)} to go`,
+      ready: 'Ready',
+      taken: 'Taken',
+      left: (n: number) => (n === 1 ? '1 day to go' : `${pts(n)} days to go`),
     },
-    tierA11y: (day: number, title: string, short: string, state: string) => `${title}, at ${plural(day, 'active day', 'active days')}. ${short} ${state}`,
+    /** A tier taken before whose code never reached this phone (unsetld.com said it was taken but didn't send it). */
+    takenElsewhere: "Taken before, maybe on another phone. There's one per person.",
+    /** Under a code taken: when it runs out. `d` as shortDate gives it ('8 NOV'). */
+    codeLine: (d: string, expired: boolean) => (expired ? `Ran out ${date(d)}` : `Works until ${date(d)}`),
+    /** The next tier's meter: "29 / 30 days proven". */
+    progress: (have: number, need: number) => `${pts(Math.min(have, need))} / ${pts(need)} days proven`,
+    progressA11y: (have: number, need: number) => `${pts(Math.min(have, need))} of ${proven(need)}`,
+    tierA11y: (t: Pick<StatusTier, 'day' | 'title' | 'maxOff'>, state: string) => `${t.title}, at ${proven(t.day)}. ${cap(t)}. ${state}`,
+    codeA11y: (code: string, line: string) => `Code ${code}. ${line}`,
+
+    // Taking the code (screens/rewards/redeem useRedeem, for a status tier)
+    confirmTitle: (title: string) => `Get your ${title} code?`,
+    /** From the tier as a reward (core/rewards statusReward): "One order at unsetld.com, up to $25 off. …" */
+    confirmBody: (t: RewardTier) =>
+      `One order at unsetld.com${typeof t.maxOff === 'number' ? `, up to ${money(t.maxOff)} off` : ''}. The code works for ${plural(t.codeValidDays, 'day', 'days')} from today, and there's one per person.`,
+    errors: {
+      used: "You've already taken this code. There's one per person.",
+      cooldown: "This code isn't available right now.",
+      short: "unsetld.com hasn't counted all your days yet. Try again in a moment.",
+      unavailable: "This code isn't available right now.",
+      network: "Couldn't reach unsetld.com. Try again in a moment.",
+    },
   },
 
-  // Milestone page (one status tier)
+  // A status tier's page (route Milestone)
   milestone: {
-    signInNote: 'Sign in to use it. It takes one tap.',
-    networkError: "Couldn't reach unsetld.com. Try again in a moment.",
-    /** unsetld.com says it's paused; `left` as this phone counts it. */
-    pausedError: (left: number) => `Early access is paused. Prove a mission on ${left === 1 ? '1 more day' : `${left} more days`} to open it again.`,
-    openDrop: (c: string) => `Open Collection ${c}`,
-    notificationsOff: 'Notifications are off for UNSETLD.',
-    openSettings: 'Open Settings',
-    progress: (have: number, need: number) => `${pts(Math.min(have, need))} / ${pts(need)} active days`,
-    progressA11y: (have: number, need: number) => `${pts(Math.min(have, need))} of ${pts(need)} active days`,
+    /** Under the code taken, while it still works. */
+    oneOrder: 'One order at unsetld.com.',
+  },
+
+  // The status letter: a tier reached
+  letter: {
+    kicker: (day: number) => `${pts(day)} ${day === 1 ? 'DAY' : 'DAYS'} PROVEN.`,
+    kickerA11y: (day: number) => `${proven(day)}.`,
+    title: (title: string) => `${title} is yours.`,
+    /** One line under the title, from the tier's fields. */
+    line: (t: Pick<StatusTier, 'maxOff' | 'codeValidDays'>) =>
+      `One order at unsetld.com${typeof t.maxOff === 'number' ? `, up to ${money(t.maxOff)} off` : ''}. The code works ${plural(t.codeValidDays, 'day', 'days')} from when you take it.`,
+    primary: 'Get the code',
+    secondary: 'Not now',
+    close: 'Close',
   },
 } as const;

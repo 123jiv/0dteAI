@@ -171,7 +171,8 @@ if (programs.filter(p => p.free).length < 2) errors.push('programs.json: at leas
 
 // Rewards
 const rewardIds = new Set();
-const TYPES = ['discount', 'free-shipping', 'early-access', 'limited', 'drop'];
+// Every reward is a discount code (3.2): no free shipping, limited pieces or drops.
+const TYPES = ['discount'];
 // The founder's names for reward fields. core/rewards parseRewardTier accepts them in unsetld.com's
 // config only: the app reads content/rewards.json as is (content/index.ts), so this file uses the
 // canonical names or the tier silently loses its points, dates or cooldown.
@@ -199,7 +200,7 @@ for (const r of rewards) {
   if (!(Number.isInteger(r.points) && r.points > 0)) e('points must be a positive whole number');
   if (!r.title || !r.detail) e('title and detail are required');
   if (typeof r.active !== 'boolean') e('active must be true or false');
-  if (r.type === 'discount' && !(r.percent > 0 && r.percent <= 50)) e('a discount needs percent 1–50');
+  if (!(r.percent > 0 && r.percent <= 50)) e('a discount needs percent 1–50');
   if (!(Number.isInteger(r.codeValidDays) && r.codeValidDays >= 1)) e('codeValidDays must be 1 or more');
   if (r.inventory != null && !(Number.isInteger(r.inventory) && r.inventory >= 0)) e('inventory must be null or a whole number');
   if (!(Number.isInteger(r.perCollection) && r.perCollection >= 1)) e('perCollection must be 1 or more');
@@ -218,10 +219,13 @@ for (const r of rewards) {
 const active = rewards.filter(r => r.active).map(r => r.points);
 if (active.some((p, i) => i && p <= active[i - 1])) warnings.push('rewards.json: active tiers usually go up in points');
 
-// UNSETLD status (milestones.json): tiers earned by active days, as a plain list with `day`. The app reads
-// this file as is (content/index.ts → statusFromMilestones); `{ "status": [...] }` and `activeDays` are
-// the shape of unsetld.com's config override (core/rewards parseStatus), not of this file.
-const KNOWN_STATUS = ['early-access', 'patch', 'piece-365'];
+// UNSETLD status (milestones.json): a discount code for each tier of active days, as a plain list with
+// `day`. The app reads this file as is (content/index.ts → statusFromMilestones); `{ "status": [...] }`
+// and the alias names (activeDays, discountPercent, maxDiscount) are the shape of unsetld.com's config
+// override (core/rewards parseStatus), not of this file. Every tier is a discount: no other reward.
+const STATUS_ALIASES = { day: ['activeDays'], percent: ['discountPercent'], maxOff: ['maxDiscount'] };
+// Fields of the early-access, patch and 365-piece tiers, retired in 3.2.
+const RETIRED_STATUS = ['pausable', 'action', 'letter'];
 const statusList = Array.isArray(milestones) ? milestones : null;
 if (!statusList) errors.push('milestones.json: must be a list of status tiers (the { "status": [...] } wrapper is for unsetld.com\'s config only)');
 const statusIds = new Set();
@@ -232,26 +236,23 @@ for (const t of statusList ?? []) {
   }
   const where = `status ${t.id ?? '?'}`;
   const e = msg => errors.push(`${where}: ${msg}`);
-  if ('activeDays' in t) e('use "day", not "activeDays" (the alias is for unsetld.com\'s config only)');
+  for (const [name, others] of Object.entries(STATUS_ALIASES)) {
+    for (const a of others) if (a in t) e(`use "${name}", not "${a}" (the alias names are for unsetld.com's config only)`);
+  }
+  for (const k of RETIRED_STATUS) if (k in t) e(`"${k}" is retired: every status tier is a discount code`);
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(t.id ?? '')) e('bad id');
   if (statusIds.has(t.id)) e('duplicate id');
   statusIds.add(t.id);
   if (!(Number.isInteger(t.day) && t.day >= 1)) e('day (active days needed) must be a whole number, 1 or more');
   if (typeof t.title !== 'string' || !t.title.trim() || t.title.length > 40) e('title must be 1–40 characters');
-  for (const k of ['short', 'detail']) if (t[k] != null && typeof t[k] !== 'string') e(`${k} must be text`);
-  if (t.active != null && typeof t.active !== 'boolean') e('active must be true or false');
-  if (t.pausable != null && typeof t.pausable !== 'boolean') e('pausable must be true or false');
-  if (t.action != null && (typeof t.action !== 'string' || !t.action.trim() || t.action.length > 40)) e('action must be 1–40 characters');
-  if (KNOWN_STATUS.includes(t.id)) {
-    // The app's own tiers carry their button and letter.
-    if (!t.short || !t.detail || !t.action || typeof t.pausable !== 'boolean') e('short, detail, action and pausable are required');
-    const l = t.letter;
-    if (l != null && (typeof l !== 'object' || ['sub', 'body', 'primary', 'secondary'].some(k => typeof l[k] !== 'string' || !l[k].trim()))) {
-      e('letter needs sub, body, primary and secondary');
-    }
-  }
-  const text = [t.title, t.short, t.detail, t.action, ...Object.values(t.letter ?? {})].filter(x => typeof x === 'string').join(' ');
+  for (const k of ['short', 'detail']) if (typeof t[k] !== 'string' || !t[k].trim()) e(`${k} is required`);
+  if (typeof t.active !== 'boolean') e('active must be true or false');
+  if (!(Number.isInteger(t.percent) && t.percent >= 1 && t.percent <= 90)) e('percent must be a whole number, 1–90');
+  if (t.maxOff != null && !(typeof t.maxOff === 'number' && t.maxOff > 0)) e('maxOff must be null or a positive number of dollars');
+  if (!(Number.isInteger(t.codeValidDays) && t.codeValidDays >= 1)) e('codeValidDays must be 1 or more');
+  const text = [t.title, t.short, t.detail].filter(x => typeof x === 'string').join(' ');
   if (/[!…]/.test(text) || EMOJI.test(text)) e('no "!", "…" or emoji');
+  if (/early access|early drop|patch|\bpiece\b|merch/i.test(text)) e('status tiers are discount codes only: no early access, patch or piece');
 }
 const activeStatus = (statusList ?? []).filter(t => t && t.active !== false).map(t => t.day);
 if (activeStatus.some((d, i) => i && d <= activeStatus[i - 1])) warnings.push('milestones.json: active status tiers usually go up in days');
