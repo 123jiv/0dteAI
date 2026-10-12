@@ -222,7 +222,7 @@ export function RecordScreen({ navigation }: TabProps<'Record'>) {
               </View>
             ) : null}
 
-            <View style={{ marginTop: GAP.section - 14 }}>
+            <View style={{ marginTop: recent.length ? GAP.card : GAP.section - 14 }}>
               <LinkRow title={R.stats} onPress={() => navigation.navigate('Stats')} />
               <LinkRow title={R.achievements} value={R.achievementsValue(reached.length, marks.length)} onPress={() => navigation.navigate('Achievements')} />
               {/* Rewards off, there's no Rewards tab: the point total and How points work live here. */}

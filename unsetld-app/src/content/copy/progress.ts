@@ -9,11 +9,11 @@ const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** "4h 20m", "25m", "0m". */
+/** "4h 20m", "5h", "25m", "0m". */
 function focused(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return h ? `${h}h ${m}m` : `${m}m`;
+  return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
 }
 
 /** "4 hours 20 minutes", for VoiceOver. */
@@ -220,8 +220,8 @@ export const PROGRESS = {
     notProven: 'Not proven',
     stillToDo: 'Still to do',
     plus: (n: number) => `+${n.toLocaleString('en-US')}`,
-    /** "School · 9:42 AM" */
-    meta: (area: string, time: string) => [area, time].filter(Boolean).join(' · '),
+    /** "School · 9:42 AM" (the time never breaks before AM). */
+    meta: (area: string, time: string) => [area, time.replace(' ', '\u00A0')].filter(Boolean).join(' · '),
     a11yRow: (title: string, area: string, time: string, points: number) =>
       `${title}. ${[area, `proven ${time}`, plural(points, 'point', 'points')].filter(Boolean).join(', ')}.`,
     a11yRowHint: 'Opens the photo.',

@@ -61,7 +61,8 @@ export function DayDot({ state, size }: { state: DotState; size: number }) {
               width: Math.round(d * inner),
               height: Math.round(d * inner),
               borderRadius: Math.round(d * inner) / 2,
-              backgroundColor: level === 'two' ? C.bone : C.muted,
+              // Showed up reads quiet (one: stone, two: a bigger, lighter dot); only a perfect day is bone.
+              backgroundColor: level === 'two' ? C.muted : C.stone,
             }}
           />
         ) : null}

@@ -104,6 +104,7 @@ describe('area progress reads in points: no second currency', () => {
     expect(R.areaPoints(1250, 1500)).toBe('1,250 / 1,500');
     expect(R.areaMeta(18, 8 * 3600 + 24 * 60)).toBe('18 missions · 8h 24m');
     expect(R.areaMeta(1, 0)).toBe('1 mission');
+    expect(R.areaMeta(10, 5 * 3600)).toBe('10 missions · 5h');
     expect(R.a11yArea('Projects', 7, 430, 500, 18, 8 * 3600 + 24 * 60)).toBe(
       'Projects, level 7. 430 of 500 toward level 8. 18 missions proven, 8 hours 24 minutes invested.',
     );
@@ -138,8 +139,8 @@ describe("a day's page", () => {
     expect(D.number(12)).toBe('Day 12');
     expect(D.title('2026-10-07', TODAY)).toBe('October 7');
     expect(D.plus(15)).toBe('+15');
-    expect(D.meta('School', '9:42 AM')).toBe('School · 9:42 AM');
-    expect(D.meta('', '9:42 AM')).toBe('9:42 AM');
+    expect(D.meta('School', '9:42 AM')).toBe('School · 9:42\u00A0AM');
+    expect(D.meta('', '9:42 AM')).toBe('9:42\u00A0AM');
     expect(D.a11yRow('Study for 30 Minutes', 'School', '9:42 AM', 15)).toBe('Study for 30 Minutes. School, proven 9:42 AM, 15 points.');
     expect(D.a11yOpen('Complete Your Workout', true)).toBe('Complete Your Workout, still to do.');
     expect(D.a11yOpen('Complete Your Workout', false)).toBe('Complete Your Workout, not proven.');
