@@ -1,25 +1,27 @@
-// Stage 2 of a TIMER_AND_PHOTO or TIMER mission: the focus timer. The timer itself
-// lives in the store on wall-clock time (core/timer), so it keeps running when this
-// screen or the app is closed; this view only redraws it once a second. When it
-// reaches zero: the proof photo (TIMER_AND_PHOTO), or Mark it done (TIMER, no photo).
-// "Come back when it rings." only when the timer-done notification can ring; otherwise
-// how long to come back in. The line at zero is said with VoiceOver on iOS.
-import { useEffect, useState, type ReactNode } from 'react';
+// Stage 2 of a TIMER_AND_PHOTO or TIMER mission: the lock-in screen START opens. Calm and
+// nothing else on it: LOCK IN FOR 30 MINUTES, the clock as big as the width allows, a hairline
+// meter, the mission, and one line ("Stay here. Get it done."). Pause and End timer stay quiet.
+// The timer itself lives in the store on wall-clock time (core/timer), so it keeps running when
+// this screen or the app is closed; this view only redraws it once a second. When it reaches
+// zero: "Time." and Take proof (TIMER_AND_PHOTO, the camera) or Prove it (TIMER: the timer is
+// the proof), with a soft haptic if the screen was open to see it. The line at zero is said
+// with VoiceOver on iOS.
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { clock, remainingSeconds, timerDone, type FocusTimer } from '../../core/timer';
 import type { Mission, TrackId } from '../../core/types';
 import { MISSION } from '../../content/copy/mission';
+import { soft } from '../../services/haptics';
 import { Meter } from '../../ui/blocks';
 import { Button, Screen, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C } from '../../ui/tokens';
 import { useAnnounce } from '../../ui/useAnnounce';
-import { areaName, CameraNote, LINING } from './parts';
+import { CameraNote, LINING } from './parts';
 
 export function TimerStage({
   timer,
   mission,
-  area,
   nav,
   denied,
   canRing,
@@ -31,7 +33,7 @@ export function TimerStage({
 }: {
   timer: FocusTimer;
   mission: Mission;
-  /** The area it's in today's plan for. */
+  /** The area it's in today's plan for. Not shown: the lock-in screen is the mission alone. */
   area?: TrackId;
   nav: ReactNode;
   denied: boolean;
@@ -64,35 +66,48 @@ export function TimerStage({
     };
   }, [running, timer]);
 
+  // A soft haptic when the time runs out with this screen open (not when it opens already done).
+  const wasDone = useRef(done);
+  useEffect(() => {
+    if (done && !wasDone.current) soft();
+    wasDone.current = done;
+  }, [done]);
+
   const left = remainingSeconds(timer, now);
   const text = clock(left);
   // As big as the width allows: Plex Mono's figures are 0.6 em wide.
   const size = boxW ? Math.min(104, Math.floor(boxW / (text.length * 0.62))) : 88;
-  const comeBack = canRing ? MISSION.timer.line : MISSION.timer.lineNoRing(Math.max(1, Math.ceil(left / 60)));
-  const line = done ? (photo ? MISSION.timer.done : MISSION.timer.doneNoPhoto) : paused ? MISSION.timer.paused : comeBack;
-  useAnnounce(done ? line : null);
+  const minutes = Math.max(1, Math.round(timer.requiredSeconds / 60) || mission.timerMinutes || mission.minutes);
+  const line = done ? MISSION.timer.time : paused ? MISSION.timer.paused : MISSION.timer.stay;
+  useAnnounce(done ? MISSION.timer.timeSaid(photo) : null);
 
   const footer = done ? (
     photo ? (
       <>
         <CameraNote denied={denied} />
-        <Button title={MISSION.button.proofPhoto} onPress={onPhoto} />
+        <Button title={MISSION.button.takeProof} onPress={onPhoto} />
       </>
     ) : (
-      <Button title={MISSION.button.markDone} onPress={onMarkDone} />
+      <Button title={MISSION.button.prove} onPress={onMarkDone} />
     )
-  ) : (
+  ) : paused ? (
     <>
-      {paused ? <Button title={MISSION.timer.resume} onPress={onResume} /> : <Button title={MISSION.timer.pause} kind="outline" onPress={onPause} />}
+      <Button title={MISSION.timer.resume} onPress={onResume} />
       <TextButton title={MISSION.timer.end} onPress={onEnd} style={{ marginTop: 8 }} />
     </>
+  ) : (
+    // Running: two quiet controls side by side, nothing to pull the eye off the clock.
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      <TextButton title={MISSION.timer.pause} color={C.muted} align="left" onPress={onPause} style={{ minWidth: 88 }} />
+      <TextButton title={MISSION.timer.end} align="right" onPress={onEnd} style={{ minWidth: 88 }} />
+    </View>
   );
 
   return (
     <Screen nav={nav} scroll={false} contentStyle={{ justifyContent: 'center' }} footer={footer}>
       <View onLayout={e => setBoxW(e.nativeEvent.layout.width)}>
         <T v="kicker" color={C.stone} align="center">
-          {areaName(mission, area)}
+          {MISSION.timer.lockIn(minutes)}
         </T>
         <T
           v="mono.l"
@@ -111,10 +126,15 @@ export function TimerStage({
         <T v="title.m" align="center" style={[{ marginTop: 32 }, LINING]}>
           {mission.title}
         </T>
-        {/* Live only for paused and done: "Come back in N minutes." changes every minute, and TalkBack would read each one. */}
-        <T v="body" color={C.stone} align="center" style={{ marginTop: 12 }} accessibilityLiveRegion={done || paused ? 'polite' : 'none'}>
+        {/* Live only for paused and done: nothing that changes while it runs. */}
+        <T v="body" color={done ? C.bone : C.muted} align="center" style={{ marginTop: 14 }} accessibilityLiveRegion={done || paused ? 'polite' : 'none'}>
           {line}
         </T>
+        {running && canRing ? (
+          <T v="note" color={C.stone} align="center" style={{ marginTop: 6 }}>
+            {MISSION.timer.ring}
+          </T>
+        ) : null}
       </View>
     </Screen>
   );

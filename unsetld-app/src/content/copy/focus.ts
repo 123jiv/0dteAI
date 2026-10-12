@@ -33,13 +33,13 @@ export const FOCUS = {
   save: 'Set this week',
   skip: 'Not this week',
   clear: 'Clear this week',
-  /** The card on Today when it's a new week and nothing is set. */
+  /** The card on Today when it's a new week and nothing is set: the question and Choose, nothing more. */
   prompt: 'What matters most this week?',
-  promptBody: 'Pick one and your missions lean toward it.',
   /** The card's own call to action. */
   promptGo: 'Choose',
-  promptA11y: 'What matters most this week? Pick one and your missions lean toward it.',
-  promptHint: 'Opens the weekly focus',
+  promptA11y: 'What matters most this week?',
+  /** VoiceOver only: why it's worth answering, which the card leaves unsaid. */
+  promptHint: 'Opens the weekly focus. Your missions lean toward it.',
   skipA11y: 'Not this week. Hides the question until next week',
   /** The line on Today once it's set ("This week: Work on my business"). */
   current: (label: string) => `This week: ${label}`,

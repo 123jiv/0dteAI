@@ -28,16 +28,10 @@ export const HOME = {
   num,
 
   stats: {
-    /** After the serif number: "12 day streak". */
+    /** After the serif number: "12 day streak" (and, honestly, "0 day streak" after a break). */
     streak: 'day streak',
     /** After the serif number: "380 pts". */
     points: 'pts',
-    /** Day 1, in place of a zero. */
-    first: 'Your first mission starts your streak.',
-    /** Days on record from 2.x and nothing proven since: they're kept, so they're said. */
-    before: (n: number) => `${n === 1 ? '1 day' : `${num(n)} days`} on record. Your next mission starts your streak.`,
-    /** A streak that ran out: in place of the zero, and what brings it back. */
-    restart: 'Your next mission starts a new streak.',
     a11yStreak: (n: number) => (n === 1 ? '1 day streak' : `${n} day streak`),
     a11yPoints: (n: number) => points(n),
     a11yPointsHint: 'Opens Rewards',
@@ -45,14 +39,12 @@ export const HOME = {
     a11yPointsHowHint: 'Opens How points work',
   },
 
+  /** The meter under the stats and one line: "220 pts to next reward", or "10% off is ready". */
   reward: {
-    label: 'NEXT REWARD',
-    toGo: (need: number, title: string) => `${pts(need)} to ${title}`,
-    /** Day 1: the first reward, said as one. */
-    first: (need: number, title: string) => `${pts(need)} to ${title} — your first reward.`,
+    toNext: (need: number) => `${pts(need)} to next reward`,
     ready: (title: string) => `${title} is ready`,
-    a11yToGo: (need: number, title: string) => `Next reward. ${points(need)} to ${title}`,
-    a11yReady: (title: string) => `Next reward. ${title} is ready`,
+    a11yToGo: (need: number, title: string) => `Next reward, ${title}, ${points(need)} to go`,
+    a11yReady: (title: string) => `Next reward, ${title}, ready`,
     a11yHint: 'Opens Rewards',
   },
 
@@ -96,12 +88,14 @@ export const HOME = {
     points: (n: number) => `+${n}${NBSP}pts`,
   },
 
+  /** The card's button: START, then its live state (the mission page says the same). */
   action: {
     start: 'START',
     timer: (clock: string) => `TIMER ${clock}`,
-    timerDone: 'TAKE PHOTO',
-    /** A timer-only mission once its timer ends: no photo, just the tap. */
-    markDone: 'MARK DONE',
+    /** A timer with a photo once it ends: the proof photo is next. */
+    timerDone: 'TAKE PROOF',
+    /** A timer-only mission once its timer ends: no photo, the timer is the proof. */
+    markDone: 'PROVE IT',
     after: 'AFTER PHOTO',
   },
 
@@ -154,10 +148,14 @@ export const HOME = {
         .join(', '),
     proven: (area: string, time: string, points: number) => [area || null, `proven at ${time}`, `${points} points`].filter(Boolean).join(', '),
     hint: 'Opens the mission',
+    /** The card's START, its own control. */
+    start: (title: string) => `Start ${title}`,
+    /** A timed mission's START starts its timer; any other opens the mission to do it and prove it. */
+    startHint: (timedMinutes: number | null) => (timedMinutes ? `Starts the ${timedMinutes}-minute timer` : 'Opens the mission to do it and prove it'),
     timerRunning: (minutes: number) => `Timer running, ${minutesSaid(minutes)} left`,
     timerPaused: (minutes: number) => `Timer paused, ${minutesSaid(minutes)} left`,
-    timerDone: 'Timer done, take the proof photo',
-    timerDoneMark: 'Timer done, mark it done',
+    timerDone: 'Timer done, take proof',
+    timerDoneMark: 'Timer done, prove it',
     afterWaiting: 'Before photo saved, after photo next',
     provenThumb: 'Proof photo',
   },

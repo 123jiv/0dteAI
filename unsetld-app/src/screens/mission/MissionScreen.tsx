@@ -2,6 +2,8 @@
 // Detail is deliberately short and in the card's order: the area, the title, time and points,
 // one instruction, the Proof card, then the one button.
 // Stages: detail → (timer | before photo) → review → checking → done | rejected.
+// START on Today's card (params.start) opens a timed mission with its timer started, once,
+// through the same path as the timer button; any other mission opens on its detail.
 // A TIMER mission has no photo: when its timer ends, Mark it done goes straight to checking.
 // The timer and a waiting before photo live in the store, so they survive leaving
 // this screen or closing the app; the rest of the flow is local to the screen.
@@ -9,7 +11,7 @@
 // at what a photo shows; nothing here says otherwise.
 // VoiceOver on iOS reads no live region, so a stage's new line (checking, not counted,
 // before saved) is said with ui/useAnnounce; the done stage says its own.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { activeDays } from '../../core/progress';
 import { usedHashes } from '../../core/proofs';
@@ -63,6 +65,32 @@ function afterDialog(fn: () => void) {
   else fn();
 }
 
+/**
+ * START on Today's card for a timed mission: the timer starts as the page opens, once, so the
+ * page opens on the lock-in screen. Only when there's a timer to start: the mission is in
+ * today's plan, not proven, and no timer is running for it (a running one just shows).
+ */
+function startsOnOpen(missionId: string, asked: boolean | undefined): boolean {
+  if (!asked) return false;
+  const s = useApp.getState();
+  const m = MISSION_BY_ID[missionId];
+  const day = s.currentDay;
+  const timed = m?.proofType === 'TIMER' || m?.proofType === 'TIMER_AND_PHOTO';
+  const inPlan = Boolean(s.plans[day]?.missions.some(p => p.missionId === missionId));
+  const proven = s.record.missions?.[day]?.[missionId]?.verification?.status === 'accepted';
+  const running = s.timer?.missionId === missionId && s.timer.day === day;
+  return timed && inPlan && !proven && !running;
+}
+
+/** Runs `run` once as it mounts, before the first paint (so the detail page doesn't flash first). */
+function RunOnMount({ run }: { run: () => void }) {
+  const first = useRef(run);
+  useLayoutEffect(() => {
+    first.current();
+  }, []);
+  return null;
+}
+
 const ours = (missionId: string, day: DayKey) => (x: { missionId: string; day: DayKey } | null | undefined) =>
   Boolean(x && x.missionId === missionId && x.day === day);
 
@@ -88,6 +116,9 @@ function endDay(missionId: string, day: DayKey, close: () => void, proof = false
 
 export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const { missionId } = route.params;
+  // START on Today: decided once as the page opens; `started` makes sure it only ever runs once.
+  const [startNow] = useState(() => startsOnOpen(missionId, route.params.start));
+  const started = useRef(false);
   const mission: Mission | undefined = MISSION_BY_ID[missionId];
   const current = useApp(s => s.currentDay);
   // The day this screen belongs to. If 4:00 AM comes while it's open, that day is over.
@@ -604,10 +635,8 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
           <ProofFrame photo={beforeHere.photo} day={day} label={MISSION.before.label} small a11y={MISSION.a11y.before} style={{ flex: 1 }} />
           <AfterSlot style={{ flex: 1 }} />
         </View>
-        <T v="title.m" style={{ marginTop: 24 }} accessibilityLiveRegion="polite">
-          {MISSION.before.saved}
-        </T>
-        <Instruction>{mission.short}</Instruction>
+        {/* The before is in (VoiceOver hears "Before saved. Now do it."): now the thing itself. */}
+        <Instruction kicker={MISSION.detail.doIt}>{mission.short}</Instruction>
         {/* Half the proof is in: what the after photo shows, not the whole Proof card again. */}
         {addsTo(mission, MISSION.method(mission.proofType)) ? (
           <T v="meta" color={C.stone} style={{ marginTop: 12 }}>
@@ -626,6 +655,15 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
       : { title: MISSION.button.prove, onPress: () => void takeProof() };
   // The button opens the camera itself (not a timer first).
   const usesCamera = !timed;
+  // A photo mission is done before it's proven: "DO IT" over the instruction. Not a timed one
+  // (START is the timer), nor before and after (the before photo comes first).
+  const doIt = !timed && mission.proofType !== 'BEFORE_AFTER' && inPlan;
+  // START on Today: the same path as the timer button (another timer, too late today, the day over).
+  const startOnce = () => {
+    if (started.current) return;
+    started.current = true;
+    timerPressed();
+  };
 
   return (
     <>
@@ -640,8 +678,9 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
             </>
           ) : undefined
         }>
+        {startNow && inPlan && timed ? <RunOnMount run={startOnce} /> : null}
         <MissionHeading mission={mission} area={area} />
-        <Instruction>{mission.short}</Instruction>
+        <Instruction kicker={doIt ? MISSION.detail.doIt : undefined}>{mission.short}</Instruction>
         {!inPlan && plan ? (
           <T v="meta" color={C.stone} style={{ marginTop: 16 }}>
             {MISSION.notInPlan}

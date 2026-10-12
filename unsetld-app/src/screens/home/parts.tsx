@@ -88,57 +88,43 @@ function Figure({ value, unit, colorway, align = 'left' }: { value: string; unit
 }
 
 /**
- * Streak on the left, points on the right (opens Rewards, or How points work while rewards are
- * off). No zeros: with no streak the left says what starts one, and with no points yet (Day 1)
- * the right is empty.
+ * Status at a glance, no sentences: "12 day streak" on the left (it honestly reads "0 day
+ * streak" after a break), "380 pts" on the right (opens Rewards, or How points work while
+ * rewards are off). Today leaves it out on Day 1, before there's anything to count.
  */
 export function StatsRow({
   colorway,
   streak,
   points,
-  firstDay,
-  before = 0,
   pointsHint,
   onPoints,
 }: {
   colorway: Colorway;
   streak: number;
   points: number;
-  /** Nothing proven on any day before today. */
-  firstDay: boolean;
-  /** Days on record from 2.x with nothing proven since: said in place of Day 1's line. */
-  before?: number;
   /** What tapping the points opens, for VoiceOver. */
   pointsHint: string;
   onPoints: () => void;
 }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, minHeight: 36 }}>
-      {streak > 0 ? (
-        <View accessible accessibilityLabel={HOME.stats.a11yStreak(streak)}>
-          <Figure value={String(streak)} unit={HOME.stats.streak} colorway={colorway} />
-        </View>
-      ) : (
-        <T v="saved" color={colorway.ink} style={{ flexShrink: 1 }}>
-          {before > 0 ? HOME.stats.before(before) : firstDay ? HOME.stats.first : HOME.stats.restart}
-        </T>
-      )}
-      {points > 0 ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={HOME.stats.a11yPoints(points)}
-          accessibilityHint={pointsHint}
-          onPress={onPoints}
-          hitSlop={8}
-          style={({ pressed }) => ({ minHeight: 44, justifyContent: 'flex-end', opacity: pressed ? 0.6 : 1 })}>
-          <Figure value={HOME.num(points)} unit={HOME.stats.points} colorway={colorway} align="right" />
-        </Pressable>
-      ) : null}
+      <View accessible accessibilityLabel={HOME.stats.a11yStreak(streak)}>
+        <Figure value={HOME.num(streak)} unit={HOME.stats.streak} colorway={colorway} />
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={HOME.stats.a11yPoints(points)}
+        accessibilityHint={pointsHint}
+        onPress={onPoints}
+        hitSlop={8}
+        style={({ pressed }) => ({ minHeight: 44, justifyContent: 'flex-end', opacity: pressed ? 0.6 : 1 })}>
+        <Figure value={HOME.num(points)} unit={HOME.stats.points} colorway={colorway} align="right" />
+      </Pressable>
     </View>
   );
 }
 
-/** NEXT REWARD, a meter and "220 pts to 10% off" (or "10% off is ready"). Opens Rewards. */
+/** A thin meter and one line under it: "220 pts to next reward" (or "10% off is ready"). Opens Rewards. */
 export function NextReward({
   colorway,
   title,
@@ -146,36 +132,28 @@ export function NextReward({
   points,
   need,
   ready,
-  first,
   onPress,
 }: {
   colorway: Colorway;
+  /** The reward's name: said to VoiceOver, and on the line once it's ready. */
   title: string;
   have: number;
   /** What the reward costs. */
   points: number;
   need: number;
   ready: boolean;
-  /** Day 1: said as the first reward. */
-  first: boolean;
   onPress: () => void;
 }) {
-  const line = ready ? HOME.reward.ready(title) : first ? HOME.reward.first(need, title) : HOME.reward.toGo(need, title);
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={ready ? HOME.reward.a11yReady(title) : HOME.reward.a11yToGo(need, title)}
       accessibilityHint={HOME.reward.a11yHint}
       onPress={onPress}
-      style={({ pressed }) => ({ paddingVertical: 4, opacity: pressed ? 0.6 : 1 })}>
-      <T v="kicker" color={colorway.secondary}>
-        {HOME.reward.label}
-      </T>
-      <View style={{ marginTop: 12 }}>
-        <Meter value={ready ? points : have} max={points} color={colorway.ink} track={colorway.rule} height={3} />
-      </View>
+      style={({ pressed }) => ({ minHeight: 44, justifyContent: 'center', paddingVertical: 4, opacity: pressed ? 0.6 : 1 })}>
+      <Meter value={ready ? points : have} max={points} color={colorway.ink} track={colorway.rule} height={3} />
       <T v="meta" color={ready ? colorway.ink : colorway.secondary} style={{ marginTop: 10 }}>
-        {line}
+        {ready ? HOME.reward.ready(title) : HOME.reward.toNext(need)}
       </T>
     </Pressable>
   );
@@ -183,8 +161,9 @@ export function NextReward({
 
 /**
  * "What matters most this week?": once a week (Monday to Saturday), from the user's second active
- * day on, until they pick one or say "Not this week". The card opens WeeklyFocus; "Not this week" is its own
- * control over the card's bottom right (a sibling, so it isn't a button inside a button).
+ * day on, until they pick one or say "Not this week". Light: the question and its two answers,
+ * nothing to read. The card opens WeeklyFocus; "Not this week" is its own control over the
+ * card's bottom right (a sibling, so it isn't a button inside a button).
  */
 export function FocusCard({ colorway, onOpen, onSkip }: { colorway: Colorway; onOpen: () => void; onSkip: () => void }) {
   const s = surfacesFor(colorway);
@@ -193,9 +172,6 @@ export function FocusCard({ colorway, onOpen, onSkip }: { colorway: Colorway; on
       <Card surface={s.card} pressed={s.pressed} onPress={onOpen} accessibilityLabel={FOCUS.promptA11y} accessibilityHint={FOCUS.promptHint}>
         <T v="saved" color={colorway.ink}>
           {FOCUS.prompt}
-        </T>
-        <T v="meta" color={colorway.secondary} style={{ marginTop: 6 }}>
-          {FOCUS.promptBody}
         </T>
         <View style={{ marginTop: 14, height: 20, flexDirection: 'row', alignItems: 'center', gap: 2 }}>
           <T v="meta" color={colorway.ink}>
@@ -300,8 +276,8 @@ export function TodayHeader({
 
 /**
  * What the button on an unproven card says: START, the focus timer counting
- * down (`live` while Today is in view and the app is open), TAKE PHOTO or MARK
- * DONE once it ends, or AFTER PHOTO.
+ * down (`live` while Today is in view and the app is open), TAKE PROOF or PROVE
+ * IT once it ends, or AFTER PHOTO.
  */
 export type CardAction = { kind: 'start' } | { kind: 'timer'; timer: FocusTimer; live: boolean } | { kind: 'after' };
 
@@ -328,7 +304,7 @@ function cardPhoto(done: MissionDone): ProofPhoto | undefined {
   return photos.find(p => p.kind === 'after') ?? photos[photos.length - 1];
 }
 
-/** A finished timer asks for the proof photo, or (timer-only missions) for a tap on Mark it done. */
+/** A finished timer asks for the proof photo, or (timer-only missions) for a tap on Prove it. */
 function actionLabel(a: CardAction, remaining: number, type: ProofType): string {
   if (a.kind === 'after') return HOME.action.after;
   if (a.kind === 'timer') return remaining <= 0 ? (type === 'TIMER' ? HOME.action.markDone : HOME.action.timerDone) : HOME.action.timer(mmss(remaining));
@@ -376,23 +352,32 @@ function MetaRow({ mission, colorway }: { mission: Mission; colorway: Colorway }
   );
 }
 
+/** The drawn button's height. */
+const BUTTON_HEIGHT = 32;
+/** The swap and START controls' height: over the card's bottom corners, level with the button. */
+const SWAP_HEIGHT = 48;
+/** Card padding (18) + half the button (16) = the button's centre from the card's bottom. */
+const BUTTON_CENTRE = 18 + BUTTON_HEIGHT / 2;
+
 /**
- * The small filled button on a card. Drawn only: the whole card is the control. Ink on the
- * colorway; its label is the page colour on dark colorways and bone on light ones, where the
- * page colour (a mid grey on Concrete) would be muddy on ink.
+ * The small filled button on a card (START, or its live state). Drawn inside the START control
+ * that sits over the card's bottom right. Ink on the colorway; its label is the page colour on
+ * dark colorways and bone on light ones, where the page colour (a mid grey on Concrete) would
+ * be muddy on ink.
  */
-function CardButton({ label, colorway }: { label: string; colorway: Colorway }) {
+function CardButton({ label, colorway, pressed = false }: { label: string; colorway: Colorway; pressed?: boolean }) {
   const text = colorway.statusBar === 'dark' ? C.bone : colorway.bg;
   return (
     <View
       style={{
-        height: 32,
+        height: BUTTON_HEIGHT,
         minWidth: 76,
         paddingHorizontal: 14,
         borderRadius: radius.button,
         backgroundColor: colorway.ink,
         alignItems: 'center',
         justifyContent: 'center',
+        opacity: pressed ? 0.7 : 1,
       }}>
       <T v="button" color={text} style={[{ fontSize: 11, lineHeight: 14, letterSpacing: 1.8 }, TABULAR]} numberOfLines={1}>
         {label}
@@ -401,16 +386,12 @@ function CardButton({ label, colorway }: { label: string; colorway: Colorway }) 
   );
 }
 
-/** The swap control's spot: over the card's bottom left, level with the button. */
-const SWAP_HEIGHT = 48;
-/** Card padding (18) + half the button (16) = the button's centre from the card's bottom. */
-const BUTTON_CENTRE = 18 + 16;
-
 /**
  * One mission of today's plan (brief §4). Unproven: the area as a kicker, the serif title,
  * the meta row (time · proof · points) and the small button (START or the live state), with
  * a quiet Swap while swaps are left. Proven: the card steps back, "✓ Proven 9:47 AM · +15"
- * and the proof thumbnail. The whole card opens the mission.
+ * and the proof thumbnail. The card opens the mission; START is its own control (it starts
+ * a timed mission's timer, see HomeScreen), like Swap a sibling over the card's corner.
  * `celebrate` changes when it was just proven: the surface brightens once and the thumbnail
  * fades in. `hold` keeps a just-proven card's thumbnail hidden until that plays. `arrive` is
  * set on a card that just came in from a swap: it fades up into place.
@@ -423,6 +404,7 @@ export function MissionCard({
   colorway,
   swap,
   onOpen,
+  onStart,
   onSwap,
   celebrate = 0,
   hold = false,
@@ -438,6 +420,8 @@ export function MissionCard({
   /** The swap control on an unproven card while swaps are left; null hides it. `left` is said in its hint. */
   swap: { left: number } | null;
   onOpen: () => void;
+  /** START (or the live state): a timed mission's timer starts, any other opens its page. */
+  onStart: () => void;
   onSwap: () => void;
   celebrate?: number;
   hold?: boolean;
@@ -491,14 +475,14 @@ export function MissionCard({
   // Looked up once per photo, not on every render (it checks the file is still there).
   const thumb = useMemo(() => (photoUri ? proofImage(photoUri) : null), [photoUri]);
   const time = done ? clockTime(done.doneAt) : '';
+  // The card says what the mission is; its START control says what state it's in.
   const said = done
     ? HOME.a11y.card(mission.title, HOME.a11y.proven(area, time, done.points))
-    : HOME.a11y.card(
-        mission.title,
-        [HOME.a11y.cardMeta(area, mission.minutes, mission.points, mission.proofType, mission.when === 'evening'), actionSaid(action, remaining, mission.proofType)]
-          .filter(Boolean)
-          .join('. '),
-      );
+    : HOME.a11y.card(mission.title, HOME.a11y.cardMeta(area, mission.minutes, mission.points, mission.proofType, mission.when === 'evening'));
+  const timed = mission.proofType === 'TIMER' || mission.proofType === 'TIMER_AND_PHOTO';
+  const live = actionSaid(action, remaining, mission.proofType);
+  const startSaid = live ?? HOME.a11y.start(mission.title);
+  const startHint = live ? HOME.a11y.hint : HOME.a11y.startHint(timed ? (mission.timerMinutes ?? mission.minutes) : null);
 
   let body: ReactNode;
   if (done) {
@@ -541,9 +525,8 @@ export function MissionCard({
         <View style={{ marginTop: 8 }}>
           <MetaRow mission={mission} colorway={colorway} />
         </View>
-        <View style={{ marginTop: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
-          <CardButton label={actionLabel(action, remaining, mission.proofType)} colorway={colorway} />
-        </View>
+        {/* The button's row: START itself is drawn by its control, over this spot. */}
+        <View style={{ marginTop: 16, height: BUTTON_HEIGHT }} />
       </>
     );
   }
@@ -571,6 +554,26 @@ export function MissionCard({
         />
         {body}
       </Card>
+      {done ? null : (
+        // START: a sibling over the card's bottom right where the button is drawn, so it's its
+        // own control for touch and VoiceOver (not a button inside the card's button).
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={startSaid}
+          accessibilityHint={startHint}
+          onPress={onStart}
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: BUTTON_CENTRE - SWAP_HEIGHT / 2,
+            height: SWAP_HEIGHT,
+            paddingLeft: 12,
+            paddingRight: 18,
+            justifyContent: 'center',
+          }}>
+          {({ pressed }) => <CardButton label={actionLabel(action, remaining, mission.proofType)} colorway={colorway} pressed={pressed} />}
+        </Pressable>
+      )}
       {swap && !done ? (
         // A sibling over the card's bottom left, level with the button, so it stays its own
         // control for touch and VoiceOver (not a button inside the card's button).

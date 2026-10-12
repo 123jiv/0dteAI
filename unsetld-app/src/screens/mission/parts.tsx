@@ -50,12 +50,27 @@ export function MissionHeading({ mission, area }: { mission: Mission; area?: Tra
   );
 }
 
-/** The one instruction sentence under the heading. */
-export function Instruction({ children }: { children: string }) {
+/**
+ * The one instruction sentence under the heading. With a `kicker` ("DO IT", a mission with no
+ * timer) it sits under that, so the page reads as the thing to do now.
+ */
+export function Instruction({ children, kicker }: { children: string; kicker?: string }) {
+  if (!kicker) {
+    return (
+      <T v="body" color={C.muted} style={{ marginTop: 20, fontSize: 17, lineHeight: 25 }}>
+        {children}
+      </T>
+    );
+  }
   return (
-    <T v="body" color={C.muted} style={{ marginTop: 20, fontSize: 17, lineHeight: 25 }}>
-      {children}
-    </T>
+    <View style={{ marginTop: GAP.block }}>
+      <T v="kicker" color={C.stone}>
+        {kicker}
+      </T>
+      <T v="body" color={C.bone} style={{ marginTop: 10, fontSize: 17, lineHeight: 25 }}>
+        {children}
+      </T>
+    </View>
   );
 }
 

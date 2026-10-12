@@ -106,7 +106,7 @@ function Figure({ value, label }: { value: string; label: string }) {
 }
 
 /**
- * Progress › Stats: the detailed numbers the Progress tab leaves out. Longest streak, missions,
+ * Record › Stats: the detailed numbers the Record leaves out. Longest streak, missions,
  * points earned (all time, 2.x points included, as on the share card) and focused time; this
  * week's completion; active days; Off Days with how they work; and every area's totals.
  */

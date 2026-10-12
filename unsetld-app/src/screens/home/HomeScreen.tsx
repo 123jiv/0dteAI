@@ -5,7 +5,6 @@ import { AccessibilityInfo, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { programDay } from '../../core/programs';
 import { activeDays, milestones, type MilestoneKey } from '../../core/progress';
-import { dayCount } from '../../core/record';
 import { reviewWeekFor, weeklyReview } from '../../core/review';
 import { addDays, type DayKey } from '../../core/time';
 import type { MissionDone, RecordState } from '../../core/types';
@@ -215,6 +214,15 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
     return { kind: 'start' };
   };
 
+  // START: a timed mission's timer starts as its page opens (the lock-in screen); any other opens
+  // the page to do it and prove it. A timer already running, or a before photo waiting, just opens.
+  const start = (m: TodayMission) => {
+    selection();
+    const timed = m.mission.proofType === 'TIMER' || m.mission.proofType === 'TIMER_AND_PHOTO';
+    const fresh = actionFor(m).kind === 'start';
+    navigation.navigate('Mission', timed && fresh ? { missionId: m.mission.id, start: true } : { missionId: m.mission.id });
+  };
+
   // Busy: its timer is running or its before photo is saved, so it can't be swapped out.
   const busyWith = (m: TodayMission) =>
     (timer?.missionId === m.mission.id && timer.day === day) || (pendingBefore?.missionId === m.mission.id && pendingBefore.day === day);
@@ -237,12 +245,11 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   // Day N: the day you're on, counting only days with a proven mission (so day one reads DAY 1).
   const shownUp = activeDays(record);
   const dayNo = shownUp.size + (shownUp.has(day) ? 0 : 1);
-  // Day 1: nothing proven on any earlier day. No zeros, and the first reward is said as one.
+  // Day 1: nothing proven on any earlier day.
   const firstDay = dayNo === 1;
-  // Days on record from 2.x with no mission proven since (3.x puts a day on record only with a
-  // proof): DAY 1 still, but the days are said, and points already held aren't a first reward
-  // (nor is the next one once a 2.x code was taken: `record.codes`).
-  const before = shownUp.size === 0 ? dayCount(record) : 0;
+  // Streak and points, at a glance: from the first proof on (or points already held). Before
+  // that there's nothing to count, so no row of zeros and no sentence in its place.
+  const showStats = !firstDay || points > 0;
 
   // The weekly focus question: from the second active day on, in a week with none set and not skipped.
   // Not on Sunday: the week is ending (an answer would last a day), and the weekly review asks
@@ -261,21 +268,22 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
         contentContainerStyle={{ paddingHorizontal: MARGIN, paddingTop: insets.top + 8, paddingBottom: GAP.section }}>
         <TopRow colorway={colorway} days={dayNo} />
 
-        <View style={{ marginTop: 14 }}>
-          {/* Rewards off, there's no Rewards tab: the points open How points work instead. */}
-          <StatsRow
-            colorway={colorway}
-            streak={streak.current}
-            points={points}
-            firstDay={firstDay}
-            before={before}
-            pointsHint={accessEnabled ? HOME.stats.a11yPointsHint : HOME.stats.a11yPointsHowHint}
-            onPoints={() => navigation.navigate(accessEnabled ? 'Rewards' : 'HowPoints')}
-          />
-        </View>
+        {showStats ? (
+          <View style={{ marginTop: 14 }}>
+            {/* Rewards off, there's no Rewards tab: the points open How points work instead. */}
+            <StatsRow
+              colorway={colorway}
+              streak={streak.current}
+              points={points}
+              pointsHint={accessEnabled ? HOME.stats.a11yPointsHint : HOME.stats.a11yPointsHowHint}
+              onPoints={() => navigation.navigate(accessEnabled ? 'Rewards' : 'HowPoints')}
+            />
+          </View>
+        ) : null}
 
         {accessEnabled && next ? (
-          <View style={{ marginTop: GAP.block }}>
+          // Close under the points it counts toward (or under the top row on Day 1).
+          <View style={{ marginTop: showStats ? 16 : 10 }}>
             <NextReward
               colorway={colorway}
               title={next.tier.title}
@@ -283,7 +291,6 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
               points={next.tier.points}
               need={next.need}
               ready={next.ready}
-              first={firstDay && !before && !record.redemptions?.length && !record.codes?.length}
               onPress={() => navigation.navigate('Rewards')}
             />
           </View>
@@ -329,6 +336,7 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
                 colorway={colorway}
                 swap={canSwap(m) ? { left: swapsLeft } : null}
                 onOpen={() => navigation.navigate('Mission', { missionId: m.mission.id })}
+                onStart={() => start(m)}
                 onSwap={() => swap(m)}
                 celebrate={celebrate.ids.includes(m.mission.id) ? celebrate.n : 0}
                 hold={Boolean(done) && !shownIds.includes(m.mission.id)}

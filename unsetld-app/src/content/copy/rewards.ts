@@ -40,7 +40,7 @@ export const REWARDS_COPY = {
   /** Nothing earned yet (Day 1): no zero, the way to the first points. */
   firstPoints: 'Your first proven mission earns your first points.',
   /** Rewards switched off (accessEnabled false). Promises nothing: says what points do now. */
-  off: "Rewards aren't open. Points still count toward your area levels on Progress.",
+  off: "Rewards aren't open. Points still count toward your area levels on your Record.",
 
   // Next reward
   next: 'NEXT REWARD',
@@ -192,7 +192,7 @@ export const REWARDS_COPY = {
     plusSaid: (n: number) => plural(n, 'point', 'points'),
     earnedOnly: "Points come only from proven missions. They don't expire, and UNSETLD+ doesn't change them.",
     /** Shown whether rewards are on or off: what points do besides rewards. */
-    levels: "Each mission's points also count as XP toward its area's level on Progress.",
+    levels: "Each mission's points also count toward its area's level on your Record.",
     codes: 'CODES',
     codesBody: [
       'When a reward is ready, trade its points for a code. The points are spent when you take it.',

@@ -30,14 +30,20 @@ export const MISSION = {
   missing: 'This mission is no longer in the library.',
 
   button: {
+    /** A photo mission's one button (it opens the camera), and a TIMER mission's once its timer ends (no photo). */
     prove: 'Prove it',
     timer: (minutes: number) => `Start ${minutes} min timer`,
     before: 'Take the before photo',
     after: 'Take the after photo',
-    proofPhoto: 'Take the proof photo',
-    /** A TIMER mission once its timer has run out: no photo. */
-    markDone: 'Mark it done',
-    done: 'Done',
+    /** A timer with a photo, once the time is up: the camera. */
+    takeProof: 'Take proof',
+    /** The done stage's one button. */
+    continue: 'Continue',
+  },
+
+  /** A mission with no timer: a small kicker over the one instruction, then Prove it (or, before and after, once the before is in). */
+  detail: {
+    doIt: 'Do it',
   },
 
   /** The button only: the dialogs are Today's (screens/home/swap). */
@@ -48,11 +54,11 @@ export const MISSION = {
   busy: {
     /**
      * Another mission's timer: running, paused, or finished and waiting for its photo
-     * (or, with `photo` false, for Mark it done). No title if that mission is gone.
+     * (or, with `photo` false, for Prove it). No title if that mission is gone.
      */
     timerTitle: (title: string | undefined, state: 'running' | 'paused' | 'done', photo = true) => {
       const of = title ? `The timer for ${title}` : 'Another timer';
-      if (state === 'done') return photo ? `${of} is done, and its proof photo isn’t in yet.` : `${of} has finished, but that mission isn’t marked done yet.`;
+      if (state === 'done') return photo ? `${of} is done, and its proof photo isn’t in yet.` : `${of} has finished, but that mission isn’t proven yet.`;
       if (state === 'paused') return `${of} is paused.`;
       return title ? `A timer is running for ${title}.` : 'Another timer is running.';
     },
@@ -63,15 +69,18 @@ export const MISSION = {
     no: 'Cancel',
   },
 
+  /** The lock-in screen: LOCK IN FOR 30 MINUTES, the clock, the title, one line. */
   timer: {
-    /** Only while the timer-done notification can ring: allowed, and not the browser preview. */
-    line: 'Phone down. Come back when it rings.',
-    /** Nothing will ring (notifications off, or the preview): when to come back instead. */
-    lineNoRing: (minutes: number) => (minutes === 1 ? 'Phone down. Come back in 1 minute.' : `Phone down. Come back in ${minutes} minutes.`),
-    paused: 'Paused. The clock stops until you resume.',
-    done: 'Time. Take the proof photo.',
-    /** A TIMER mission: the timer is the whole proof. */
-    doneNoPhoto: 'Time. Mark it done.',
+    lockIn: (minutes: number) => (minutes === 1 ? 'Lock in for 1 minute' : `Lock in for ${minutes} minutes`),
+    /** While it runs. */
+    stay: 'Stay here. Get it done.',
+    /** A quiet second note, only while the timer-done notification can ring (allowed, and not the browser preview). */
+    ring: 'We’ll ring when time’s up.',
+    paused: 'Paused.',
+    /** The time is up: the line over Take proof (or Prove it). */
+    time: 'Time.',
+    /** Said with VoiceOver as the time is up, with what's next. */
+    timeSaid: (photo: boolean) => (photo ? 'Time. Take proof.' : 'Time. Prove it.'),
     pause: 'Pause',
     resume: 'Resume',
     end: 'End timer',
@@ -119,31 +128,35 @@ export const MISSION = {
   },
   checkFailed: 'That didn’t go through. Nothing was counted. Try again.',
 
+  /**
+   * The done stage: PROVEN., the points (secondary), then the record moment: this week's days,
+   * "Day 12 added to your record.", "1 / 3 today" and the streak. The reward and the area after.
+   */
   done: {
     title: 'PROVEN.',
-    /** "+15" in serif, then the POINTS kicker beside it. */
-    points: (n: number) => `+${num(n)}`,
-    pointsLabel: 'POINTS',
-    /** The balance, before and after: "380 → 395". */
-    balance: (from: number, to: number) => `${num(from)} → ${num(to)}`,
-    /** A perfect day: the balance also takes the bonus, so "+10" isn't read against "405 → 430". */
-    balanceBonus: (from: number, to: number) => `${num(from)} → ${num(to)} with the bonus`,
-    toReward: (need: number, title: string) => `${num(need)}\u00a0${need === 1 ? 'pt' : 'pts'} to ${title}`,
-    ready: (title: string) => `${title} is ready`,
-    /** The first proof of the day. Never "Day N": the nav row's DAY counts days with a proven mission, not the streak. */
-    streakFirst: (n: number) => (n <= 1 ? 'Streak started.' : `Streak: ${n} days.`),
-    streak: (n: number) => (n === 1 ? 'Streak: 1 day.' : `Streak: ${n} days.`),
-    /** Every mission in the plan proven: "3 / 3", PERFECT DAY, +15 BONUS. */
+    /** Under the title, small: "+15 pts" (a kicker, so it reads +15 PTS). */
+    pts: (n: number) => `+${num(n)}\u00a0${n === 1 ? 'pt' : 'pts'}`,
+    /** The first proof of the day: the day goes on the record. "Day N" is the nav row's DAY N. */
+    dayAdded: (n: number) => `Day ${num(n)} added to your record.`,
+    /** "1 / 3" in serif, then "today" (or "Perfect day" once every mission is proven). */
     count: (done: number, all: number) => `${done} / ${all}`,
-    perfect: 'PERFECT DAY',
-    bonus: (n: number) => `+${n} BONUS`,
+    today: 'today',
+    perfect: 'Perfect day',
+    /** The perfect-day bonus, a beat after. */
+    bonus: (n: number) => `+${num(n)} bonus`,
+    /** Said when the proof extended the streak: "Streak started" on its first day, else "12 day streak". */
+    streak: (n: number) => (n <= 1 ? 'Streak started' : `${num(n)} day streak`),
+    toNext: (need: number) => `${num(need)}\u00a0${need === 1 ? 'pt' : 'pts'} to next reward`,
+    ready: (title: string) => `${title} is ready`,
     share: 'Share today',
     /** Before the checks line when the proof has photos. */
     saved: 'Proof saved.',
     /** The proof took its area to a new level: a kicker ("SCHOOL · LEVEL 3") over the area's meter. */
     level: (area: string, level: number) => `${area} · Level ${level}`,
-    /** Otherwise, quietly: what the proof added to its area ("+15 XP · School · Level 2"). XP is the mission's points. */
-    xp: (points: number, area: string, level: number) => `+${num(points)} XP · ${area} · Level ${level}`,
+    /** Otherwise, quietly: what the proof added to its area ("+15 to School · Level 2"). No second currency: it's the mission's points. */
+    area: (points: number, area: string, level: number) => `+${num(points)} to ${area} · Level ${level}`,
+    /** The week row's letters, Monday first. */
+    weekdays: ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as readonly string[],
   },
 
   /** "Checked on this phone: taken just now, timer finished, new photo." from the checks that passed. */
@@ -204,22 +217,52 @@ export const MISSION = {
     /** The Proof card, read as one: "Proven with the timer and a photo. Run the 30-minute focus timer …". */
     proof: (kind: string, lines: readonly string[]) => [`${kind.charAt(0).toUpperCase()}${kind.slice(1)}.`, ...lines].join(' '),
     points: (n: number) => (n === 1 ? 'Plus 1 point' : `Plus ${n} points`),
-    balance: (from: number, to: number) => `${from} to ${to} points`,
-    balanceBonus: (from: number, to: number) => `${from} to ${to} points with the bonus`,
-    perfect: (done: number, all: number, bonus: number) => `${done} of ${all}. Perfect day. Plus ${bonus} bonus points.`,
-    toReward: (need: number, title: string) => `${need} ${need === 1 ? 'point' : 'points'} to ${title}.`,
+    /** "1 of 3 today." or, every mission proven, "3 of 3 today. Perfect day." */
+    today: (done: number, all: number, perfect: boolean) => `${done} of ${all} today.${perfect ? ' Perfect day.' : ''}`,
+    bonus: (n: number) => (n === 1 ? 'Plus 1 bonus point.' : `Plus ${n} bonus points.`),
+    /** The visible line says "to next reward"; VoiceOver hears which one. */
+    toNext: (need: number, title: string) => `${need} ${need === 1 ? 'point' : 'points'} to next reward, ${title}.`,
     ready: (title: string) => `${title} is ready.`,
     /** The level the proof took its area to, with where the meter stands in it. */
-    level: (area: string, level: number, into: number, span: number) => `${area} is now level ${level}. ${into} of ${span} XP to level ${level + 1}.`,
+    level: (area: string, level: number, into: number, span: number) => `${area} is now level ${level}. ${into} of ${span} to level ${level + 1}.`,
     levelSaid: (area: string, level: number) => `${area} is now level ${level}.`,
-    xp: (points: number, area: string, level: number) => `Plus ${points} XP. ${area}, level ${level}.`,
+    area: (points: number, area: string, level: number) => `Plus ${points} to ${area}. Level ${level}.`,
+    /** The week row, read as one sentence a day. */
+    weekdays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as readonly string[],
+    /**
+     * One day of the week row: "Wednesday, today, 1 mission proven", "Monday, perfect day",
+     * "Tuesday, Off Day, streak kept", "Thursday, nothing proven", "Friday, to come".
+     */
+    day: (
+      name: string,
+      d: { when: 'past' | 'today' | 'future'; proven: number; perfect: boolean; covered: boolean; legacy: boolean; before: boolean },
+    ): string => {
+      if (d.when === 'future') return `${name}, to come`;
+      const head = d.when === 'today' ? `${name}, today` : name;
+      if (d.perfect) return `${head}, perfect day`;
+      if (d.proven > 0) return `${head}, ${d.proven === 1 ? '1 mission' : `${d.proven} missions`} proven`;
+      if (d.legacy) return `${head}, on your record`;
+      if (d.covered) return `${head}, Off Day, streak kept`;
+      if (d.before) return `${head}, before your record`;
+      return `${head}, nothing proven`;
+    },
     /**
      * Said once as the done stage opens (VoiceOver on iOS reads no live region), with the final
-     * numbers rather than the count-up: "Proven. Plus 15 points. 205 points to 10% off. Streak: 12 days."
-     * A perfect day's line comes before the streak, a new area level after it.
+     * numbers rather than the count-up, in the order the screen puts them: "Proven. Plus 15 points.
+     * Day 12 added to your record. 1 of 3 today. 12 day streak. 205 points to next reward."
      */
-    done: (o: { points: number; reward?: string | null; perfect?: string | null; streak: string; level?: string | null }): string =>
-      ['Proven.', `${MISSION.a11y.points(o.points)}.`, o.reward, o.perfect, o.streak, o.level].filter(Boolean).join(' '),
+    done: (o: {
+      points: number;
+      day?: string | null;
+      today: string;
+      streak?: string | null;
+      bonus?: string | null;
+      reward?: string | null;
+      level?: string | null;
+    }): string => {
+      const sentence = (x: string | null | undefined) => (x ? (/[.]$/.test(x) ? x : `${x}.`) : null);
+      return ['Proven.', `${MISSION.a11y.points(o.points)}.`, o.day, o.today, sentence(o.streak), o.bonus, o.reward, o.level].filter(Boolean).join(' ');
+    },
     /** Not counted, with what failed, as the screen lists it. */
     rejected: (notes: readonly string[]) => ['Not counted.', ...notes].join(' '),
     proven: (time: string, points: number) => `Proven at ${time}, ${points} points`,
@@ -234,6 +277,6 @@ export const MISSION = {
      * photo, so it reads right for TIMER missions (no photo) and TIMER_AND_PHOTO alike.
      */
     body: (clock: string, type?: ProofType) =>
-      type === 'TIMER_AND_PHOTO' ? `${clock} done. Take the proof photo.` : type === 'TIMER' ? `${clock} done. Open the mission and mark it done.` : `${clock} done. Open the mission to finish it.`,
+      type === 'TIMER_AND_PHOTO' ? `${clock} done. Take proof.` : type === 'TIMER' ? `${clock} done. Open the mission and prove it.` : `${clock} done. Open the mission to finish it.`,
   },
 } as const;

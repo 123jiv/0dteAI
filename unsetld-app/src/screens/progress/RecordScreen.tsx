@@ -1,172 +1,137 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { indexRecord, monthOf, monthView, recentProofs, recordMonths, recordSummary, weekMarks } from '../../core/history';
 import { usableAreas } from '../../core/missions';
-import { achievementsView, activeDays, areaProgress, areasShown, milestones, totals, weekDays, type AreaProgress, type WeekDay } from '../../core/progress';
-import { dayCount } from '../../core/record';
+import { achievementsView, areaProgress, areasShown, levelStart, milestones, type AreaProgress } from '../../core/progress';
 import { weekStart } from '../../core/review';
 import { computeStreak } from '../../core/streak';
+import type { DayKey } from '../../core/time';
 import { MISSION_BY_ID, MISSIONS, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { TabProps } from '../../navigation/types';
-import { useBalance, useTodayMissions } from '../../state/missions';
+import { useBalance } from '../../state/missions';
 import { useAccessEnabled, useApp } from '../../state/store';
-import { Card, EmptyState, LinkRow, Meter, SectionLabel } from '../../ui/blocks';
+import { LinkRow, Meter, SectionLabel } from '../../ui/blocks';
 import { Icon } from '../../ui/icons';
+import { Button } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN } from '../../ui/tokens';
+import { useLayoutWidth } from './measure';
+import { Legend, MonthGrid, WeekDots } from './MonthGrid';
+import { ProofTile, tileState } from './ProofTile';
+import { fromEntry } from './proofView';
 
-const P = PROGRESS.screen;
+const R = PROGRESS.record;
+const H = PROGRESS.history;
 const minutesOf = (id: string) => MISSION_BY_ID[id]?.minutes;
+/** Recent proof: one row of four. */
+const RECENT = 4;
+const TILE_GAP = 6;
 
-/**
- * One day of the week as a square. Proven: filled bone. Today: red (the one place the signal
- * colour appears), filled once something is proven, an outline until then. Covered by an Off
- * Day: a stone fill (the line under the row says so). Missed: an ash outline with a dash in it.
- * Still to come, or before the first mission: an ash outline, quiet but visible.
- */
-function DaySquare({ kind, size }: { kind: WeekDay['kind']; size: number }) {
-  const fill = kind === 'proven' ? C.bone : kind === 'today-proven' ? C.signal : kind === 'covered' ? C.stone : 'transparent';
-  const border = kind === 'today' ? C.signal : fill === 'transparent' ? C.ash : fill;
+/** A 44pt chevron to page through the months; dimmed and inert at the ends. */
+function MonthStep({ dir, enabled, onPress }: { dir: 'prev' | 'next'; enabled: boolean; onPress: () => void }) {
   return (
-    <View
-      style={{ width: size, height: size, backgroundColor: fill, borderWidth: fill === 'transparent' ? 1.5 : 0, borderColor: border, alignItems: 'center', justifyContent: 'center' }}>
-      {kind === 'missed' ? <View style={{ width: size / 2 - 2, height: 1.5, backgroundColor: C.ash }} /> : null}
-    </View>
-  );
-}
-
-/** A serif number with its label under it, read as one thing. */
-function Stat({ value, label, said, right }: { value: string; label: string; said: string; right?: boolean }) {
-  return (
-    <View accessible accessibilityLabel={said} style={{ alignItems: right ? 'flex-end' : 'flex-start' }}>
-      <T v="stat">{value}</T>
-      <T v="meta" color={C.stone} style={{ marginTop: 4 }}>
-        {label}
-      </T>
-    </View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={dir === 'prev' ? R.prevMonth : R.nextMonth}
+      aria-disabled={!enabled}
+      disabled={!enabled}
+      onPress={onPress}
+      style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
+      <Icon name={dir === 'prev' ? 'chevron-left' : 'chevron-right'} size={22} color={enabled ? C.muted : C.greyLetter} />
+    </Pressable>
   );
 }
 
 /**
- * This week, Monday to Sunday: a letter over a square for each day, and a line for any day an
- * Off Day covered. `streak`: the streak running now. Opens the week's review.
+ * An area, no card: the name and its level, then its points against what the next level takes,
+ * as a thin meter and as numbers (the two always agree), and (once there's something) the
+ * missions and time in it.
  */
-function WeekRow({ days, today, streak, onPress }: { days: WeekDay[]; today: string; streak: number; onPress: () => void }) {
-  const proven = days.filter(d => d.kind === 'proven' || d.kind === 'today-proven').length;
-  const covered = days.filter(d => d.kind === 'covered');
-  const lastCovered = covered.length ? days.indexOf(covered[covered.length - 1]) : -1;
-  // The covered day is in the streak running now when no day after it this week was missed.
-  const going = streak > 0 && lastCovered >= 0 && !days.slice(lastCovered + 1).some(d => d.kind === 'missed');
-  const off = covered.length ? P.weekOff(covered.map(d => PROGRESS.weekday(d.day)), going) : null;
-  const summary = [...days.map(d => P.a11yDay(d.day, d.kind)), off].filter(Boolean).join('. ');
-  return (
-    <Card onPress={onPress} accessibilityLabel={P.a11yWeek(summary)} accessibilityHint={P.a11yWeekHint}>
-      <SectionLabel
-        right={
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <T v="meta" color={C.stone}>
-              {P.weekCount(proven)}
-            </T>
-            <Icon name="chevron-right" size={16} color={C.stone} />
-          </View>
-        }>
-        {P.week}
-      </SectionLabel>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-        {days.map((d, i) => (
-          <View key={d.day} style={{ alignItems: 'center', gap: 10, minWidth: 28 }}>
-            <T v="meta" color={d.day === today ? C.bone : C.stone}>
-              {P.letters[i]}
-            </T>
-            <DaySquare kind={d.kind} size={18} />
-          </View>
-        ))}
-      </View>
-      {off ? (
-        <T v="meta" color={C.stone} style={{ marginTop: 14 }}>
-          {off}
-        </T>
-      ) : null}
-    </Card>
-  );
-}
-
-/** An area: kicker, the level in serif with the XP to the next, a meter, missions and time. */
-function AreaCard({ p }: { p: AreaProgress }) {
+function Area({ p }: { p: AreaProgress }) {
   const name = TRACK_BY_ID[p.track]?.short ?? p.track;
-  if (p.missions === 0) {
-    // Chosen, nothing proven in it yet: no zeros, just what starts it.
-    return (
-      <Card>
-        <View accessible accessibilityLabel={P.a11yAreaStart(name)}>
-          <T v="kicker" color={C.stone}>
-            {name}
-          </T>
-          <T v="list" color={C.muted} style={{ marginTop: 10, fontVariant: ['lining-nums'] }}>
-            {P.level(1)}
-          </T>
-          <T v="meta" color={C.stone} style={{ marginTop: 6 }}>
-            {P.areaStart(name)}
-          </T>
-        </View>
-      </Card>
-    );
-  }
+  const next = levelStart(p.level + 1);
   return (
-    <Card>
-      <View accessible accessibilityLabel={P.a11yArea(name, p.level, p.into, p.span, p.missions, p.seconds)}>
+    <View accessible accessibilityLabel={R.a11yArea(name, p.level, p.xp, next, p.missions, p.seconds)}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
         <T v="kicker" color={C.stone}>
           {name}
         </T>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 10 }}>
-          <T v="list" style={{ fontVariant: ['lining-nums'] }}>
-            {P.level(p.level)}
-          </T>
-          <T v="meta" color={C.muted}>
-            {P.xp(p.into, p.span, p.level)}
-          </T>
-        </View>
-        <View style={{ marginTop: 12 }}>
-          <Meter value={p.into} max={p.span} />
-        </View>
-        <T v="meta" color={C.stone} style={{ marginTop: 10 }}>
-          {P.areaMeta(p.missions, p.seconds)}
+        <T v="list" color={p.missions > 0 ? C.bone : C.muted}>
+          {R.level(p.level)}
         </T>
       </View>
-    </Card>
+      <View style={{ marginTop: 10 }}>
+        <Meter value={p.xp} max={next} height={3} />
+      </View>
+      <View style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
+        <T v="meta" color={C.muted}>
+          {R.areaPoints(p.xp, next)}
+        </T>
+        {p.missions > 0 ? (
+          <T v="meta" color={C.stone} style={{ flexShrink: 1, textAlign: 'right' }}>
+            {R.areaMeta(p.missions, p.seconds)}
+          </T>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+function Areas({ order, areas }: { order: readonly AreaProgress['track'][]; areas: Record<AreaProgress['track'], AreaProgress> }) {
+  if (!order.length) return null;
+  return (
+    <View style={{ marginTop: GAP.section }}>
+      <SectionLabel style={{ marginBottom: 18 }}>{R.areas}</SectionLabel>
+      <View style={{ gap: GAP.block }}>
+        {order.map(id => (
+          <Area key={id} p={areas[id]} />
+        ))}
+      </View>
+    </View>
   );
 }
 
 /**
- * Progress (§7): the streak and today, this week, a level per area, then links to Proof
- * history, Achievements and Stats. Day 1 (nothing proven) is one empty state, no zeros.
+ * The Record: have I been showing up (the month's days as dots, the hero), what have I done (the
+ * days and missions proven, recent proof), what am I improving (your areas), how much momentum
+ * (the streak, perfect days). The rest lives in Stats. Day 1 (nothing on record yet) is this
+ * week's empty dots, one line and one button, then the areas at level 1: no zeros.
  */
 export function RecordScreen({ navigation }: TabProps<'Record'>) {
   const insets = useSafeAreaInsets();
   const today = useApp(s => s.currentDay);
   const record = useApp(s => s.record);
+  const plans = useApp(s => s.plans);
   const profile = useApp(s => s.profile);
-  const { missions: todays, proven: provenToday } = useTodayMissions(today);
   const accessEnabled = useAccessEnabled();
   const points = useBalance();
+  const [width, onLayout] = useLayoutWidth(MARGIN * 2);
+  // The month paged to; null is this month. Opens on this month, and the tab goes back to it.
+  const [picked, setPicked] = useState<string | null>(null);
+  useEffect(() => navigation.addListener('tabPress', () => setPicked(null)), [navigation]);
 
-  const active = activeDays(record);
-  const first = active.size === 0;
-  // A 2.x record: days on record, nothing proven since (3.x puts a day on record only with a proof).
-  const before = first ? dayCount(record) : 0;
-  const streak = computeStreak(active, today);
-  const ws = weekStart(today);
-  const days = weekDays(active, streak.covered, today, ws);
+  const ix = useMemo(() => indexRecord(record, today), [record, today]);
+  const first: DayKey | null = useMemo(() => [...ix.active, ...ix.legacy].sort()[0] ?? null, [ix]);
+  const months = useMemo(() => recordMonths(record, today), [record, today]);
+  const month = picked && months.includes(picked) ? picked : (months[months.length - 1] ?? monthOf(today));
+  const at = months.indexOf(month);
+  const view = useMemo(() => monthView(record, plans, month, ix), [record, plans, month, ix]);
+  const week = useMemo(() => weekMarks(record, plans, weekStart(today), ix), [record, plans, today, ix]);
+  const summary = recordSummary(record);
+  const streak = computeStreak(ix.active, today).current;
   const areas = areaProgress(record, minutesOf);
   const usable = usableAreas(MISSIONS, profile);
   const order = areasShown(profile.tracks.length ? profile.tracks : usable, usable, areas);
+  const recent = recentProofs(record, RECENT).map(fromEntry);
   const marks = milestones(record, today);
   const { reached } = achievementsView(marks);
-  const proofs = totals(record).missions;
-  const perfect = todays.length > 0 && provenToday >= todays.length;
-  // Rewards off, there's no Rewards tab: the point total and How points work live here.
-  const pointsRow =
-    !accessEnabled && points > 0 ? <LinkRow title={P.points} value={P.pointsValue(points)} onPress={() => navigation.navigate('HowPoints')} /> : null;
+  const thisYear = today.slice(0, 4);
+  const tile = Math.floor((width - TILE_GAP * (RECENT - 1)) / RECENT);
+  const openDay = (day: DayKey) => navigation.navigate('RecordDay', { day });
+  // Day 1: nothing proven ever and no days from before missions.
+  const dayOne = first === null;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
@@ -175,73 +140,95 @@ export function RecordScreen({ navigation }: TabProps<'Record'>) {
         contentContainerStyle={{ paddingHorizontal: MARGIN, paddingTop: insets.top + 32, paddingBottom: 48 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <T v="title.l" accessibilityRole="header">
-            {P.title}
+            {R.title}
           </T>
-          {first ? null : (
+          {ix.active.size > 0 ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={P.share}
+              accessibilityLabel={R.share}
               onPress={() => navigation.navigate('Share')}
               hitSlop={8}
               style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'flex-end', justifyContent: 'center', marginRight: -4, opacity: pressed ? 0.6 : 1 })}>
               <Icon name="share" size={22} color={C.muted} />
             </Pressable>
-          )}
+          ) : null}
         </View>
 
-        {first ? (
-          <View style={{ marginTop: GAP.block }}>
-            <EmptyState
-              title={before > 0 ? P.before.title(before) : P.empty.title}
-              body={before > 0 ? P.before.body : P.empty.body}
-              action={P.empty.action}
-              onAction={() => navigation.navigate('Today')}
-            />
-            {pointsRow ? <View style={{ marginTop: GAP.block - 14 }}>{pointsRow}</View> : null}
-          </View>
+        {dayOne ? (
+          <>
+            <View style={{ marginTop: GAP.block }} onLayout={onLayout}>
+              <SectionLabel style={{ marginBottom: 16 }}>{R.start.week}</SectionLabel>
+              <WeekDots marks={week} width={width} today={today} first={null} />
+              <T v="title.m" style={{ marginTop: GAP.section }}>
+                {R.start.line}
+              </T>
+              <Button title={R.start.action} onPress={() => navigation.navigate('Today')} style={{ marginTop: GAP.block }} />
+            </View>
+            <Areas order={order} areas={areas} />
+          </>
         ) : (
           <>
-            {/* The streak and today, side by side. A broken streak says what restarts it instead of 0. */}
-            <View style={{ marginTop: GAP.block, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24 }}>
-              {streak.current > 0 ? (
-                <Stat value={PROGRESS.number(streak.current)} label={P.streakLabel} said={P.a11yStreak(streak.current)} />
-              ) : (
-                <View style={{ flex: 1 }} accessible>
-                  <T v="saved">{P.streakAgain}</T>
-                  <T v="meta" color={C.stone} style={{ marginTop: 6 }}>
-                    {P.longest(streak.longest)}
+            <View style={{ marginTop: GAP.block }} onLayout={onLayout}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <T v="title.m" accessibilityRole="header" style={{ flex: 1 }}>
+                  {PROGRESS.month(month, thisYear)}
+                </T>
+                {months.length > 1 ? (
+                  <View style={{ flexDirection: 'row', marginRight: -12 }}>
+                    <MonthStep dir="prev" enabled={at > 0} onPress={() => setPicked(months[at - 1])} />
+                    <MonthStep dir="next" enabled={at < months.length - 1} onPress={() => setPicked(months[at + 1])} />
+                  </View>
+                ) : null}
+              </View>
+              <View style={{ marginTop: 18 }}>
+                <MonthGrid weeks={view.weeks} width={width} today={today} first={first} onDay={openDay} />
+              </View>
+              <View style={{ marginTop: 18 }}>
+                <Legend />
+              </View>
+              {/* All time: the days and missions proven, then the momentum. Never "0 days", never "0 day streak". */}
+              <View style={{ marginTop: GAP.block }} accessible accessibilityLabel={R.a11ySummary(summary.days, summary.missions, streak, summary.perfect)}>
+                {summary.days > 0 ? (
+                  <T v="kicker" color={C.bone}>
+                    {R.summary(summary.days, summary.missions)}
                   </T>
-                </View>
-              )}
-              {todays.length ? (
-                <Stat value={`${provenToday} / ${todays.length}`} label={perfect ? P.perfect : P.todayLabel} said={P.a11yToday(provenToday, todays.length)} right />
-              ) : null}
+                ) : null}
+                <T v="meta" color={C.stone} style={{ marginTop: summary.days > 0 ? 8 : 0 }}>
+                  {R.momentum(streak, summary.perfect)}
+                </T>
+              </View>
             </View>
 
-            <View style={{ marginTop: GAP.block }}>
-              <WeekRow days={days} today={today} streak={streak.current} onPress={() => navigation.navigate('WeeklyReview', { weekStart: ws })} />
-            </View>
+            <Areas order={order} areas={areas} />
 
-            {order.length ? (
+            {recent.length ? (
               <View style={{ marginTop: GAP.section }}>
-                <SectionLabel>{P.areas}</SectionLabel>
-                <View style={{ gap: GAP.card }}>
-                  {order.map(id => (
-                    <AreaCard key={id} p={areas[id]} />
+                <SectionLabel>{R.recent}</SectionLabel>
+                <View style={{ flexDirection: 'row', gap: TILE_GAP }}>
+                  {recent.map(p => (
+                    <ProofTile
+                      key={p.key}
+                      proof={p}
+                      size={tile}
+                      label={H.a11yTile(p.title, p.area, p.day, today, tileState(p), p.timerSeconds)}
+                      hint={R.a11yDayHint}
+                      onPress={() => openDay(p.day)}
+                    />
                   ))}
+                </View>
+                <View style={{ marginTop: 4 }}>
+                  <LinkRow title={R.viewAll} onPress={() => navigation.navigate('ProofHistory')} />
                 </View>
               </View>
             ) : null}
 
             <View style={{ marginTop: GAP.section - 14 }}>
-              <LinkRow title={P.proofs} value={P.proofsValue(proofs)} onPress={() => navigation.navigate('ProofHistory')} />
-              <LinkRow
-                title={P.achievements}
-                value={P.achievementsValue(reached.length, marks.length)}
-                onPress={() => navigation.navigate('Achievements')}
-              />
-              <LinkRow title={P.stats} onPress={() => navigation.navigate('Stats')} />
-              {pointsRow}
+              <LinkRow title={R.stats} onPress={() => navigation.navigate('Stats')} />
+              <LinkRow title={R.achievements} value={R.achievementsValue(reached.length, marks.length)} onPress={() => navigation.navigate('Achievements')} />
+              {/* Rewards off, there's no Rewards tab: the point total and How points work live here. */}
+              {!accessEnabled && points > 0 ? (
+                <LinkRow title={R.points} value={R.pointsValue(points)} onPress={() => navigation.navigate('HowPoints')} />
+              ) : null}
             </View>
           </>
         )}

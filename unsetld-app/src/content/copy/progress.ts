@@ -1,7 +1,8 @@
-// Progress, Achievements, Stats, Proof history, the weekly review and milestone moments
-// (docs/UX_REDESIGN.md §7–8). Every user-facing string for the group. Sentence case except
-// kickers (the kicker style uppercases them) and primary button labels.
-import type { MilestoneDef, MilestoneKey, WeekDayKind } from '../../core/progress';
+// The Record tab, a day's page, Proof history, Achievements, Stats, the weekly review and
+// milestone moments. Every user-facing string for the group. Sentence case except kickers (the
+// kicker style uppercases them) and primary button labels.
+import type { DayMark } from '../../core/history';
+import type { MilestoneDef, MilestoneKey } from '../../core/progress';
 import { parseDay, shortDate, type DayKey } from '../../core/time';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -49,8 +50,47 @@ function mmss(seconds: number): string {
 
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString('en-US')} ${n === 1 ? one : many}`;
 
-/** "Tuesday", "Tuesday and Thursday", "Monday, Tuesday and Thursday". */
-const listed = (words: readonly string[]) => (words.length > 1 ? `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}` : (words[0] ?? ''));
+/** "25:00", or "1:05:00" from an hour: a timer proof on a tile. */
+function clock(seconds: number): string {
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 3600) return mmss(s);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const r = s % 60;
+  return `${h}:${m < 10 ? '0' : ''}${m}:${r < 10 ? '0' : ''}${r}`;
+}
+
+/** "October 7", or "October 7, 2025" when `ref` (today) is in another year. */
+function longDate(day: DayKey, ref?: DayKey): string {
+  const d = parseDay(day);
+  const year = ref && parseDay(ref).getFullYear() !== d.getFullYear() ? `, ${d.getFullYear()}` : '';
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}${year}`;
+}
+
+/**
+ * A day on the record as VoiceOver reads it, one sentence per dot: "October 7, perfect day, 3 of
+ * 3 proven", "October 9, 1 mission proven", "October 12, today, nothing proven yet", "October 8,
+ * missed", "October 8, covered by an Off Day". `before`: earlier than the first day on record.
+ * `weekday`: lead with the weekday (a week's row, where the letters are all there is).
+ */
+function daySaid(
+  m: Pick<DayMark, 'day' | 'when' | 'level' | 'proven' | 'planned' | 'covered' | 'legacy'>,
+  today: DayKey,
+  { before = false, weekday = false }: { before?: boolean; weekday?: boolean } = {},
+): string {
+  const name = longDate(m.day, today);
+  const parts = [weekday ? `${WEEKDAYS[parseDay(m.day).getDay()]}, ${name}` : name];
+  if (m.when === 'today') parts.push('today');
+  if (m.when === 'future') parts.push('still to come');
+  else if (m.proven > 0) {
+    if (m.level === 'perfect') parts.push('perfect day');
+    parts.push(m.planned ? `${m.proven} of ${m.planned} proven` : `${plural(m.proven, 'mission', 'missions')} proven`);
+  } else if (m.legacy) parts.push('on record from before missions');
+  else if (m.when === 'today') parts.push('nothing proven yet');
+  else if (m.covered) parts.push('covered by an Off Day');
+  else parts.push(before ? 'before your record' : 'missed');
+  return parts.join(', ');
+}
 
 /** One per milestone: the big title and one plain sentence (the Moment page). */
 const MOMENTS: Record<MilestoneKey, { title: string; line: string }> = {
@@ -74,21 +114,13 @@ const ACHIEVEMENTS: Record<MilestoneKey, { title: string; how: string }> = {
   'streak-30': { title: '30-day streak', how: 'Prove a mission 30 days in a row.' },
 };
 
-const WEEK_KIND: Record<WeekDayKind, string> = {
-  proven: 'proven',
-  covered: 'covered by an Off Day',
-  missed: 'missed',
-  today: 'today, nothing proven yet',
-  'today-proven': 'today, proven',
-  ahead: 'still to come',
-  before: 'before your first mission',
-};
-
 export const PROGRESS = {
   focused,
   weekRange,
   mmss,
+  clock,
   date,
+  longDate,
   /** "Tuesday" */
   weekday: (day: DayKey) => WEEKDAYS[parseDay(day).getDay()],
   /** "October", or "October 2025" outside the current year. `month` is 'YYYY-MM'. */
@@ -100,58 +132,65 @@ export const PROGRESS = {
   /** "1,290" */
   number: (n: number) => n.toLocaleString('en-US'),
 
-  /** The Progress tab (§7). */
-  screen: {
-    title: 'Progress',
-    share: 'Share your progress',
-    /** Day 1: nothing proven yet. One empty state instead of the numbers. */
-    empty: {
-      title: 'Your record starts with your first mission.',
-      body: 'Prove one of today’s missions and it shows up here.',
-      action: 'Go to today',
-    },
-    /**
-     * Days on record from 2.x and nothing proven since (only a 2.x record gets here: since 3.0 a
-     * day goes on record only through a proof). The days are kept, so they're said, not denied.
-     */
-    before: {
-      title: (n: number) => (n === 1 ? 'Your 1 day from before missions is on record.' : `Your ${plural(n, 'day', 'days')} from before missions are on record.`),
-      body: 'Prove one of today’s missions to start your streak here.',
-    },
-    streakLabel: 'Day streak',
-    /** In place of a 0 streak once there's history: the streak broke. */
-    streakAgain: 'Prove a mission today to start a new streak.',
-    longest: (n: number) => `Longest ${plural(n, 'day', 'days')}`,
-    todayLabel: 'Today',
-    perfect: 'Perfect day',
-    a11yStreak: (n: number) => `Current streak, ${plural(n, 'day', 'days')}`,
-    a11yToday: (done: number, of: number) => `Today, ${done} of ${of} missions proven`,
-
-    week: 'This week',
-    /** Right of THIS WEEK: "2 active days"; nothing before the week's first. */
-    weekCount: (n: number) => (n ? plural(n, 'active day', 'active days') : ''),
+  /**
+   * The Record tab: the month's days as dots, what they add up to, your areas and recent proof.
+   * Day 1 (nothing on record) is this week's empty dots and one line, no zeros.
+   */
+  record: {
+    title: 'Record',
+    share: 'Share your record',
+    prevMonth: 'Previous month',
+    nextMonth: 'Next month',
+    /** Monday first. */
     letters: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-    a11yWeek: (summary: string) => `This week. ${summary}`,
-    a11yDay: (day: DayKey, kind: WeekDayKind) => `${WEEKDAYS[parseDay(day).getDay()]}, ${WEEK_KIND[kind]}`,
-    a11yWeekHint: 'Opens the week',
-    /** Under the squares, when an Off Day covered a day this week. `going`: that day is in the streak running now. */
-    weekOff: (weekdays: readonly string[], going: boolean) =>
-      `${weekdays.length === 1 ? 'An Off Day' : 'Off Days'} covered ${listed(weekdays)}.${going ? ' Your streak is still going.' : ''}`,
+    /** A day on the grid, read as one sentence ("October 7, perfect day, 3 of 3 proven"). */
+    a11yDay: daySaid,
+    a11yDayHint: 'Opens the day.',
+    /** The key under the grid: what each dot means. */
+    legend: { one: '1', two: '2', perfect: 'Perfect day' },
+    a11yLegend: 'A small dot is 1 mission proven, a larger dot 2 or more, a solid dot a perfect day.',
+    /** Under the grid, all time: "18 days proven · 42 missions" (kicker style uppercases it). */
+    summary: (days: number, missions: number) => `${plural(days, 'day', 'days')} proven · ${plural(missions, 'mission', 'missions')}`,
+    /** The momentum line: "12 day streak · 4 perfect days" (as Today says it). A broken streak says what starts one, never "0 day streak". */
+    momentum: (streak: number, perfect: number) =>
+      streak > 0
+        ? [`${streak.toLocaleString('en-US')} day streak`, perfect > 0 ? plural(perfect, 'perfect day', 'perfect days') : ''].filter(Boolean).join(' · ')
+        : 'Prove a mission today to start a streak.',
+    a11ySummary: (days: number, missions: number, streak: number, perfect: number) =>
+      [
+        days > 0 ? `${plural(days, 'day', 'days')} proven, ${plural(missions, 'mission', 'missions')}.` : '',
+        streak > 0
+          ? `${streak.toLocaleString('en-US')} day streak${perfect > 0 ? `, ${plural(perfect, 'perfect day', 'perfect days')}` : ''}.`
+          : 'Prove a mission today to start a streak.',
+      ]
+        .filter(Boolean)
+        .join(' '),
+
+    /** Day 1: nothing on record yet. This week's empty dots, one line, one button. */
+    start: {
+      week: 'This week',
+      line: 'Your first proven mission starts your record.',
+      action: 'Start today',
+    },
 
     areas: 'Your areas',
     level: (n: number) => `Level ${n}`,
-    /** XP into the level, against what the level takes: "75 / 150 XP to level 4" (Stats has the total). */
-    xp: (into: number, span: number, level: number) => `${into} / ${span} XP to level ${level + 1}`,
-    /** "18 missions · 8h 24m" */
-    areaMeta: (missions: number, seconds: number) => `${plural(missions, 'mission', 'missions')} · ${focused(Math.floor(seconds / 60))} invested`,
-    /** An area the user chose with nothing proven in it yet: no zeros. */
-    areaStart: (short: string) => `Your first ${short} mission starts it.`,
-    a11yArea: (name: string, level: number, into: number, span: number, missions: number, seconds: number) =>
-      `${name}, level ${level}. ${into} of ${span} XP to level ${level + 1}. ${plural(missions, 'mission', 'missions')}, ${focusedSaid(Math.floor(seconds / 60))} invested.`,
-    a11yAreaStart: (name: string) => `${name}, level 1. Your first ${name} mission starts it.`,
+    /** The area's points against what the next level takes: "430 / 500" (no second currency). */
+    areaPoints: (xp: number, next: number) => `${xp.toLocaleString('en-US')} / ${next.toLocaleString('en-US')}`,
+    /** "18 missions · 8h 24m": missions proven and the time put in. */
+    areaMeta: (missions: number, seconds: number) =>
+      seconds >= 60 ? `${plural(missions, 'mission', 'missions')} · ${focused(Math.floor(seconds / 60))}` : plural(missions, 'mission', 'missions'),
+    a11yArea: (name: string, level: number, xp: number, next: number, missions: number, seconds: number) =>
+      [
+        `${name}, level ${level}`,
+        `${xp.toLocaleString('en-US')} of ${next.toLocaleString('en-US')} toward level ${level + 1}`,
+        missions > 0 ? `${plural(missions, 'mission', 'missions')} proven${seconds >= 60 ? `, ${focusedSaid(Math.floor(seconds / 60))} invested` : ''}` : '',
+      ]
+        .filter(Boolean)
+        .join('. ') + '.',
 
-    proofs: 'Proof history',
-    proofsValue: (n: number) => plural(n, 'proof', 'proofs'),
+    recent: 'Recent proof',
+    viewAll: 'View all proof',
     achievements: 'Achievements',
     achievementsValue: (n: number, of: number) => `${n} of ${of}`,
     stats: 'Stats',
@@ -160,7 +199,42 @@ export const PROGRESS = {
     pointsValue: (n: number) => plural(n, 'point', 'points'),
   },
 
-  /** Progress › Achievements: milestones reached, then the next three. */
+  /** Record › a day: each mission proven, its points, the bonus and the total. */
+  day: {
+    /** "Day 12": the day's place among the days with a mission proven. */
+    number: (n: number) => `Day ${n.toLocaleString('en-US')}`,
+    /** "October 7", or "October 7, 2025" from another year. */
+    title: (day: DayKey, today: DayKey) => longDate(day, today),
+    /**
+     * Under the title: "3 / 3 · Perfect day", "2 / 3 proven", "1 mission proven" (the day's size
+     * unknown), "On record from before missions" (2.x), "Nothing proven yet today".
+     */
+    status: ({ proven, planned, perfect, legacy, today }: { proven: number; planned: number | null; perfect: boolean; legacy: boolean; today: boolean }) => {
+      if (proven > 0 && perfect) return `${proven} / ${Math.max(planned ?? proven, proven)} · Perfect day`;
+      if (proven > 0) return planned ? `${proven} / ${planned} proven` : `${plural(proven, 'mission', 'missions')} proven`;
+      if (legacy) return 'On record from before missions';
+      return today ? 'Nothing proven yet today' : 'Nothing proven this day';
+    },
+    goToday: 'Go to today',
+    proven: 'Proven',
+    notProven: 'Not proven',
+    stillToDo: 'Still to do',
+    plus: (n: number) => `+${n.toLocaleString('en-US')}`,
+    /** "School · 9:42 AM" */
+    meta: (area: string, time: string) => [area, time].filter(Boolean).join(' · '),
+    a11yRow: (title: string, area: string, time: string, points: number) =>
+      `${title}. ${[area, `proven ${time}`, plural(points, 'point', 'points')].filter(Boolean).join(', ')}.`,
+    a11yRowHint: 'Opens the photo.',
+    a11yOpen: (title: string, today: boolean) => `${title}, ${today ? 'still to do' : 'not proven'}.`,
+    a11yLegacy: (text: string, time: string) => (time ? `${text}, ${time}.` : `${text}.`),
+    bonus: 'Perfect day bonus',
+    total: 'Total',
+    pts: 'pts',
+    a11yBonus: (n: number) => `Perfect day bonus, ${plural(n, 'point', 'points')}.`,
+    a11yTotal: (n: number) => `Total, ${plural(n, 'point', 'points')}.`,
+  },
+
+  /** Record › Achievements: milestones reached, then the next three. */
   achievements: {
     title: 'Achievements',
     byKey: ACHIEVEMENTS,
@@ -176,7 +250,7 @@ export const PROGRESS = {
     a11yNext: (title: string, how: string, progress: string) => [title, how, progress].filter(Boolean).join('. '),
   },
 
-  /** Progress › Stats: the detailed numbers. */
+  /** Record › Stats: the detailed numbers the Record leaves out. */
   stats: {
     title: 'Stats',
     allTime: 'All time',
@@ -199,16 +273,19 @@ export const PROGRESS = {
     offCovered: (weekday: string) => `An Off Day covered ${weekday}. Your streak is still going.`,
     a11yOff: (n: number, max: number) => `Off Days, ${n} of ${max} banked.`,
     byArea: 'By area',
-    /** "18 missions · 340 XP total · 8h 24m invested" (timer time where it ran, else the mission's minutes). */
+    /**
+     * "18 missions · 340 pts · 8h 24m invested": the area's points (its level, no second currency)
+     * and the time (timer time where it ran, else the mission's minutes).
+     */
     areaLine: (missions: number, xp: number, seconds: number) =>
-      `${plural(missions, 'mission', 'missions')} · ${xp.toLocaleString('en-US')} XP total · ${focused(Math.floor(seconds / 60))} invested`,
+      `${plural(missions, 'mission', 'missions')} · ${xp.toLocaleString('en-US')} pts · ${focused(Math.floor(seconds / 60))} invested`,
     level: (n: number) => `Level ${n}`,
     a11yArea: (name: string, level: number, missions: number, xp: number, seconds: number) =>
-      `${name}, level ${level}. ${plural(missions, 'mission', 'missions')}, ${xp} XP total, ${focusedSaid(Math.floor(seconds / 60))} invested.`,
+      `${name}, level ${level}. ${plural(missions, 'mission', 'missions')}, ${plural(xp, 'point', 'points')}, ${focusedSaid(Math.floor(seconds / 60))} invested.`,
     empty: { title: 'No numbers yet.', body: 'Prove a mission and your stats start here.' },
   },
 
-  /** The weekly review (a modal from Today on Sundays, or the week from Progress). */
+  /** The weekly review (a modal from Today on Sundays). */
   review: {
     thisWeek: 'This week',
     lastWeek: 'Last week',
@@ -250,10 +327,20 @@ export const PROGRESS = {
     a11yDate: (day: DayKey, today: DayKey) => `Reached ${date(day, today)}`,
   },
 
-  /** Progress › Proof history (§8): the private record, by month. */
+  /** Record › Proof history (§8): the private record of every proof, by date, mission or area. */
   history: {
     title: 'Proof history',
     privacy: 'Only on this phone. Never posted anywhere.',
+    /** How the history is organised: by month (the default), by mission or by area. */
+    by: { date: 'Date', mission: 'Mission', area: 'Area' },
+    a11yBy: 'Show proof by',
+    /** A mission's or an area's section: its name and how many proofs ("Study for 30 Minutes", "12"). */
+    count: (n: number) => n.toLocaleString('en-US'),
+    a11ySection: (name: string, n: number) => `${name}, ${plural(n, 'proof', 'proofs')}`,
+    /** The section for proofs in an area the app no longer has. */
+    otherArea: 'Other',
+    /** In the viewer: the proof's day on the record. */
+    openDay: 'Open this day',
     /** "19 active days · 47 missions proven" */
     monthMeta: (days: number, missions: number) => `${plural(days, 'active day', 'active days')} · ${plural(missions, 'mission', 'missions')} proven`,
     empty: { title: 'Your proof builds up here.', body: 'Every mission you prove, by month.' },
@@ -262,8 +349,6 @@ export const PROGRESS = {
       days === 0
         ? 'Photos are kept until you clear them. Change it in You › Proof photos.'
         : `Photos are cleared after ${days === 365 ? 'a year' : `${days} days`}; the record stays. Change it in You › Proof photos.`,
-    /** Timer tile: "25 min". */
-    timerTile: (seconds: number) => `${Math.max(1, Math.round(seconds / 60))} min`,
     /** Placeholder for a photo the retention setting cleared (the viewer). */
     cleared: (days: number) => (days === 365 ? 'Photo cleared after a year' : days > 0 ? `Photo cleared after ${days} days` : 'Photo cleared'),
     notHere: 'Not on this phone',
