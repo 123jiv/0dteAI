@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { dayDetail } from '../../core/history';
+import { dayDetail, type LegacyTask } from '../../core/history';
+import type { DayKey } from '../../core/time';
 import { MISSION_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
@@ -93,6 +94,35 @@ function OpenRow({ title, area, today }: { title: string; area: string; today: b
   );
 }
 
+/** A 2.x task's photo as a proof tile, so one that's gone shows a camera mark, never a broken image. */
+function legacyTile(day: DayKey, task: LegacyTask, index: number): ProofView | null {
+  if (task.uri === null) return null;
+  const photo = { uri: task.uri, takenAt: task.doneAt, kind: 'single' as const, hash: '' };
+  return { key: `${day}:legacy:${index}`, day, missionId: '', title: task.text, area: '', points: 0, doneAt: task.doneAt, photos: [photo], cover: photo, timerSeconds: 0 };
+}
+
+/**
+ * A 2.x task: its text and time, beside its photo while that's still on this phone (a camera
+ * mark once it's gone; nothing beside it when there never was one).
+ */
+function LegacyRow({ day, task, index }: { day: DayKey; task: LegacyTask; index: number }) {
+  const time = timeOf(task.doneAt);
+  const tile = legacyTile(day, task, index);
+  return (
+    <View accessible accessibilityLabel={D.a11yLegacy(task.text, time)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+      {tile ? <ProofTile proof={tile} size={THUMB} /> : null}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <T v="saved">{task.text}</T>
+        {time ? (
+          <T v="meta" color={C.stone} style={{ marginTop: 4 }}>
+            {time}
+          </T>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
 /**
  * Record › a day: its number and date, how it went ("3 / 3 · Perfect day"), each mission proven
  * in the order proven, what the plan held that wasn't, 2.x tasks on a day from before missions,
@@ -119,10 +149,11 @@ export function RecordDayScreen({ navigation, route }: RootProps<'RecordDay'>) {
     return [{ id, title: m.title, area: areaName(planned?.area ?? m.track) }];
   });
   const legacy = detail.legacy.filter(t => t.text.trim());
-  // The privacy line only while a photo is still on this phone (cleared ones are nothing to keep private).
+  // The privacy line only while a photo shown here is still on this phone (cleared ones are nothing to keep private).
   const photos = proofs.some(hasPhoto) || legacy.some(t => Boolean(t.uri && proofImage(t.uri)));
   const viewing = openKey ? (proofs.find(p => p.key === openKey) ?? null) : null;
-  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Record' }));
+  // popTo, not navigate: navigate from a stack screen pushes a second tab navigator on top of this page.
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.popTo('Main', { screen: 'Record' }));
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>
@@ -141,7 +172,7 @@ export function RecordDayScreen({ navigation, route }: RootProps<'RecordDay'>) {
             {status}
           </T>
           {isToday && proofs.length === 0 ? (
-            <Button title={D.goToday} onPress={() => navigation.navigate('Main', { screen: 'Today' })} style={{ marginTop: GAP.block }} />
+            <Button title={D.goToday} onPress={() => navigation.popTo('Main', { screen: 'Today' })} style={{ marginTop: GAP.block }} />
           ) : null}
         </View>
 
@@ -153,19 +184,9 @@ export function RecordDayScreen({ navigation, route }: RootProps<'RecordDay'>) {
             {open.map(o => (
               <OpenRow key={o.id} title={o.title} area={o.area} today={isToday} />
             ))}
-            {legacy.map((t, i) => {
-              const time = timeOf(t.doneAt);
-              return (
-                <View key={`${t.doneAt}-${i}`} accessible accessibilityLabel={D.a11yLegacy(t.text, time)}>
-                  <T v="saved">{t.text}</T>
-                  {time ? (
-                    <T v="meta" color={C.stone} style={{ marginTop: 4 }}>
-                      {time}
-                    </T>
-                  ) : null}
-                </View>
-              );
-            })}
+            {legacy.map((t, i) => (
+              <LegacyRow key={`${t.doneAt}-${i}`} day={day} task={t} index={i} />
+            ))}
           </View>
         ) : null}
 

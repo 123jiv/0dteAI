@@ -1,65 +1,21 @@
-import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { proofMonths } from '../../core/progress';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
-import { proofImage } from '../../services/proof';
 import { useApp } from '../../state/store';
 import { EmptyState } from '../../ui/blocks';
 import { NavRow, PageTitle, Segmented } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN } from '../../ui/tokens';
 import { useLayoutWidth } from './measure';
-import { ProofTile, TILE_RADIUS, tileState } from './ProofTile';
+import { ProofTile, tileState } from './ProofTile';
 import { HISTORY_BY, proofSections, type HistoryBy, type ProofSection, type ProofView } from './proofView';
 import { ProofViewer } from './ProofViewer';
 
 const H = PROGRESS.history;
 const TILE_GAP = 6;
-
-/**
- * A square proof thumbnail (also for other screens that show a proof). When the photo is gone it
- * shows a quiet placeholder: `placeholder` for a photo the retention setting cleared, or "Not on
- * this phone" for one that is missing. Thumbnails under 64pt show no text.
- */
-export function ProofThumb({
-  uri,
-  size,
-  height = size,
-  onPress,
-  label,
-  placeholder,
-}: {
-  uri: string;
-  size: number;
-  height?: number;
-  onPress?: () => void;
-  label: string;
-  placeholder?: string;
-}) {
-  const src = proofImage(uri);
-  const text = uri ? H.notHere : (placeholder ?? H.notHere);
-  return (
-    <Pressable
-      accessibilityRole={onPress ? 'button' : 'image'}
-      accessibilityLabel={label}
-      disabled={!onPress}
-      onPress={onPress}
-      style={({ pressed }) => ({ width: size, height, borderRadius: TILE_RADIUS, backgroundColor: C.card, overflow: 'hidden', opacity: pressed ? 0.8 : 1 })}>
-      {src ? (
-        <Image source={{ uri: src }} style={{ width: size, height }} contentFit="cover" />
-      ) : size >= 64 ? (
-        <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', padding: 8 }]}>
-          <T v="mono.s" align="center">
-            {text}
-          </T>
-        </View>
-      ) : null}
-    </Pressable>
-  );
-}
 
 type Row = { type: 'section'; key: string; section: ProofSection } | { type: 'grid'; key: string; proofs: ProofView[] };
 
@@ -121,7 +77,7 @@ export function ProofHistoryScreen({ navigation }: RootProps<'ProofHistory'>) {
   const rows = useMemo(() => rowsOf(sections), [sections]);
   const open = openKey ? (sections.flatMap(s => s.proofs).find(p => p.key === openKey) ?? null) : null;
   const size = Math.floor((frame - MARGIN * 2 - TILE_GAP * 2) / 3);
-  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Record' }));
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.popTo('Main', { screen: 'Record' }));
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }} onLayout={onLayout}>

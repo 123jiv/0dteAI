@@ -91,7 +91,7 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
   const review = weeklyReview(record, plans, profile, from, tracks);
 
   // Closing the review Today is offering counts as seeing it, however the page is left.
-  // Reading this week early from Progress doesn't: Sunday's review still shows.
+  // Reading this week early from Stats doesn't: Sunday's review still shows.
   useEffect(
     () =>
       navigation.addListener('beforeRemove', () => {
@@ -101,7 +101,7 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
     [navigation, from],
   );
 
-  const close = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Today' }));
+  const close = () => (navigation.canGoBack() ? navigation.goBack() : navigation.popTo('Main', { screen: 'Today' }));
 
   const thisWeek = weekStart(today);
   const label = from === thisWeek ? R.thisWeek : from === addDays(thisWeek, -7) ? R.lastWeek : R.week;

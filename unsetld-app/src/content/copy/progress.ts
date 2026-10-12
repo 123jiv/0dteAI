@@ -175,15 +175,18 @@ export const PROGRESS = {
 
     areas: 'Your areas',
     level: (n: number) => `Level ${n}`,
-    /** The area's points against what the next level takes: "430 / 500" (no second currency). */
-    areaPoints: (xp: number, next: number) => `${xp.toLocaleString('en-US')} / ${next.toLocaleString('en-US')}`,
+    /**
+     * How far into its level an area is: the points since the level began against what the level
+     * takes, "430 / 500" (no second currency). Starts over at each new level, as the meter does.
+     */
+    areaPoints: (into: number, span: number) => `${into.toLocaleString('en-US')} / ${span.toLocaleString('en-US')}`,
     /** "18 missions · 8h 24m": missions proven and the time put in. */
     areaMeta: (missions: number, seconds: number) =>
       seconds >= 60 ? `${plural(missions, 'mission', 'missions')} · ${focused(Math.floor(seconds / 60))}` : plural(missions, 'mission', 'missions'),
-    a11yArea: (name: string, level: number, xp: number, next: number, missions: number, seconds: number) =>
+    a11yArea: (name: string, level: number, into: number, span: number, missions: number, seconds: number) =>
       [
         `${name}, level ${level}`,
-        `${xp.toLocaleString('en-US')} of ${next.toLocaleString('en-US')} toward level ${level + 1}`,
+        `${into.toLocaleString('en-US')} of ${span.toLocaleString('en-US')} toward level ${level + 1}`,
         missions > 0 ? `${plural(missions, 'mission', 'missions')} proven${seconds >= 60 ? `, ${focusedSaid(Math.floor(seconds / 60))} invested` : ''}` : '',
       ]
         .filter(Boolean)
@@ -263,6 +266,8 @@ export const PROGRESS = {
     weekPercent: (done: number, planned: number) => `${Math.round((done / planned) * 100)}%`,
     weekLine: (done: number, planned: number) => `${done} of ${planned} missions proven`,
     a11yWeek: (done: number, planned: number) => `This week, ${Math.round((done / planned) * 100)} percent: ${done} of ${planned} missions proven.`,
+    /** The way back to the weekly review (this week's, or last week's on Monday and Tuesday). */
+    review: 'Weekly review',
     active: 'Active days',
     activeSince: (n: number, since: DayKey, today: DayKey) => `${plural(n, 'day', 'days')} since ${date(since, today)}`,
     today: 'TODAY',

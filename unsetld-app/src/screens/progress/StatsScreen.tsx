@@ -1,7 +1,7 @@
 import { useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { activeDays, areaProgress, completion, totals, TRACK_IDS } from '../../core/progress';
-import { weekStart } from '../../core/review';
+import { reviewWeekFor, weekStart } from '../../core/review';
 import { pointsEarned } from '../../core/rewards';
 import { computeStreak } from '../../core/streak';
 import { addDays, diffDays, type DayKey } from '../../core/time';
@@ -9,7 +9,7 @@ import { MISSION_BY_ID, RULES, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
 import { useApp } from '../../state/store';
-import { Card, EmptyState, Meter, SectionLabel } from '../../ui/blocks';
+import { Card, EmptyState, LinkRow, Meter, SectionLabel } from '../../ui/blocks';
 import { SVG_HIDDEN } from '../../ui/icons';
 import { NavRow, PageTitle, Screen, Square } from '../../ui/kit';
 import { T } from '../../ui/text';
@@ -108,7 +108,8 @@ function Figure({ value, label }: { value: string; label: string }) {
 /**
  * Record › Stats: the detailed numbers the Record leaves out. Longest streak, missions,
  * points earned (all time, 2.x points included, as on the share card) and focused time; this
- * week's completion; active days; Off Days with how they work; and every area's totals.
+ * week's completion and the way to the weekly review; active days; Off Days with how they work;
+ * and every area's totals.
  */
 export function StatsScreen({ navigation }: RootProps<'Stats'>) {
   const { width } = useWindowDimensions();
@@ -119,13 +120,17 @@ export function StatsScreen({ navigation }: RootProps<'Stats'>) {
   const active = activeDays(record);
   const streak = computeStreak(active, today);
   const t = totals(record);
-  const week = completion(record, plans, weekStart(today), today);
+  const thisWeek = weekStart(today);
+  const week = completion(record, plans, thisWeek, today);
+  // The review Today offers (last week's on Monday and Tuesday), else this week so far: the way
+  // back to it once its card on Today is gone.
+  const reviewWeek = reviewWeekFor(today) ?? thisWeek;
   const areas = areaProgress(record, minutesOf);
   const byArea = TRACK_IDS.filter(id => areas[id].missions > 0).sort((a, b) => areas[b].xp - areas[a].xp);
   const bars = activeBars(active, streak.covered, today);
   const firstActive = [...active].sort()[0];
   const lastCovered = streak.current > 0 ? coveredInRun(active, streak.covered, today) : null;
-  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Record' }));
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.popTo('Main', { screen: 'Record' }));
 
   if (!active.size) {
     return (
@@ -172,8 +177,15 @@ export function StatsScreen({ navigation }: RootProps<'Stats'>) {
           </Card>
         </View>
       ) : null}
+      <View style={{ marginTop: week.planned > 0 ? 4 : GAP.section - 14 }}>
+        <LinkRow
+          title={S.review}
+          value={reviewWeek === thisWeek ? PROGRESS.review.thisWeek : PROGRESS.review.lastWeek}
+          onPress={() => navigation.navigate('WeeklyReview', { weekStart: reviewWeek })}
+        />
+      </View>
 
-      <View style={{ marginTop: GAP.section }}>
+      <View style={{ marginTop: GAP.section - 14 }}>
         <SectionLabel
           right={
             <T v="meta" color={C.stone}>

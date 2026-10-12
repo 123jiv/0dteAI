@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DayMark } from '../../core/history';
+import { levelFor } from '../../core/progress';
 import { HOME } from '../copy/home';
 import { PROGRESS } from '../copy/progress';
 
@@ -97,7 +98,7 @@ describe('the Record tab', () => {
 });
 
 describe('area progress reads in points: no second currency', () => {
-  it('the Record: level, points against the next level, missions and time', () => {
+  it('the Record: level, points into the level, missions and time', () => {
     expect(R.level(7)).toBe('Level 7');
     expect(R.areaPoints(430, 500)).toBe('430 / 500');
     expect(R.areaPoints(0, 50)).toBe('0 / 50');
@@ -111,9 +112,24 @@ describe('area progress reads in points: no second currency', () => {
     expect(R.a11yArea('Fitness', 1, 0, 50, 0, 0)).toBe('Fitness, level 1. 0 of 50 toward level 2.');
   });
 
+  it('the numbers start over at each new level, as the meter does', () => {
+    const fresh = levelFor(0);
+    expect(R.areaPoints(fresh.into, fresh.span)).toBe('0 / 50');
+    // Just levelled up to 3 (150 points in all): the level's own points, not the total.
+    const up = levelFor(150);
+    expect(up.level).toBe(3);
+    expect(R.areaPoints(up.into, up.span)).toBe('0 / 150');
+    const mid = levelFor(225);
+    expect(R.areaPoints(mid.into, mid.span)).toBe('75 / 150');
+  });
+
   it('Stats: the total, said as one', () => {
     expect(PROGRESS.stats.areaLine(20, 225, 6 * 3600 + 5 * 60)).toBe('20 missions · 225 pts · 6h 5m invested');
     expect(PROGRESS.stats.a11yArea('School', 3, 20, 225, 0)).toContain('225 points');
+  });
+
+  it('Stats keeps a way back to the weekly review', () => {
+    expect(PROGRESS.stats.review).toBe('Weekly review');
   });
 
   it('never says XP on the Record', () => {

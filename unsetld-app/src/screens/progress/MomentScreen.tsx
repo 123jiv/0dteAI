@@ -55,7 +55,7 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
   const close = () => {
     markSeen(key);
     if (navigation.canGoBack()) navigation.goBack();
-    else navigation.navigate('Main', { screen: 'Today' });
+    else navigation.popTo('Main', { screen: 'Today' });
   };
 
   return (

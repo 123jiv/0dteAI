@@ -3,7 +3,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { indexRecord, monthOf, monthView, recentProofs, recordMonths, recordSummary, weekMarks } from '../../core/history';
 import { usableAreas } from '../../core/missions';
-import { achievementsView, areaProgress, areasShown, levelStart, milestones, type AreaProgress } from '../../core/progress';
+import { achievementsView, areaProgress, areasShown, milestones, type AreaProgress } from '../../core/progress';
 import { weekStart } from '../../core/review';
 import { computeStreak } from '../../core/streak';
 import type { DayKey } from '../../core/time';
@@ -45,15 +45,15 @@ function MonthStep({ dir, enabled, onPress }: { dir: 'prev' | 'next'; enabled: b
 }
 
 /**
- * An area, no card: the name and its level, then its points against what the next level takes,
- * as a thin meter and as numbers (the two always agree), and (once there's something) the
- * missions and time in it.
+ * An area, no card: the name and its level, then how far into the level it is (the points since
+ * the level began against what the level takes), as a thin meter and as numbers (the two always
+ * agree; both start over at each new level), and (once there's something) the missions and time
+ * in it.
  */
 function Area({ p }: { p: AreaProgress }) {
   const name = TRACK_BY_ID[p.track]?.short ?? p.track;
-  const next = levelStart(p.level + 1);
   return (
-    <View accessible accessibilityLabel={R.a11yArea(name, p.level, p.xp, next, p.missions, p.seconds)}>
+    <View accessible accessibilityLabel={R.a11yArea(name, p.level, p.into, p.span, p.missions, p.seconds)}>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
         <T v="kicker" color={C.stone}>
           {name}
@@ -63,11 +63,11 @@ function Area({ p }: { p: AreaProgress }) {
         </T>
       </View>
       <View style={{ marginTop: 10 }}>
-        <Meter value={p.xp} max={next} height={3} />
+        <Meter value={p.into} max={p.span} height={3} />
       </View>
       <View style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
         <T v="meta" color={C.muted}>
-          {R.areaPoints(p.xp, next)}
+          {R.areaPoints(p.into, p.span)}
         </T>
         {p.missions > 0 ? (
           <T v="meta" color={C.stone} style={{ flexShrink: 1, textAlign: 'right' }}>
