@@ -2,6 +2,7 @@
 // the completion screen): monochrome, by fill. Missed: an empty ring. One mission proven: a
 // small dot in the ring. Two or more: a bigger one. Every mission (a perfect day): a solid
 // disc. An Off Day kept the streak: the ring with a short bar in it. Days to come: a dash.
+// Days before the record began: a pinpoint (nothing to have missed yet).
 // Today wears a second ring around it, whatever its state, so it's always found.
 import { View } from 'react-native';
 import type { DayLevel, DayMark } from '../core/history';
@@ -24,6 +25,14 @@ export function DayDot({ state, size }: { state: DotState; size: number }) {
     return (
       <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
         <View style={{ width: Math.round(d * 0.32), height: 1.5, backgroundColor: C.greyLetter }} />
+      </View>
+    );
+  }
+  // Before the record began: a pinpoint, so a new record doesn't open on a month of empty rings.
+  if (before && level === 'none' && !today) {
+    return (
+      <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: C.ruleStrong }} />
       </View>
     );
   }
