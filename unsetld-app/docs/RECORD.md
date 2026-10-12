@@ -43,9 +43,11 @@ plans alone: plans are kept six weeks and aren't in the Keychain backup.
 - **Record** (`screens/progress/RecordScreen.tsx`). The hero is the month: a grid of dots,
   Monday first, monochrome (src/ui/DayDot.tsx): an empty ring for a missed day, a small dot for
   one mission, a bigger dot for two, a solid disc for a perfect day, a dash for days to come;
-  today has a second ring. Under it: days proven and missions, the streak, then your areas
-  (level, meter, points toward the next level, missions and time), recent proof and View all
-  proof. Stats and Achievements are quiet links: the page is not a dashboard.
+  today has a second ring; days before the record began are a pinpoint, not a missed ring. Under
+  it: the key (with Off Day when the month has one), the month's days proven and missions, the
+  streak and the days on record (Today's DAY N), then your areas (level, a meter that starts over
+  at each level, points into the level, missions and time), recent proof and View all proof.
+  Stats (with the weekly review) and Achievements are quiet links: the page is not a dashboard.
 - **Day 1**: this week's empty row, "Your first proven mission starts your record.", Start
   today, and each area at Level 1, 0 / 50. No zeros elsewhere, no dead end.
 - **A day** (`RecordDay`): the date, 3 / 3 · Perfect day (or 2 / 3, or 1 mission proven), each
@@ -55,8 +57,10 @@ plans alone: plans are kept six weeks and aren't in the Keychain backup.
 - **Today**: UNSETLD · DAY 12, 12 day streak · 380 pts, the next reward meter ("220 pts to next
   reward"), TODAY 0 / 3. No explanatory sentences.
 - **Completion**: PROVEN., the points (secondary), the week's dots with today's filling in,
-  "Day 12 added to your record.", 1 / 3 today, the streak, then the reward meter. A perfect day
-  adds 3 / 3 and the bonus. Continue.
+  "Day 12 added to your record.", 1 / 3 today, the streak, then the reward meter. Two of three
+  says "One more for a perfect day."; a perfect day adds 3 / 3 and the bonus. Continue.
+- **Weekly focus**: the question shows Monday to Wednesday (from the second active day), eight
+  options, one tap.
 - **START**: a timer mission's START opens the execution state straight away (Lock in for 30
   minutes, the clock, Stay here. Get it done., then Take proof). A photo mission's START opens the
   brief: Do it, then Prove it.
@@ -87,7 +91,7 @@ photo, Before & after) and a timer length. They can't be used to farm points (co
 - one comes into a day only by replacing a planned mission (it uses a swap; the day never grows);
 - a day holds one;
 - it earns 5 (photo), 10 (before and after, or a 15-minute timer) or 15 (a timer of 30 minutes
-  or more), and never more than the mission it replaced;
+  or more), and never more than the mission it replaced (every screen shows the capped amount);
 - the timer must run to the end and photos go through the same on-device checks (fresh,
   duplicate); the planner never plans them on its own.
 
