@@ -22,6 +22,7 @@ interface Props {
   modal?: boolean;
   /** What the dimmed area behind the sheet says to VoiceOver (it closes the sheet unless onClose does something else). Default "Close". */
   closeLabel?: string;
+  closeHint?: string;
 }
 
 /**
@@ -29,7 +30,7 @@ interface Props {
  * a grabber, drag the grabber down or tap outside to close. Renders over the
  * whole screen, so place it at the screen's root.
  */
-export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, accessibilityLabel, modal = false, closeLabel = 'Close' }: Props) {
+export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, accessibilityLabel, modal = false, closeLabel = 'Close', closeHint }: Props) {
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const sheetH = Math.round(height * detent);
@@ -43,7 +44,9 @@ export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, 
   // Slide in or out only when `visible` flips. A new height while it's open (the window resizes,
   // a browser keyboard shrinks the viewport) keeps the sheet where it is instead of replaying the slide.
   const heightNow = useRef(sheetH);
-  heightNow.current = sheetH;
+  useEffect(() => {
+    heightNow.current = sheetH;
+  }, [sheetH]);
   useEffect(() => {
     const h = heightNow.current;
     if (visible) {
@@ -74,9 +77,10 @@ export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, 
   if (!mounted) return null;
   const scrim = y.interpolate({ inputRange: [0, sheetH], outputRange: [dim, 0], extrapolate: 'clamp' });
   const sheet = (
-    <View style={[StyleSheet.absoluteFill, { pointerEvents: visible ? 'box-none' : 'none' }]} accessibilityViewIsModal>
+    // Pointer events from a StyleSheet: react-native-web keeps an inline 'none' after it changes back.
+    <View style={[StyleSheet.absoluteFill, visible ? S.open : S.closing]} accessibilityViewIsModal>
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#000', opacity: scrim }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={closeLabel} accessibilityRole="button" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={closeLabel} accessibilityHint={closeHint} accessibilityRole="button" />
       </Animated.View>
       <Animated.View
         accessibilityLabel={accessibilityLabel}
@@ -108,3 +112,5 @@ export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, 
     </Modal>
   );
 }
+
+const S = StyleSheet.create({ open: { pointerEvents: 'box-none' }, closing: { pointerEvents: 'none' } });

@@ -116,3 +116,13 @@ export function sameAs(m: Mission, input: CustomInput | null): boolean {
     (!isTimed(input.proofType) || m.timerMinutes === input.timerMinutes)
   );
 }
+
+/**
+ * The mission of the user's own that goes in the spot: one of `recent` when the form says
+ * exactly what it is (nothing new is kept), else a new one from `create` (the store's
+ * createCustomMission). null when the form isn't complete or the store won't make it.
+ */
+export function ownToAdd(recent: readonly Mission[], input: CustomInput | null, create: (input: CustomInput) => Mission | null): Mission | null {
+  if (!input) return null;
+  return recent.find(m => sameAs(m, input)) ?? create(input);
+}

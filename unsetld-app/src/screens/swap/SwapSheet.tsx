@@ -16,8 +16,8 @@ import { useAnnounce } from '../../ui/useAnnounce';
 import { showSwapLimit } from '../home/swap';
 import { ChoicesStep } from './ChoicesStep';
 import { CreateStep } from './CreateStep';
-import { canAddOwn, draftInput, recentOwn, sameAs, slotWorth, startDraft, type OwnDraft } from './logic';
-import { FadeIn } from './parts';
+import { canAddOwn, draftInput, ownToAdd, recentOwn, slotWorth, startDraft, type OwnDraft } from './logic';
+import { FadeIn, OutOfReach } from './parts';
 import { ReasonStep, SwapsLeft } from './ReasonStep';
 
 export interface SwapTarget {
@@ -67,6 +67,9 @@ export function SwapSheet({
   const [note, setNote] = useState<string | null>(null);
   // Done (swapped, the day over, no swaps left): the sheet goes, then the screen hears of it.
   const [leaving, setLeaving] = useState(false);
+  // The window's height as the sheet opened, or the tallest since. A phone browser's keyboard
+  // shortens the window: the sheets keep their size through it rather than slide in again.
+  const [openH, setOpenH] = useState(height);
 
   // Each time it opens: step 1, nothing kept from the last one.
   if (target && target !== shown) {
@@ -77,7 +80,8 @@ export function SwapSheet({
     setDraft(null);
     setNote(null);
     setLeaving(false);
-  }
+    setOpenH(height);
+  } else if (height > openH) setOpenH(height);
 
   const open = Boolean(target) && !leaving;
   // The modal stays up for the sheet's closing slide.
@@ -152,8 +156,10 @@ export function SwapSheet({
     }
   };
 
+  // Each step's controls act only while that step is up: the choices stay drawn under the form,
+  // out of reach (OutOfReach), and a key press there can't use a swap or drop the draft.
   const pickReason = (r: SwapReason) => {
-    if (!shown || !idle()) return;
+    if (!shown || !idle() || step !== 'why') return;
     selection();
     if (dayIsOver()) return;
     setReason(r);
@@ -163,14 +169,14 @@ export function SwapSheet({
   };
 
   const pick = (missionId: string) => {
-    if (!shown || !idle()) return;
+    if (!shown || !idle() || step !== 'choices') return;
     selection();
     if (dayIsOver()) return;
     settle(useApp.getState().replaceMission(shown.index, missionId, reason), missionId);
   };
 
   const toOwn = () => {
-    if (!shown) return;
+    if (!shown || !idle() || step !== 'choices') return;
     selection();
     const s = useApp.getState();
     setDraft(d => d ?? startDraft(s.plans[shown.day], shown.index, s.profile.tracks));
@@ -178,26 +184,33 @@ export function SwapSheet({
     setStep('create');
   };
 
-  const back = (to: Step) => {
+  /** A step back, from `from` only. */
+  const back = (from: Step, to: Step) => {
+    if (step !== from) return;
     setNote(null);
     setStep(to);
   };
 
   const addOwn = () => {
     const input = draftInput(draft);
-    if (!shown || !idle() || !input) return;
+    if (!shown || !idle() || step !== 'create' || !input) return;
     if (dayIsOver()) return;
     const s = useApp.getState();
     const today = s.plans[shown.day];
     // No swaps left: say so before anything new is kept.
     if (today && today.rerolls >= entitlementsOf(s).maxSwaps) return settle('limit', '');
     // One of their own from before, exactly as it was: use it again rather than make another.
-    const id = recent.find(m => sameAs(m, input))?.id ?? s.createCustomMission(input)?.id;
+    const id = ownToAdd(recent, input, s.createCustomMission)?.id;
     if (!id) return settle('invalid', '');
     settle(useApp.getState().replaceMission(shown.index, id, reason), id);
   };
 
-  const detent = Math.min(0.88, Math.max(0.62, (STEP_HEIGHT + insets.bottom) / Math.max(1, height)));
+  // Each sheet's height in points, fixed while it's open; ui/Sheet takes a share of the window as
+  // it is now, so the share follows the window and the height doesn't.
+  const tall = Math.max(1, openH);
+  const now = Math.max(1, height);
+  const stepPx = Math.round(tall * Math.min(0.88, Math.max(0.62, (STEP_HEIGHT + insets.bottom) / tall)));
+  const createPx = Math.round(tall * CREATE_DETENT);
 
   return (
     <Modal
@@ -207,34 +220,43 @@ export function SwapSheet({
       statusBarTranslucent
       navigationBarTranslucent
       // Android back and the browser's Escape: a step back from the form, else close.
-      onRequestClose={() => (step === 'create' && open ? back('choices') : onClose())}
+      onRequestClose={() => (step === 'create' && open ? back('create', 'choices') : onClose())}
       onDismiss={Platform.OS === 'ios' ? gone : undefined}>
       {shown ? (
         <View style={{ flex: 1 }}>
+          <OutOfReach when={step === 'create'}>
+            <Sheet
+              visible={open}
+              onClose={onClose}
+              detent={stepPx / now}
+              accessibilityLabel={SWAP.a11y}
+              footer={step === 'why' ? <SwapsLeft day={shown.day} /> : undefined}>
+              {step === 'why' ? (
+                <FadeIn key="why">
+                  <ReasonStep title={shown.title} onPick={pickReason} />
+                </FadeIn>
+              ) : (
+                <FadeIn key="choices">
+                  <ChoicesStep
+                    choices={choices}
+                    canOwn={canAddOwn(plan, index)}
+                    note={step === 'choices' ? note : null}
+                    onPick={pick}
+                    onOwn={toOwn}
+                    onBack={() => back('choices', 'why')}
+                  />
+                </FadeIn>
+              )}
+            </Sheet>
+          </OutOfReach>
           <Sheet
-            visible={open}
-            onClose={onClose}
-            detent={detent}
-            accessibilityLabel={SWAP.a11y}
-            footer={step === 'why' ? <SwapsLeft day={shown.day} /> : undefined}>
-            {step === 'why' ? (
-              <FadeIn key="why">
-                <ReasonStep title={shown.title} onPick={pickReason} />
-              </FadeIn>
-            ) : (
-              <FadeIn key="choices">
-                <ChoicesStep
-                  choices={choices}
-                  canOwn={canAddOwn(plan, index)}
-                  note={step === 'choices' ? note : null}
-                  onPick={pick}
-                  onOwn={toOwn}
-                  onBack={() => back('why')}
-                />
-              </FadeIn>
-            )}
-          </Sheet>
-          <Sheet visible={open && step === 'create'} onClose={() => back('choices')} detent={CREATE_DETENT} dim={0.35} accessibilityLabel={SWAP.create.title}>
+            visible={open && step === 'create'}
+            onClose={() => back('create', 'choices')}
+            detent={createPx / now}
+            dim={0.35}
+            closeLabel={SWAP.create.back}
+            closeHint={SWAP.create.backHint}
+            accessibilityLabel={SWAP.create.title}>
             {draft ? (
               <CreateStep
                 draft={draft}
@@ -242,9 +264,10 @@ export function SwapSheet({
                 recent={recent}
                 tracks={tracks}
                 worth={slotWorth(plan, index)}
+                sheetHeight={createPx}
                 note={step === 'create' ? note : null}
                 onAdd={addOwn}
-                onBack={() => back('choices')}
+                onBack={() => back('create', 'choices')}
               />
             ) : null}
           </Sheet>

@@ -1,8 +1,9 @@
 // Step 3, a mission of the user's own: what they'll do, its area, how they'll prove it (the
 // same proof types and checks as every mission) and, for a timer, how long. What it earns in
 // this spot is said before it's added, and it never earns more than the mission it replaces.
-import { useState } from 'react';
-import { ScrollView, TextInput, View } from 'react-native';
+// While they type, the field stays in view above the keyboard and the pinned button.
+import { useRef, useState } from 'react';
+import { ScrollView, TextInput, View, type LayoutRectangle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TRACK_BY_ID } from '../../content';
 import { SWAP } from '../../content/copy/swap';
@@ -14,7 +15,7 @@ import { T } from '../../ui/text';
 import { color as C, font, GAP, MARGIN, radius } from '../../ui/tokens';
 import { Chip } from '../onboarding/TracksScreen';
 import { draftFrom, draftInput, isTimed, ownEarns, sameAs, type OwnDraft } from './logic';
-import { Back, GroupLabel, ROW, useKeyboardInset } from './parts';
+import { Back, GroupLabel, ROW, SHEET_GRABBER, useKeyboardInset } from './parts';
 
 const COPY = SWAP.create;
 
@@ -24,6 +25,7 @@ export function CreateStep({
   recent,
   tracks,
   worth,
+  sheetHeight,
   note,
   onAdd,
   onBack,
@@ -35,13 +37,15 @@ export function CreateStep({
   tracks: readonly TrackId[];
   /** What the mission being replaced is worth (logic slotWorth). */
   worth: number | null;
+  /** The sheet's height in points, to know what the keyboard hides of it. */
+  sheetHeight: number;
   /** Why the last try didn't go in, if it didn't. */
   note: string | null;
   onAdd: () => void;
   onBack: () => void;
 }) {
   const insets = useSafeAreaInsets();
-  const keyboard = useKeyboardInset();
+  const cut = useKeyboardInset(sheetHeight);
   const [focused, setFocused] = useState(false);
   const input = draftInput(draft);
   const timed = isTimed(draft.proofType);
@@ -52,13 +56,40 @@ export function CreateStep({
     onChange({ ...draft, ...patch });
   };
 
+  // Where the field is in the form, how much of the form shows, and how far it's scrolled.
+  const scroller = useRef<ScrollView>(null);
+  const field = useRef<LayoutRectangle | null>(null);
+  const shown = useRef(0);
+  const offset = useRef(0);
+  const typing = useRef(false);
+  /** While they type, scrolls just enough to show the whole field. */
+  const reveal = () => {
+    const f = field.current;
+    const h = shown.current;
+    if (!typing.current || !f || !h) return;
+    const at = offset.current;
+    const top = Math.max(0, f.y - 12);
+    const bottom = f.y + f.height + 12 - h;
+    const to = at > top ? top : at < bottom ? Math.min(top, bottom) : at;
+    if (to !== at) scroller.current?.scrollTo({ y: to, animated: true });
+  };
+
   return (
-    // The keyboard covers the bottom of the sheet: the button stays just above it.
-    <View style={{ flex: 1, paddingBottom: keyboard }}>
+    // The keyboard covers the bottom of the sheet: the button stays just above it. In a browser
+    // that shortens the page instead, the top goes above the screen: the form starts below that.
+    <View style={{ flex: 1, paddingTop: Math.max(0, cut.top - SHEET_GRABBER), paddingBottom: cut.bottom }}>
       <ScrollView
+        ref={scroller}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={32}
+        onScroll={e => (offset.current = e.nativeEvent.contentOffset.y)}
+        // The keyboard came or went: the form shows less or more of itself.
+        onLayout={e => {
+          shown.current = e.nativeEvent.layout.height;
+          reveal();
+        }}
         contentContainerStyle={{ paddingHorizontal: MARGIN, paddingBottom: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Back onPress={onBack} label={COPY.back} hint={COPY.backHint} />
@@ -67,21 +98,27 @@ export function CreateStep({
           </T>
         </View>
 
+        {/* One row however long the titles, so the field stays high in the sheet. */}
         {recent.length ? (
           <View accessibilityRole="radiogroup" accessibilityLabel={COPY.recent}>
             <GroupLabel>{COPY.recent}</GroupLabel>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP.tight }}>
+            <ScrollView
+              horizontal
+              keyboardShouldPersistTaps="handled"
+              showsHorizontalScrollIndicator={false}
+              style={{ marginHorizontal: -MARGIN }}
+              contentContainerStyle={{ paddingHorizontal: MARGIN, gap: GAP.tight }}>
               {recent.map(m => {
                 const on = sameAs(m, input);
                 return (
-                  <Chip key={m.id} on={on} label={m.title} onPress={() => set(draftFrom(m, draft))} style={{ maxWidth: '100%' }}>
+                  <Chip key={m.id} on={on} label={m.title} onPress={() => set(draftFrom(m, draft))} style={{ maxWidth: 240 }}>
                     <T v="small" numberOfLines={1} color={on ? C.ink : C.muted} style={{ fontFamily: font.sansMedium }}>
                       {m.title}
                     </T>
                   </Chip>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
         ) : null}
 
@@ -98,8 +135,16 @@ export function CreateStep({
           autoCorrect
           returnKeyType="done"
           submitBehavior="blurAndSubmit"
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onLayout={e => (field.current = e.nativeEvent.layout)}
+          onFocus={() => {
+            typing.current = true;
+            setFocused(true);
+            reveal();
+          }}
+          onBlur={() => {
+            typing.current = false;
+            setFocused(false);
+          }}
           maxFontSizeMultiplier={1.3}
           selectionColor={C.bone}
           cursorColor={C.bone}
@@ -174,7 +219,7 @@ export function CreateStep({
         ) : null}
       </ScrollView>
 
-      <View style={{ paddingHorizontal: MARGIN, paddingTop: 10, paddingBottom: keyboard ? 12 : insets.bottom + 12, backgroundColor: C.raise }}>
+      <View style={{ paddingHorizontal: MARGIN, paddingTop: 10, paddingBottom: cut.bottom ? 12 : insets.bottom + 12, backgroundColor: C.raise }}>
         <T v="meta" color={C.stone} accessibilityLabel={COPY.earnsA11y(earns)}>
           {COPY.earns(earns)}
         </T>
