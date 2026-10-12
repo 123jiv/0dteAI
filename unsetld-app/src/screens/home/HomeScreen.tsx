@@ -251,11 +251,11 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   // that there's nothing to count, so no row of zeros and no sentence in its place.
   const showStats = !firstDay || points > 0;
 
-  // The weekly focus question: from the second active day on, in a week with none set and not skipped.
-  // Not on Sunday: the week is ending (an answer would last a day), and the weekly review asks
-  // about next week then.
-  const sunday = addDays(weekFocus.week, 6) === day;
-  const askFocus = !firstDay && !sunday && ready && all > 0 && !weekFocus.focus && !weekFocus.skipped;
+  // The weekly focus question: from the second active day on, at the start of a week (Monday to
+  // Wednesday: later, an answer would barely last), in a week with none set and not skipped.
+  // Sunday's weekly review asks about next week instead.
+  const early = day <= addDays(weekFocus.week, 2);
+  const askFocus = !firstDay && early && ready && all > 0 && !weekFocus.focus && !weekFocus.skipped;
   const focusLabel = weekFocus.focus ? FOCUS.label(weekFocus.focus, profile.gym) : null;
 
   return (

@@ -147,21 +147,27 @@ export const PROGRESS = {
     a11yDay: daySaid,
     a11yDayHint: 'Opens the day.',
     /** The key under the grid: what each dot means. */
-    legend: { one: '1', two: '2', perfect: 'Perfect day' },
+    legend: { one: '1 mission', two: '2', perfect: 'Perfect day', off: 'Off Day' },
     a11yLegend: 'A small dot is 1 mission proven, a larger dot 2 or more, a solid dot a perfect day.',
-    /** Under the grid, all time: "18 days proven · 42 missions" (kicker style uppercases it). */
+    a11yLegendOff: 'A ring with a line is a missed day an Off Day covered.',
+    /** Under the grid, for the month on it: "18 days proven · 42 missions" (kicker style uppercases it). */
     summary: (days: number, missions: number) => `${plural(days, 'day', 'days')} proven · ${plural(missions, 'mission', 'missions')}`,
-    /** The momentum line: "12 day streak · 4 perfect days" (as Today says it). A broken streak says what starts one, never "0 day streak". */
-    momentum: (streak: number, perfect: number) =>
-      streak > 0
-        ? [`${streak.toLocaleString('en-US')} day streak`, perfect > 0 ? plural(perfect, 'perfect day', 'perfect days') : ''].filter(Boolean).join(' · ')
-        : 'Prove a mission today to start a streak.',
-    a11ySummary: (days: number, missions: number, streak: number, perfect: number) =>
+    /**
+     * The momentum line: "12 day streak · 30 days on record" (the streak as Today says it, and the
+     * whole record: Today's DAY N). A broken streak says what starts one, never "0 day streak".
+     */
+    momentum: (streak: number, onRecord: number) =>
       [
-        days > 0 ? `${plural(days, 'day', 'days')} proven, ${plural(missions, 'mission', 'missions')}.` : '',
-        streak > 0
-          ? `${streak.toLocaleString('en-US')} day streak${perfect > 0 ? `, ${plural(perfect, 'perfect day', 'perfect days')}` : ''}.`
-          : 'Prove a mission today to start a streak.',
+        streak > 0 ? `${streak.toLocaleString('en-US')} day streak` : 'Prove a mission today to start a streak',
+        onRecord > 0 ? `${plural(onRecord, 'day', 'days')} on record` : '',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    a11ySummary: (days: number, missions: number, streak: number, onRecord: number) =>
+      [
+        days > 0 ? `This month, ${plural(days, 'day', 'days')} proven, ${plural(missions, 'mission', 'missions')}.` : '',
+        streak > 0 ? `${streak.toLocaleString('en-US')} day streak.` : 'Prove a mission today to start a streak.',
+        onRecord > 0 ? `${plural(onRecord, 'day', 'days')} on record.` : '',
       ]
         .filter(Boolean)
         .join(' '),

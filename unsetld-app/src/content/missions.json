@@ -1299,8 +1299,8 @@
   "requires": [],
   "cooldownDays": 2,
   "repeatable": true,
-  "anchor": true,
   "group": "workout",
+  "weight": 0.5,
   "tags": [
    "fitness",
    "workout",

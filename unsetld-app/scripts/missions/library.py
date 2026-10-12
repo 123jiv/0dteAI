@@ -276,7 +276,7 @@ m('fitness-bodyweight-10', F, 'Do a 10-Minute Bodyweight Workout', 10, 10, T,
   'Run the 10-minute timer to the end.', 2, group='workout', anchor=True, tags=['workout', 'strength', 'home'])
 m('fitness-pushups-squats', F, 'Do 3 Rounds of Push-ups and Squats', 5, 5, T,
   'Do 3 rounds of 10 push-ups and 15 squats, with the push-ups on your knees if you need to.',
-  'Run the 5-minute timer to the end.', 2, group='workout', anchor=True, tags=['workout', 'strength', 'home'])
+  'Run the 5-minute timer to the end.', 2, group='workout', weight=0.5, tags=['workout', 'strength', 'home'])
 m('fitness-walk-30', F, 'Walk for 30 Minutes', 30, 15, TP,
   'Go for a 30-minute walk with your phone in your pocket.', 'Where you walked. No people.', 1, group='cardio', anchor=True,
   weight=1.3, tags=['walk', 'cardio', 'outside'])

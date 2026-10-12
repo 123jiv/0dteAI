@@ -72,15 +72,14 @@ describe('the Record tab', () => {
     expect(R.a11yDay(mark(TODAY), TODAY, { weekday: true })).toBe('Monday, October 12, today, nothing proven yet');
   });
 
-  it('sums up the record without a zero or a 0 day streak', () => {
+  it('sums up the month and the record without a zero or a 0 day streak', () => {
     expect(R.summary(18, 42)).toBe('18 days proven · 42 missions');
     expect(R.summary(1, 1)).toBe('1 day proven · 1 mission');
-    expect(R.momentum(12, 4)).toBe('12 day streak · 4 perfect days');
-    expect(R.momentum(1, 0)).toBe('1 day streak');
-    expect(R.momentum(1, 1)).toBe('1 day streak · 1 perfect day');
-    expect(R.momentum(0, 4)).toBe('Prove a mission today to start a streak.');
+    expect(R.momentum(12, 30)).toBe('12 day streak · 30 days on record');
+    expect(R.momentum(1, 1)).toBe('1 day streak · 1 day on record');
+    expect(R.momentum(0, 4)).toBe('Prove a mission today to start a streak · 4 days on record');
     expect(R.momentum(0, 0)).not.toMatch(/\b0\b/);
-    expect(R.a11ySummary(18, 42, 12, 4)).toBe('18 days proven, 42 missions. 12 day streak, 4 perfect days.');
+    expect(R.a11ySummary(18, 42, 12, 30)).toBe('This month, 18 days proven, 42 missions. 12 day streak. 30 days on record.');
     // A 2.x record with nothing proven since: no "0 days proven".
     expect(R.a11ySummary(0, 0, 0, 0)).toBe('Prove a mission today to start a streak.');
   });
@@ -92,7 +91,7 @@ describe('the Record tab', () => {
   });
 
   it('keeps the key under the grid short', () => {
-    expect(Object.values(R.legend)).toEqual(['1', '2', 'Perfect day']);
+    expect(Object.values(R.legend)).toEqual(['1 mission', '2', 'Perfect day', 'Off Day']);
     expect(R.letters).toEqual(['M', 'T', 'W', 'T', 'F', 'S', 'S']);
   });
 });

@@ -14,7 +14,6 @@ import type { DayKey } from '../../core/time';
 import type { Mission, Verification } from '../../core/types';
 import { MISSION } from '../../content/copy/mission';
 import { soft, success } from '../../services/haptics';
-import { PROOF_FROM_CAMERA } from '../../services/proof';
 import { useNextReward } from '../../state/missions';
 import { useAccessEnabled, useApp, type MissionResult } from '../../state/store';
 import { DayDot, type DotState } from '../../ui/DayDot';
@@ -205,9 +204,11 @@ export function DoneStage({
 
   const rewardLine = next ? (next.ready ? MISSION.done.ready(next.tier.title) : MISSION.done.toNext(next.need)) : null;
   const rewardSaid = next ? (next.ready ? MISSION.a11y.ready(next.tier.title) : MISSION.a11y.toNext(next.need, next.tier.title)) : null;
-  // "Proof saved." only when there's a photo to save: a TIMER mission's proof is the timer.
-  const checks = MISSION.checked(verification.checks, PROOF_FROM_CAMERA);
-  const checkedLine = mission.proofType === 'TIMER' ? checks : `${MISSION.done.saved} ${checks}`;
+  // One quiet line where the photo went; a TIMER mission's proof is the timer, so nothing.
+  // (The checks themselves are said only when a proof fails them: the rejected stage.)
+  const checkedLine = mission.proofType === 'TIMER' || !verification.checks.length ? null : MISSION.done.saved;
+  // Two of three: what the third does.
+  const oneMore = !perfect && all > 1 && done === all - 1 ? MISSION.done.oneMore : null;
   const dayLine = result.firstToday ? MISSION.done.dayAdded(result.dayNumber) : null;
   const streakLine = extended ? MISSION.done.streak(result.streakAfter) : null;
   const area = gain ? areaName(mission, gain.track) : '';
@@ -274,6 +275,11 @@ export function DoneStage({
               </T>
             </Animated.View>
           ) : null}
+          {oneMore ? (
+            <T v="meta" color={C.muted} style={{ marginTop: 6 }}>
+              {oneMore}
+            </T>
+          ) : null}
           {streakLine ? (
             <T v="meta" color={C.stone} style={{ marginTop: 6 }}>
               {streakLine}
@@ -331,11 +337,13 @@ export function DoneStage({
       ) : null}
 
       {/* Fades in with the rest rather than sitting there before it. */}
-      <Animated.View style={{ opacity: rise }}>
-        <T v="note" color={C.stone} style={{ marginTop: 32 }}>
-          {checkedLine}
-        </T>
-      </Animated.View>
+      {checkedLine ? (
+        <Animated.View style={{ opacity: rise }}>
+          <T v="note" color={C.stone} style={{ marginTop: 32 }}>
+            {checkedLine}
+          </T>
+        </Animated.View>
+      ) : null}
     </Screen>
   );
 }

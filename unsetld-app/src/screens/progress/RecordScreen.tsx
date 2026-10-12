@@ -184,17 +184,18 @@ export function RecordScreen({ navigation }: TabProps<'Record'>) {
                 <MonthGrid weeks={view.weeks} width={width} today={today} first={first} onDay={openDay} />
               </View>
               <View style={{ marginTop: 18 }}>
-                <Legend />
+                <Legend offDay={view.weeks.some(w => w.some(d => d?.covered && d.level === 'none'))} />
               </View>
-              {/* All time: the days and missions proven, then the momentum. Never "0 days", never "0 day streak". */}
-              <View style={{ marginTop: GAP.block }} accessible accessibilityLabel={R.a11ySummary(summary.days, summary.missions, streak, summary.perfect)}>
-                {summary.days > 0 ? (
+              {/* The month on the grid: its days and missions proven; then the momentum and the whole record
+                  (the days on record are Today's DAY N). Never "0 days", never "0 day streak". */}
+              <View style={{ marginTop: GAP.block }} accessible accessibilityLabel={R.a11ySummary(view.days, view.missions, streak, summary.days)}>
+                {view.days > 0 ? (
                   <T v="kicker" color={C.bone}>
-                    {R.summary(summary.days, summary.missions)}
+                    {R.summary(view.days, view.missions)}
                   </T>
                 ) : null}
-                <T v="meta" color={C.stone} style={{ marginTop: summary.days > 0 ? 8 : 0 }}>
-                  {R.momentum(streak, summary.perfect)}
+                <T v="meta" color={C.stone} style={{ marginTop: view.days > 0 ? 8 : 0 }}>
+                  {R.momentum(streak, summary.days)}
                 </T>
               </View>
             </View>

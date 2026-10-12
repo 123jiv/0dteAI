@@ -1,5 +1,6 @@
 // Hooks for the mission screens: today's missions, the streak, points and rewards.
 import { provenInPlan } from '../core/complete';
+import { asPlanned } from '../core/custom';
 import { serves } from '../core/missions';
 import { focusFor } from '../core/personalize';
 import { activeDays } from '../core/progress';
@@ -36,7 +37,9 @@ export function missionsOf(plan: DayPlan | undefined, done: Record<string, Missi
   // tonight's last (Lay Out Your Clothes for Tomorrow), at any hour so cards don't move at 3 PM;
   // then the plan's order. `index` stays the mission's place in the plan, for swaps.
   const rows = plan.missions.flatMap((planned, index) => {
-    const mission = MISSION_BY_ID[planned.missionId];
+    const found = MISSION_BY_ID[planned.missionId];
+    // A mission of your own shows what its slot pays (core/custom asPlanned).
+    const mission = found ? asPlanned(found, planned) : undefined;
     return mission ? [{ index, planned, mission, area: plannedArea(planned, mission, tracks), done: done?.[planned.missionId] ?? null }] : [];
   });
   const rank = (r: (typeof rows)[number]) => (r.planned.slot === 'easy' ? 1 : 0) + (r.mission.when === 'evening' ? 1 : 0);

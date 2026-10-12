@@ -4,6 +4,7 @@
 import { Image } from 'expo-image';
 import { Linking, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { DayKey } from '../../core/time';
+import { asPlanned } from '../../core/custom';
 import type { Mission, ProofPhoto, TrackId } from '../../core/types';
 import { TRACK_BY_ID } from '../../content';
 import { MISSION } from '../../content/copy/mission';
@@ -15,6 +16,7 @@ import { TextButton } from '../../ui/kit';
 import { ProofStamp } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
 import { color as C, GAP, radius } from '../../ui/tokens';
+import { useApp } from '../../state/store';
 
 /**
  * Lining figures for serif text with numbers in it. Cormorant's default old-style figures
@@ -31,7 +33,10 @@ export function areaName(m: Mission, area?: TrackId): string {
  * The top of a mission, in the same order as its card on Today: the area (kicker), the
  * title (serif), then time and points. How it's proven follows in the Proof card.
  */
-export function MissionHeading({ mission, area }: { mission: Mission; area?: TrackId }) {
+export function MissionHeading({ mission: found, area }: { mission: Mission; area?: TrackId }) {
+  // A mission of your own shows what its slot in today's plan pays (core/custom asPlanned).
+  const cap = useApp(s => s.plans[s.currentDay]?.missions.find(p => p.missionId === found.id)?.points);
+  const mission = asPlanned(found, { points: cap });
   const name = areaName(mission, area);
   return (
     <View style={{ marginTop: 16 }}>

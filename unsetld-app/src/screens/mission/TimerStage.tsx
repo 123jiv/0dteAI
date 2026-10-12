@@ -22,6 +22,7 @@ import { CameraNote, LINING } from './parts';
 export function TimerStage({
   timer,
   mission,
+  area,
   nav,
   denied,
   canRing,
@@ -33,7 +34,7 @@ export function TimerStage({
 }: {
   timer: FocusTimer;
   mission: Mission;
-  /** The area it's in today's plan for. Not shown: the lock-in screen is the mission alone. */
+  /** The area it's in today's plan for. Not shown (the lock-in screen is the mission alone); it picks the line. */
   area?: TrackId;
   nav: ReactNode;
   denied: boolean;
@@ -78,7 +79,9 @@ export function TimerStage({
   // As big as the width allows: Plex Mono's figures are 0.6 em wide.
   const size = boxW ? Math.min(104, Math.floor(boxW / (text.length * 0.62))) : 88;
   const minutes = Math.max(1, Math.round(timer.requiredSeconds / 60) || mission.timerMinutes || mission.minutes);
-  const line = done ? MISSION.timer.time : paused ? MISSION.timer.paused : MISSION.timer.stay;
+  // A workout, a run or a walk happens away from the phone: "Phone down. Go." instead of "Stay here."
+  const away = (area ?? mission.track) === 'fitness';
+  const line = done ? MISSION.timer.time : paused ? MISSION.timer.paused : away ? MISSION.timer.go : MISSION.timer.stay;
   // "We'll ring when time's up.": only while it runs and the notification can ring.
   const ring = running && canRing;
   useAnnounce(done ? MISSION.timer.timeSaid(photo) : null);

@@ -6,6 +6,7 @@ import type { LineWidgetProps } from '../../widgets/UnsetldLine';
 import type { RecordWidgetProps } from '../../widgets/UnsetldRecord';
 import type { StandardWidgetProps } from '../../widgets/UnsetldStandard';
 import { emptyRecord } from '../core/record';
+import { asPlanned } from '../core/custom';
 import { activeDays } from '../core/progress';
 import { balance } from '../core/rewards';
 import { computeStreak } from '../core/streak';
@@ -322,7 +323,8 @@ function dayMissions(c: Ctx, day: DayKey): DayMissions {
   if (!plan || !plan.missions.length) return { missions: null };
   const done = c.input.record.missions?.[day] ?? {};
   const missions = plan.missions.flatMap(p => {
-    const mission = MISSION_BY_ID[p.missionId];
+    const found = MISSION_BY_ID[p.missionId];
+    const mission = found ? asPlanned(found, p) : undefined;
     return mission ? [{ mission, area: p.area ?? mission.track, proven: done[mission.id]?.verification?.status === 'accepted' }] : [];
   });
   return { missions: missions.length ? missions : null };

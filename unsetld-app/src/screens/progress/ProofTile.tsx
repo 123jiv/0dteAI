@@ -29,11 +29,25 @@ export const hasPhoto = (p: ProofView) => p.photos.some(ph => Boolean(proofImage
 /**
  * A square proof. A photo fills it (a before/after pair shows the after, with a small mark).
  * Otherwise a quiet tile: under 72pt one centred mark (the timer's time, a camera for a photo
- * that's gone); larger, the area at the top, the timer or (from 96pt) the mission in the middle
- * and the date at the bottom, so the record never has a hole in it. With no `onPress` and no
- * `label` it's decoration (inside a row that says it all).
+ * that's gone); larger, the mission at the top (or its area, where the mission is the heading
+ * already: `name`), the timer's time in the middle and the date at the bottom, so the record never
+ * has a hole in it. With no `onPress` and no `label` it's decoration (inside a row that says it all).
  */
-export function ProofTile({ proof, size, label, hint, onPress }: { proof: ProofView; size: number; label?: string; hint?: string; onPress?: () => void }) {
+export function ProofTile({
+  proof,
+  size,
+  label,
+  hint,
+  onPress,
+  name = 'title',
+}: {
+  proof: ProofView;
+  size: number;
+  label?: string;
+  hint?: string;
+  onPress?: () => void;
+  name?: 'title' | 'area';
+}) {
   const state = tileState(proof);
   const src = state === 'photo' && proof.cover ? proofImage(proof.cover.uri) : null;
   const pair = proof.photos.some(p => p.kind === 'before');
@@ -61,17 +75,13 @@ export function ProofTile({ proof, size, label, hint, onPress }: { proof: ProofV
     </View>
   ) : (
     <View style={{ flex: 1, padding: 9, justifyContent: 'space-between' }}>
-      {/* Sentence case at note size: "Organization" fits a third of the screen on one line. */}
-      <T v="note" color={C.stone} numberOfLines={1}>
-        {proof.area}
+      {/* Sentence case at note size; the mission's title takes two lines where the tile allows. */}
+      <T v="note" color={name === 'area' ? C.stone : C.muted} numberOfLines={name === 'area' || state === 'timer' || size < 96 ? 1 : 2}>
+        {name === 'area' ? proof.area : proof.title}
       </T>
       {state === 'timer' ? (
         <T v="saved" color={C.muted}>
           {PROGRESS.clock(proof.timerSeconds)}
-        </T>
-      ) : size >= 96 ? (
-        <T v="note" color={C.muted} numberOfLines={2}>
-          {proof.title}
         </T>
       ) : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

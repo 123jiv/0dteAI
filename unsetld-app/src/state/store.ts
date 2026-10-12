@@ -358,7 +358,9 @@ export const useApp = create<State>()(
         registerCustomMissions([m]);
         set(s => {
           // The oldest go past CUSTOM_KEEP, unless a kept plan, a timer or a before photo still uses one.
-          const used = new Set([...Object.values(s.plans).flatMap(p => p.missions.map(x => x.missionId)), s.timer?.missionId, s.pendingBefore?.missionId]);
+          // The real plans kept aside during tester time travel count too (they come back).
+          const plans = [...Object.values(s.plans), ...Object.values(s.devPlans ?? {})];
+          const used = new Set([...plans.flatMap(p => p.missions.map(x => x.missionId)), s.timer?.missionId, s.pendingBefore?.missionId]);
           const all = [...s.customMissions.filter(c => c.title.toLowerCase() !== m.title.toLowerCase() || used.has(c.id)), m];
           const extra = all.length - CUSTOM_KEEP;
           const keep = extra > 0 ? all.filter((c, i) => i >= extra || used.has(c.id)) : all;

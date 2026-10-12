@@ -133,10 +133,16 @@ export function WeekDots({ marks, width, today, first }: { marks: DayMark[]; wid
 
 const KEY: readonly Exclude<DayLevel, 'none'>[] = ['one', 'two', 'perfect'];
 
-/** The key under the grid, one quiet row: a small dot "1", a larger one "2", a solid one "Perfect day". */
-export function Legend() {
+/**
+ * The key under the grid, one quiet row: a small dot "1 mission", a larger one "2", a solid one
+ * "Perfect day", and the ring with a bar "Off Day" while the month shows one.
+ */
+export function Legend({ offDay = false }: { offDay?: boolean }) {
   return (
-    <View accessible accessibilityLabel={R.a11yLegend} style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 18, rowGap: 6 }}>
+    <View
+      accessible
+      accessibilityLabel={offDay ? `${R.a11yLegend} ${R.a11yLegendOff}` : R.a11yLegend}
+      style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 18, rowGap: 6 }}>
       {KEY.map(level => (
         <View key={level} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <DayDot state={{ level, when: 'past', covered: false }} size={14} />
@@ -145,6 +151,14 @@ export function Legend() {
           </T>
         </View>
       ))}
+      {offDay ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <DayDot state={{ level: 'none', when: 'past', covered: true }} size={14} />
+          <T v="meta" color={C.stone}>
+            {R.legend.off}
+          </T>
+        </View>
+      ) : null}
     </View>
   );
 }

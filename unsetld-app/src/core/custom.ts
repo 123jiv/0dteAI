@@ -7,7 +7,7 @@
 //    and never more than the planned mission it replaced was worth (PlannedMission.points);
 //  - a timer has to run to the end, and photos go through the same fresh / duplicate checks.
 // The generator never plans them (they aren't in the library it draws from).
-import type { DayPlan, Mission, ProofType, TrackId } from './types';
+import type { DayPlan, Mission, PlannedMission, ProofType, TrackId } from './types';
 
 export const CUSTOM_PREFIX = 'custom-';
 export const CUSTOM_TITLE_MIN = 3;
@@ -81,6 +81,15 @@ export function makeCustomMission(input: CustomInput, id: string): Mission | nul
     active: true,
     custom: true,
   };
+}
+
+/**
+ * The mission as its slot pays it: a mission of the user's own earns no more than the slot's
+ * cap (PlannedMission.points), so every screen that shows its points shows that. Others as they are.
+ */
+export function asPlanned(mission: Mission, planned: Pick<PlannedMission, 'points'> | null | undefined): Mission {
+  const cap = planned?.points;
+  return typeof cap === 'number' && cap < mission.points ? { ...mission, points: Math.max(0, cap) } : mission;
 }
 
 /** Missions of the user's own already in a day's plan. */

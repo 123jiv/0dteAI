@@ -74,6 +74,8 @@ export const MISSION = {
     lockIn: (minutes: number) => (minutes === 1 ? 'Lock in for 1 minute' : `Lock in for ${minutes} minutes`),
     /** While it runs. */
     stay: 'Stay here. Get it done.',
+    /** A Fitness mission: done away from the phone. */
+    go: 'Phone down. Go.',
     /** A quiet second note, only while the timer-done notification can ring (allowed, and not the browser preview). */
     ring: 'We’ll ring when time’s up.',
     paused: 'Paused.',
@@ -153,8 +155,10 @@ export const MISSION = {
     toNext: (need: number) => `${num(need)}\u00a0${need === 1 ? 'pt' : 'pts'} to next reward`,
     ready: (title: string) => `${title} is ready`,
     share: 'Share today',
-    /** Before the checks line when the proof has photos. */
-    saved: 'Proof saved.',
+    /** The quiet last line when the proof has photos. */
+    saved: 'Proof saved privately on this phone.',
+    /** Two of three proven: what the third one does. */
+    oneMore: 'One more for a perfect day.',
     /** The proof took its area to a new level: a kicker ("SCHOOL · LEVEL 3") over the area's meter. */
     level: (area: string, level: number) => `${area} · Level ${level}`,
     /** Otherwise, quietly: what the proof added to its area ("+15 to School · Level 2"). No second currency: it's the mission's points. */

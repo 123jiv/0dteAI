@@ -128,6 +128,7 @@ export function ProofHistoryScreen({ navigation }: RootProps<'ProofHistory'>) {
                   key={p.key}
                   proof={p}
                   size={size}
+                  name={by === 'mission' ? 'area' : 'title'}
                   label={H.a11yTile(p.title, p.area, p.day, today, tileState(p), p.timerSeconds)}
                   hint={H.a11yTileHint}
                   onPress={() => setOpenKey(p.key)}
