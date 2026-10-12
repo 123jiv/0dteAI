@@ -79,6 +79,8 @@ export function TimerStage({
   const size = boxW ? Math.min(104, Math.floor(boxW / (text.length * 0.62))) : 88;
   const minutes = Math.max(1, Math.round(timer.requiredSeconds / 60) || mission.timerMinutes || mission.minutes);
   const line = done ? MISSION.timer.time : paused ? MISSION.timer.paused : MISSION.timer.stay;
+  // "We'll ring when time's up.": only while it runs and the notification can ring.
+  const ring = running && canRing;
   useAnnounce(done ? MISSION.timer.timeSaid(photo) : null);
 
   const footer = done ? (
@@ -130,11 +132,11 @@ export function TimerStage({
         <T v="body" color={done ? C.bone : C.muted} align="center" style={{ marginTop: 14 }} accessibilityLiveRegion={done || paused ? 'polite' : 'none'}>
           {line}
         </T>
-        {running && canRing ? (
-          <T v="note" color={C.stone} align="center" style={{ marginTop: 6 }}>
-            {MISSION.timer.ring}
-          </T>
-        ) : null}
+        {/* Its line is always held, so nothing moves when it shows: canRing arrives a moment
+            after the screen opens. Hidden, it's out of VoiceOver too. */}
+        <T v="note" color={C.stone} align="center" aria-hidden={!ring} style={{ marginTop: 6, opacity: ring ? 1 : 0 }}>
+          {MISSION.timer.ring}
+        </T>
       </View>
     </Screen>
   );

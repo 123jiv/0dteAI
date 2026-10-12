@@ -554,29 +554,10 @@ export function MissionCard({
         />
         {body}
       </Card>
-      {done ? null : (
-        // START: a sibling over the card's bottom right where the button is drawn, so it's its
-        // own control for touch and VoiceOver (not a button inside the card's button).
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={startSaid}
-          accessibilityHint={startHint}
-          onPress={onStart}
-          style={{
-            position: 'absolute',
-            right: 0,
-            bottom: BUTTON_CENTRE - SWAP_HEIGHT / 2,
-            height: SWAP_HEIGHT,
-            paddingLeft: 12,
-            paddingRight: 18,
-            justifyContent: 'center',
-          }}>
-          {({ pressed }) => <CardButton label={actionLabel(action, remaining, mission.proofType)} colorway={colorway} pressed={pressed} />}
-        </Pressable>
-      )}
       {swap && !done ? (
         // A sibling over the card's bottom left, level with the button, so it stays its own
-        // control for touch and VoiceOver (not a button inside the card's button).
+        // control for touch and VoiceOver (not a button inside the card's button). Before START
+        // in the tree, so focus and the web's Tab order read the row left to right.
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={HOME.swap.a11y(mission.title)}
@@ -597,6 +578,26 @@ export function MissionCard({
           </T>
         </Pressable>
       ) : null}
+      {done ? null : (
+        // START: a sibling over the card's bottom right where the button is drawn, so it's its
+        // own control for touch and VoiceOver (not a button inside the card's button).
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={startSaid}
+          accessibilityHint={startHint}
+          onPress={onStart}
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: BUTTON_CENTRE - SWAP_HEIGHT / 2,
+            height: SWAP_HEIGHT,
+            paddingLeft: 12,
+            paddingRight: 18,
+            justifyContent: 'center',
+          }}>
+          {({ pressed }) => <CardButton label={actionLabel(action, remaining, mission.proofType)} colorway={colorway} pressed={pressed} />}
+        </Pressable>
+      )}
     </Animated.View>
   );
 }
