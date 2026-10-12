@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, useWindowDimensions, View, type GestureResponderEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { color as C, ease, radius } from './tokens';
@@ -20,6 +20,8 @@ interface Props {
    * waits for the dismissal first (today/ColorwaySheet).
    */
   modal?: boolean;
+  /** What the dimmed area behind the sheet says to VoiceOver (it closes the sheet unless onClose does something else). Default "Close". */
+  closeLabel?: string;
 }
 
 /**
@@ -27,7 +29,7 @@ interface Props {
  * a grabber, drag the grabber down or tap outside to close. Renders over the
  * whole screen, so place it at the screen's root.
  */
-export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, accessibilityLabel, modal = false }: Props) {
+export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, accessibilityLabel, modal = false, closeLabel = 'Close' }: Props) {
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const sheetH = Math.round(height * detent);
@@ -38,16 +40,21 @@ export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, 
   // Mount as soon as it should show; unmount after the closing slide.
   if (visible && !mounted) setMounted(true);
 
+  // Slide in or out only when `visible` flips. A new height while it's open (the window resizes,
+  // a browser keyboard shrinks the viewport) keeps the sheet where it is instead of replaying the slide.
+  const heightNow = useRef(sheetH);
+  heightNow.current = sheetH;
   useEffect(() => {
+    const h = heightNow.current;
     if (visible) {
-      y.setValue(sheetH);
+      y.setValue(h);
       Animated.timing(y, { toValue: 0, duration: 320, easing: ease.out, useNativeDriver: true }).start();
     } else {
-      Animated.timing(y, { toValue: sheetH, duration: 240, easing: ease.in, useNativeDriver: true }).start(({ finished }) => {
+      Animated.timing(y, { toValue: h, duration: 240, easing: ease.in, useNativeDriver: true }).start(({ finished }) => {
         if (finished) setMounted(false);
       });
     }
-  }, [visible, sheetH, y]);
+  }, [visible, y]);
 
   const grabber = {
     onStartShouldSetResponder: () => true,
@@ -69,7 +76,7 @@ export function Sheet({ visible, onClose, detent, dim = 0.45, children, footer, 
   const sheet = (
     <View style={[StyleSheet.absoluteFill, { pointerEvents: visible ? 'box-none' : 'none' }]} accessibilityViewIsModal>
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#000', opacity: scrim }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" accessibilityRole="button" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={closeLabel} accessibilityRole="button" />
       </Animated.View>
       <Animated.View
         accessibilityLabel={accessibilityLabel}
