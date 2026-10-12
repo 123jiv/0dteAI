@@ -125,7 +125,7 @@ export function StatsScreen({ navigation }: RootProps<'Stats'>) {
   const bars = activeBars(active, streak.covered, today);
   const firstActive = [...active].sort()[0];
   const lastCovered = streak.current > 0 ? coveredInRun(active, streak.covered, today) : null;
-  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Progress' }));
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Record' }));
 
   if (!active.size) {
     return (

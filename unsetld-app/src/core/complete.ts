@@ -27,8 +27,10 @@ export function completeMission(
   const prev = r.missions?.[day]?.[mission.id];
   // A mission is proven once a day: a second proof changes nothing and earns nothing.
   if (prev?.verification?.status === 'accepted') return { record: r, points: 0, bonus: 0 };
-  const points = accepted ? mission.points : 0;
   const planned = plan?.missions.find(p => p.missionId === mission.id);
+  // A mission of the user's own earns at most what the planned mission it replaced was worth.
+  const worth = typeof planned?.points === 'number' ? Math.min(planned.points, mission.points) : mission.points;
+  const points = accepted ? worth : 0;
   const done: MissionDone = {
     missionId: mission.id,
     slot: planned?.slot ?? sizeOf(mission),
@@ -40,9 +42,14 @@ export function completeMission(
     timerSeconds: opts.timerSeconds,
     verification,
     programId: opts.programId,
+    title: mission.title,
   };
   let next: RecordState = { ...r, missions: { ...r.missions, [day]: { ...r.missions?.[day], [mission.id]: done } } };
-  if (accepted) next = recordDay(next, day, opts.verifiedClock);
+  if (accepted) {
+    next = recordDay(next, day, opts.verifiedClock);
+    // The day's size goes on the record with its first proof (plans are only kept six weeks).
+    if (plan && plan.missions.length > 0) next = { ...next, planned: { ...next.planned, [day]: plan.missions.length } };
+  }
 
   let bonus = 0;
   if (accepted && plan && !next.bonuses?.[day]) {

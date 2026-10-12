@@ -19,7 +19,8 @@ import { PaywallScreen } from '../screens/PaywallScreen';
 import { PlansScreen } from '../screens/plans/PlansScreen';
 import { AchievementsScreen } from '../screens/progress/AchievementsScreen';
 import { MomentScreen } from '../screens/progress/MomentScreen';
-import { ProgressScreen } from '../screens/progress/ProgressScreen';
+import { RecordDayScreen } from '../screens/progress/RecordDayScreen';
+import { RecordScreen } from '../screens/progress/RecordScreen';
 import { ProofHistoryScreen } from '../screens/progress/ProofHistoryScreen';
 import { StatsScreen } from '../screens/progress/StatsScreen';
 import { WeeklyReviewScreen } from '../screens/progress/WeeklyReviewScreen';
@@ -55,7 +56,7 @@ function MainTabs() {
       tabBar={props => <TabBar {...props} />}
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: C.ink }, animation: 'none' }}>
       <Tabs.Screen name="Today" component={HomeScreen} />
-      <Tabs.Screen name="Progress" component={ProgressScreen} />
+      <Tabs.Screen name="Record" component={RecordScreen} />
       {accessEnabled || liveCode ? <Tabs.Screen name="Rewards" component={RewardsScreen} /> : null}
       <Tabs.Screen name="You" component={YouScreen} />
     </Tabs.Navigator>
@@ -89,6 +90,7 @@ export function RootNavigator() {
       <Stack.Screen name="Main" component={MainTabs} options={{ animation: fade }} />
       <Stack.Screen name="Plans" component={PlansScreen} />
       <Stack.Screen name="ProofHistory" component={ProofHistoryScreen} />
+      <Stack.Screen name="RecordDay" component={RecordDayScreen} />
       <Stack.Screen name="Achievements" component={AchievementsScreen} />
       <Stack.Screen name="Stats" component={StatsScreen} />
       <Stack.Screen name="AllRewards" component={AllRewardsScreen} />

@@ -1,4 +1,4 @@
-// The bottom navigation: Today, Progress, Rewards, You (Rewards only while rewards are on or a
+// The bottom navigation: Today, Record, Rewards, You (Rewards only while rewards are on or a
 // code taken still works: RootNavigator). Always there on the main screens, gone on anything
 // opened from them (a mission, proof history, a plan).
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -16,7 +16,7 @@ import { color as C } from './tokens';
 
 const ICONS: Record<keyof TabParams, IconName> = {
   Today: 'tab-today',
-  Progress: 'tab-progress',
+  Record: 'tab-record',
   Rewards: 'tab-rewards',
   You: 'tab-you',
 };

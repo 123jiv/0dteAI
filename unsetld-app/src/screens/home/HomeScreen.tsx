@@ -37,7 +37,8 @@ import {
   WeeklyCard,
   type CardAction,
 } from './parts';
-import { confirmSwap } from './swap';
+import { SwapSheet, type SwapTarget } from '../swap/SwapSheet';
+import { showSwapLimit } from './swap';
 
 /** A beat after Today settles, so a card that was just proven plays first. */
 const MOMENT_DELAY = 1800;
@@ -100,6 +101,8 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const weekFocus = useWeekFocus(day);
 
   const [sheet, setSheet] = useState<'colorway' | null>(route.params?.sheet === 'colorway' ? 'colorway' : null);
+  // The swap sheet: why, then the replacements (screens/swap).
+  const [swapTarget, setSwapTarget] = useState<SwapTarget | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const [scrollTop, setScrollTop] = useState(0);
 
@@ -196,19 +199,11 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
 
   const swap = (m: TodayMission) => {
     selection();
-    confirmSwap({
-      index: m.index,
-      title: m.mission.title,
-      day,
-      swapsLeft,
-      onSwapped: id => {
-        const title = MISSION_BY_ID[id]?.title;
-        if (!title) return;
-        setSwapped(id);
-        AccessibilityInfo.announceForAccessibility(HOME.swap.done(title));
-      },
-      onPaywall: () => navigation.navigate('Paywall', { from: 'swaps' }),
-    });
+    if (swapsLeft <= 0) {
+      showSwapLimit(() => navigation.navigate('Paywall', { from: 'swaps' }));
+      return;
+    }
+    setSwapTarget({ index: m.index, missionId: m.mission.id, title: m.mission.title, day });
   };
 
   const actionFor = (m: TodayMission): CardAction => {
@@ -370,6 +365,18 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
       </ScrollView>
 
       <ColorwaySheet visible={sheet === 'colorway'} onClose={() => setSheet(null)} onFull={() => navigation.navigate('Paywall', { from: 'colorway' })} />
+      <SwapSheet
+        target={swapTarget}
+        onClose={() => setSwapTarget(null)}
+        onSwapped={id => {
+          setSwapTarget(null);
+          const title = MISSION_BY_ID[id]?.title;
+          if (!title) return;
+          setSwapped(id);
+          AccessibilityInfo.announceForAccessibility(HOME.swap.done(title));
+        }}
+        onPaywall={() => navigation.navigate('Paywall', { from: 'swaps' })}
+      />
     </View>
   );
 }

@@ -63,7 +63,7 @@ export function AchievementsScreen({ navigation }: RootProps<'Achievements'>) {
   const today = useApp(s => s.currentDay);
   const record = useApp(s => s.record);
   const { reached, next } = achievementsView(milestones(record, today));
-  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Progress' }));
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Record' }));
 
   return (
     <Screen nav={<NavRow onBack={back} />}>

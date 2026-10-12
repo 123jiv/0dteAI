@@ -161,7 +161,7 @@ export function ProofHistoryScreen({ navigation }: RootProps<'ProofHistory'>) {
   // it's older than the setting. One cleared under a shorter earlier setting just says cleared.
   const cutoff = keepDays > 0 ? addDays(today, -keepDays) : null;
   const clearedOn = (day: DayKey) => (cutoff && day < cutoff ? H.cleared(keepDays) : H.cleared(0));
-  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Progress' }));
+  const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main', { screen: 'Record' }));
 
   return (
     <View style={{ flex: 1, backgroundColor: C.ink }}>

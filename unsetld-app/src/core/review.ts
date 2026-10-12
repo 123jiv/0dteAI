@@ -111,7 +111,8 @@ export function reviewFocusWeek(from: DayKey, today: DayKey): DayKey | null {
  */
 export function focusChoices(order: readonly FocusId[], library: readonly Mission[], profile: Profile): FocusId[] {
   const plannable = (t: TrackId) => library.some(m => m.active && serves(m, t) && meetsRequirements(m.requires, profile));
-  const ok = order.filter(id => id !== 'other' && plannable(FOCUS_LEAN[id].area));
+  // Applying for jobs or internships: not offered under 16 (most of its missions need 16+).
+  const ok = order.filter(id => id !== 'other' && plannable(FOCUS_LEAN[id].area) && !(id === 'apply' && profile.age === 'u16'));
   // The ones in the user's own areas first, each group in the screen's order.
   const mine = (id: FocusId) => (id !== 'other' && profile.tracks.includes(FOCUS_LEAN[id].area) ? 0 : 1);
   return [...ok].sort((a, b) => mine(a) - mine(b));

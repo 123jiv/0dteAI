@@ -3,10 +3,10 @@
 // situation (school, work, business, gym, age, skills), their time, what they did
 // and skipped lately, and the time of day. Pure and deterministic: the same library,
 // profile, history and day always give the same plan.
-import { leanFor, leansTo, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
+import { kindsOf, leanFor, leansTo, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
 import { hash32, mulberry32 } from './random';
 import { addDays, DAY_START_HOUR, dayNumber, diffDays, parseDay, type DayKey } from './time';
-import type { DayPlan, Mission, MissionSlot, PlannedMission, Profile, Requirement, SkillId, TrackId } from './types';
+import type { DayPlan, Mission, MissionSlot, PlannedMission, Profile, Requirement, SkillId, SwapReason, TrackId } from './types';
 
 /** An easy mission takes this many minutes or fewer. */
 export const EASY_MAX_MINUTES = 15;
@@ -653,6 +653,95 @@ export function rerollMission(plan: DayPlan, index: number, input: PlanInput): D
   if (!next) return null;
   const missions = plan.missions.map((p, i) => (i === index ? { slot, missionId: next.mission.id, area: next.area } : p));
   return { ...plan, missions, rerolls: plan.rerolls + 1, replaced: [...plan.replaced, current.missionId] };
+}
+
+/**
+ * "RECOMMENDED FOR YOU": up to `count` missions to replace the one at `index`, for the reason the
+ * user gave. Each is a different kind (no two from one group), drawn the way a swap draws
+ * (core/missions chooseForSlot: the slot's area first, the rest of the day left as it is):
+ *  - too-hard: shorter than the mission it replaces (an easy one);
+ *  - too-easy: longer than it (a focused one, up to what the intensity hands out);
+ *  - not-relevant: nothing of the same kind (its group and activity tags);
+ *  - cant-today / already-did: nothing from its group (its near-twins);
+ *  - another: the usual swap.
+ * When the reason leaves nothing, the usual swap's picks fill in. Pure: picking one is
+ * `replaceWith`.
+ */
+export function replacementChoices(plan: DayPlan, index: number, input: PlanInput, reason: SwapReason = 'another', count = 3): SlotPick[] {
+  const current = plan.missions[index];
+  if (!current) return [];
+  const byId = new Map(input.library.map(m => [m.id, m]));
+  const old = byId.get(current.missionId);
+  const areas = planAreas(input);
+  const exclude = new Set([
+    current.missionId,
+    ...plan.replaced,
+    ...plan.missions.flatMap((p, i) => (i === index ? [] : [p.missionId, ...sameDayBlocked(input.library, byId.get(p.missionId))])),
+  ]);
+  const spent = plan.missions.reduce((t, p, i) => (i === index ? t : t + (byId.get(p.missionId)?.minutes ?? 0)), 0);
+  const room = Math.max(old?.minutes ?? 20, dayBudget(input.profile) - spent);
+  const was: MissionSlot = current.slot === 'easy' || current.slot === 'main' ? current.slot : old ? sizeOf(old) : 'main';
+  const track = swapArea(plan, index, input) ?? old?.track ?? areas[0];
+  if (!track) return [];
+  const others = otherAreas(plan, index, byId, areas);
+  const oldKinds = new Set(old ? kindsOf(old) : []);
+  const oldMinutes = old?.minutes ?? (was === 'easy' ? EASY_MAX_MINUTES : 30);
+  const mainMax = MAIN_MAX_MINUTES[input.profile.intensity] ?? 45;
+
+  type Rule = { slot: MissionSlot; cap: number; ok: (m: Mission) => boolean; apart: boolean };
+  const rules: Record<SwapReason, Rule> = {
+    'too-hard': { slot: 'easy', cap: Math.max(5, Math.min(EASY_MAX_MINUTES, oldMinutes - 5)), ok: m => m.minutes < oldMinutes, apart: true },
+    'too-easy': { slot: 'main', cap: Math.max(room, Math.min(mainMax, oldMinutes + 30)), ok: m => m.minutes > oldMinutes, apart: true },
+    'not-relevant': { slot: was, cap: room, ok: m => !kindsOf(m).some(k => oldKinds.has(k)), apart: true },
+    'cant-today': { slot: was, cap: room, ok: () => true, apart: true },
+    'already-did': { slot: was, cap: room, ok: () => true, apart: true },
+    another: { slot: was, cap: room, ok: () => true, apart: false },
+  };
+  const out: SlotPick[] = [];
+  const taken = new Set<string>();
+  const draw = (rule: Rule, tag: string) => {
+    const ex = new Set([...exclude, ...taken, ...(rule.apart ? sameDayBlocked(input.library, old) : [])]);
+    for (let k = 0; out.length < count && k < count * 4; k++) {
+      const seed = `${input.salt}:${input.day}:${index}:r${plan.rerolls + 1}:${tag}${k}`;
+      const got = chooseForSlot(input, rule.slot, track, ex, rule.cap, seed, others, true);
+      if (!got) return;
+      // Different kinds: nothing else from its group comes up after it.
+      for (const id of sameDayBlocked(input.library, got.mission)) ex.add(id);
+      if (!rule.ok(got.mission)) continue;
+      out.push(got);
+      for (const id of sameDayBlocked(input.library, got.mission)) taken.add(id);
+    }
+  };
+  draw(rules[reason], reason);
+  if (out.length < count && reason !== 'another') draw(rules.another, 'fill');
+  return out;
+}
+
+/**
+ * The plan with the mission at `index` replaced by `mission` (one of `replacementChoices`, or
+ * one of the user's own), for `area`, as one swap: the swap count goes up, the old mission
+ * can't come back today, and the reason is kept for what the plan learns (core/personalize).
+ * `points`: a mission of the user's own earns at most what the replaced one was worth.
+ */
+export function replaceWith(
+  plan: DayPlan,
+  index: number,
+  mission: Mission,
+  area: TrackId,
+  reason: SwapReason,
+  at: number,
+  points?: number,
+): DayPlan | null {
+  const current = plan.missions[index];
+  if (!current || current.missionId === mission.id || plan.missions.some((p, i) => i !== index && p.missionId === mission.id)) return null;
+  const next: PlannedMission = { slot: sizeOf(mission), missionId: mission.id, area, ...(typeof points === 'number' ? { points } : {}) };
+  return {
+    ...plan,
+    missions: plan.missions.map((p, i) => (i === index ? next : p)),
+    rerolls: plan.rerolls + 1,
+    replaced: [...plan.replaced, current.missionId],
+    swaps: [...(plan.swaps ?? []), { from: current.missionId, to: mission.id, reason, area: current.area ?? area, at }],
+  };
 }
 
 /** History for the generator, from the proven missions, recent plans and skips. */

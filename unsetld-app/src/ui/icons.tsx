@@ -28,7 +28,7 @@ export type IconName =
   | 'check'
   // Tabs
   | 'tab-today'
-  | 'tab-progress'
+  | 'tab-record'
   | 'tab-rewards'
   | 'tab-you';
 
@@ -116,11 +116,11 @@ export function Icon({ name, size = 24, color = C.stone }: Props) {
           <Path {...p} d="M8.5 13.75h2.5" />
         </>
       )}
-      {name === 'tab-progress' && (
+      {name === 'tab-record' && (
         <>
-          <Path {...p} d="M5.5 19.5v-5" />
-          <Path {...p} d="M12 19.5v-9" />
-          <Path {...p} d="M18.5 19.5v-14" />
+          <Path {...p} d="M4.75 6.25h14.5v13.5H4.75z" />
+          <Path {...p} d="M8.25 4.25v3.5M15.75 4.25v3.5" />
+          <Path {...p} d="M8 12.25h2M14 12.25h2M8 16.25h2" />
         </>
       )}
       {name === 'tab-rewards' && (

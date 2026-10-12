@@ -141,7 +141,7 @@ function AreaCard({ p }: { p: AreaProgress }) {
  * Progress (§7): the streak and today, this week, a level per area, then links to Proof
  * history, Achievements and Stats. Day 1 (nothing proven) is one empty state, no zeros.
  */
-export function ProgressScreen({ navigation }: TabProps<'Progress'>) {
+export function RecordScreen({ navigation }: TabProps<'Record'>) {
   const insets = useSafeAreaInsets();
   const today = useApp(s => s.currentDay);
   const record = useApp(s => s.record);

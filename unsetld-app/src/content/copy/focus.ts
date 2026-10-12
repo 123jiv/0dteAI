@@ -3,11 +3,13 @@
 import type { FocusId, WeeklyFocus } from '../../core/types';
 
 const OPTIONS = {
-  'school-catchup': 'Catch up in school',
+  'school-catchup': 'Get caught up in school',
   exam: 'Prepare for an exam',
-  business: 'Work on my business',
-  gym: 'Get back in the gym',
-  project: 'Finish a project',
+  business: 'Make progress on my business',
+  gym: 'Get back into training',
+  project: 'Finish my project',
+  apply: 'Apply for jobs or internships',
+  // No longer offered (3.2 keeps the list to eight); a focus already set still reads.
   routine: 'Improve my routine',
   organize: 'Get my space in order',
   save: 'Save money',
@@ -19,8 +21,8 @@ export const FOCUS = {
   title: 'What matters most this week?',
   body: 'Your missions lean toward it all week.',
   options: OPTIONS,
-  /** Order on the screen. */
-  order: ['school-catchup', 'exam', 'business', 'gym', 'project', 'routine', 'organize', 'save', 'skill', 'other'] as FocusId[],
+  /** Order on the screen: eight, kept light. */
+  order: ['school-catchup', 'business', 'gym', 'project', 'exam', 'save', 'apply', 'other'] as FocusId[],
   /** "Something else": the most they can type. */
   otherMax: 60,
   otherPlaceholder: 'In a few words',
@@ -42,9 +44,8 @@ export const FOCUS = {
   /** The line on Today once it's set ("This week: Work on my business"). */
   current: (label: string) => `This week: ${label}`,
   currentHint: 'Change this week’s focus',
-  /** An option as the user reads it: "Get back in the gym" only for someone with a gym. */
-  option: (id: FocusId, gym?: boolean | null): string => (id === 'gym' && gym !== true ? 'Get back to working out' : OPTIONS[id]),
+  /** An option as the user reads it. `gym` is kept for callers; "Get back into training" fits with or without one. */
+  option: (id: FocusId, gym?: boolean | null): string => (void gym, OPTIONS[id]),
   /** What a focus reads as: the option, or what they typed for "Something else". */
-  label: (f: Pick<WeeklyFocus, 'id' | 'text'>, gym?: boolean | null): string =>
-    f.id === 'other' ? f.text?.trim() || OPTIONS.other : f.id === 'gym' && gym !== true ? 'Get back to working out' : (OPTIONS[f.id] ?? OPTIONS.other),
+  label: (f: Pick<WeeklyFocus, 'id' | 'text'>, gym?: boolean | null): string => (void gym, f.id === 'other' ? f.text?.trim() || OPTIONS.other : (OPTIONS[f.id] ?? OPTIONS.other)),
 };

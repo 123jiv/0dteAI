@@ -53,7 +53,7 @@ function useIntents(ready: boolean) {
     // Every intent starts from Today, with whatever was open on top of it closed.
     navigationRef.dispatch(StackActions.popTo('Main', { screen: 'Today', params: { nonce: newNonce() } }));
     const missionId = openMission(intent);
-    if (intent.kind === 'progress') navigationRef.navigate('Main', { screen: 'Progress' });
+    if (intent.kind === 'record') navigationRef.navigate('Main', { screen: 'Record' });
     else if (missionId) navigationRef.navigate('Mission', { missionId });
     // An early drop alert opens the early-access page, where the drop opens.
     else if (earlyDrop && accessEnabled) navigationRef.navigate('Milestone', { id: 'early-access' });

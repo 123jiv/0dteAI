@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import type { NotificationEvent } from '../services/notifications';
 
-export type Intent = { kind: 'today' } | { kind: 'progress' } | { kind: 'mission'; missionId: string };
+export type Intent = { kind: 'today' } | { kind: 'record' } | { kind: 'mission'; missionId: string };
 
 export const useIntent = create<{ intent: Intent | null; nonce: number; push: (i: Intent) => void; clear: () => void }>(set => ({
   intent: null,
@@ -13,7 +13,7 @@ export const useIntent = create<{ intent: Intent | null; nonce: number; push: (i
 }));
 
 /**
- * unsetld://today, unsetld://record (and unsetld://progress) → Progress,
+ * unsetld://today, unsetld://record (and 3.1's unsetld://progress) → Record,
  * unsetld://mission/<id> → that mission (the Next mission widget). Links from
  * 2.x (unsetld://line/412, unsetld://night-check) open Home.
  */
@@ -22,7 +22,7 @@ export function parseUrl(url: string): Intent | null {
   if (!m) return null;
   const parts = m[1].split('/').filter(Boolean);
   const head = (parts[0] ?? '').toLowerCase();
-  if (head === 'record' || head === 'progress') return { kind: 'progress' };
+  if (head === 'record' || head === 'progress') return { kind: 'record' };
   if (head === 'mission' && /^[a-z0-9-]+$/i.test(parts[1] ?? '')) return { kind: 'mission', missionId: parts[1] };
   if (head === '' || head === 'today' || head === 'line' || head === 'night-check') return { kind: 'today' };
   return null;

@@ -8,12 +8,12 @@ import type { DocId } from '../content';
 
 export type PaywallFrom = 'onboarding' | 'colorway' | 'settings' | 'reminders' | 'programs' | 'swaps';
 
-/** The four tabs, always at the bottom: Today, Progress, Rewards, You. */
+/** The four tabs, always at the bottom: Today, Record, Rewards, You. */
 export type TabParams = {
   /** Today's missions and the active plan. */
   Today: { nonce?: number; sheet?: 'colorway' | 'focus' } | undefined;
-  /** Streak, this week, your areas; links to proof history, achievements and stats. */
-  Progress: undefined;
+  /** The record: the month's days proven, your areas, recent proof; links to proof history, stats and achievements. */
+  Record: undefined;
   /** Points, the next reward, status. */
   Rewards: undefined;
   /** Goals, profile, reminders, membership, settings. */
@@ -30,16 +30,18 @@ export type RootParams = {
   Goal: { edit?: boolean } | undefined;
   /** The tabs. Reach one from a stack screen with navigate('Main', { screen: 'Rewards' }). */
   Main: NavigatorScreenParams<TabParams> | undefined;
-  /** 3.0: a mission, with PROVE IT and its proof flow. */
-  Mission: { missionId: string };
+  /** 3.0: a mission, with PROVE IT and its proof flow. `start`: START on Today: a timer mission starts its timer straight away. */
+  Mission: { missionId: string; start?: boolean };
   WeeklyReview: { weekStart: DayKey };
   /** Plans (multi-day programs; core/programs). Opened from Today and You. */
   Plans: undefined;
-  /** Progress › Proof history: the private record of every proof, by month. */
+  /** Record › Proof history: the private record of every proof, by date, mission or area. */
   ProofHistory: undefined;
-  /** Progress › Achievements (milestones). */
+  /** Record › a day: each mission proven that day, its points, the bonus and the total. */
+  RecordDay: { day: DayKey };
+  /** Record › Achievements (milestones). */
   Achievements: undefined;
-  /** Progress › Stats: the detailed numbers. */
+  /** Record › Stats: the detailed numbers. */
   Stats: undefined;
   /** Rewards › All rewards. */
   AllRewards: undefined;

@@ -36,7 +36,8 @@ import { clockTime } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
 import { color as C, GAP } from '../../ui/tokens';
 import { useAnnounce } from '../../ui/useAnnounce';
-import { confirmSwap } from '../home/swap';
+import { showSwapLimit } from '../home/swap';
+import { SwapSheet, type SwapTarget } from '../swap/SwapSheet';
 import { DoneStage } from './DoneStage';
 import { addsTo, AfterSlot, CameraNote, Instruction, LINING, MissionHeading, ProofCard, ProofFrame, ProofPhotos, ProvenLine } from './parts';
 import { TimerStage } from './TimerStage';
@@ -99,6 +100,8 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const tracks = useApp(s => s.profile.tracks);
   const active = useAppActive();
   const [stage, setStage] = useState<Stage>({ kind: 'detail' });
+  // The swap sheet (screens/swap), as on Today's cards; a swap closes the page.
+  const [swapTarget, setSwapTarget] = useState<SwapTarget | null>(null);
   const [denied, setDenied] = useState(false);
   // Proof photos saved but not submitted yet (deleted if the screen closes), and the clock check started at capture.
   const unsent = useRef<string[]>([]);
@@ -339,19 +342,15 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     ]);
   };
 
-  // The same swap flow as Today's cards (screens/home/swap); a swap closes the page.
+  // The same swap sheet as Today's cards (screens/swap); a swap closes the page.
   const swap = () => {
     const i = useApp.getState().plans[day]?.missions.findIndex(p => p.missionId === missionId) ?? -1;
     if (i < 0) return;
-    confirmSwap({
-      index: i,
-      title: mission.title,
-      day,
-      swapsLeft,
-      onSwapped: close,
-      onDayOver: close,
-      onPaywall: () => navigation.navigate('Paywall', { from: 'swaps' }),
-    });
+    if (swapsLeft <= 0) {
+      showSwapLimit(() => navigation.navigate('Paywall', { from: 'swaps' }));
+      return;
+    }
+    setSwapTarget({ index: i, missionId, title: mission.title, day });
   };
 
   /** The server keeps each day's proven count and points (missions plus the perfect-day bonus) for rewards; it never sees a photo. */
@@ -629,25 +628,40 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const usesCamera = !timed;
 
   return (
-    <Screen
-      nav={nav}
-      footer={
-        inPlan ? (
-          <>
-            {usesCamera ? <CameraNote denied={denied} /> : null}
-            <Button title={primary.title} onPress={primary.onPress} />
-            {swapsLeft > 0 ? <TextButton title={MISSION.swap.button} onPress={swap} style={{ marginTop: 8 }} /> : null}
-          </>
-        ) : undefined
-      }>
-      <MissionHeading mission={mission} area={area} />
-      <Instruction>{mission.short}</Instruction>
-      {!inPlan && plan ? (
-        <T v="meta" color={C.stone} style={{ marginTop: 16 }}>
-          {MISSION.notInPlan}
-        </T>
-      ) : null}
-      <ProofCard mission={mission} />
-    </Screen>
+    <>
+      <Screen
+        nav={nav}
+        footer={
+          inPlan ? (
+            <>
+              {usesCamera ? <CameraNote denied={denied} /> : null}
+              <Button title={primary.title} onPress={primary.onPress} />
+              {swapsLeft > 0 ? <TextButton title={MISSION.swap.button} onPress={swap} style={{ marginTop: 8 }} /> : null}
+            </>
+          ) : undefined
+        }>
+        <MissionHeading mission={mission} area={area} />
+        <Instruction>{mission.short}</Instruction>
+        {!inPlan && plan ? (
+          <T v="meta" color={C.stone} style={{ marginTop: 16 }}>
+            {MISSION.notInPlan}
+          </T>
+        ) : null}
+        <ProofCard mission={mission} />
+      </Screen>
+      <SwapSheet
+        target={swapTarget}
+        onClose={() => setSwapTarget(null)}
+        onSwapped={() => {
+          setSwapTarget(null);
+          close();
+        }}
+        onDayOver={() => {
+          setSwapTarget(null);
+          close();
+        }}
+        onPaywall={() => navigation.navigate('Paywall', { from: 'swaps' })}
+      />
+    </>
   );
 }

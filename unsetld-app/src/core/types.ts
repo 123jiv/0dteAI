@@ -113,6 +113,12 @@ export interface RecordState {
   redemptions: Redemption[];
   /** Points balance carried over from 2.x tasks and codes (set once, on migration). */
   legacyPoints: number;
+  /**
+   * 3.2: how many missions the day's plan held when a mission was proven that day. Plans are
+   * kept six weeks and aren't backed up; this keeps "2 / 3" on the record for good. Absent on
+   * days proven before 3.2 (core/history falls back to the plan, then to the proven count).
+   */
+  planned?: Record<DayKey, number>;
 }
 
 // ── 3.0 Missions ────────────────────────────────────────────────────────────
@@ -197,6 +203,8 @@ export interface Mission {
   fits?: SkillId[];
   tags: string[];
   active: boolean;
+  /** 3.2: a mission the user wrote ("+ Create my own"): id `custom-…`, kept in the store, never planned by the generator. */
+  custom?: boolean;
 }
 
 /** Answers from onboarding. null = skipped. */
@@ -228,7 +236,12 @@ export interface Profile {
 }
 
 /** The weekly focus choices (core/personalize FOCUS_OPTIONS says what each one leans the plan toward). */
-export type FocusId = 'school-catchup' | 'exam' | 'business' | 'gym' | 'project' | 'routine' | 'organize' | 'save' | 'skill' | 'other';
+/**
+ * The weekly focus choices (core/personalize FOCUS_LEAN says what each one leans the plan toward).
+ * 3.2 shows eight (content/copy/focus order); 'routine', 'organize' and 'skill' are no longer
+ * offered but still work for a focus already set.
+ */
+export type FocusId = 'school-catchup' | 'exam' | 'business' | 'gym' | 'project' | 'apply' | 'routine' | 'organize' | 'save' | 'skill' | 'other';
 
 export interface WeeklyFocus {
   /** Monday of the week it's for. */
@@ -250,6 +263,24 @@ export interface PlannedMission {
   area?: TrackId;
   /** Set when it came from a program. */
   programId?: string;
+  /**
+   * The most a mission of the user's own (`custom-…`) earns in this slot: what the planned
+   * mission it replaced was worth, so swapping one in never earns more (core/custom).
+   */
+  points?: number;
+}
+
+/** Why a mission was swapped (the one-tap sheet). What the plan learns from it: core/personalize learnFrom. */
+export type SwapReason = 'not-relevant' | 'cant-today' | 'too-easy' | 'too-hard' | 'already-did' | 'another';
+
+/** One swap: the mission that went, the one that came, and why. */
+export interface SwapEntry {
+  from: string;
+  to: string;
+  reason: SwapReason;
+  /** The area the slot was in. */
+  area?: TrackId;
+  at: number;
 }
 
 export interface DayPlan {
@@ -259,6 +290,8 @@ export interface DayPlan {
   rerolls: number;
   /** Missions swapped out today (never offered again today). */
   replaced: string[];
+  /** 3.2: each swap with its reason. Absent on plans made before 3.2. */
+  swaps?: SwapEntry[];
 }
 
 export interface ProofPhoto {
@@ -297,6 +330,8 @@ export interface MissionDone {
   timerSeconds?: number;
   verification: Verification;
   programId?: string;
+  /** 3.2: the title when it was proven, so the record keeps it (a mission of the user's own, a retired one). */
+  title?: string;
 }
 
 export interface ProgramState {

@@ -52,6 +52,11 @@ export const FOCUS_LEAN: Record<Exclude<FocusId, 'other'>, { area: TrackId; ids:
     ids: ['projects-build-30', 'projects-build-60', 'projects-finish-feature', 'projects-finish-not-start', 'projects-launch'],
     tags: ['build', 'launch'],
   },
+  apply: {
+    area: 'career',
+    ids: ['career-apply-job', 'career-apply-internship', 'career-application-part', 'career-cover-letter', 'career-application-tracker', 'career-find-opportunities', 'career-improve-resume'],
+    tags: ['apply', 'job', 'internship', 'resume'],
+  },
   routine: {
     area: 'discipline',
     ids: ['discipline-plan-tomorrow', 'discipline-make-your-bed', 'discipline-top-3', 'discipline-lock-in-30', 'discipline-most-important-first'],
@@ -204,9 +209,13 @@ export interface Adaptation {
   stepUp: TrackId[];
   /** When proofs usually happen, if there's a clear pattern. */
   timeOfDay: 'morning' | 'evening' | null;
+  /** 3.2: missions swapped as "Not relevant" lately (times). They mostly stay away. */
+  notForMe?: Record<string, number>;
+  /** 3.2: areas whose missions were swapped as "Too hard" more than once lately: shorter ones there. */
+  easeIn?: TrackId[];
 }
 
-export const NO_ADAPTATION: Adaptation = { ignored: {}, swappedKinds: {}, preferShort: false, stepUp: [], timeOfDay: null };
+export const NO_ADAPTATION: Adaptation = { ignored: {}, swappedKinds: {}, preferShort: false, stepUp: [], timeOfDay: null, notForMe: {}, easeIn: [] };
 
 /**
  * Tags that name a kind of activity (what you'd be doing), as opposed to the goal keywords
@@ -244,12 +253,31 @@ export function learnFrom(
   let morning = 0;
   let evening = 0;
   let proofs = 0;
+  const notForMe: Record<string, number> = {};
+  const tooEasy: Record<string, number> = {};
+  const tooHard: Record<string, number> = {};
   for (const [day, plan] of Object.entries(plans)) {
     if (day < since || day >= before || !plan) continue;
+    // Why each swap happened (3.2). "Can't do this today" and "Already did this" say nothing
+    // about the mission, so they don't turn its kind down; a plan from before 3.2 has no reasons.
+    const why = new Map((plan.swaps ?? []).map(x => [x.from, x]));
     for (const id of plan.replaced ?? []) {
       const m = byId[id];
       if (!m) continue;
-      for (const k of kindsOf(m)) (swapped[k] ??= new Set()).add(id);
+      const reason = why.get(id)?.reason;
+      if (reason === 'cant-today' || reason === 'already-did') continue;
+      const area = why.get(id)?.area ?? m.track;
+      if (reason === 'not-relevant') notForMe[id] = (notForMe[id] ?? 0) + 1;
+      if (reason === 'too-easy') tooEasy[area] = (tooEasy[area] ?? 0) + 1;
+      if (reason === 'too-hard') tooHard[area] = (tooHard[area] ?? 0) + 1;
+      // "Too easy" / "Too hard" are about size, not the kind of mission.
+      if (reason === 'too-easy' || reason === 'too-hard') continue;
+      // "Not relevant" counts twice: one is enough to turn its kind down.
+      for (const k of kindsOf(m)) {
+        const set = (swapped[k] ??= new Set());
+        set.add(id);
+        if (reason === 'not-relevant') set.add(`${id}#`);
+      }
     }
     const proven = done?.[day] ?? {};
     const any = Object.values(proven).some(accepted);
@@ -281,9 +309,13 @@ export function learnFrom(
   for (const [k, ids] of Object.entries(swapped)) if (ids.size >= 2) swappedKinds[k] = ids.size;
   const rate = (x: { planned: number; proven: number }) => (x.planned ? x.proven / x.planned : 0);
   const preferShort = size.long.planned >= 3 && rate(size.long) < 0.34 && size.mid.planned >= 3 && rate(size.mid) >= 0.6;
-  const stepUp = (Object.keys(area) as TrackId[]).filter(t => area[t].planned >= 8 && area[t].proven >= 6 && rate(area[t]) >= 0.75);
+  const easeIn = (Object.keys(tooHard) as TrackId[]).filter(t => tooHard[t] >= 2 && tooHard[t] > (tooEasy[t] ?? 0));
+  const consistent = (Object.keys(area) as TrackId[]).filter(t => area[t].planned >= 8 && area[t].proven >= 6 && rate(area[t]) >= 0.75);
+  // "Too easy" twice in an area asks for bigger missions there, as being consistent does.
+  const asked = (Object.keys(tooEasy) as TrackId[]).filter(t => tooEasy[t] >= 2 && tooEasy[t] > (tooHard[t] ?? 0));
+  const stepUp = [...new Set([...consistent, ...asked])].filter(t => !easeIn.includes(t));
   const timeOfDay = proofs >= 8 ? (morning / proofs >= 0.7 ? 'morning' : evening / proofs >= 0.7 ? 'evening' : null) : null;
-  return { ignored, swappedKinds, preferShort, stepUp, timeOfDay };
+  return { ignored, swappedKinds, preferShort, stepUp, timeOfDay, notForMe, easeIn };
 }
 
 /** Does the week's focus or the goal point at this mission (by id or tag)? */
@@ -311,7 +343,11 @@ export function personalWeight(m: Mission, area: TrackId, lean: Lean, adapt: Ada
     if (n) kinds = Math.min(kinds, n >= 3 ? 0.45 : 0.6);
   }
   w *= kinds;
+  // Swapped as "Not relevant": it mostly stays away (still possible if nothing else fits).
+  const notForMe = adapt.notForMe?.[m.id] ?? 0;
+  if (notForMe) w *= notForMe >= 2 ? 0.1 : 0.25;
   if (adapt.stepUp.includes(area) && m.minutes >= 30) w *= 1.4;
+  if (adapt.easeIn?.includes(area)) w *= m.minutes >= 30 ? 0.5 : m.minutes <= 15 ? 1.3 : 1;
   if (adapt.timeOfDay === 'evening' && m.when === 'morning') w *= 0.7;
   if (adapt.timeOfDay === 'morning' && m.when === 'evening') w *= 0.7;
   return w;

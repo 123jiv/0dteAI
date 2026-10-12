@@ -7,7 +7,22 @@ import { randomSalt } from '../core/random';
 import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
 import { FEATURES, hasFeature, type Feature, type FeatureMap } from '../core/features';
-import { addSkip, DEFAULT_PROFILE, generatePlan, historyFrom, prunePlans, meetsRequirements, rerollMission as rerollCore, serves, type MissionHistory } from '../core/missions';
+import { customsIn, CUSTOM_KEEP, CUSTOM_PER_DAY, isCustomId, makeCustomMission, type CustomInput } from '../core/custom';
+import { dayNumberOf } from '../core/history';
+import {
+  addSkip,
+  DEFAULT_PROFILE,
+  generatePlan,
+  historyFrom,
+  prunePlans,
+  meetsRequirements,
+  replacementChoices,
+  replaceWith,
+  rerollMission as rerollCore,
+  serves,
+  type MissionHistory,
+  type SlotPick,
+} from '../core/missions';
 import { learnFrom, mondayOf } from '../core/personalize';
 import { programMissions, programProgress, startProgram as startProgramCore } from '../core/programs';
 import { clearPhotos, oldestPhotos, photosToClear, photoUris } from '../core/proofs';
@@ -18,8 +33,8 @@ import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as start
 import { claimPatch, emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
-import type { ChapterId, Colorway, DayPlan, Profile, Program, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, TrackId, Verification, WeeklyFocus } from '../core/types';
-import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, RULES } from '../content';
+import type { ChapterId, Colorway, DayPlan, Mission, Profile, Program, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, SwapReason, TrackId, Verification, WeeklyFocus } from '../core/types';
+import { COLORWAY_BY_ID, COLORWAYS, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
 import { deletePhoto, webPhotoKeys } from '../services/proof';
@@ -78,6 +93,13 @@ export interface MissionResult {
   /** Every mission in today's plan is proven. */
   perfect: boolean;
   accepted: boolean;
+  /** 3.2: the day's place on the record ("Day 12"), once something is proven today. */
+  dayNumber: number;
+  /** 3.2: missions proven today and in today's plan, after this one ("1 / 3 today"). */
+  provenToday: number;
+  plannedToday: number;
+  /** 3.2: this proof put today on the record (nothing else proven today before it). */
+  firstToday: boolean;
 }
 
 export type RerollResult = 'ok' | 'none' | 'limit';
@@ -122,6 +144,8 @@ interface State {
   momentsShown: string[];
   /** Week start (Monday) of the week the user said "Not this week" to the weekly focus question. */
   focusSkipped: DayKey | null;
+  /** 3.2: missions of the user's own (core/custom), newest last. */
+  customMissions: Mission[];
 
   updateSettings: (patch: Partial<Settings>) => void;
   completeOnboarding: (verified: boolean) => void;
@@ -146,6 +170,13 @@ interface State {
   /** Rebuilds today's plan after the profile changes, if nothing in it was started, done or swapped yet. */
   replanToday: () => void;
   rerollMission: (index: number) => RerollResult;
+  /**
+   * 3.2: swaps the mission at `index` for `missionId` (one of `choicesFor`, or one of the user's
+   * own), for the reason given. One swap, like rerollMission.
+   */
+  replaceMission: (index: number, missionId: string, reason: SwapReason) => RerollResult | 'invalid';
+  /** 3.2: a mission of the user's own from "+ Create my own"; null when the input isn't valid. */
+  createCustomMission: (input: CustomInput) => Mission | null;
   startTimer: (missionId: string) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
@@ -209,6 +240,7 @@ export const useApp = create<State>()(
       reviewSeen: null,
       momentsShown: [],
       focusSkipped: null,
+      customMissions: [],
 
       setProfile: patch =>
         set(s => {
@@ -278,6 +310,63 @@ export const useApp = create<State>()(
         return 'ok';
       },
 
+      replaceMission: (index, missionId, reason) => {
+        const d = today();
+        const s = get();
+        const plan = s.plans[d] ?? get().ensurePlan(d);
+        if (plan.rerolls >= entitlementsOf(s).maxSwaps) return 'limit';
+        const old = plan.missions[index];
+        if (!old || s.record.missions?.[d]?.[old.missionId]) return 'none';
+        const mission = MISSION_BY_ID[missionId];
+        if (!mission) return 'invalid';
+        let area: TrackId;
+        let points: number | undefined;
+        if (isCustomId(missionId)) {
+          // One of the user's own: one a day, and never worth more than what it replaces.
+          if (!mission.custom || !s.customMissions.some(m => m.id === missionId)) return 'invalid';
+          if (customsIn(plan) - (isCustomId(old.missionId) ? 1 : 0) >= CUSTOM_PER_DAY) return 'invalid';
+          area = mission.track;
+          const worth = typeof old.points === 'number' ? old.points : (MISSION_BY_ID[old.missionId]?.points ?? mission.points);
+          points = Math.min(mission.points, worth);
+        } else {
+          // One of the choices offered; else any library mission that could be planned today.
+          const pick = choicesFor(s, d, plan, index, reason, 6).find(p => p.mission.id === missionId);
+          if (pick) area = pick.area;
+          else {
+            const usable = MISSIONS.some(m => m.id === missionId) && meetsRequirements(mission.requires, s.profile) && !plan.replaced.includes(missionId);
+            const to = usable ? s.profile.tracks.find(t => serves(mission, t)) : undefined;
+            if (!to) return 'invalid';
+            area = to;
+          }
+        }
+        const next = replaceWith(plan, index, mission, area, reason, Date.now(), points);
+        if (!next) return 'invalid';
+        const timer = s.timer?.missionId === old.missionId ? null : s.timer;
+        const pendingBefore = s.pendingBefore?.missionId === old.missionId ? null : s.pendingBefore;
+        if (s.timer && !timer) cancelTimerDone();
+        if (s.pendingBefore && !pendingBefore) void deletePhoto(s.pendingBefore.photo.uri);
+        // "Can't do this today" keeps nothing away beyond today (plan.replaced does that).
+        const skips = reason === 'cant-today' ? s.skips : addSkip(s.skips, old.missionId, d);
+        set(st => ({ plans: { ...st.plans, [d]: next }, skips, timer, pendingBefore }));
+        return 'ok';
+      },
+
+      createCustomMission: input => {
+        const id = `custom-${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
+        const m = makeCustomMission(input, id);
+        if (!m) return null;
+        registerCustomMissions([m]);
+        set(s => {
+          // The oldest go past CUSTOM_KEEP, unless a kept plan, a timer or a before photo still uses one.
+          const used = new Set([...Object.values(s.plans).flatMap(p => p.missions.map(x => x.missionId)), s.timer?.missionId, s.pendingBefore?.missionId]);
+          const all = [...s.customMissions.filter(c => c.title.toLowerCase() !== m.title.toLowerCase() || used.has(c.id)), m];
+          const extra = all.length - CUSTOM_KEEP;
+          const keep = extra > 0 ? all.filter((c, i) => i >= extra || used.has(c.id)) : all;
+          return { customMissions: keep };
+        });
+        return m;
+      },
+
       startTimer: missionId => {
         const m = MISSION_BY_ID[missionId];
         if (!m?.timerMinutes) return;
@@ -295,7 +384,21 @@ export const useApp = create<State>()(
         const plan = s.plans[d] ?? null;
         const before = { balance: balance(s.record), streak: computeStreak(activeDays(s.record), d).current };
         if (!mission) {
-          return { points: 0, bonus: 0, balanceBefore: before.balance, balanceAfter: before.balance, streakBefore: before.streak, streakAfter: before.streak, perfect: false, accepted: false };
+          const n = activeDays(s.record);
+        return {
+          points: 0,
+          bonus: 0,
+          balanceBefore: before.balance,
+          balanceAfter: before.balance,
+          streakBefore: before.streak,
+          streakAfter: before.streak,
+          perfect: false,
+          accepted: false,
+          dayNumber: n.size + (n.has(d) ? 0 : 1),
+          provenToday: 0,
+          plannedToday: plan?.missions.length ?? 0,
+          firstToday: false,
+        };
         }
         const programId = plan?.missions.find(p => p.missionId === missionId)?.programId;
         const c = completeMissionCore(s.record, d, plan, mission, photos, verification, {
@@ -316,7 +419,24 @@ export const useApp = create<State>()(
         });
         const after = { balance: balance(c.record), streak: computeStreak(activeDays(c.record), d).current };
         const perfect = !!plan && plan.missions.every(p => c.record.missions[d]?.[p.missionId]?.verification?.status === 'accepted');
-        return { points: c.points, bonus: c.bonus, balanceBefore: before.balance, balanceAfter: after.balance, streakBefore: before.streak, streakAfter: after.streak, perfect, accepted };
+        const isAccepted = (m: { verification?: { status?: string } } | undefined) => m?.verification?.status === 'accepted';
+        const firstToday = accepted && !Object.values(s.record.missions?.[d] ?? {}).some(isAccepted);
+        const provenToday = plan ? plan.missions.filter(p => isAccepted(c.record.missions[d]?.[p.missionId])).length : Object.values(c.record.missions[d] ?? {}).filter(isAccepted).length;
+        const shownUp = activeDays(c.record);
+        return {
+          points: c.points,
+          bonus: c.bonus,
+          balanceBefore: before.balance,
+          balanceAfter: after.balance,
+          streakBefore: before.streak,
+          streakAfter: after.streak,
+          perfect,
+          accepted,
+          dayNumber: dayNumberOf(c.record, d) ?? shownUp.size + 1,
+          provenToday,
+          plannedToday: plan?.missions.length ?? provenToday,
+          firstToday,
+        };
       },
 
       redeemReward: (tier, minted) => set(s => ({ record: redeem(s.record, tier, s.remote.collection, today(), minted) })),
@@ -425,11 +545,16 @@ export const useApp = create<State>()(
         reviewSeen: s.reviewSeen,
         momentsShown: s.momentsShown,
         focusSkipped: s.focusSkipped,
+        customMissions: s.customMissions,
       }),
       version: 6,
       migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
-        const p = withoutUnknownMissions((persisted ?? {}) as Partial<State>);
+        // The user's own missions first: a plan, a timer or a proof may name one.
+        const saved = (persisted ?? {}) as Partial<State>;
+        const customMissions = Array.isArray(saved.customMissions) ? saved.customMissions.filter(m => m && isCustomId(String(m.id)) && m.custom) : [];
+        registerCustomMissions(customMissions);
+        const p = withoutUnknownMissions({ ...saved, customMissions });
         return {
           ...current,
           ...p,
@@ -469,6 +594,22 @@ function planInput(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
 
 function buildPlan(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans' | 'skips' | 'program'>, day: DayKey): DayPlan {
   return generatePlan(planInput(s, day));
+}
+
+type PlanState = Pick<State, 'profile' | 'installSalt' | 'record' | 'plans' | 'skips' | 'program'>;
+
+/** "RECOMMENDED FOR YOU" for the mission at `index` of `plan` (core/missions replacementChoices). */
+function choicesFor(s: PlanState, day: DayKey, plan: DayPlan, index: number, reason: SwapReason, count = 3): SlotPick[] {
+  return replacementChoices(plan, index, planInput(s, day), reason, count);
+}
+
+/** The replacements the swap sheet offers for today's mission at `index`, for the reason picked. */
+export function replacementsFor(index: number, reason: SwapReason, count = 3): SlotPick[] {
+  const s = useApp.getState();
+  const d = today();
+  const plan = s.plans[d];
+  if (!plan) return [];
+  return choicesFor(s, d, plan, index, reason, count);
 }
 
 /**

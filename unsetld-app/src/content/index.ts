@@ -28,6 +28,17 @@ export const MISSIONS = (missionsJson as Mission[]).filter(m => m.active);
  * 3.0 preview library) aren't here.
  */
 export const MISSION_BY_ID: Record<string, Mission> = Object.fromEntries((missionsJson as Mission[]).map(m => [m.id, m]));
+
+/**
+ * 3.2: missions of the user's own (core/custom), kept in the store, join this lookup so a plan,
+ * a timer, a proof and the record find them like any other. They never join MISSIONS: the
+ * planner doesn't draw from them. The store registers them as it loads and as each is made.
+ */
+export function registerCustomMissions(list: readonly Mission[] | null | undefined) {
+  for (const m of list ?? []) {
+    if (m && typeof m.id === 'string' && m.id.startsWith('custom-') && m.custom && !(m.id in MISSION_BY_ID && !MISSION_BY_ID[m.id].custom)) MISSION_BY_ID[m.id] = m;
+  }
+}
 export const PROGRAMS = programsJson as Program[];
 export const PROGRAM_BY_ID: Record<string, Program> = Object.fromEntries(PROGRAMS.map(p => [p.id, p]));
 /** Default reward tiers; unsetld.com's config can replace them (store.remote.rewards). */
