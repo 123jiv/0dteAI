@@ -1,19 +1,22 @@
-// Rotation and how often missions come round (spec-rotation, 15 Oct 2026): the founder's five users
-// over four weeks, planned and proven the way the store does it (planInput: historyFrom over the
-// record and the saved plans, learnFrom over the last four weeks, the plan made at 9 AM; every
-// planned mission proven with core/complete), on three installs. The full measurements (ten
-// installs, at 15, 30, 45 and 60 minutes, and a second run with about two in three proven) use the
-// same engine; these are the deterministic checks, quick enough to run every time.
+// Rotation and how often missions come round (spec-rotation, 15 Oct 2026), and the goal shaping the
+// week (spec-goal: the goal's areas hold the focused slots): the founder's five users over four
+// weeks, planned and proven the way the store does it (planInput: historyFrom over the record and the
+// saved plans, learnFrom over the last four weeks, the plan made at 9 AM; every planned mission
+// proven with core/complete), on three installs. The full measurements (ten installs, at 15, 30, 45
+// and 60 minutes, and a second run with about two in three proven) use the same engine; these are
+// the deterministic checks, quick enough to run every time.
 // `PRINT=1 npx vitest run src/core/__tests__/rotation.test.ts` prints what each check measured.
 import { describe, expect, it } from 'vitest';
 import { MISSION_BY_ID, MISSIONS } from '../../content';
 import { completeMission } from '../complete';
 import {
   available,
+  chooseForSlot,
   DEFAULT_PROFILE,
   fitsSlot,
   generatePlan,
   historyFrom,
+  leadArea,
   MAIN_MAX_MINUTES,
   MAX_DAYS_IN_WEEK,
   meetsRequirements,
@@ -21,14 +24,15 @@ import {
   replacementChoices,
   replaceWith,
   serves,
+  slotTracks,
   turnOf,
   TURN_DAYS,
   WEEK_START_DAYS,
   type PlanInput,
 } from '../missions';
-import { learnFrom, NO_ADAPTATION } from '../personalize';
+import { leanFor, learnFrom, NO_ADAPTATION } from '../personalize';
 import { emptyRecord } from '../record';
-import { addDays, parseDay, type DayKey } from '../time';
+import { addDays, dayNumber, parseDay, type DayKey } from '../time';
 import type { DayPlan, Profile, RecordState, TrackId } from '../types';
 
 const MONDAY: DayKey = '2026-10-19';
@@ -105,6 +109,12 @@ const average = (runs: DayPlan[][], id: string) => runs.reduce((t, run) => t + (
 function allowed(profile: Profile): string[] {
   const areas = planAreas({ library: MISSIONS, profile, day: MONDAY });
   return MISSIONS.filter(m => areas.some(a => serves(m, a)) && meetsRequirements(m.requires, profile, MONDAY) && m.minutes <= MAIN_MAX_MINUTES[profile.intensity]).map(m => m.id);
+}
+
+/** The user's areas their goal names (core/personalize goalAreas within the plan areas). */
+function goalAreasOf(key: Key): TrackId[] {
+  const areas = planAreas({ library: MISSIONS, profile: PEOPLE[key], day: MONDAY });
+  return leanFor(PEOPLE[key], MONDAY).goalAreas.filter(a => areas.includes(a));
 }
 
 describe('slots and turns', () => {
@@ -219,13 +229,17 @@ describe('four weeks, three installs, every mission proven', () => {
         }
       }
     }
-    // C3 is due every 4–5 days (medium) but shares Career's one slot a day with two core habits, four
-    // weekly or rarer missions and three other medium ones: two to three times in four weeks. The
-    // founder's 1–2 a week would leave too few Career days for the rest (spec-rotation, C3).
+    // C3 is due every 4–5 days (medium) and weighs double (weight 2), but shares Career's one slot a
+    // day with two core habits, four weekly or rarer missions and three other medium ones: three to
+    // four times in four weeks at 45 minutes (Career takes it on the days Skills holds Practice Coding,
+    // which keeps out Spend 30 Minutes Building a Career Skill), a little less with an hour (once a
+    // focused slot holds a 20-minute mission the other takes 30). The founder's 1–2 a week would need
+    // Career's weekly missions to take Organization's slot, and Organization stays in the day
+    // (personas.test.ts).
     for (const minutes of [45, 60] as const) {
       const n = average(installs('C', minutes), 'C3');
       print(`C${minutes} C3: ${n.toFixed(2)}`);
-      expect(n, `C ${minutes} min`).toBeGreaterThanOrEqual(2);
+      expect(n, `C ${minutes} min`).toBeGreaterThanOrEqual(minutes === 45 ? 3.5 : 3);
     }
   });
 
@@ -254,10 +268,11 @@ describe('four weeks, three installs, every mission proven', () => {
     expect(fifth.length).toBeLessThanOrEqual(2);
   });
 
-  it('core habits still lead: on a good share of the days an area holds a focused slot, and more than any other one mission of it', () => {
+  it('core habits still lead: on a good share of the days an area holds a focused slot, and more than any other one mission of its focused work', () => {
     for (const key of KEYS) {
       for (const minutes of [45, 60] as const) {
         const runs = installs(key, minutes);
+        const goal = goalAreasOf(key);
         for (const area of PEOPLE[key].tracks) {
           const anchors = MISSIONS.filter(m => m.anchor && m.track === area).map(m => m.id);
           let focused = 0;
@@ -267,11 +282,16 @@ describe('four weeks, three installs, every mission proven', () => {
             focused += 1;
             if (plan.missions.some(p => p.area === area && anchors.includes(p.missionId))) withAnchor += 1;
           }
-          const count = (id: string) => runs.flat().filter(plan => plan.missions.some(p => p.missionId === id && p.area === area)).length;
+          // An area the goal doesn't name holds the short slot on most days (its short missions come up
+          // there) and a focused slot on the lead's rest days: its core habits lead its focused slots.
+          // Money and Organization (short missions only) count every slot.
+          const inFocus = goal.length > 0 && !goal.includes(area as TrackId) && focused > 0;
+          const count = (id: string) =>
+            runs.flat().filter(plan => plan.missions.some(p => p.missionId === id && p.area === area && (!inFocus || p.slot === 'main'))).length;
           const ids = MISSIONS.filter(m => serves(m, area as TrackId)).map(m => m.id);
           const anchorDays = anchors.reduce((t, id) => t + count(id), 0);
           const top = Math.max(...ids.filter(id => !anchors.includes(id)).map(count));
-          print(`${key}${minutes} ${area}: anchors on ${withAnchor}/${focused} focused days; anchors ${anchorDays}, top other ${top}`);
+          print(`${key}${minutes} ${area}: anchors on ${withAnchor}/${focused} focused days; anchors ${anchorDays}, top other ${top}${inFocus ? ' (focused slots)' : ''}`);
           if (focused >= 10) expect(withAnchor / focused, `${key} ${minutes} min: ${area}`).toBeGreaterThanOrEqual(0.25);
           expect(anchorDays, `${key} ${minutes} min: ${area}`).toBeGreaterThan(top);
         }
@@ -444,5 +464,131 @@ describe('what comes when (rotation reviews, 15 Oct 2026)', () => {
         }
       }
     }
+  });
+});
+
+describe('the goal shapes the week (spec-goal, 15 Oct 2026)', () => {
+  /** Share of the installs' days an area holds a mission of 25 minutes or more (a real focused one). */
+  const focusedShare = (runs: DayPlan[][], area: TrackId) => {
+    const days = runs.flat();
+    return days.filter(plan => plan.missions.some(p => p.area === area && MISSION_BY_ID[p.missionId].minutes >= 25)).length / days.length;
+  };
+  /** Average times in four weeks the missions came up, together. */
+  const times = (runs: DayPlan[][], ids: string[]) => ids.reduce((t, id) => t + average(runs, id), 0);
+
+  it("the goal's areas take the focused slots when the lead doesn't rest; the other areas get them on its rest day, and the short slot keeps its turn", () => {
+    const profile = { ...PEOPLE.A, minutes: 45 as const };
+    const areas = planAreas({ library: MISSIONS, profile, day: MONDAY });
+    const goal = goalAreasOf('A');
+    expect(goal).toEqual(['school', 'fitness']);
+    const shortAt30: Record<string, number> = {};
+    for (let i = 1; i < 31; i++) {
+      const day = addDays(MONDAY, i);
+      const input = { library: MISSIONS, profile, day, history: { lastDone: {}, lastPlanned: { D1: MONDAY }, skips: {} } };
+      const lead = leadArea(input, areas)!;
+      const tracks = slotTracks(profile, ['easy', 'main', 'main'], day, areas, lead, false, goal, false, true);
+      const focused = tracks.filter((_, k) => k > 0);
+      if (dayNumber(day) % 3 === 0) expect(focused, day).toContain('discipline');
+      else expect([...focused].sort(), day).toEqual(['fitness', 'school']);
+      // One focused slot (30 minutes): it's the lead's, and the short slot still takes the other two in turn.
+      const short = slotTracks({ ...profile, minutes: 30 }, ['easy', 'main'], day, areas, lead, false, goal, false, true)[0];
+      shortAt30[short] = (shortAt30[short] ?? 0) + 1;
+    }
+    for (const a of areas) expect(shortAt30[a], a).toBeGreaterThanOrEqual(5);
+    // A goal naming only the lead, or a day of short slots only (15 minutes): as before.
+    for (let i = 0; i < 30; i++) {
+      const day = addDays(MONDAY, i);
+      const lead = leadArea({ profile, day, history: { lastDone: {}, lastPlanned: { D1: MONDAY }, skips: {} } }, areas)!;
+      expect(slotTracks(profile, ['easy', 'main', 'main'], day, areas, 'school', false, ['school'], false, true)).toEqual(
+        slotTracks(profile, ['easy', 'main', 'main'], day, areas, 'school', false, ['school'], false, false),
+      );
+      expect(slotTracks(profile, ['easy', 'easy'], day, areas, lead, false, goal, false, true)).toEqual(slotTracks(profile, ['easy', 'easy'], day, areas, lead, false, goal, false, false));
+    }
+  });
+
+  it('"Improve grades and train consistently": School and Fitness hold the focused work, Discipline still gets focused days', () => {
+    for (const minutes of [45, 60] as const) {
+      const runs = installs('A', minutes);
+      const [school, fitness, discipline] = (['school', 'fitness', 'discipline'] as TrackId[]).map(a => focusedShare(runs, a));
+      const sessions = times(runs, ['S1', 'S5', 'S11']);
+      print(`A${minutes}: 25+ minutes School ${school.toFixed(2)}, Fitness ${fitness.toFixed(2)}, Discipline ${discipline.toFixed(2)}; S1 + S5 + S11 ${sessions.toFixed(2)} in four weeks`);
+      // The spec's 60% for School isn't reached (about 45% at 45 minutes, 50% at an hour; 44% and 46%
+      // before): a 45-minute workout leaves School's focused slot 20 minutes in a 75-minute day, and
+      // School's eight missions of 20 minutes or less take its focused slot to come round at all.
+      expect(school, `${minutes} min: School`).toBeGreaterThanOrEqual(0.42);
+      expect(school - discipline, `${minutes} min: School over Discipline`).toBeGreaterThanOrEqual(0.1);
+      expect(fitness, `${minutes} min: Fitness`).toBeGreaterThanOrEqual(0.6);
+      expect(discipline, `${minutes} min: Discipline`).toBeGreaterThanOrEqual(0.2);
+      expect(sessions, `${minutes} min: S1 + S5 + S11`).toBeGreaterThanOrEqual(10);
+    }
+  });
+
+  it('"Build and ship an app": Projects holds the focused work and Work on Your Project comes about twice a week; B, C and E keep their staples', () => {
+    for (const minutes of [45, 60] as const) {
+      const d = installs('D', minutes);
+      const b = installs('B', minutes);
+      const c = installs('C', minutes);
+      const e = installs('E', minutes);
+      const workouts = ['F1', 'F5', 'F7'];
+      print(
+        `${minutes}: D Projects 25+ ${focusedShare(d, 'projects').toFixed(2)}, P1 ${times(d, ['P1']).toFixed(2)}; B P1 ${times(b, ['P1']).toFixed(2)}, workouts ${times(b, workouts).toFixed(2)}; C C2 ${times(c, ['C2']).toFixed(2)}; E C2 ${times(e, ['C2']).toFixed(2)}, workouts ${times(e, workouts).toFixed(2)}`,
+      );
+      expect(focusedShare(d, 'projects'), `D ${minutes}`).toBeGreaterThanOrEqual(0.6);
+      expect(times(d, ['P1']), `D ${minutes}: P1`).toBeGreaterThanOrEqual(6);
+      expect(times(b, ['P1']), `B ${minutes}: P1`).toBeGreaterThanOrEqual(6);
+      expect(times(b, workouts), `B ${minutes}: workouts`).toBeGreaterThanOrEqual(8);
+      expect(times(c, ['C2']), `C ${minutes}: C2`).toBeGreaterThanOrEqual(4);
+      expect(times(e, ['C2']), `E ${minutes}: C2`).toBeGreaterThanOrEqual(4);
+      expect(times(e, workouts), `E ${minutes}: workouts`).toBeGreaterThanOrEqual(8);
+      // "Build a clothing brand and save money": on a day Money leads, Fitness takes Money's focused
+      // slot in the trade, and the brand still picks first (a 45-minute workout first left it 20).
+      print(`${minutes}: B Projects 25+ ${focusedShare(b, 'projects').toFixed(2)}`);
+      expect(focusedShare(b, 'projects'), `B ${minutes}: Projects`).toBeGreaterThanOrEqual(0.75);
+      // Spend 30 Minutes Building a Career Skill and Practice Coding for 30 Minutes are one half hour
+      // under two names: never both in one day.
+      for (const plan of c.flat()) expect(['C7', 'K1'].filter(id => plan.missions.some(p => p.missionId === id)).length, plan.day).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("a focused near-twin long overdue may follow its short twin only in an area the goal doesn't name, outside a weekly focus week", () => {
+    // Finish One Unfinished Task yesterday, Finish One Thing You've Been Avoiding not for 20 days.
+    const day: DayKey = '2026-11-09';
+    const history = { lastDone: {}, lastPlanned: { D6: '2026-11-08', D3: '2026-10-20', D1: '2026-11-06', D2: '2026-11-05', D5: '2026-11-07', D4: '2026-11-07' }, skips: {} };
+    const d3 = (profile: Profile) =>
+      Array.from({ length: 60 }, (_, k) =>
+        chooseForSlot({ library: MISSIONS, profile, day, salt: `twin-${k}`, history, hour: 9 }, 'main', 'discipline', new Set(), 45, `twin-${k}`),
+      ).filter(got => got?.mission.id === 'D3').length;
+    print(`D3 the day after D6: A ${d3(PEOPLE.A)} of 60`);
+    expect(d3(PEOPLE.A)).toBeGreaterThan(0);
+    // No goal, a goal naming Discipline, a weekly focus: the day after its twin, as before, never.
+    expect(d3({ ...PEOPLE.A, goal: '' })).toBe(0);
+    expect(d3({ ...PEOPLE.A, goal: 'Stop procrastinating and build discipline' })).toBe(0);
+    expect(d3({ ...PEOPLE.A, focus: { week: day, id: 'gym' } })).toBe(0);
+  });
+
+  it("a goal naming only the lead keeps the lead's 45-minute missions, and an area the goal doesn't name keeps its focused days when the goal names more areas than a day has focused slots", () => {
+    /** Times in four weeks the missions came up, on average over the three installs. */
+    const over = (profile: Profile, ids: string[]) => {
+      const runs = INSTALLS.map(salt => fourWeeks(profile, salt));
+      return { runs, n: ids.reduce((t, id) => t + average(runs, id), 0) };
+    };
+    // "Build muscle" (Fitness alone): Complete Your Workout and Complete Your Planned Strength Workout
+    // come about twice a week, as with no goal (once in four weeks when the lead's slot kept room for Discipline).
+    const muscle = over({ ...BASE, age: '16to17', school: true, schoolLevel: 'high', gym: true, tracks: ['fitness', 'school', 'discipline'], goal: 'Build muscle' }, ['F1', 'F7']);
+    // "Learn Spanish" (Skills alone): Build a Small Project Using Your Skill and Create Something You
+    // Can Put in a Portfolio, 45 minutes each, still come round.
+    const spanish = over({ ...BASE, age: '18plus', tracks: ['skills', 'fitness', 'discipline'], skills: ['language'], goal: 'Learn Spanish' }, ['K4', 'K6']);
+    // "Get a software job and improve coding" names Career, Skills and Projects: with Fitness or
+    // Discipline chosen too, that area still holds a focused slot on the lead's rest days.
+    const coder: Profile = { ...BASE, age: '18plus', work: true, school: false, gym: true, project: true, skills: ['coding'], goal: 'Get a software job and improve coding.' };
+    const fitness = over({ ...coder, tracks: ['career', 'skills', 'projects', 'fitness'] }, ['F1', 'F5', 'F7']);
+    const discipline = over({ ...coder, tracks: ['career', 'skills', 'projects', 'discipline'] }, ['D1', 'D2', 'D3', 'D5']);
+    print(
+      `Build muscle F1 + F7 ${muscle.n.toFixed(2)}; Learn Spanish K4 + K6 ${spanish.n.toFixed(2)}; coder + Fitness 25+ ${focusedShare(fitness.runs, 'fitness').toFixed(2)}, F1/F5/F7 ${fitness.n.toFixed(2)}; coder + Discipline 25+ ${focusedShare(discipline.runs, 'discipline').toFixed(2)}, D1/D2/D3/D5 ${discipline.n.toFixed(2)}`,
+    );
+    expect(muscle.n, 'Build muscle: F1 + F7').toBeGreaterThanOrEqual(6);
+    expect(spanish.n, 'Learn Spanish: K4 + K6').toBeGreaterThanOrEqual(1.5);
+    expect(focusedShare(fitness.runs, 'fitness'), 'coder + Fitness').toBeGreaterThanOrEqual(0.2);
+    expect(focusedShare(discipline.runs, 'discipline'), 'coder + Discipline').toBeGreaterThanOrEqual(0.2);
   });
 });

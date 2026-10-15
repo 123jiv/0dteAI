@@ -184,7 +184,7 @@ m('C2', 'Apply to One Job or Internship',
 m('C3', 'Find 3 Opportunities Worth Applying To',
   'Find three jobs, internships, scholarships, or opportunities that genuinely fit your goals.', P, 20, 10,
   'Your list of three.', freq='medium', cooldown=3, tags=['job', 'internship', 'apply', 'research'],
-  template='Find 3 {opportunities} Worth Applying To', personalize='opportunity')
+  template='Find 3 {opportunities} Worth Applying To', personalize='opportunity', weight=2)
 m('C4', 'Improve One Part of Your Portfolio',
   'Improve one project, page, description, design, or example of your work.', P, 30, 15,
   'The improved part. ' + HIDE, freq='medium', cooldown=3, group='portfolio', tags=['portfolio', 'design'])

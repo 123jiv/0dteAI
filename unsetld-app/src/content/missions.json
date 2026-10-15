@@ -787,6 +787,7 @@
   "frequency": "medium",
   "cooldownDays": 3,
   "repeatable": true,
+  "weight": 2,
   "template": "Find 3 {opportunities} Worth Applying To",
   "personalize": "opportunity",
   "tags": [

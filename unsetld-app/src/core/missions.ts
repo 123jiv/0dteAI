@@ -332,7 +332,8 @@ const rotate = <T,>(xs: readonly T[], k: number): T[] => (xs.length ? [...xs.sli
 /**
  * Which area each slot draws from today. The focused missions go first: the
  * user's lead area (their first pick, or this week's priority) on two days in
- * three, then the other areas in rotation; on the third day the others go first.
+ * three, then the other areas in rotation (the goal's other areas first with
+ * `goalFocused`); on the third day the others go first.
  * Easy missions take the next areas, so a day covers as many of their goals as it
  * has slots. Slots beyond the areas go to the other areas in turn, never the lead
  * (with two areas, the two take turns).
@@ -349,6 +350,12 @@ export function slotTracks(
   /** On a rest day (and every day with `preferAlways`), these (the other areas the goal points at) go first among the others. */
   preferred: readonly TrackId[] = [],
   preferAlways = false,
+  /**
+   * On the days the lead doesn't rest, `preferred` take the focused slots after the lead, before
+   * the areas the goal doesn't name; the short slots keep the turn (generatePlan: whenever no weekly
+   * focus leads).
+   */
+  goalFocused = false,
 ): TrackId[] {
   const tracks = areas?.length ? [...areas] : profile.tracks.length ? profile.tracks : DEFAULT_PROFILE.tracks;
   const d = dayNumber(day);
@@ -361,8 +368,25 @@ export function slotTracks(
   const goalTurns = !alwaysLead && preferred.length > 1 && preferred.includes(lead) && lead !== profile.priority;
   // Otherwise the others' order moves on every day, so the one that goes first changes (on the third day too).
   const turn = rotate(pool, mod(d, 3) === 0 || goalTurns ? Math.floor(d / 3) : d - Math.floor(d / 3));
-  const others = rest || preferAlways ? [...turn.filter(t => preferred.includes(t)), ...turn.filter(t => !preferred.includes(t))] : turn;
-  const queue = rest ? [...others, lead] : [lead, ...others];
+  const goalFirst = (xs: readonly TrackId[]) => [...xs.filter(t => preferred.includes(t)), ...xs.filter(t => !preferred.includes(t))];
+  const others = rest || preferAlways ? goalFirst(turn) : turn;
+  let queue = rest ? [...others, lead] : [lead, ...others];
+  // The goal's areas hold the focused slots ("Improve grades and train consistently": School and
+  // Fitness, not Discipline, on the days the lead doesn't rest); the areas the goal doesn't name keep
+  // the short slots in turn, and focused ones on the rest days.
+  const mains = slots.filter(s => s === 'main').length;
+  if (goalFocused && !rest && !preferAlways && preferred.length && mains > 1) {
+    const focused = [lead, ...goalFirst(turn)].slice(0, mains);
+    queue = [...focused, ...turn.filter(t => !focused.includes(t))];
+  }
+  // On the lead's rest day an area the goal doesn't name keeps one focused slot, even when the goal
+  // names more areas than the day has focused slots (a goal naming Career, Skills and Projects, with
+  // Fitness chosen too: the goal's areas would otherwise hold both every day).
+  const free = turn.filter(t => !preferred.includes(t));
+  if (goalFocused && rest && !preferAlways && mains > 1 && free.length && queue.slice(0, mains).every(t => preferred.includes(t))) {
+    const focused = [...queue.slice(0, mains - 1), free[0]];
+    queue = [...focused, ...queue.filter(t => !focused.includes(t))];
+  }
   const at = (k: number) =>
     k < queue.length ? queue[k] : pool.length > 1 ? others[mod(k - queue.length + d, others.length)] : queue[mod(k - queue.length + d, queue.length)];
   const out: TrackId[] = new Array(slots.length);
@@ -502,6 +526,15 @@ export const FOCUS_SHARE = 0.8;
  * within a few weeks.
  */
 export const CORE_SHARE = 0.45;
+/**
+ * CORE_SHARE in an area the goal names ("Build and ship an app": Projects and Skills): what the
+ * user came for keeps its core habits (Work on Your Project for 30 Minutes) on more of its days.
+ * 0.5, not 0.6: at 0.55 and up, School's two habits crowd out the rest of School for someone whose
+ * goal is grades (Start an Assignment Before It's Urgent, Turn Today's Notes Into 10 Questions: not
+ * once in four weeks in three or four installs of ten). Not in a weekly focus week: the focus leads
+ * and the week is as it was.
+ */
+export const GOAL_CORE_SHARE = 0.5;
 
 /**
  * How often a slot gets a weekly or rarer mission of its area whose turn has come, when there is
@@ -546,7 +579,8 @@ function pick(cands: readonly Mission[], input: Pick<PlanInput, 'history' | 'day
     // should be the staples, not luck. After that, when every core habit on offer was in
     // yesterday's plan, today leans on the rest of the area.
     const yesterday = addDays(input.day, -1);
-    const share = firstDay ? 1 : core.some(m => input.history.lastPlanned[m.id] !== yesterday) ? CORE_SHARE : CORE_SHARE / 2;
+    const base = lean.goalAreas.includes(track) && !lean.focusArea ? GOAL_CORE_SHARE : CORE_SHARE;
+    const share = firstDay ? 1 : core.some(m => input.history.lastPlanned[m.id] !== yesterday) ? base : base / 2;
     const useCore = mulberry32(hash32(`${seed}:core`))() < share;
     return pickWeighted(useCore ? core : rest, input, track, seed);
   }
@@ -688,12 +722,20 @@ export function chooseForSlot(
   // its twin, so the area doesn't read the same day after day. Cardio (high frequency) may follow
   // cardio, or the 30-minute ones would rarely come up. A preference within the area: where its twins
   // are all it has (Fitness's short missions are both cardio), the area keeps its slot. Core habits
-  // keep their own rules.
+  // keep their own rules. A focused one OVERDUE_TURNS behind its turn may follow a short twin: where
+  // the area holds a focused slot only on the lead's rest day (an area the goal doesn't name) and its
+  // short twin always lands the day before (Finish One Unfinished Task), Finish One Thing You've Been
+  // Avoiding still comes round. Only there: with no goal, in a weekly focus week, or in an area the
+  // goal names, the rule stands as it was.
+  const restDayOnly = (m: Mission) =>
+    !firstDay && !lean.focusArea && lean.goalAreas.some(a => areas.includes(a)) && !lean.goalAreas.includes(m.track);
   const twinsOk = (m: Mission, relax: Relax) => {
     if (!m.group || m.anchor) return true;
     const twins = input.library.filter(x => x.id !== m.id && x.group === m.group && !x.anchor && x.track === m.track);
     if (!twins.length) return true;
-    if (!relax.shown && m.frequency !== 'high' && twins.some(x => input.history.lastPlanned[x.id] === dayBefore)) return false;
+    const shownYesterday = twins.filter(x => input.history.lastPlanned[x.id] === dayBefore);
+    const owed = restDayOnly(m) && !fitsSlot(m, 'easy') && shownYesterday.every(x => fitsSlot(x, 'easy')) && overdue(m, input);
+    if (!relax.shown && m.frequency !== 'high' && shownYesterday.length && !owed) return false;
     if (relax.often) return true;
     const week = [m, ...twins].flatMap(x => (input.history.recent?.[x.id] ?? []).filter(d => d < input.day && diffDays(d, input.day) < 7));
     return new Set(week).size < MAX_DAYS_IN_WEEK;
@@ -845,11 +887,20 @@ export function chooseForSlot(
   return null;
 }
 
-/** A mission's id plus every other mission in its group: none of them can join a day that has it. */
+/**
+ * Missions of two areas that are the same half hour under two names: Spend 30 Minutes Building a
+ * Career Skill and Practice Coding for 30 Minutes, for a coder looking for a software job. A day
+ * holds one of them, as if they were a group (not a `group` in the library, so swaps don't learn
+ * them as one kind).
+ */
+const SAME_TASK: readonly (readonly [string, string])[] = [['C7', 'K1']];
+
+/** A mission's id plus every other mission in its group (and SAME_TASK): none of them can join a day that has it. */
 function sameDayBlocked(library: readonly Mission[], m: Mission | undefined): string[] {
   if (!m) return [];
-  if (!m.group) return [m.id];
-  return [m.id, ...library.filter(x => x.group === m.group && x.id !== m.id).map(x => x.id)];
+  const same = SAME_TASK.flatMap(([a, b]) => (m.id === a ? [b] : m.id === b ? [a] : []));
+  if (!m.group) return [m.id, ...same];
+  return [m.id, ...library.filter(x => x.group === m.group && x.id !== m.id).map(x => x.id), ...same];
 }
 
 /**
@@ -923,7 +974,14 @@ export function generatePlan(input: PlanInput): DayPlan {
   const firstDay = Object.keys(input.history.lastPlanned).length === 0;
   const goalAreas = lean.goalAreas.filter(a => areas.includes(a));
   // Day 1 also gives the goal's other areas the next slots: the first list is what they came for.
-  const tracks = slotTracks(profile, slots, day, areas, lead, firstDay || Boolean(lead && lead === lean.focusArea), goalAreas, firstDay);
+  // After that the goal's areas hold the focused slots on the days the lead doesn't rest (the lead
+  // rests every third day, so an area the goal doesn't name still gets focused days). A week with a
+  // weekly focus is the focus's: it leads every day, the others take turns as before.
+  const focusLeads = Boolean(lead && lead === lean.focusArea);
+  // The goal shapes the day: after Day 1, outside a weekly focus week, with a goal naming a plan area.
+  const shaping = !firstDay && !focusLeads && goalAreas.length > 0;
+  const tracks = slotTracks(profile, slots, day, areas, lead, firstDay || focusLeads, goalAreas, firstDay, !focusLeads);
+  const drawn = [...tracks];
   // Money and Organization are all short missions: a focused slot drawn for one of them trades
   // areas with a short slot whose area has focused missions, so the day keeps its focused work.
   const focusedIn = (t: TrackId) => input.library.some(m => m.active && serves(m, t) && fitsSlot(m, 'main'));
@@ -982,8 +1040,14 @@ export function generatePlan(input: PlanInput): DayPlan {
     placed += 1;
   }
 
-  // Focused missions first (they take most of the time), then the easy ones.
-  const order = slots.map((s, i) => ({ s, i })).sort((a, b) => (a.s === b.s ? a.i - b.i : a.s === 'main' ? -1 : 1));
+  // Focused missions first (they take most of the time), then the easy ones. With the goal's areas
+  // holding the focused slots, one that an area the goal doesn't name took in the trade with Money
+  // goes after the lead's and the goal's ("Build a clothing brand and save money" on a day Money
+  // leads: the brand's 30 minutes before Fitness, so a 45-minute workout doesn't leave the brand 20).
+  const goalSlot = (i: number) => slots[i] === 'main' && (tracks[i] === lead || goalAreas.includes(tracks[i]));
+  const lastGoal = slots.reduce((k, _, i) => (goalSlot(i) ? i : k), -1);
+  const turnAt = (i: number) => (shaping && slots[i] === 'main' && tracks[i] !== drawn[i] && !goalSlot(i) ? Math.max(i, lastGoal + 0.5) : i);
+  const order = slots.map((s, i) => ({ s, i })).sort((a, b) => (a.s === b.s ? turnAt(a.i) - turnAt(b.i) : a.s === 'main' ? -1 : 1));
   // A plan took the focus area's slot: the first free slot (focused first) goes to the focus instead.
   if (focusArea && !usedTracks.includes(focusArea) && !order.some(o => !filled.has(o.i) && tracks[o.i] === focusArea)) {
     const free = order.find(o => !filled.has(o.i));
@@ -1030,13 +1094,20 @@ export function generatePlan(input: PlanInput): DayPlan {
       const rest = order.filter(o => !filled.has(o.i) && o.i !== i && !chosenSlots[o.i]);
       const laterMain = rest.filter(o => o.s === 'main').length;
       const laterEasy = rest.length - laterMain;
+      // Later focused slots of areas the goal doesn't name: they get their focused time on the lead's
+      // rest day, so a 45-minute workout before them doesn't leave them 20 minutes. Only for the
+      // goal's other areas, the ones that take the focused slots before them on that day: the lead's
+      // own slot keeps its room (a goal of "Build muscle" still gets Complete Your Workout at 45 minutes).
+      const laterOther =
+        shaping && tracks[i] !== lead && goalAreas.includes(tracks[i]) ? rest.filter(o => o.s === 'main' && !goalAreas.includes(tracks[o.i])).length : 0;
       // A focused slot takes what the later slots don't need (10 minutes for each short one still to
-      // come); short slots share what's left evenly (15 + 15 on a 15-minute day's 30, not 20 + 10), so
-      // the last one isn't squeezed. The day's last slot rounds down instead.
+      // come, 20 for each focused one, 30 for an area the goal doesn't name); short slots share what's
+      // left evenly (15 + 15 on a 15-minute day's 30, not 20 + 10), so the last one isn't squeezed. The
+      // day's last slot rounds down instead.
       const last = rest.length === 0;
       const room =
         s === 'main'
-          ? Math.max(20, budget - spent - laterMain * 20 - laterEasy * 10)
+          ? Math.max(20, budget - spent - laterMain * 20 - laterOther * (LONG_MINUTES - 20) - laterEasy * 10)
           : last
             ? Math.max(5, Math.min(EASY_MAX_MINUTES, Math.floor((budget - spent) / 5) * 5))
             : Math.max(5, Math.min(EASY_MAX_MINUTES, Math.ceil((budget - spent - laterMain * 20) / (laterEasy + 1) / 5) * 5));
