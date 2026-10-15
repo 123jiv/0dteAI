@@ -198,6 +198,20 @@ export interface Mission {
   active: boolean;
   /** 3.2: a mission the user wrote ("+ Create my own"): id `custom-…`, kept in the store, never planned by the generator. */
   custom?: boolean;
+  /**
+   * 3.3: where it comes from. 'UNSETLD': the approved library (scripts/missions/library.py), the
+   * only missions the app plans, swaps in or recommends. 'USER_CREATED': one the user wrote.
+   */
+  source?: 'UNSETLD' | 'USER_CREATED';
+  /** 3.3: how often it should come round (its cooldownDays encode it): several times a week, 1–3 times, weekly or rarer. */
+  frequency?: 'high' | 'medium' | 'low';
+  /**
+   * 3.3: the title with one slot the user's goal or skills can fill ("Work on {project} for 30
+   * Minutes" → "Work on Your Clothing Brand for 30 Minutes"); `title` is what it says otherwise
+   * (core/titles missionTitle). Only the slot changes, never the action.
+   */
+  template?: string;
+  personalize?: 'project' | 'subject' | 'opportunity' | 'skill';
 }
 
 /** Answers from onboarding. null = skipped. */
