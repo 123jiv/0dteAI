@@ -1,7 +1,7 @@
 // Personalization: the weekly focus, the goal text and what the user did lately.
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PROFILE, generatePlan, type PlanInput } from '../missions';
-import { activeFocus, goalLean, learnFrom, leanFor, mondayOf, NO_ADAPTATION, personalWeight, type Adaptation } from '../personalize';
+import { activeFocus, FOCUS_LEAN, goalLean, goalPointsAt, jobSearch, learnFrom, leanFor, LONG_MINUTES, mondayOf, NO_ADAPTATION, personalWeight, type Adaptation } from '../personalize';
 import { addDays, type DayKey } from '../time';
 import type { DayPlan, Mission, MissionDone, Profile, TrackId } from '../types';
 
@@ -24,7 +24,7 @@ function m(track: TrackId, minutes: number, extra: Partial<Mission> = {}): Missi
     ...extra,
   };
 }
-const AREAS: TrackId[] = ['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization'];
+const AREAS: TrackId[] = ['discipline', 'school', 'fitness', 'money', 'career', 'skills', 'projects', 'organization'];
 const LIB: Mission[] = AREAS.flatMap(t => [
   ...Array.from({ length: 5 }, () => m(t, 5)),
   ...Array.from({ length: 5 }, () => m(t, 10)),
@@ -83,7 +83,7 @@ describe('weekly focus', () => {
   });
 
   it('favours the missions it names', () => {
-    const named = m('school', 30, { id: 'school-test-prep' });
+    const named = m('school', 30, { id: 'S2' });
     const lib = [...LIB, named];
     const focus = { week: '2026-10-12' as DayKey, id: 'exam' as const };
     const base = count(7, x => x.id === named.id, {}, lib, 12);
@@ -95,12 +95,23 @@ describe('weekly focus', () => {
     const lean = leanFor({ focus: { week: '2026-10-12', id: 'other', text: 'Finish my portfolio site' } }, '2026-10-13');
     expect(lean.focusArea).toBe('projects');
   });
+
+  it('names approved missions only, and "Make progress on my business" leans Projects', () => {
+    expect(FOCUS_LEAN.business).toEqual({ area: 'projects', ids: ['P1', 'P9', 'P3', 'P4', 'P10'], tags: ['business', 'brand', 'customers', 'sell', 'content'] });
+    expect(FOCUS_LEAN.project.area).toBe('projects');
+    expect(FOCUS_LEAN.gym.ids).toEqual(['F1', 'F7', 'F5', 'F3', 'F8']);
+    expect(FOCUS_LEAN.apply.ids[0]).toBe('C2');
+    for (const lean of Object.values(FOCUS_LEAN)) for (const id of lean.ids) expect(id).toMatch(/^[DSFMCPKO]\d{1,2}$/);
+  });
 });
 
 describe('goal text', () => {
   it('maps plain goals to areas and keywords', () => {
     expect(goalLean('Get my GPA up').areas).toEqual(['school']);
-    expect(goalLean('Launch my clothing brand').areas).toContain('business');
+    // 3.3: a brand or a business is Projects.
+    expect(goalLean('Launch my clothing brand').areas).toEqual(['projects']);
+    expect(goalLean('Grow my business').tags).toContain('business');
+    expect(goalLean('Build muscle').areas).not.toContain('projects');
     expect(goalLean('Get an internship').tags).toContain('internship');
     expect(goalLean('Build muscle').areas).toEqual(['fitness']);
     expect(goalLean('Make varsity basketball').tags).toContain('sport');
@@ -114,6 +125,31 @@ describe('goal text', () => {
     expect(goalLean('Save $1,000').areas).toEqual(['money']);
     expect(goalLean('').areas).toEqual([]);
     expect(goalLean('something vague').areas).toEqual([]);
+  });
+
+  it('says when the goal is about school, about building something, or a job search', () => {
+    expect(goalPointsAt('Improve grades and train consistently.', 'school')).toBe(true);
+    expect(goalPointsAt('Pass my exams', 'school')).toBe(true);
+    expect(goalPointsAt('Get stronger', 'school')).toBe(false);
+    expect(goalPointsAt('Build and ship an app.', 'projects')).toBe(true);
+    expect(goalPointsAt('Launch my clothing brand', 'projects')).toBe(true);
+    // Learning to code is a skill first; there's no bare "build": building muscle is fitness.
+    expect(goalPointsAt('Learn coding', 'projects')).toBe(false);
+    expect(goalPointsAt('Build muscle', 'projects')).toBe(false);
+    expect(jobSearch({ goal: 'Get a software job and improve coding.' })).toBe(true);
+    expect(jobSearch({ goal: 'Land a summer internship' })).toBe(true);
+    expect(jobSearch({ goal: 'Start applying to jobs' })).toBe(true);
+    expect(jobSearch({ goal: 'Advance professionally' })).toBe(false);
+    // The same words where they aren't a search: college applications, the job they already have.
+    expect(jobSearch({ goal: 'Apply to college' })).toBe(false);
+    expect(jobSearch({ goal: 'Finish my college applications' })).toBe(false);
+    expect(jobSearch({ goal: 'Get promoted at my job' })).toBe(false);
+    expect(jobSearch({ goal: 'Apply to jobs and colleges' })).toBe(true);
+    expect(jobSearch({ goal: null })).toBe(false);
+    // "Apply for jobs or internships" this week counts too, for that week only.
+    const focus = { week: '2026-10-12', id: 'apply' as const };
+    expect(jobSearch({ goal: 'Save money', focus }, '2026-10-15')).toBe(true);
+    expect(jobSearch({ goal: 'Save money', focus }, '2026-10-19')).toBe(false);
   });
 
   it('favours missions tagged with its keywords, within the user’s own areas', () => {
@@ -171,9 +207,10 @@ describe('learning from what the user did', () => {
   });
 
   it('prefers shorter focused missions when only the shorter ones get done', () => {
-    const long = LIB.filter(x => x.minutes === 30).slice(0, 4).map(x => ({ ...x, minutes: 60 }));
-    const mid = LIB.filter(x => x.minutes === 30).slice(4, 8);
-    const lib = { ...byId, ...Object.fromEntries(long.map(x => [x.id, x])) };
+    // Long: 30 minutes or more (the approved library's focused missions); the shorter ones: 15–25.
+    const long = LIB.filter(x => x.minutes === 30).slice(0, 4);
+    const mid = LIB.filter(x => x.minutes === 30).slice(4, 8).map(x => ({ ...x, minutes: 20 }));
+    const lib = { ...byId, ...Object.fromEntries(mid.map(x => [x.id, x])) };
     const plans: Record<DayKey, DayPlan> = {};
     const done: Record<DayKey, Record<string, MissionDone>> = {};
     for (let i = 0; i < 4; i++) {
@@ -182,11 +219,12 @@ describe('learning from what the user did', () => {
       done[day] = { [mid[i].id]: accepted(mid[i].id) };
     }
     expect(learnFrom(plans, done, lib, '2026-10-12').preferShort).toBe(true);
-    // And then no focused mission over 35 minutes.
+    // And then no mission of LONG_MINUTES or more.
     const ad: Adaptation = { ...NO_ADAPTATION, preferShort: true };
-    const hour60 = m('school', 45, {});
-    const libList = [...LIB, hour60];
-    expect(count(14, x => x.minutes > 35, { adapt: ad, profile: profile({ minutes: 60 }) }, libList)).toBe(0);
+    const hour45 = m('school', 45, {});
+    const libList = [...LIB, hour45];
+    expect(count(14, x => x.minutes >= LONG_MINUTES, { adapt: ad, profile: profile({ minutes: 60 }) }, libList)).toBe(0);
+    expect(count(14, x => x.minutes >= LONG_MINUTES, { profile: profile({ minutes: 60 }) }, libList)).toBeGreaterThan(0);
   });
 
   it('steps up an area the user proves consistently, and reads when they usually prove', () => {

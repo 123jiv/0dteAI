@@ -6,7 +6,7 @@ import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addDays, type DayKey } from '../../core/time';
 import type { ProofPhoto } from '../../core/types';
-import { MISSION_BY_ID } from '../../content';
+import { historyMission } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import { proofImage } from '../../services/proof';
 import { useApp } from '../../state/store';
@@ -67,7 +67,8 @@ export function ProofViewer({ proof, onClose, onOpenDay }: { proof: ProofView; o
   const { height } = useWindowDimensions();
   const width = frame - MARGIN * 2;
   const { day, title, area, photos, cover } = proof;
-  const mission = MISSION_BY_ID[proof.missionId];
+  // How it was proven, for a mission retired since too (history only: content historyMission).
+  const mission = historyMission(proof.missionId);
   const before = photos.find(p => p.kind === 'before');
   const after = photos.find(p => p.kind === 'after');
   const pair = before && after ? [before, after] : null;

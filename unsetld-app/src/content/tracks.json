@@ -1,11 +1,10 @@
 [
   { "id": "discipline", "name": "DISCIPLINE", "short": "Discipline", "scope": "Focus, plans, finishing what you start." },
   { "id": "school", "name": "SCHOOL", "short": "School", "scope": "Studying, assignments, tests, grades." },
-  { "id": "fitness", "name": "FITNESS", "short": "Fitness", "scope": "Workouts, cardio, real food." },
+  { "id": "fitness", "name": "FITNESS", "short": "Fitness", "scope": "Workouts, cardio, getting outside." },
   { "id": "money", "name": "MONEY", "short": "Money", "scope": "Tracking, saving, budgeting." },
   { "id": "career", "name": "CAREER", "short": "Career", "scope": "Jobs, internships, your resume." },
-  { "id": "business", "name": "BUSINESS", "short": "Business", "scope": "Customers, product, content, sales." },
-  { "id": "skills", "name": "SKILLS", "short": "Skills", "scope": "Courses, practice, useful books." },
-  { "id": "projects", "name": "PROJECTS", "short": "Projects", "scope": "Building, making, shipping your thing." },
-  { "id": "organization", "name": "ORGANIZATION", "short": "Organization", "scope": "Your room, your stuff, your files." }
+  { "id": "skills", "name": "SKILLS", "short": "Skills", "scope": "Courses, practice, tutorials." },
+  { "id": "projects", "name": "PROJECTS", "short": "Projects", "scope": "Building, shipping your thing: an app, a brand, a business." },
+  { "id": "organization", "name": "ORGANIZATION", "short": "Organization", "scope": "Your room, your desk, your week." }
 ]

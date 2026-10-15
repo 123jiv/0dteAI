@@ -103,8 +103,8 @@ export const ONBOARDING = {
      * and intensity only changes how long the focused ones run (dayBudget, MAIN_MAX_MINUTES).
      */
     timeNote: {
-      15: 'With 15 minutes, you get three short missions a day, whatever you pick.',
-      30: 'With 30 minutes, you get two short missions and one focused one a day, whatever you pick.',
+      15: 'With 15 minutes, you get two short missions a day, whatever you pick.',
+      30: 'With 30 minutes, you get one short mission and one focused one a day, whatever you pick.',
       45: 'With 45 minutes, you get one short mission and two focused ones a day. Your pick here sets how long the focused ones run.',
     },
     /**
@@ -155,9 +155,12 @@ export const ONBOARDING = {
     body: 'Only about your missions, never more than you set. Change them any time in You.',
     remindersTitle: 'Reminders',
     notificationTitle: 'unsetld',
-    /** The preview names today's missions, as the first reminder of the day will. */
+    /**
+     * The preview names today's missions, as the first reminder of the day will. Before there's
+     * a plan, three approved missions stand in (S1, F1, D4).
+     */
     previewBody: (titles: string[]) =>
-      `Today: ${(titles.length ? titles : ['Study for 30 Minutes', 'Complete Your Workout', 'Plan Tomorrow']).join(', ')}.`,
+      `Today: ${(titles.length ? titles : ['Study One Subject for 30 Minutes', 'Complete Your Workout', "Plan Tomorrow's Top 3"]).join(', ')}.`,
     a11yPreview: (time: string, body: string) => `Notification preview. unsetld, ${time}. ${body}`,
     /** You › Reminders: the switch that turns them all off. */
     toggle: 'Remind me',

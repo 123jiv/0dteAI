@@ -3,6 +3,7 @@ import { completeMission } from '../core/complete';
 import { generatePlan, historyFrom } from '../core/missions';
 import { activeDays } from '../core/progress';
 import { emptyRecord } from '../core/record';
+import { missionTitle } from '../core/titles';
 import { requiredPhotos } from '../core/verify';
 import { addDays, atMinutes, type DayKey } from '../core/time';
 import type { DayPlan, Mission, ProofPhoto, RecordState, Verification, VerificationCheck } from '../core/types';
@@ -97,6 +98,7 @@ function planFor(r: RecordState, plans: Record<DayKey, DayPlan>, day: DayKey): D
 function proveInto(r: RecordState, day: DayKey, plan: DayPlan, missionIds: string[]): { record: RecordState; proven: number } {
   let record = r;
   let proven = 0;
+  const profile = st().profile;
   missionIds.forEach((id, k) => {
     const m = MISSION_BY_ID[id];
     if (!m || isProven(record, day, id)) return;
@@ -107,6 +109,8 @@ function proveInto(r: RecordState, day: DayKey, plan: DayPlan, missionIds: strin
       verifiedClock: true,
       timerSeconds: timerSecondsOf(m),
       programId,
+      // The title as the user reads it, as a real proof keeps it (core/complete).
+      title: missionTitle(m, profile),
     }).record;
     proven += 1;
   });

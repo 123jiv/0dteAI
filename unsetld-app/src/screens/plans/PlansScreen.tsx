@@ -20,6 +20,7 @@ import { NavRow, PageTitle, Screen, TextButton } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN, radius } from '../../ui/tokens';
 import { useAnnounce } from '../../ui/useAnnounce';
+import { titled, useMissionTitle } from '../titles';
 
 const P = PROGRAMS_COPY;
 
@@ -71,8 +72,11 @@ type MissionState = 'open' | 'proven' | 'swapped' | 'later';
  * Opens the mission while it's open in today's plan; proven ones dim with a check; tomorrow's are a preview.
  */
 function PlanMission({ id, area, showArea, state, onOpen }: { id: string; area: string; showArea: boolean; state: MissionState; onOpen: () => void }) {
-  const m = MISSION_BY_ID[id];
-  if (!m) return null;
+  const titleOf = useMissionTitle();
+  const found = MISSION_BY_ID[id];
+  if (!found) return null;
+  // Its title as Today shows it, with the user's goal filled in.
+  const m = titled(found, titleOf);
   const open = state === 'open';
   const dim = state === 'proven' || state === 'swapped';
   const kind = PROOF_KIND[m.proofType] ?? PROOF_KIND.PHOTO;
@@ -166,8 +170,9 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   const provenToday = useApp(s => s.record.missions?.[s.currentDay]);
   const ent = useEntitlements();
   const profile = useApp(s => s.profile);
-  // Every mission of the plan has to be one the user's answers allow (School Reset needs school).
-  const fits = (p: Program) => p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile));
+  // Every mission of the plan has to be one the user's answers allow. No built-in plan has a mission
+  // with a requirement now (3.3: the only one left is C2's job search, in no plan); School Reset runs for anyone.
+  const fits = (p: Program) => p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile, day));
   /** The plan started on this visit: its note says when Day 1 runs until a day is proven. */
   const [started, setStarted] = useState<string | null>(null);
   const focused = useIsFocused();
@@ -230,7 +235,7 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
 
   // The running or finished plan sits at the top, so the list leaves it out (Clear puts a finished
   // one back). In each section, plans for the user's areas come first and ones their answers rule
-  // out (School Reset outside school) last.
+  // out (none of the built-in ones today) last.
   const rank = (p: Program) => (fits(p) ? 0 : 2) + (p.tracks.some(t => profile.tracks.includes(t)) ? 0 : 1);
   const list = PROGRAMS.filter(p => p.id !== current?.id)
     .map((p, i) => ({ p, i, r: rank(p) }))

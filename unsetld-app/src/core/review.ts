@@ -38,7 +38,7 @@ export interface WeeklyReview {
   strongest: TrackId | null;
   /**
    * A chosen track with no proven mission this week, while another had some ("Didn't get to").
-   * Only one that could get missions: never School for someone not in school.
+   * Only one that could get missions with their answers (core/missions usableAreas).
    */
   ignored: TrackId | null;
 }
@@ -68,7 +68,7 @@ export function weeklyReview(
       missions += 1;
       points += m.points;
       seconds += m.timerSeconds ?? 0;
-      // The area the plan put it in ("Work on Your Portfolio" for Projects), else its own.
+      // The area the plan put it in (a second area it serves), else its own.
       const t = plans[d]?.missions?.find(p => p.missionId === m.missionId)?.area ?? m.track;
       byTrack[t] = (byTrack[t] ?? 0) + 1;
     }
@@ -106,13 +106,16 @@ export function reviewFocusWeek(from: DayKey, today: DayKey): DayKey | null {
  * The weekly focus options the review offers, from `order` (the screen's order): never
  * "Something else" (typing one is on the weekly focus page), and only those whose area
  * (personalize FOCUS_LEAN) can get missions with the user's answers, the way planAreas decides
- * it: a focus with nothing to plan would change nothing, so nothing about school for someone
- * not in school.
+ * it: a focus with nothing to plan would change nothing. Nothing about school for someone who
+ * said they're not in school and didn't pick School.
  */
 export function focusChoices(order: readonly FocusId[], library: readonly Mission[], profile: Profile): FocusId[] {
   const plannable = (t: TrackId) => library.some(m => m.active && serves(m, t) && meetsRequirements(m.requires, profile));
+  const notInSchool = profile.school === false && !profile.tracks.includes('school');
   // Applying for jobs or internships: not offered under 16 (most of its missions need 16+).
-  const ok = order.filter(id => id !== 'other' && plannable(FOCUS_LEAN[id].area) && !(id === 'apply' && profile.age === 'u16'));
+  const ok = order.filter(
+    id => id !== 'other' && plannable(FOCUS_LEAN[id].area) && !(id === 'apply' && profile.age === 'u16') && !(notInSchool && FOCUS_LEAN[id].area === 'school'),
+  );
   // The ones in the user's own areas first, each group in the screen's order.
   const mine = (id: FocusId) => (id !== 'other' && profile.tracks.includes(FOCUS_LEAN[id].area) ? 0 : 1);
   return [...ok].sort((a, b) => mine(a) - mine(b));

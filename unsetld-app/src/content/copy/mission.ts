@@ -157,7 +157,7 @@ export const MISSION = {
     share: 'Share today',
     /** The quiet last line when the proof has photos. */
     saved: 'Proof saved privately on this phone.',
-    /** Two of three proven: what the third one does. */
+    /** All but one proven: what the last one does. */
     oneMore: 'One more for a perfect day.',
     /** The proof took its area to a new level: a kicker ("SCHOOL · LEVEL 3") over the area's meter. */
     level: (area: string, level: number) => `${area} · Level ${level}`,

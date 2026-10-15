@@ -10,6 +10,7 @@ import { Button } from '../../ui/kit';
 import { Sheet } from '../../ui/Sheet';
 import { T } from '../../ui/text';
 import { color as C, font, hairline, MARGIN } from '../../ui/tokens';
+import { useMissionTitle } from '../titles';
 
 /** The sheet's closing slide (ui/Sheet), and a frame to spare. */
 const CLOSE_MS = 280;
@@ -77,7 +78,11 @@ function ColorwayPicker({ visible, onClose, onFull }: { visible: boolean; onClos
   const ent = useEntitlements();
   const day = useApp(s => s.currentDay);
   const plan = useApp(s => s.plans[day]);
-  const titles = (plan?.missions ?? []).map(p => MISSION_BY_ID[p.missionId]?.title).filter((t): t is string => Boolean(t));
+  const titleOf = useMissionTitle();
+  const titles = (plan?.missions ?? []).flatMap(p => {
+    const m = MISSION_BY_ID[p.missionId];
+    return m ? [titleOf(m)] : [];
+  });
   const preview = useApp(s => s.previewColorway);
   const setPreview = useApp(s => s.setPreviewColorway);
   const update = useApp(s => s.updateSettings);

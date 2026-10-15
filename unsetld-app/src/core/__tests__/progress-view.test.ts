@@ -90,8 +90,8 @@ describe('areas', () => {
       { day: '2026-10-01', id: 'skills-a', track: 'skills', points: 5 },
     ]);
     const levels = trackProgress(r);
-    // Chose School, Fitness, Business; not in school, so School can't get missions.
-    expect(areasShown(['school', 'fitness', 'business'], ['fitness', 'business'], levels)).toEqual(['fitness', 'business', 'money', 'skills']);
+    // Chose School, Fitness, Projects; School can't get missions (left out of the usable areas).
+    expect(areasShown(['school', 'fitness', 'projects'], ['fitness', 'projects'], levels)).toEqual(['fitness', 'projects', 'money', 'skills']);
     const withSchool = trackProgress(recordOf([{ day: '2026-10-01', id: 'school-a', track: 'school' }]));
     expect(areasShown(['school', 'fitness'], ['fitness'], withSchool)).toEqual(['school', 'fitness']);
   });
@@ -158,8 +158,12 @@ describe('the review sets next week’s focus', () => {
     const p = (patch: Partial<Profile>): Profile => ({ ...DEFAULT_PROFILE, ...patch });
     // The user's own areas first (the default profile has School and Fitness), each group in order.
     expect(focusChoices(order, library, p({ school: true }))).toEqual(['school-catchup', 'exam', 'gym', 'business']);
-    // Not in school: no school missions to lean toward, so no school options.
-    expect(focusChoices(order, library, p({ school: false }))).toEqual(['gym', 'business']);
+    // Not in school but School picked: picking it is enough, so the school options stay.
+    expect(focusChoices(order, library, p({ school: false }))).toEqual(['school-catchup', 'exam', 'gym', 'business']);
+    // Not in school and School not picked: no school options.
+    expect(focusChoices(order, library, p({ school: false, tracks: ['fitness', 'money'] }))).toEqual(['gym', 'business']);
+    // "Make progress on my business" leans Projects: first for someone who picked Projects.
+    expect(focusChoices(order, library, p({ tracks: ['projects', 'money'] }))).toEqual(['business', 'school-catchup', 'exam', 'gym']);
     // An area with nothing the user's answers allow is left out, whatever it is.
     const onlySchool = library.filter(m => m.track === 'school');
     expect(focusChoices(order, onlySchool, p({ school: true }))).toEqual(['school-catchup', 'exam']);

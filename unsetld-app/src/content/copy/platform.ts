@@ -229,9 +229,9 @@ export const PLATFORM = {
 
   notifications: {
     title: 'unsetld',
-    /** First reminder of the day: "Today: Make Your Bed, Study for 30 Minutes, Complete Your Workout." */
+    /** First reminder of the day: "Today: Lock In for 30 Minutes, Study One Subject for 30 Minutes, Complete Your Workout." */
     first: (titles: string[]) => `Today: ${titles.join(', ')}.`,
-    /** Later ones: "2 missions left. Read 10 Pages takes 15 minutes." */
+    /** Later ones: "2 missions left. Clear Your Desk takes 10 minutes." */
     left: (n: number, title: string, minutes: number) =>
       `${plural(n, 'mission', 'missions')} left. ${title} takes ${plural(minutes, 'minute', 'minutes')}.`,
     /** The evening one, only when nothing is proven yet (so every mission is still open). */

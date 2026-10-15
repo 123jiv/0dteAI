@@ -67,7 +67,7 @@ const proven = (id: string, uri: string) => ({
 
 /** Two old days with a photo each (the oldest holds two), and today's. */
 function seeded() {
-  const days = { '2026-08-01': ['school-study-30', 'fitness-stretch-10'], '2026-08-02': ['school-study-30'], [TODAY]: ['school-study-30'] };
+  const days = { '2026-08-01': ['S1', 'F3'], '2026-08-02': ['S1'], [TODAY]: ['S1'] };
   const missions: Record<string, Record<string, ReturnType<typeof proven>>> = {};
   for (const [day, ids] of Object.entries(days)) {
     missions[day] = Object.fromEntries(ids.map(id => [id, proven(id, key(day, id))]));
@@ -83,7 +83,7 @@ function seeded() {
 }
 
 async function load(state: object) {
-  web.ls.map.set(KEY, JSON.stringify({ state, version: 6 }));
+  web.ls.map.set(KEY, JSON.stringify({ state, version: 7 }));
   vi.resetModules();
   const store = await import('../store');
   const storage = await import('../storage');
@@ -109,15 +109,15 @@ describe('browser preview storage', () => {
     web.ls.quota = web.ls.used() + 50;
     useApp.getState().ensurePlan(TODAY);
     expect(saved().plans[TODAY]).toBeTruthy();
-    expect(web.ls.map.has(key('2026-08-01', 'school-study-30'))).toBe(false);
-    expect(web.ls.map.has(key('2026-08-01', 'fitness-stretch-10'))).toBe(false);
-    expect(web.ls.map.has(key('2026-08-02', 'school-study-30'))).toBe(true);
-    expect(web.ls.map.has(key(TODAY, 'school-study-30'))).toBe(true);
+    expect(web.ls.map.has(key('2026-08-01', 'S1'))).toBe(false);
+    expect(web.ls.map.has(key('2026-08-01', 'F3'))).toBe(false);
+    expect(web.ls.map.has(key('2026-08-02', 'S1'))).toBe(true);
+    expect(web.ls.map.has(key(TODAY, 'S1'))).toBe(true);
     await settle();
     const r = saved().record;
-    expect(r.missions['2026-08-01']['school-study-30'].photos[0]).toMatchObject({ uri: '', hash: `h-${key('2026-08-01', 'school-study-30')}` });
-    expect(r.missions['2026-08-02']['school-study-30'].photos[0].uri).toBe(key('2026-08-02', 'school-study-30'));
-    expect(useApp.getState().record.missions['2026-08-01']['fitness-stretch-10'].photos[0].uri).toBe('');
+    expect(r.missions['2026-08-01'].S1.photos[0]).toMatchObject({ uri: '', hash: `h-${key('2026-08-01', 'S1')}` });
+    expect(r.missions['2026-08-02'].S1.photos[0].uri).toBe(key('2026-08-02', 'S1'));
+    expect(useApp.getState().record.missions['2026-08-01'].F3.photos[0].uri).toBe('');
     expect(useSaveFailed.getState().failed).toBe(false);
   });
 
@@ -129,7 +129,7 @@ describe('browser preview storage', () => {
     web.ls.quota = web.ls.used() + 50;
     useApp.getState().ensurePlan(TODAY);
     expect(web.ls.map.get(KEY)).toBe(before);
-    expect(web.ls.map.has(key(TODAY, 'school-study-30'))).toBe(true);
+    expect(web.ls.map.has(key(TODAY, 'S1'))).toBe(true);
     expect(useSaveFailed.getState().failed).toBe(true);
     // The app still runs on what's in memory.
     expect(useApp.getState().plans[TODAY]).toBeTruthy();
@@ -138,24 +138,24 @@ describe('browser preview storage', () => {
   it("a new photo that doesn't fit makes room first, and isn't claimed as saved when nothing can go", async () => {
     const { savePhoto } = await load(seeded());
     web.ls.quota = web.ls.used() + 1000;
-    const a = await savePhoto(photo(1500), `${TODAY}-fitness-stretch-10-single`);
-    expect(a.uri).toBe(key(TODAY, 'fitness-stretch-10'));
-    expect(web.ls.map.has(key('2026-08-01', 'school-study-30'))).toBe(false);
+    const a = await savePhoto(photo(1500), `${TODAY}-F3-single`);
+    expect(a.uri).toBe(key(TODAY, 'F3'));
+    expect(web.ls.map.has(key('2026-08-01', 'S1'))).toBe(false);
     await settle();
     web.ls.quota = web.ls.used() + 1000;
     for (const k of [...web.ls.map.keys()]) if (k.startsWith('web-proof:2026-08')) web.ls.map.delete(k);
-    const b = await savePhoto(photo(5000), `${TODAY}-school-read-single`);
+    const b = await savePhoto(photo(5000), `${TODAY}-S2-single`);
     expect(b.uri).toBe('');
-    expect(web.ls.map.has(key(TODAY, 'school-read'))).toBe(false);
+    expect(web.ls.map.has(key(TODAY, 'S2'))).toBe(false);
   });
 
   it('full to the last byte at launch: the saved state is still read, and a save makes room', async () => {
     const state = seeded();
-    web.ls.map.set(KEY, JSON.stringify({ state, version: 6 }));
+    web.ls.map.set(KEY, JSON.stringify({ state, version: 7 }));
     web.ls.quota = web.ls.used();
     const { useApp, useSaveFailed } = await load(state);
     expect(useApp.getState().settings.onboarded).toBe(true);
-    expect(useApp.getState().record.missions[TODAY]['school-study-30']).toBeTruthy();
+    expect(useApp.getState().record.missions[TODAY].S1).toBeTruthy();
     useApp.getState().ensurePlan(TODAY);
     expect(saved().plans[TODAY]).toBeTruthy();
     expect(useSaveFailed.getState().failed).toBe(false);
@@ -164,7 +164,7 @@ describe('browser preview storage', () => {
   it('blocked storage keeps the photo in the record', async () => {
     const { savePhoto } = await load(seeded());
     web.ls.blocked = true;
-    const p = await savePhoto(photo(100), `${TODAY}-school-read-single`);
+    const p = await savePhoto(photo(100), `${TODAY}-S2-single`);
     expect(p.uri).toBe(photo(100));
   });
 
@@ -173,17 +173,17 @@ describe('browser preview storage', () => {
     useApp.getState().ensurePlan(TODAY);
     // The other tab proves a mission and saves.
     const other = saved();
-    other.record.missions[TODAY]['fitness-stretch-10'] = proven('fitness-stretch-10', key(TODAY, 'fitness-stretch-10'));
-    const json = JSON.stringify({ state: other, version: 6 });
+    other.record.missions[TODAY].F3 = proven('F3', key(TODAY, 'F3'));
+    const json = JSON.stringify({ state: other, version: 7 });
     web.ls.map.set(KEY, json);
     web.listeners.storage({ key: 'web-proof:x', newValue: 'x' });
-    expect(useApp.getState().record.missions[TODAY]['fitness-stretch-10']).toBeUndefined();
+    expect(useApp.getState().record.missions[TODAY].F3).toBeUndefined();
     web.listeners.storage({ key: KEY, newValue: json });
     await settle();
-    expect(useApp.getState().record.missions[TODAY]['fitness-stretch-10']).toBeTruthy();
+    expect(useApp.getState().record.missions[TODAY].F3).toBeTruthy();
     expect(web.ls.map.get(KEY)).toBe(json);
     // This tab's next save keeps the other tab's proof.
     useApp.getState().markMomentShown('first-proof');
-    expect(saved().record.missions[TODAY]['fitness-stretch-10']).toBeTruthy();
+    expect(saved().record.missions[TODAY].F3).toBeTruthy();
   });
 });

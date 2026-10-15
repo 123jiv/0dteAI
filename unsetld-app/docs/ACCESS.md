@@ -4,7 +4,7 @@ Updated for 3.2 (12 Oct 2026). Everything is earned by proving missions, and non
 
 There are two separate things, and the app keeps them apart:
 
-- **Point rewards (spent with points).** Each mission proven in the app earns its points (5 to 25, by how long it takes), plus 15 when every mission in the day's plan is proven. Points trade for single-use discount codes at unsetld.com (by default 5% off at 300, 10% off at 600 and 15% off at 1,000). Taking a code spends its points.
+- **Point rewards (spent with points).** Each mission proven in the app earns its points (5 to 20, by how long it takes; an hour-long mission earned 25 before 3.3), plus 15 when every mission in the day's plan is proven. Points trade for single-use discount codes at unsetld.com (by default 5% off at 300, 10% off at 600 and 15% off at 1,000). Taking a code spends its points.
 - **UNSETLD status (earned by days proven).** A day proven (an active day) is a day with at least one proven mission. Days proven are never spent: each status tier is **one discount code, once per person**, yours when you reach its number of days (by default 10% off at 7, 15% off at 30, 20% off at 90 and 25% off at 365, each up to $25 off, the code working 30 days from when it's taken). Taking one costs no points. Days on record from 2.x carry over.
 
 Both lists come from configuration: `src/content/rewards.json` and `src/content/milestones.json` are the defaults, and unsetld.com's `config.json` (`rewards`, `status`) replaces them without an app update (below). No threshold, price or discount is written into a screen.
@@ -48,11 +48,11 @@ How it's worked out (`src/core/rewards.ts`):
 
 | | |
 |---|---|
-| Missions | Three a day (four on Push me, unless the user has only 5–15 minutes a day), chosen per user from `src/content/missions.json`. Only a mission in today's plan can be proven, and each one earns points once. |
+| Missions | Two to four a day, by the time the user has (two with 15 or 30 minutes, three with 45, three or four on Push me with an hour or more), chosen per user from the approved library (`src/content/missions.json`, 3.3). Only a mission in today's plan can be proven, and each one earns points once. |
 | Proof | Taken with the camera inside the app (iOS never offers the photo library): one photo, a photo of the result, before and after photos, or a focus timer and then a photo. Stamped with the time and date. |
 | Checks | On the phone: the right photos are there, taken in the last 30 minutes, before and after at least 2 minutes apart, the timer finished first, and the photo was never used before (fingerprints). They don't look at what's in the photo. A rejected proof earns nothing. |
 | Where photos go | Nowhere. They're saved inside the app on the phone, re-encoded without EXIF or location, and deleted after 30 days by default (You → Proof photos). When signed in, only the date, the number of proven missions and the points that day go to the server. |
-| Points | By how long the mission takes: a few minutes +5, 10–20 minutes +10, 25–45 minutes +15 to +20, an hour +25; perfect day +15. At most four missions a day, so at most 115 points a day. Points from 2.x tasks carry over as an opening balance. Points don't expire. |
+| Points | By how long the mission takes: up to 10 minutes +5, 15–20 minutes +10, 25–45 minutes +15 to +20 (an hour +25 before 3.3); perfect day +15. At most four missions a day, so at most 95 points a day now (4 × 20 + 15); the server keeps its cap of 115 for days earned before 3.3, when a mission could earn +25. Points from 2.x tasks carry over as an opening balance. Points don't expire. |
 | Rewards | From `src/content/rewards.json`, or from unsetld.com's config when it sends `rewards` (below). |
 
 The default reward tiers:

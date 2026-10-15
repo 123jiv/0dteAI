@@ -399,9 +399,9 @@ ERRORS AND EMPTY STATES
 APP STORE LISTING (3.0)
 - Name: UNSETLD: Daily Missions
 - Subtitle: Do the mission. Prove it.
-- Promotional text: Three missions a day, picked for what you want to improve. Do them for real, prove them with the camera, and keep the streak going.
+- Promotional text: Missions every day, picked for what you want to improve. Do them for real, prove them with the camera, and keep the streak going.
 - Description:
-  UNSETLD gives you three missions a day for what you're working on: discipline, school, fitness, money, career, business, skills, projects or organization.
+  UNSETLD gives you two to four missions a day for what you're working on: discipline, school, fitness, money, career, skills, projects (an app, a brand, a business) or organization.
   Do each one in real life, then prove it in the app: a photo, the focus timer or both. Proven missions earn points, keep your streak going and move your levels up.
   Pick up to four areas and how much time you have. Swap a mission that doesn't fit. Run a program when you want a push, like the 7 Day Lock In.
   Points trade for rewards at unsetld.com. Points only come from proven missions; they can't be bought.
@@ -409,7 +409,7 @@ APP STORE LISTING (3.0)
   Full Edition, a subscription or a one-time purchase, adds every program, three swaps a day, all ten colorways and up to ten reminders a day. Missions, proof, points, the streak and rewards are the same on every plan.
   Never settle for less.
 - Screenshots (proof photos show objects, never people, faces, documents or screens with personal details):
-  1. Three missions a day, built around your life. (Home with today's missions)
+  1. Missions every day, built around your life. (Home with today's missions)
   2. Do it for real. Prove it with the camera. (a mission page with PROVE IT)
   3. Every proven mission earns points. (the done screen)
   4. A streak that means you showed up. (Progress: streak, levels, milestones)

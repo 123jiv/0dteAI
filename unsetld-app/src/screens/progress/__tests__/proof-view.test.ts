@@ -5,7 +5,7 @@ import { proofMonths } from '../../../core/progress';
 import { emptyRecord } from '../../../core/record';
 import type { DayKey } from '../../../core/time';
 import type { MissionDone, ProofPhoto, RecordState, TrackId } from '../../../core/types';
-import { fromDay, fromEntry, proofSections, proofTitle } from '../proofView';
+import { fromDay, fromEntry, openMissions, proofSections, proofTitle } from '../proofView';
 
 const accepted = { status: 'accepted' as const, method: 'on-device' as const, checks: [], at: 1 };
 const photo = (uri: string, kind: ProofPhoto['kind'] = 'single'): ProofPhoto => ({ uri, kind, takenAt: 1, hash: uri || kind });
@@ -29,7 +29,12 @@ const r = rec({
 describe('a proof, the same everywhere', () => {
   it('keeps the title it was proven with, else finds one', () => {
     expect(proofTitle('custom-read', 'Read 20 pages', 'skills')).toBe('Read 20 pages');
-    // Not in the library and no title kept: one made from its id.
+    // As the user read it: the approved id with the title they proved it under.
+    expect(proofTitle('P1', 'Work on Your Clothing Brand for 30 Minutes', 'projects')).toBe('Work on Your Clothing Brand for 30 Minutes');
+    expect(proofTitle('S1', undefined, 'school')).toBe('Study One Subject for 30 Minutes');
+    // Retired in 3.3, proven before 3.2 kept titles: the title it had (history only).
+    expect(proofTitle('school-study-30', undefined, 'school')).toBe('Study for 30 Minutes');
+    // Not in the library, never retired, no title kept: one made from its id.
     expect(proofTitle('gone-old-thing', undefined, 'fitness')).toBe('Old thing');
   });
 
@@ -85,5 +90,26 @@ describe('Proof history, organised', () => {
       const keys = proofSections(by, months, '2026').flatMap(x => x.proofs.map(p => p.key));
       expect(keys.sort()).toEqual(months.flatMap(m => m.entries.map(e => e.key)).sort());
     }
+  });
+});
+
+describe("a day's open missions", () => {
+  const named = (m: { title: string }) => `[${m.title}]`;
+
+  it('lists what the plan held, a retired mission by its old title, in its planned area', () => {
+    const planned = [
+      { slot: 'main' as const, missionId: 'S1', area: 'school' as const },
+      { slot: 'easy' as const, missionId: 'discipline-make-your-bed', area: 'discipline' as const },
+      { slot: 'easy' as const, missionId: 'C4', area: 'projects' as const },
+    ];
+    expect(openMissions(['S1', 'discipline-make-your-bed', 'C4'], planned, named)).toEqual([
+      { id: 'S1', title: '[Study One Subject for 30 Minutes]', area: 'School' },
+      { id: 'discipline-make-your-bed', title: '[Make Your Bed]', area: 'Discipline' },
+      { id: 'C4', title: '[Improve One Part of Your Portfolio]', area: 'Projects' },
+    ]);
+  });
+
+  it('falls back to the mission’s own area, and leaves out an id nothing knows', () => {
+    expect(openMissions(['fitness-stretch-10', 'nothing-here'], undefined, named)).toEqual([{ id: 'fitness-stretch-10', title: '[Stretch for 10 Minutes]', area: 'Fitness' }]);
   });
 });

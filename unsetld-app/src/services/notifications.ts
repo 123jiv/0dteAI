@@ -4,6 +4,8 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { dayReminderTimes, planNotifications, type PlannedNotification } from '../core/reminders';
 import { dayKeyOf, type DayKey } from '../core/time';
+import { missionTitle } from '../core/titles';
+import type { Profile } from '../core/types';
 import { MISSION_BY_ID, PROMPTS } from '../content';
 import { PLATFORM } from '../content/copy/platform';
 
@@ -76,12 +78,16 @@ export interface ScheduleInput {
 
 export type ComposedNotification = PlannedNotification & { body: string };
 
-/** The missions in a plan, in plan order, as the reminders see them. */
-export function reminderMissions(missionIds: readonly string[], proven: (id: string) => boolean): ReminderMission[] {
+/**
+ * The missions in a plan, in plan order, as the reminders see them. With the user's profile each
+ * is named as Today names it ("Work on Your Clothing Brand for 30 Minutes", core/titles); a
+ * retired mission isn't in MISSION_BY_ID, so a reminder never names one.
+ */
+export function reminderMissions(missionIds: readonly string[], proven: (id: string) => boolean, who?: Pick<Profile, 'goal' | 'skills'>): ReminderMission[] {
   return missionIds
     .map(id => MISSION_BY_ID[id])
     .filter(Boolean)
-    .map(m => ({ id: m.id, title: m.title, minutes: m.minutes, proven: proven(m.id) }));
+    .map(m => ({ id: m.id, title: who ? missionTitle(m, who) : m.title, minutes: m.minutes, proven: proven(m.id) }));
 }
 
 /**

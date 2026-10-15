@@ -17,9 +17,9 @@ Today · **Record** · Rewards · You. Progress is renamed Record (route `Record
 - **One proven mission = you showed up.** The day is active, it starts or keeps the streak
   (core/streak), and it goes on the record.
 - **Every mission in the day's plan proven = a perfect day**, with the perfect-day bonus
-  (`rules.json` `perfectDayBonus`). The plan is about three missions (four on Push me with an
-  hour or more).
-- Missing one of three is not a failed day: it reads as "showed up" on the calendar.
+  (`rules.json` `perfectDayBonus`). The plan is two missions with 15 or 30 minutes a day, three
+  with 45 or more (four on Push me with an hour or more).
+- Missing one is not a failed day: it reads as "showed up" on the calendar.
 
 ## 3. Data (src/core/history.ts)
 
@@ -29,7 +29,10 @@ plans alone: plans are kept six weeks and aren't in the Keychain backup.
 - `record.planned[day]`: how many missions the day's plan held, written with the day's first
   proof (core/complete). It keeps "2 / 3" on the record for good. Older days fall back to the
   plan while it's kept, then to the perfect-day bonus (all planned were proven), else unknown.
-- `MissionDone.title`: each proof keeps its title (a mission of your own, a retired one).
+- `MissionDone.title`: each proof keeps its title (a mission of your own, a retired one; since
+  3.3 the title as the user read it, "Work on Your Clothing Brand for 30 Minutes", next to the
+  approved id P1). A proof without one shows the retired mission's old title
+  (content `historyMission`, history only).
 - Day states (`DayLevel`): `none`, `one` (one mission proven), `two` (two or more, not every
   one), `perfect` (the bonus was paid; the same definition Stats and Achievements use). A missed
   day an Off Day covered is `covered`. A 2.x day on record (before missions) reads as `one`.
@@ -57,8 +60,8 @@ plans alone: plans are kept six weeks and aren't in the Keychain backup.
 - **Today**: UNSETLD · DAY 12, 12 day streak · 380 pts, the next reward meter ("220 pts to next
   reward"), TODAY 0 / 3. No explanatory sentences.
 - **Completion**: PROVEN., the points (secondary), the week's dots with today's filling in,
-  "Day 12 added to your record.", 1 / 3 today, the streak, then the reward meter. Two of three
-  says "One more for a perfect day."; a perfect day adds 3 / 3 and the bonus. Continue.
+  "Day 12 added to your record.", 1 / 3 today, the streak, then the reward meter. All but one
+  proven says "One more for a perfect day."; a perfect day adds 3 / 3 and the bonus. Continue.
 - **Weekly focus**: the question shows Monday to Wednesday (from the second active day), eight
   options, one tap.
 - **START**: a timer mission's START opens the execution state straight away (Lock in for 30
@@ -94,6 +97,8 @@ photo, Before & after) and a timer length. They can't be used to farm points (co
   or more), and never more than the mission it replaced (every screen shows the capped amount);
 - the timer must run to the end and photos go through the same on-device checks (fresh,
   duplicate); the planner never plans them on its own.
+
+3.3: each carries `source: 'USER_CREATED'`; the approved library's missions carry `UNSETLD`.
 
 ## 7. Rewards and status (unchanged systems, checked)
 

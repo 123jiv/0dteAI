@@ -10,9 +10,9 @@ import { canAddOwn, draftFrom, draftInput, ownEarns, recentOwn, sameAs, slotWort
 const PLAN: DayPlan = {
   day: '2026-10-12',
   missions: [
-    { slot: 'easy', missionId: 'fitness-stretch-10', area: 'fitness' }, // TIMER 10 min, 10 pts
-    { slot: 'main', missionId: 'school-study-30', area: 'school' }, // TIMER_AND_PHOTO 30 min, 15 pts
-    { slot: 'main', missionId: 'organization-fix-broken', area: 'organization' }, // BEFORE_AFTER, 15 pts
+    { slot: 'easy', missionId: 'F3', area: 'fitness' }, // Do 20 Minutes of Cardio: TIMER_AND_PHOTO 20 min, 10 pts
+    { slot: 'main', missionId: 'S1', area: 'school' }, // Study One Subject for 30 Minutes: TIMER_AND_PHOTO 30 min, 15 pts
+    { slot: 'main', missionId: 'O2', area: 'organization' }, // Do a 15-Minute Room Reset: BEFORE_AFTER, 10 pts
   ],
   rerolls: 0,
   replaced: [],
@@ -120,8 +120,8 @@ describe('use again', () => {
 describe('the form', () => {
   it('starts in the spot’s area with the proof and length of the mission it replaces', () => {
     expect(startDraft(PLAN, 1, TRACKS)).toEqual({ title: '', track: 'school', proofType: 'TIMER_AND_PHOTO', minutes: 30 });
-    // A 10-minute timer: the nearest length offered.
-    expect(startDraft(PLAN, 0, TRACKS)).toEqual({ title: '', track: 'fitness', proofType: 'TIMER', minutes: 15 });
+    // A 20-minute timer: the nearest length offered.
+    expect(startDraft(PLAN, 0, TRACKS)).toEqual({ title: '', track: 'fitness', proofType: 'TIMER_AND_PHOTO', minutes: 15 });
     expect(startDraft(PLAN, 2, TRACKS).proofType).toBe('BEFORE_AFTER');
     // An area the user dropped: their first one.
     expect(startDraft(PLAN, 1, ['fitness']).track).toBe('fitness');

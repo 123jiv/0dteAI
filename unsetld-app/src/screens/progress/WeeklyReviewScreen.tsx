@@ -86,7 +86,7 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
   const plans = useApp(s => s.plans);
   const profile = useApp(s => s.profile);
   // The areas the plan draws from: the ones the user chose (the defaults with none on record)
-  // that can get missions with their answers, so never School for someone not in school.
+  // that can get missions with their answers.
   const tracks = usableAreas(MISSIONS, profile).filter(id => TRACK_BY_ID[id]);
   const review = weeklyReview(record, plans, profile, from, tracks);
 

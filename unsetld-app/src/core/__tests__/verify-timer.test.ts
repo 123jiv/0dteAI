@@ -5,6 +5,7 @@ import { MISSION } from '../../content/copy/mission';
 import MISSIONS from '../../content/missions.json';
 import RULES from '../../content/rules.json';
 import { contentVerificationAvailable, verifyProof } from '../../services/verify';
+import { makeCustomMission } from '../custom';
 import { elapsedSeconds, endsAt, pauseTimer, startTimer } from '../timer';
 import type { Mission, ProofPhoto } from '../types';
 import { localChecks, requiredPhotos, type ProofSubmission } from '../verify';
@@ -101,7 +102,7 @@ describe('TIMER with the real focus timer', () => {
   const start = now - 15 * 60_000;
 
   it('passes once the timer has run out, as the Mission screen submits it', () => {
-    const t = startTimer('fitness-stretch-10', '2026-10-09', 10, start);
+    const t = startTimer('custom-stretch', '2026-10-09', 10, start);
     const seconds = Math.min(elapsedSeconds(t, now), t.requiredSeconds);
     const v = localChecks({ ...base, mission: timer10, timerSeconds: seconds, timerEndedAt: endsAt(t) ?? undefined });
     expect(seconds).toBe(600);
@@ -110,20 +111,20 @@ describe('TIMER with the real focus timer', () => {
   });
 
   it('fails while the timer is still running', () => {
-    const t = startTimer('fitness-stretch-10', '2026-10-09', 10, now - 5 * 60_000);
+    const t = startTimer('custom-stretch', '2026-10-09', 10, now - 5 * 60_000);
     const seconds = Math.min(elapsedSeconds(t, now), t.requiredSeconds);
     expect(localChecks({ ...base, mission: timer10, timerSeconds: seconds, timerEndedAt: endsAt(t) ?? undefined }).status).toBe('rejected');
   });
 
   it('fails while the timer is paused', () => {
-    const t = pauseTimer(startTimer('fitness-stretch-10', '2026-10-09', 10, now - 5 * 60_000), now - 60_000);
+    const t = pauseTimer(startTimer('custom-stretch', '2026-10-09', 10, now - 5 * 60_000), now - 60_000);
     expect(endsAt(t)).toBeNull();
     const seconds = Math.min(elapsedSeconds(t, now), t.requiredSeconds);
     expect(localChecks({ ...base, mission: timer10, timerSeconds: seconds, timerEndedAt: endsAt(t) ?? undefined }).status).toBe('rejected');
   });
 
   it('works with the tester speed-up', () => {
-    const t = startTimer('fitness-stretch-10', '2026-10-09', 10, now - 60_000, 10);
+    const t = startTimer('custom-stretch', '2026-10-09', 10, now - 60_000, 10);
     const seconds = Math.min(elapsedSeconds(t, now), t.requiredSeconds);
     expect(localChecks({ ...base, mission: timer10, timerSeconds: seconds, timerEndedAt: endsAt(t) ?? undefined }).status).toBe('accepted');
   });
@@ -131,15 +132,20 @@ describe('TIMER with the real focus timer', () => {
 
 describe('verifyProof for TIMER', () => {
   const library = MISSIONS as Mission[];
-  const timerMissions = library.filter(m => m.proofType === 'TIMER' && m.active);
+  // 3.3: the approved library times its missions with TIMER_AND_PHOTO (a timer, then a photo of
+  // what got done); TIMER alone is for missions of the user's own.
+  const own = makeCustomMission({ title: 'Stretch before practice', track: 'fitness', proofType: 'TIMER', timerMinutes: 15 }, 'custom-stretch')!;
 
-  it('has TIMER missions in the library, each with a timer length', () => {
-    expect(timerMissions.length).toBeGreaterThan(0);
-    for (const m of timerMissions) expect(m.timerMinutes).toBeGreaterThan(0);
+  it('times every approved timed mission with a photo after it, and a mission of your own can use the timer alone', () => {
+    expect(library.filter(m => m.proofType === 'TIMER')).toEqual([]);
+    const timed = library.filter(m => m.proofType === 'TIMER_AND_PHOTO');
+    expect(timed.length).toBeGreaterThan(0);
+    for (const m of timed) expect(m.timerMinutes).toBeGreaterThan(0);
+    expect(own).toMatchObject({ proofType: 'TIMER', timerMinutes: 15, source: 'USER_CREATED' });
   });
 
   it('accepts on the phone, with no content check (there is no photo to look at)', async () => {
-    const m = timerMissions[0];
+    const m = own;
     expect(contentVerificationAvailable(m)).toBe(false);
     const v = await verifyProof(m, { ...base, timerSeconds: m.timerMinutes! * 60, timerEndedAt: now - 1000 });
     expect(v).toMatchObject({ status: 'accepted', method: 'on-device' });

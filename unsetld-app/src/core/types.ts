@@ -116,8 +116,11 @@ export interface RecordState {
 
 // ── 3.0 Missions ────────────────────────────────────────────────────────────
 
-/** What the user is trying to improve. One to four are chosen in onboarding. */
-export type TrackId = 'discipline' | 'school' | 'fitness' | 'money' | 'career' | 'business' | 'skills' | 'projects' | 'organization';
+/**
+ * What the user is trying to improve. One to four are chosen in onboarding. 3.3: eight areas;
+ * Business folded into Projects (store v7 maps saved 'business' onto 'projects').
+ */
+export type TrackId = 'discipline' | 'school' | 'fitness' | 'money' | 'career' | 'skills' | 'projects' | 'organization';
 
 export interface Track {
   id: TrackId;
@@ -138,7 +141,7 @@ export interface Track {
 export type ProofType = 'PHOTO' | 'PHOTO_AFTER' | 'BEFORE_AFTER' | 'TIMER_AND_PHOTO' | 'TIMER';
 
 /**
- * A mission's place in the day: one easy mission (15 minutes or less), the rest
+ * A mission's place in the day: short (easy) missions of 20 minutes or less, the rest
  * focused ones. Earlier builds stored 'quick' | 'progress' | 'challenge' here.
  */
 export type MissionSlot = 'easy' | 'main';
@@ -150,34 +153,42 @@ export type SkillId = 'coding' | 'design' | 'video' | 'writing' | 'language' | '
  * What a mission needs from the user's life; a mission is only offered when they match.
  * 'highschool': in school and not in college (SAT/ACT, college applications).
  * 'building': not for someone who said they aren't building a business or project yet;
- * 'starting': not for someone who said they are (Write Down 10 Business Ideas).
+ * 'starting': not for someone who said they are.
+ * 'jobsearch' (3.3): the goal names a job or internship search, or this week's focus is
+ * "Apply for jobs or internships" (core/personalize jobSearch). Apply to One Job or Internship.
+ * The approved library (3.3) uses only 'jobsearch'; the others still work in meetsRequirements.
  */
-export type Requirement = 'school' | 'highschool' | 'work' | 'gym' | 'project' | 'building' | 'starting' | 'age16' | 'age18' | SkillId;
+export type Requirement = 'school' | 'highschool' | 'work' | 'gym' | 'project' | 'building' | 'starting' | 'age16' | 'age18' | 'jobsearch' | SkillId;
 
 export interface Mission {
-  /** Permanent id, "<track>-<slug>": "school-study-30". Completions and programs refer to it. */
+  /**
+   * Permanent id. 3.3: the approved library's ids ("D1", "S11", "P1"; the gaps are deliberate,
+   * never renumbered), or `custom-…` for a mission of the user's own. Completions, plans and
+   * programs refer to it. Ids of the retired 3.0–3.2 library ("school-study-30") live on only in
+   * old records (content/legacy-missions.json, for showing past proofs).
+   */
   id: string;
   /** The goal area it counts toward (shown on the row, levels, swaps). */
   track: TrackId;
-  /** Other goal areas it also serves ("Work on Your Portfolio" is career, also projects). */
+  /** Other goal areas it also serves (none in the approved library). */
   also?: TrackId[];
-  /** Plain title that says what to do: "Study for 30 Minutes". */
+  /** Plain title that says what to do: "Study One Subject for 30 Minutes". */
   title: string;
   /** One sentence: exactly what to do. */
   short: string;
   /** What the proof shows: "Your notes or study setup, after the timer." */
   proof: string;
   proofType: ProofType;
-  /** Points for a proven completion: 5 to 25, by how long it takes. */
+  /** Points for a proven completion: 5 to 20 in the approved library, by how long it takes. */
   points: number;
-  /** Realistic time it takes, in minutes. Fifteen or less is an easy mission. */
+  /** Realistic time it takes, in minutes. Twenty or less is a short (easy) mission (core/missions EASY_MAX_MINUTES). */
   minutes: number;
   /** TIMER and TIMER_AND_PHOTO: the focus timer length. */
   timerMinutes?: number;
   requires?: Requirement[];
   /** Days before it can be offered again after it was done. */
   cooldownDays: number;
-  /** Can be done more than once (most can; "Write the First Draft of Your Resume" can't). */
+  /** Can be done more than once (every approved mission can; the field stays for the rule). */
   repeatable: boolean;
   /** A core habit that should come back often (study, train, build, plan tomorrow). */
   anchor?: boolean;
@@ -190,7 +201,7 @@ export interface Mission {
   /** Days of the week it can be planned (0 = Sunday), for missions tied to a school day. Any day when absent. */
   days?: number[];
   /**
-   * Skills it suits ("Edit One Video": video). A soft hint, not a requirement: users who
+   * Skills it suits (a video mission: video). A soft hint, not a requirement: users who
    * named other skills see it less, users who named one of these see it more.
    */
   fits?: SkillId[];
@@ -242,11 +253,11 @@ export interface Profile {
   nextFocus?: WeeklyFocus | null;
 }
 
-/** The weekly focus choices (core/personalize FOCUS_OPTIONS says what each one leans the plan toward). */
 /**
  * The weekly focus choices (core/personalize FOCUS_LEAN says what each one leans the plan toward).
  * 3.2 shows eight (content/copy/focus order); 'routine', 'organize' and 'skill' are no longer
- * offered but still work for a focus already set.
+ * offered but still work for a focus already set. 'business' stays (saved data uses it) and
+ * leans Projects, where business missions live since 3.3.
  */
 export type FocusId = 'school-catchup' | 'exam' | 'business' | 'gym' | 'project' | 'apply' | 'routine' | 'organize' | 'save' | 'skill' | 'other';
 
@@ -263,8 +274,8 @@ export interface PlannedMission {
   slot: MissionSlot;
   missionId: string;
   /**
-   * The chosen area this mission is in the day for (a mission can serve several:
-   * "Work on Your Portfolio" is Career, also Projects). The row shows it and a swap
+   * The chosen area this mission is in the day for (a mission can serve several, through
+   * `also`). The row shows it and a swap
    * stays in it. Absent on plans made by earlier builds.
    */
   area?: TrackId;
@@ -337,7 +348,11 @@ export interface MissionDone {
   timerSeconds?: number;
   verification: Verification;
   programId?: string;
-  /** 3.2: the title when it was proven, so the record keeps it (a mission of the user's own, a retired one). */
+  /**
+   * 3.2: the title when it was proven, so the record keeps it (a mission of the user's own, a
+   * retired one). 3.3: the title as the user saw it (core/titles missionTitle: "Work on Your
+   * Clothing Brand for 30 Minutes"), next to the approved `missionId` (P1).
+   */
   title?: string;
 }
 

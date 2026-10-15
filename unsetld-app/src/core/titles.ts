@@ -4,6 +4,7 @@
 // goal the approved title stands as it is. No text is generated: each slot is a word or two
 // lifted from what the user wrote, or a known name ("Coding"). The mission id stays the
 // approved one, so the record and analytics see one mission however it reads.
+import { goalLean } from './personalize';
 import type { Mission, Profile, SkillId } from './types';
 
 export type Slot = NonNullable<Mission['personalize']>;
@@ -12,18 +13,20 @@ export type Slot = NonNullable<Mission['personalize']>;
 const PROJECT_NOUNS = new Set([
   'app', 'apps', 'brand', 'business', 'website', 'site', 'store', 'shop', 'channel', 'podcast', 'startup', 'company',
   'game', 'line', 'label', 'blog', 'newsletter', 'product', 'book', 'album', 'film', 'portfolio', 'project', 'agency',
-  'page', 'account', 'collection',
+  'page', 'collection',
 ]);
 
 /** Words that can sit in front of the thing ("clothing brand", "youtube channel"), at most two. */
 const PROJECT_LEAD = /^[a-z][a-z'-]{1,15}$/;
 /** Never part of a project's name. */
-const NOT_A_NAME = new Set(['my', 'a', 'an', 'the', 'own', 'new', 'first', 'real', 'big', 'small', 'better', 'successful', 'side', 'some']);
+const NOT_A_NAME = new Set(['my', 'a', 'an', 'the', 'one', 'own', 'new', 'first', 'real', 'big', 'small', 'better', 'successful', 'side', 'some']);
+/** A count in front of the thing ("Finish one book a month") counts things done; it doesn't name a project. */
+const COUNT = /^(one|two|three|four|five|ten|\d+)$/i;
 
 const SUBJECTS: Record<string, string> = {
   calculus: 'Calculus', precalculus: 'Precalculus', 'pre-calculus': 'Precalculus', algebra: 'Algebra', geometry: 'Geometry',
-  trigonometry: 'Trigonometry', trig: 'Trigonometry', statistics: 'Statistics', stats: 'Statistics', math: 'Math', maths: 'Math',
-  chemistry: 'Chemistry', chem: 'Chemistry', biology: 'Biology', bio: 'Biology', physics: 'Physics', history: 'History',
+  trigonometry: 'Trigonometry', trig: 'Trigonometry', statistics: 'Statistics', math: 'Math', maths: 'Math',
+  chemistry: 'Chemistry', chem: 'Chemistry', biology: 'Biology', physics: 'Physics', history: 'History',
   english: 'English', spanish: 'Spanish', french: 'French', german: 'German', chinese: 'Chinese', latin: 'Latin',
   economics: 'Economics', econ: 'Economics', psychology: 'Psychology', accounting: 'Accounting', anatomy: 'Anatomy',
   'computer science': 'Computer Science',
@@ -61,17 +64,27 @@ export function projectFrom(goal: string | null | undefined): string | null {
   const rest = m[1].split(/\s+(?:and|by|to|this|before|in|for|while|with|that|so|from|on)\b|[,.;!?]/i)[0].trim();
   const words = rest.split(/\s+/).filter(Boolean);
   if (!words.length) return null;
-  // A name the user wrote in capitals: "Launch UNSETLD", "Grow Northline".
+  // A name the user wrote in capitals: "Launch UNSETLD", "Grow Northline". A word that's only
+  // capitalised ("Build Muscle", "Start Running", "Finish Chemistry") is what they're doing, not a
+  // name, when it's a goal keyword, a school subject or an -ing word (all capitals, or capitals
+  // inside, still name one: "YouTube").
   const first = words.find(w => !NOT_A_NAME.has(w.toLowerCase()));
   if (first && words.length <= 2 && /^[A-Z][A-Za-z0-9]{1,19}$/.test(first) && !PROJECT_NOUNS.has(first.toLowerCase()) && words.indexOf(first) === words.length - 1) {
-    return first;
+    const word = first.toLowerCase();
+    const plain = !/[A-Z]/.test(first.slice(1));
+    const lean = goalLean(word);
+    if (!plain || !(lean.areas.length || lean.tags.length || Object.prototype.hasOwnProperty.call(SUBJECTS, word) || word.endsWith('ing'))) return first;
   }
+  const firstNoun = words.findIndex(w => PROJECT_NOUNS.has(w.toLowerCase()));
+  if (words.slice(0, Math.max(0, firstNoun)).some(w => COUNT.test(w))) return null;
   const kept = words.filter(w => !NOT_A_NAME.has(w.toLowerCase()));
   const lower = kept.map(w => w.toLowerCase());
   const nounAt = lower.findIndex(w => PROJECT_NOUNS.has(w));
   if (nounAt < 0 || nounAt > 2) return null;
   if (!lower.slice(0, nounAt).every(w => PROJECT_LEAD.test(w))) return null;
   if (nounAt === 0 && lower[0] === 'project') return null;
+  // A sport in front of "game" ("Make my basketball game better") is how they play, not a game they're making.
+  if (lower[nounAt] === 'game' && lower.slice(0, nounAt).some(w => goalLean(w).areas[0] === 'fitness')) return null;
   // As the user wrote a name with capitals inside it ("YouTube"); otherwise title case.
   const phrase = kept.slice(0, nounAt + 1).map(w => (/[A-Z]/.test(w.slice(1)) ? w : titleCase(w.toLowerCase())));
   return `Your ${phrase.join(' ')}`;

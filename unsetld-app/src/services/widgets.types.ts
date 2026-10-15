@@ -1,5 +1,5 @@
 import type { DayKey } from '../core/time';
-import type { Colorway, DayPlan, RecordState } from '../core/types';
+import type { Colorway, DayPlan, Profile, RecordState } from '../core/types';
 
 /** Everything the widgets need; the app writes it on every foreground and after changes. */
 export interface WidgetInput {
@@ -13,4 +13,9 @@ export interface WidgetInput {
   plans: Record<DayKey, DayPlan>;
   /** Missions a day, for days without a plan yet ("Three missions are waiting."). */
   perDay: number;
+  /**
+   * The user's goal and skills, so each mission is named as Today names it ("Work on Your
+   * Clothing Brand for 30 Minutes", core/titles). Without it, the approved titles.
+   */
+  profile?: Pick<Profile, 'goal' | 'skills'>;
 }

@@ -20,7 +20,7 @@ import { useApp } from '../../state/store';
 
 /**
  * Lining figures for serif text with numbers in it. Cormorant's default old-style figures
- * make "10" read as "Io" ("Stretch for 10 Minutes", "+10").
+ * make "10" read as "Io" ("Complete 10 Practice Problems", "+10").
  */
 export const LINING = { fontVariant: ['lining-nums' as const] };
 

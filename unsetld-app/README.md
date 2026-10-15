@@ -4,18 +4,18 @@
 
 UNSETLD 3.1 is a mission app for ages 13–25, from the clothing brand of the same name ("unsettled" minus two letters; *never settle for less*).
 
-- **Choose areas.** Pick two to four of nine: Discipline, School, Fitness, Money, Career, Business, Skills, Projects, Organization. A few optional questions (school, work, gym, a business or project, age range, what you're learning), the time you have (15 / 30 / 45 / 60+ minutes, and Start easy / Lock in / Push me) and, optionally, what you're working toward in your own words shape what you get.
-- **Daily missions.** Normal, useful actions with plain titles: *Study for 30 Minutes*, *Complete Your Workout*, *Work on Your Business for 30 Minutes*, *Read 10 Pages of a Useful Book*, *Plan Tomorrow*, *Track Today's Spending*. Three a day from your areas, picked from a library of about 230: one easy one (15 minutes or less) and two that take real focus; Push me adds a third focused one, and with only 5–15 minutes a day all three are short. Core habits (study, train, build, plan tomorrow) come back on most days, and Day 1 is all staples. One swap a day, three with UNSETLD+; a swap stays in the same area.
+- **Choose areas.** Pick two to four of eight: Discipline, School, Fitness, Money, Career, Skills, Projects (an app, a brand, a business), Organization. A few optional questions (school, work, gym, a business or project, age range, what you're learning), the time you have (15 / 30 / 45 / 60+ minutes, and Start easy / Lock in / Push me) and, optionally, what you're working toward in your own words shape what you get.
+- **Daily missions.** Normal, useful actions with plain titles: *Study One Subject for 30 Minutes*, *Complete Your Workout*, *Work on Your Project for 30 Minutes*, *Plan Tomorrow's Top 3*, *Track Everything You Spend Today*. They come only from the founder's approved library of 66 missions (3.3), and only from the areas you chose (or this week's focus, or what your goal says you're working on). How many follows your time: two short ones (20 minutes or less) with 15 minutes a day, one short and one focused with 30, one short and two focused with 45 or more, and Push me adds a third focused one with an hour. A few titles fill in your goal: *Work on Your Clothing Brand for 30 Minutes*, *Study Calculus for 30 Minutes*. Core habits (study, train, build, plan tomorrow) come back on most days, weekly ones about once a week, and Day 1 is all staples. One swap a day, three with UNSETLD+; a swap stays in the same area.
 - **Personal, by plain rules.** "What matters most this week?" (optional, on Today) and your goal lean the plan toward the missions they name; the plan also learns from the last four weeks (missions you keep swapping or leaving come up less, long missions give way to shorter ones if those are the ones you finish). No AI.
 - **Prove it.** Each mission is a title, its time and points, one sentence and how to prove it: a photo, before and after photos, the in-app focus timer and then a photo, or the timer on its own. The checks run on the phone and the photo stays there.
-- **Points.** By how long a mission takes: 5 (up to 5 minutes), 10 (up to 20), 15 or 20 (about 30), 20 (about 45), 25 (an hour). A perfect day (every mission in the plan proven) adds 15.
+- **Points.** By how long a mission takes: 5 (5–10 minutes), 10 (15–20), 15 (30), 20 (45). A perfect day (every mission in the plan proven) adds 15.
 - **Streak.** Days in a row with at least one proven mission. Off Days: you earn one every 7 days you show up and can bank two; a missed day uses one automatically.
 - **Record** (3.2, was Progress; docs/RECORD.md). The month as a grid of days proven (one mission, two, a perfect day), each day's page with its proofs and points, your areas' levels, recent proof and a private proof history by date, mission or area. Stats, achievements, a weekly review and optional multi-day plans are a tap away. A perfect day can be shared as a 9:16 card with no photos on it.
 - **Rewards.** Points trade for discount codes at unsetld.com: 5% off (300), 10% off (600) and 15% off (1,000), up to $25 off, one of each per collection. Every tier's points, discount, cap, dates, cooldown and limits come from configuration. Separately, days with a proven mission build UNSETLD status: one discount code at each tier, once per person (10% off at 7 days proven, 15% at 30, 20% at 90, 25% at 365, each up to $25 off), also configurable. Every reward is a discount, and none of it can be bought. See [docs/ACCESS.md](docs/ACCESS.md).
 
 The screens, navigation and copy are specified in [docs/UX_REDESIGN.md](docs/UX_REDESIGN.md); the mission model, planner, proof and rewards rules in [docs/MISSIONS_SPEC.md](docs/MISSIONS_SPEC.md). Where an older spec disagrees, these win. Tokens, type, colorways, the walker and the paywall layout are still in [docs/DESIGN_SPEC.md](docs/DESIGN_SPEC.md). Every UI string is in `src/content/copy/*.ts`. Built with **Expo SDK 57** (React Native, TypeScript), `expo-widgets` for the iOS widgets and RevenueCat for UNSETLD+.
 
-Quotes, the daily line, chapters, the three standard rules and the night check were retired in 3.0. The Quick Win / Progress / Challenge labels, the WHY / HOW sections and the seven original tracks went later in 3.0: missions are now plain actions in nine areas.
+Quotes, the daily line, chapters, the three standard rules and the night check were retired in 3.0. The Quick Win / Progress / Challenge labels, the WHY / HOW sections and the seven original tracks went later in 3.0. 3.3 replaced the library with the founder's 66 approved missions and folded Business into Projects: missions are plain actions in eight areas.
 
 ---
 
@@ -104,28 +104,28 @@ Build the small routes in [docs/ACCESS.md](docs/ACCESS.md) first (sync, check-in
 
 Everything editable lives in `src/content/`. Run **`npm run validate`** after every edit: it checks the files below against the rules in `scripts/validate-content.mjs` (and docs/MISSIONS_SPEC.md section 4), prints a count per area, and fails on errors.
 
-- **Missions:** written in **`scripts/missions/library.py`**, one `m(...)` call per mission, grouped by area. Don't edit `src/content/missions.json` by hand: edit the script, run `python3 scripts/missions/library.py` (it rewrites `missions.json` and prints a count per area), then `npm run validate`. 176 missions across the nine areas. Fields:
-  - `id` (permanent, `<area>-<slug>`: completions, plans and programs refer to it, so retire a mission with `active: false` instead of renaming or deleting it), `track` (its area), `also` (other areas it serves)
-  - `title` (Title Case, says what to do, at most 48 characters, unique), `short` (the one instruction sentence), `proof` (what the proof shows)
-  - `proofType`: `PHOTO`, `BEFORE_AFTER`, `TIMER_AND_PHOTO` or `TIMER` (the last two with `timerMinutes`, 5–60)
-  - `minutes` is the real time it takes (15 or less makes it the day's easy mission), and `points` follow it: up to 5 minutes 5, up to 20 minutes 10, 21–35 minutes 15 (20 for work on your own business, project, portfolio, applications or training), 36–59 minutes 20, an hour 25
-  - `requires` (`school`, `work`, `gym`, `project`, `age16`, `age18`, or a skill: `coding`, `design`, `video`, `writing`, `language`, `music`): only offered when the user's answers match
-  - `cooldownDays`, `repeatable` (one-off missions like a first resume are `false`), `anchor` (a core habit that comes back most days; cooldown 3 days or less)
-  - `group`: missions that overlap ("deep-work", "study", "tomorrow-ready" ...) share a group, and a day never holds two from one group, including swaps and programs
-  - `weight`: how often the planner picks it, relative to 1; `when`: `morning` missions are left out of a plan made from noon on
-  - `tags` (1–4), `active`
+- **Missions:** the founder's approved library, exactly 66 missions: Discipline 6 (D1–D6), School 13, Fitness 7, Money 5, Career 10, Projects 11, Skills 9, Organization 5 (ids D1 … O9, with deliberate gaps; docs/MISSIONS_SPEC.md §4 lists them all). It's written in **`scripts/missions/library.py`**, one `m(...)` call per mission in the approved order. Don't edit `src/content/missions.json` by hand: edit the script, run `python3 scripts/missions/library.py` (it rewrites `missions.json`), then `npm run validate`. Never add, rename or reword a mission, and never renumber an id: the titles and instructions are the founder's, and retiring one is the founder's decision. Nothing outside the library is ever planned, swapped in or recommended. Fields:
+  - `id` (the approved id; its letter names its area), `track` (its area), `source` (`UNSETLD`; a mission of the user's own is `USER_CREATED`)
+  - `title`, `short` (the one instruction sentence), `proof` (what the proof shows), and for S1, P1, P2, P5, C2, C3 and K1 a `template` with one slot (`personalize`) that core/titles fills from the user's goal or skills
+  - `proofType`: `PHOTO`, `BEFORE_AFTER` or `TIMER_AND_PHOTO` (with `timerMinutes`); `TIMER` alone is still understood. A completion screen or a result is a `PHOTO` whose proof line says personal details can be hidden, and a title that names a length of time needs the timer
+  - `minutes` is the real time it takes (20 or less makes it a short mission), and `points` follow it: 5–10 minutes 5, 15–20 minutes 10, 25–45 minutes 15 or 20
+  - `frequency` (`high`, `medium`, `low`) and `cooldownDays` (high 1–2, medium 3–4, low 7 or more; a low one also waits its cooldown after it was shown), `repeatable`, `anchor` (a core habit that comes back most days)
+  - `requires`: only `jobsearch` (C2: a job or internship search in the goal or this week's focus)
+  - `group`: missions that overlap share a group, and a day never holds two from one group, including swaps and plans
+  - `when` (`evening` for tonight's), `days` (S12 and M3 Sunday to Tuesday), `tags`, `active`
+  - The 235 missions retired in 3.3 are in `legacy-missions.json`, only so old proofs still show their titles (content/index.ts `historyMission`); nothing plans from it.
   - There are no slots, difficulty, why or how: the validator rejects them. It also enforces the voice and safety rules. It fails on "!", "…", emoji, swearing and banned hustle words; on anything unsafe for a teen (calorie deficits, water or dry fasts, weigh-ins and body photos, skipping sleep, alcohol, vaping, nicotine, day or options trading, casinos, sports betting, dares); and on missions that mention points, discount codes, merch or UNSETLD. Words worth a second look for safety or privacy (diets, fasting, supplements, caffeine, crypto, betting, selfies, faces, grades, a bedroom, an address, a location) are listed as warnings.
-- **Plans:** `programs.json`: `id`, `title`, `short`, `days`, `tracks` (areas), `free`, and `plan` (one entry per program day, 1–2 mission ids, no two from one group, no missions that need anything but school: no work, gym, project, age or skill). At least two must be free.
+- **Plans:** `programs.json`: `id`, `title`, `short`, `days`, `tracks` (areas), `free`, and `plan` (one entry per program day, 1–2 approved mission ids, no two from one group). At least two must be free.
 - **Rewards:** `rewards.json`, the default tiers: 5% off (300, up to $25), 10% off (600, up to $25), 15% off (1,000, up to $25). Every reward is a discount: the validator and the app take no other `type`. Fields: `id`, `title`, `detail`, `type`, `points`, `percent`, `maxOff`, `active`, `availableFrom` / `availableUntil`, `codeValidDays`, `inventory`, `perCollection`. Change them here, or send `rewards` from unsetld.com's config.json to replace the whole list without an update ([docs/ACCESS.md](docs/ACCESS.md)).
 - **Rules:** `rules.json`: perfect-day bonus (15), swaps a day (free 1, UNSETLD+ 3), Off Days (one every 7 active days, up to 2), how fresh a proof photo must be (30 minutes), the gap between before and after photos (120 seconds), and the default photo retention (30 days).
 - **Other content:**
-  - areas: `tracks.json` (nine, in a fixed order)
+  - areas: `tracks.json` (eight, in a fixed order)
   - reminder prompts for days without a plan: `reminders.json`
   - colorways: `colorways.json` (ten, only Black is free; plates come from `npm run colorways`)
   - UNSETLD status tiers (one discount code each, by days proven): `milestones.json`
   - legal pages and How missions work: `legal.json`
   - all UI strings: `copy.ts` and `copy/*.ts`
-- **Widget guide:** the in-app guide (`src/screens/WidgetScreen.tsx`) draws the Next mission, Today and Streak widgets from the same copy the real widgets use, on an example day, so there are no screenshots to replace. If a mission it names (`discipline-make-your-bed`, `school-study-30`, `fitness-workout`) is retired, the example drops it.
+- **Widget guide:** the in-app guide (`src/screens/WidgetScreen.tsx`) draws the Next mission, Today and Streak widgets from the same copy the real widgets use, on an example day, so there are no screenshots to replace. Its example day is D1, S1 and F1 (Lock In for 30 Minutes proven, Study One Subject for 30 Minutes next, Complete Your Workout); a mission missing from the library drops out of it.
 
 ### 4. Privacy
 
@@ -145,8 +145,8 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
 - **Privacy label:** no tracking, no ads, no analytics. Purchases go through RevenueCat. An Apple user ID, an optional email and the dates and counts of proven missions are collected only if the user signs in for rewards. Photos are not collected.
 - **Camera:** the permission text is in `app.json` (`expo-image-picker` plugin). The app asks the first time someone opens the camera to prove a mission.
 - **Screenshots** (captions are suggestions; proof photos in them show objects, never people, faces, documents or screens with personal details):
-  1. Home with today's three missions: *Three missions a day, built around your goals.*
-  2. A mission page (Study for 30 Minutes, START 30 MIN TIMER): *Do it for real. Prove it in the app.*
+  1. Home with today's missions: *Missions every day, built around your goals.*
+  2. A mission page (Study One Subject for 30 Minutes, START 30 MIN TIMER): *Do it for real. Prove it in the app.*
   3. The done screen with points: *Every proven mission earns points.*
   4. Progress with the streak and levels: *A streak that means you showed up.*
   5. The lock screen with the Next mission and Streak widgets: *Your next mission, on your lock screen.*

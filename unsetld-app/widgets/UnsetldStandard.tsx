@@ -28,7 +28,7 @@ export type StandardWidgetProps = {
   titles: string[];
   /** Same order as titles: true = proven. */
   done: boolean[];
-  /** Shown when there's no plan yet: 'Three missions are waiting.' */
+  /** Shown when there's no plan yet: 'Two missions are waiting.' (from today's count; the fallback names none). */
   empty: string;
   /** file:// URL in the App Group folder, or ''. */
   walkerTemplate: string;
@@ -79,7 +79,7 @@ const UnsetldStandard = (props: Partial<StandardWidgetProps>) => {
             lineLimit(2),
             minimumScaleFactor(0.8),
           ]}>
-          {props.empty || 'Three missions are waiting.'}
+          {props.empty || 'Your missions are waiting.'}
         </Text>
       </VStack>
     );

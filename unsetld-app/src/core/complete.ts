@@ -21,7 +21,19 @@ export function completeMission(
   mission: Mission,
   photos: ProofPhoto[],
   verification: Verification,
-  opts: { at: number; verifiedClock: boolean; timerSeconds?: number; programId?: string; perfectBonus?: number },
+  opts: {
+    at: number;
+    verifiedClock: boolean;
+    timerSeconds?: number;
+    programId?: string;
+    perfectBonus?: number;
+    /**
+     * The title the user saw (core/titles missionTitle(mission, profile): "Work on Your Clothing
+     * Brand for 30 Minutes"). The record keeps it next to the approved id (P1). The mission's own
+     * title when left out.
+     */
+    title?: string;
+  },
 ): Completion {
   const accepted = verification.status === 'accepted';
   const prev = r.missions?.[day]?.[mission.id];
@@ -34,7 +46,7 @@ export function completeMission(
   const done: MissionDone = {
     missionId: mission.id,
     slot: planned?.slot ?? sizeOf(mission),
-    // The area the row showed: "Work on Your Portfolio" proven for Projects counts for Projects.
+    // The area the row showed: a mission proven for a second area it serves counts there.
     track: planned?.area ?? mission.track,
     points,
     doneAt: opts.at,
@@ -42,7 +54,7 @@ export function completeMission(
     timerSeconds: opts.timerSeconds,
     verification,
     programId: opts.programId,
-    title: mission.title,
+    title: opts.title?.trim() || mission.title,
   };
   let next: RecordState = { ...r, missions: { ...r.missions, [day]: { ...r.missions?.[day], [mission.id]: done } } };
   if (accepted) {

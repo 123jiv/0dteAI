@@ -11,6 +11,7 @@ import { activeDays } from '../core/progress';
 import { balance } from '../core/rewards';
 import { computeStreak } from '../core/streak';
 import { addDays, dayKeyOf, dayStart, widgetDate, type DayKey } from '../core/time';
+import { missionTitle } from '../core/titles';
 import { typo } from '../core/typography';
 import type { Colorway, Mission, TrackId } from '../core/types';
 import { COLORWAYS, MISSION_BY_ID, TRACK_BY_ID } from '../content';
@@ -324,7 +325,10 @@ function dayMissions(c: Ctx, day: DayKey): DayMissions {
   const done = c.input.record.missions?.[day] ?? {};
   const missions = plan.missions.flatMap(p => {
     const found = MISSION_BY_ID[p.missionId];
-    const mission = found ? asPlanned(found, p) : undefined;
+    const planned = found ? asPlanned(found, p) : undefined;
+    // Named as Today names it, with the user's goal filled in (core/titles).
+    const who = c.input.profile;
+    const mission = planned && who ? { ...planned, title: missionTitle(planned, who) } : planned;
     return mission ? [{ mission, area: p.area ?? mission.track, proven: done[mission.id]?.verification?.status === 'accepted' }] : [];
   });
   return { missions: missions.length ? missions : null };

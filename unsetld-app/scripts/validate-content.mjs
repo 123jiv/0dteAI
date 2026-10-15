@@ -10,6 +10,7 @@ const read = f => JSON.parse(fs.readFileSync(path.join(root, f), 'utf8'));
 
 const tracks = read('tracks.json');
 const missions = read('missions.json');
+const legacy = read('legacy-missions.json');
 const programs = read('programs.json');
 const rewards = read('rewards.json');
 const rules = read('rules.json');
@@ -20,15 +21,109 @@ const milestones = read('milestones.json');
 const errors = [];
 const warnings = [];
 
-const TRACK_IDS = ['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization'];
+// 3.3: eight areas (Business folded into Projects), in this order.
+const TRACK_IDS = ['discipline', 'school', 'fitness', 'money', 'career', 'skills', 'projects', 'organization'];
+// The founder's approved library, exactly and in this order. The gaps are deliberate (missions
+// rejected in curation): never renumber, add or rename one here or in scripts/missions/library.py.
+const APPROVED = [
+  'D1', 'D2', 'D3', 'D4', 'D5', 'D6',
+  'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S9', 'S10', 'S11', 'S12', 'S13', 'S15',
+  'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F8',
+  'M1', 'M2', 'M3', 'M5', 'M6',
+  'C1', 'C2', 'C3', 'C4', 'C5', 'C7', 'C9', 'C10', 'C11', 'C12',
+  'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P9', 'P10', 'P11', 'P12',
+  'K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K9', 'K10',
+  'O1', 'O2', 'O5', 'O8', 'O9',
+];
+// The approved titles, word for word (the founder's text: never reworded; a template only fills its slot for the user).
+const APPROVED_TITLES = {
+  D1: 'Lock In for 30 Minutes',
+  D2: 'Do Your Most Important Task for 30 Minutes',
+  D3: "Finish One Thing You've Been Avoiding",
+  D4: "Plan Tomorrow's Top 3",
+  D5: 'Work With Your Phone Away for 30 Minutes',
+  D6: 'Finish One Unfinished Task',
+  S1: 'Study One Subject for 30 Minutes',
+  S2: 'Test Yourself Without Looking at Your Notes',
+  S3: 'Complete 10 Practice Problems',
+  S4: 'Write Everything You Remember About One Topic',
+  S5: 'Finish One Assignment',
+  S6: "Start an Assignment Before It's Urgent",
+  S7: "Turn Today's Notes Into 10 Questions",
+  S9: 'Test Yourself on Flashcards for 20 Minutes',
+  S10: 'Explain One Difficult Concept From Memory',
+  S11: 'Spend 30 Minutes on Your Hardest Class',
+  S12: 'Create Your Study Plan for the Week',
+  S13: 'Work on an Upcoming Project for 30 Minutes',
+  S15: 'Review a Topic You Learned Earlier This Week',
+  F1: 'Complete Your Workout',
+  F2: 'Walk for 30 Minutes',
+  F3: 'Do 20 Minutes of Cardio',
+  F5: 'Complete a 30-Minute At-Home Workout',
+  F6: 'Get Outside and Move for 20 Minutes',
+  F7: 'Complete Your Planned Strength Workout',
+  F8: 'Do Your Planned Cardio Today',
+  M1: 'Track Everything You Spend Today',
+  M2: 'Review Your Spending From the Last 7 Days',
+  M3: 'Make a Spending Plan for This Week',
+  M5: 'Check One Subscription or Recurring Charge',
+  M6: 'Set One Savings Goal and Deadline',
+  C1: 'Improve One Resume Bullet',
+  C2: 'Apply to One Job or Internship',
+  C3: 'Find 3 Opportunities Worth Applying To',
+  C4: 'Improve One Part of Your Portfolio',
+  C5: 'Practice 5 Interview Questions',
+  C7: 'Spend 30 Minutes Building a Career Skill',
+  C9: 'Add One Project or Accomplishment to Your Resume or Portfolio',
+  C10: 'Research 3 Skills Required for a Job You Want',
+  C11: "Practice Explaining One Project You've Built",
+  C12: 'Complete One Part of an Application',
+  P1: 'Work on Your Project for 30 Minutes',
+  P2: 'Finish One Small Part of Your Project',
+  P3: 'Create One Piece of Content',
+  P4: 'Improve One Page, Screen, Product, or Listing',
+  P5: 'Fix One Problem With Your Project',
+  P6: 'Write Your Next 3 Project Actions',
+  P7: 'Create One New Design, Prototype, or Draft',
+  P9: 'Review One Important Metric and Make One Decision From It',
+  P10: 'Publish Something You Made',
+  P11: 'Improve Something You Made Yesterday',
+  P12: 'Turn One Idea Into a First Draft',
+  K1: 'Practice Your Skill for 30 Minutes',
+  K2: 'Complete One Lesson, Then Use What You Learned',
+  K3: 'Practice One Weak Part of Your Skill for 20 Minutes',
+  K4: 'Build a Small Project Using Your Skill',
+  K5: 'Explain One Thing You Learned From Memory',
+  K6: 'Create Something You Can Put in a Portfolio',
+  K7: 'Improve Something You Created Before',
+  K9: 'Watch One Tutorial and Apply One Thing From It',
+  K10: 'Recreate Something Without Following the Tutorial',
+  O1: 'Clear Your Desk',
+  O2: 'Do a 15-Minute Room Reset',
+  O5: 'Pack Everything You Need for Tomorrow',
+  O8: 'Reset Your Workspace for Tomorrow',
+  O9: 'Review Your Calendar for the Next 7 Days',
+};
+// Weekly or rarer (frequency 'low'): exactly these. M1 can be daily; C3 is 1–2 a week (medium).
+const LOW = new Set(['S12', 'M2', 'M3', 'M5', 'M6', 'C1', 'C5', 'C9', 'C10', 'P9', 'O9']);
+// An id's letter names its area.
+const LETTER = { D: 'discipline', S: 'school', F: 'fitness', M: 'money', C: 'career', P: 'projects', K: 'skills', O: 'organization' };
+// The founder's COMPLETION_SCREEN and RESULT PHOTO proofs are PHOTO, with a proof line that says personal details can be hidden.
 const PROOF = ['PHOTO', 'PHOTO_AFTER', 'BEFORE_AFTER', 'TIMER_AND_PHOTO', 'TIMER'];
 const SKILLS = ['coding', 'design', 'video', 'writing', 'language', 'music'];
-const REQ = ['school', 'highschool', 'work', 'gym', 'project', 'building', 'starting', 'age16', 'age18', ...SKILLS];
-// What an 18+ user who skipped every About-you question can get: no yes answer or named skill needed.
-const OPEN_TO_ADULT = new Set(['school', 'highschool', 'building', 'starting', 'age16', 'age18']);
-const openToAdult = m => (m.requires ?? []).every(r => OPEN_TO_ADULT.has(r));
-// Points by time: up to 5 min = 5, 6–20 = 10, 21–35 = 15 or 20, 36–59 = 20, 60+ = 25.
-const pointsFor = min => (min <= 5 ? [5] : min <= 20 ? [10] : min <= 35 ? [15, 20] : min < 60 ? [20] : [25]);
+const REQ = ['school', 'highschool', 'work', 'gym', 'project', 'building', 'starting', 'age16', 'age18', 'jobsearch', ...SKILLS];
+// How often each frequency comes round: the cooldown (days) it allows.
+const COOLDOWN = { high: [1, 2], medium: [3, 4], low: [7, 365] };
+// The slot a template names, by its `personalize` field ({opportunities} is the plural of {opportunity}).
+const SLOTS = { project: ['project'], subject: ['subject'], skill: ['skill'], opportunity: ['opportunity', 'opportunities'] };
+// The plain words each slot reads as when the user's goal names nothing (the approved title).
+const SLOT_DEFAULT = { project: 'Your Project', subject: 'One Subject', skill: 'Your Skill', opportunity: 'Job or Internship', opportunities: 'Opportunities' };
+// Points by time (the founder's scale): 5–10 min = 5, 15–20 = 10, 25–45 = 15 or 20, over 45 = 20 or 25.
+const pointsFor = min => (min <= 10 ? [5] : min <= 20 ? [10] : min <= 45 ? [15, 20] : [20, 25]);
+// A title that names a length of time ("for 30 Minutes", "a 15-Minute Room Reset").
+const TIMED_TITLE = /\b\d+[- ]minutes?\b/i;
+// Before and after is enough for a room: O2 names its 15 minutes but is proven by the room.
+const TIMED_TITLE_OK = new Set(['O2']);
 // Motivational talk, therapy-speak and slang: missions say what to do, plainly.
 const BANNED = [
   'sigma', 'grindset', 'rise and grind', 'best version of yourself', 'level up', 'unlock', 'journey', 'manifest',
@@ -61,18 +156,42 @@ for (const t of tracks) if (!t.name || !t.short || !t.scope) errors.push(`tracks
 // Missions
 const ids = new Set();
 const titles = new Map();
-const perTrack = Object.fromEntries(TRACK_IDS.map(t => [t, { easy: 0, main: 0, core: 0, timer: 0, before: 0, openEasy: 0, openFocused: 0, niche: 0 }]));
+const perTrack = Object.fromEntries(TRACK_IDS.map(t => [t, { short: 0, main: 0, core: 0, timer: 0, before: 0, low: 0 }]));
+// Exactly the approved ids, in order: nothing missing, nothing extra.
+const got = missions.map(m => m.id);
+for (const id of APPROVED) if (!got.includes(id)) errors.push(`missions.json: approved mission ${id} is missing`);
+for (const id of got) if (!APPROVED.includes(id)) errors.push(`missions.json: "${id}" is not an approved mission (the library is exactly the founder's 66)`);
+if (got.length === APPROVED.length && got.every(id => APPROVED.includes(id)) && got.join() !== APPROVED.join()) errors.push('missions.json: missions must be in the approved order (D1 … O9)');
 for (const m of missions) {
   const where = `mission ${m.id ?? '?'}`;
   const e = msg => errors.push(`${where}: ${msg}`);
-  if (!/^[a-z]+(-[a-z0-9]+)+$/.test(m.id ?? '')) e('id must be "<track>-<slug>"');
   if (!TRACK_IDS.includes(m.track)) e(`unknown track "${m.track}"`);
-  else if (!m.id.startsWith(`${m.track}-`)) e('id must start with its track');
+  else if (LETTER[(m.id ?? '')[0]] !== m.track) e(`an id starting "${(m.id ?? '?')[0]}" is a ${LETTER[(m.id ?? '')[0]] ?? 'unknown'} mission, not ${m.track}`);
+  if (m.source !== 'UNSETLD') e('source must be "UNSETLD" (approved library missions)');
+  if (!COOLDOWN[m.frequency]) e('frequency must be high, medium or low');
+  else if ((m.frequency === 'low') !== LOW.has(m.id)) e(LOW.has(m.id) ? 'a weekly or rarer mission: frequency must be low' : 'frequency low is only for the weekly or rarer missions');
   if (m.also != null && (!Array.isArray(m.also) || m.also.some(t => !TRACK_IDS.includes(t) || t === m.track))) e('also must list other known tracks');
   if (ids.has(m.id)) e('duplicate id');
   ids.add(m.id);
   const title = (m.title ?? '').trim();
-  if (!title || title.length > 48 || /[.!?]$/.test(title)) e(`title must be 1–48 characters with no end punctuation: "${title}"`);
+  if (APPROVED_TITLES[m.id] != null && m.title !== APPROVED_TITLES[m.id]) e(`the title is the approved one, word for word: "${APPROVED_TITLES[m.id]}" (got "${m.title}")`);
+  // The founder's approved titles run to 61 characters ("Add One Project or Accomplishment to Your Resume or Portfolio").
+  if (!title || title.length > 64 || /[.!?]$/.test(title)) e(`title must be 1–64 characters with no end punctuation: "${title}"`);
+  if (TIMED_TITLE.test(title) && !['TIMER', 'TIMER_AND_PHOTO'].includes(m.proofType) && !TIMED_TITLE_OK.has(m.id)) {
+    e(`a title with a length of time needs the timer (TIMER or TIMER_AND_PHOTO): a photo can't prove "${title}"`);
+  }
+  // Personalization: one slot, the one `personalize` names, and the title is the template with a plain default in it.
+  if ((m.template == null) !== (m.personalize == null)) e('template and personalize go together');
+  else if (m.template != null) {
+    const slots = [...String(m.template).matchAll(/\{([a-z]+)\}/g)].map(x => x[1]);
+    if (!SLOTS[m.personalize]) e(`personalize must be one of ${Object.keys(SLOTS).join(', ')}`);
+    else if (slots.length !== 1 || !SLOTS[m.personalize].includes(slots[0])) e(`template must have exactly one {${SLOTS[m.personalize][0]}} slot: "${m.template}"`);
+    else {
+      const [before, after] = String(m.template).split(`{${slots[0]}}`);
+      const re = new RegExp(`^${escape(before)}(${escape(SLOT_DEFAULT[slots[0]])})${escape(after)}$`);
+      if (!re.test(title)) e(`the title must be the template with "${SLOT_DEFAULT[slots[0]]}" in its slot: "${m.template}" vs "${title}"`);
+    }
+  }
   const key = title.toLowerCase();
   if (titles.has(key)) e(`duplicate title "${title}" (also ${titles.get(key)})`);
   titles.set(key, m.id);
@@ -81,17 +200,24 @@ for (const m of missions) {
   if (!m.proof || m.proof.length > 90) e(`proof must be 1–90 characters: "${m.proof}"`);
   if (!PROOF.includes(m.proofType)) e(`bad proofType "${m.proofType}"`);
   if (!(Number.isInteger(m.minutes) && m.minutes >= 1 && m.minutes <= 120)) e('minutes must be 1–120');
+  else if (!(m.minutes % 5 === 0)) e('minutes must be a multiple of 5');
   else if (!pointsFor(m.minutes).includes(m.points)) e(`${m.minutes} minutes earns ${pointsFor(m.minutes).join(' or ')} points (got ${m.points})`);
   if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') {
     if (!(m.timerMinutes >= 5 && m.timerMinutes <= 60)) e(`${m.proofType} needs timerMinutes 5–60`);
     else if (m.minutes < m.timerMinutes) e('minutes must be at least timerMinutes');
   } else if (m.timerMinutes != null) e('timerMinutes is only for timed missions');
   if (m.requires != null && (!Array.isArray(m.requires) || m.requires.some(r => !REQ.includes(r)))) e(`bad requires ${JSON.stringify(m.requires)}`);
+  // "C2 only when job/internship search is relevant": the job-search requirement is C2's, and only C2's.
+  else if ((m.requires ?? []).includes('jobsearch') !== (m.id === 'C2')) e(m.id === 'C2' ? 'C2 requires jobsearch' : 'only C2 requires jobsearch');
   if (m.fits != null && (!Array.isArray(m.fits) || !m.fits.length || new Set(m.fits).size !== m.fits.length || m.fits.some(f => !SKILLS.includes(f)))) {
     e(`fits must list distinct skills (${SKILLS.join(', ')}): ${JSON.stringify(m.fits)}`);
   }
   if (!(Number.isInteger(m.cooldownDays) && m.cooldownDays >= 1 && m.cooldownDays <= 365)) e('cooldownDays must be 1–365');
-  if (typeof m.repeatable !== 'boolean') e('repeatable must be true or false');
+  else if (COOLDOWN[m.frequency]) {
+    const [lo, hi] = COOLDOWN[m.frequency];
+    if (m.cooldownDays < lo || m.cooldownDays > hi) e(`a ${m.frequency}-frequency mission needs cooldownDays ${lo}${hi < 365 ? `–${hi}` : ' or more'} (got ${m.cooldownDays})`);
+  }
+  if (m.repeatable !== true) e('approved missions are repeatable (cooldownDays spaces them out)');
   if (m.anchor && (m.cooldownDays > 3 || !m.repeatable)) e('core habits must be repeatable with cooldownDays ≤ 3');
   if (m.group != null && !/^[a-z]+(-[a-z]+)*$/.test(m.group)) e('group must be a lowercase slug');
   if (m.weight != null && !(m.weight >= 0.1 && m.weight <= 3)) e('weight must be 0.1–3');
@@ -111,7 +237,7 @@ for (const m of missions) {
       if (m.anchor) e('a niche mission cannot be a core habit');
     }
   }
-  if (typeof m.active !== 'boolean') e('active must be true or false');
+  if (m.active !== true) e('approved missions are active (retiring one is the founder\'s decision)');
   for (const k of ['slot', 'difficulty', 'why', 'how']) if (k in m) e(`"${k}" is no longer a mission field`);
   const text = [m.title, m.short, m.proof].join(' ');
   const banned = text.match(bannedRe);
@@ -121,21 +247,31 @@ for (const m of missions) {
   const never = text.match(NEVER);
   if (never) e(`unsafe for a teen app ("${never[0]}")`);
   if (/\bunsetld\b|\b(earn|get|worth|\d+) points\b|\bdiscount code\b|\bmerch\b/i.test(text)) e('missions never sell or mention points');
-  const sensitive = text.match(sensitiveRe);
+  // A privacy note ("Hide your name and any grades.", "Not your face.") protects; it isn't a risk.
+  const sensitive = text.replace(/\b(hide|not|never|without)\b[^.]*\./gi, '').match(sensitiveRe);
   if (sensitive) warnings.push(`${where}: check safety/privacy ("${sensitive[0]}")`);
   const p = perTrack[m.track];
   if (p && m.active) {
-    p[m.minutes <= 15 ? 'easy' : 'main']++;
+    // Short: 20 minutes or less (core/missions EASY_MAX_MINUTES).
+    p[m.minutes <= 20 ? 'short' : 'main']++;
     if (m.anchor) p.core++;
-    if (m.tags?.includes('niche')) p.niche++;
+    if (m.frequency === 'low') p.low++;
     if (m.proofType === 'TIMER_AND_PHOTO' || m.proofType === 'TIMER') p.timer++;
     if (m.proofType === 'BEFORE_AFTER') p.before++;
-    if (openToAdult(m) && m.minutes > 15 && m.cooldownDays <= 3) p.openFocused++;
   }
-  // Short days are mostly easy missions (all three at 5–15 minutes, two at 15–30), from the user's areas or ones that also serve them.
-  if (m.active && openToAdult(m) && m.minutes <= 15) for (const t of [m.track, ...(m.also ?? [])]) if (perTrack[t]) perTrack[t].openEasy++;
 }
 const byId = new Map(missions.map(m => [m.id, m]));
+
+// Retired missions (content/legacy-missions.json): display only, for proofs made before 3.3. Never an approved id.
+if (!legacy || typeof legacy !== 'object' || Array.isArray(legacy)) errors.push('legacy-missions.json: must be an object of id → { title, track, minutes, proofType, proof }');
+else {
+  for (const [id, m] of Object.entries(legacy)) {
+    if (APPROVED.includes(id) || byId.has(id)) errors.push(`legacy-missions.json: "${id}" is an approved mission; retired missions only`);
+    if (!m || typeof m.title !== 'string' || !TRACK_IDS.includes(m.track) || !Number.isFinite(m.minutes) || !PROOF.includes(m.proofType) || typeof m.proof !== 'string') {
+      errors.push(`legacy-missions.json: "${id}" needs a title, one of the eight areas, minutes, a proofType and a proof line`);
+    }
+  }
+}
 
 // Programs
 const programIds = new Set();
@@ -154,7 +290,8 @@ for (const p of programs) {
     if (!Array.isArray(day) || day.length < 1 || day.length > 2) e(`day ${i + 1} must list 1–2 missions`);
     for (const id of day ?? []) {
       const m = byId.get(id);
-      if (!m) e(`day ${i + 1}: unknown mission "${id}"`);
+      if (!APPROVED.includes(id)) e(`day ${i + 1}: "${id}" is not an approved mission`);
+      else if (!m) e(`day ${i + 1}: unknown mission "${id}"`);
       else if (!m.active) e(`day ${i + 1}: "${id}" is not active`);
       else if (m.requires?.some(r => r !== 'school')) e(`day ${i + 1}: "${id}" needs ${m.requires.join(', ')}, which not every user has`);
       else if (m.tags?.includes('niche')) warnings.push(`${where}: day ${i + 1} uses a niche mission ("${m.title}"); a staple usually fits a plan better`);
@@ -163,8 +300,10 @@ for (const p of programs) {
     const groups = (day ?? []).map(id => byId.get(id)?.group).filter(Boolean);
     if (new Set(groups).size !== groups.length) e(`day ${i + 1} has two missions from one group`);
     // The day only moves on once one of its missions is proven: one of them has to fit any time and any day.
+    // (School Reset's first day is the founder's Create Your Study Plan for the Week alone, Sunday to Tuesday: flagged, not failed.)
     const ms = (day ?? []).map(id => byId.get(id)).filter(Boolean);
-    if (ms.length && ms.every(m => m.when === 'morning' || m.days)) e(`day ${i + 1} needs a mission that isn't morning-only or tied to weekdays`);
+    if (ms.length && ms.every(m => m.when === 'morning')) e(`day ${i + 1} needs a mission that isn't morning-only`);
+    else if (ms.length && ms.every(m => m.when === 'morning' || m.days)) warnings.push(`${where}: day ${i + 1} only has missions tied to weekdays, so the program waits for one of those days`);
   }
 }
 if (programs.filter(p => p.free).length < 2) errors.push('programs.json: at least two programs must be free');
@@ -274,17 +413,16 @@ for (const p of reminders) {
   if (banned) errors.push(`reminders.json: off-voice ("${banned[0]}"): ${text}`);
 }
 
-// open easy / open focused: what an 18+ user who skipped every About-you question can get (focused: cooldown ≤ 3 days).
-console.log('Track          easy  focused  core  niche  timed  before/after  open easy  open focused');
+// short: 20 minutes or less. Every area needs two for a 15-minute day (two short missions); some have no focused ones (Money, Organization), which is fine.
+console.log('Track          short  focused  core  weekly+  timed  before/after');
 for (const t of TRACK_IDS) {
   const p = perTrack[t];
   console.log(
-    `  ${t.padEnd(12)} ${String(p.easy).padStart(4)}  ${String(p.main).padStart(7)}  ${String(p.core).padStart(4)}  ${String(p.niche).padStart(5)}  ${String(p.timer).padStart(5)}  ${String(p.before).padStart(12)}  ${String(p.openEasy).padStart(9)}  ${String(p.openFocused).padStart(12)}`,
+    `  ${t.padEnd(12)} ${String(p.short).padStart(5)}  ${String(p.main).padStart(7)}  ${String(p.core).padStart(4)}  ${String(p.low).padStart(7)}  ${String(p.timer).padStart(5)}  ${String(p.before).padStart(12)}`,
   );
-  if (p.easy < 4 || p.main < 5) warnings.push(`${t}: aim for at least 4 easy and 5 focused missions`);
+  if (p.short + p.main === 0) errors.push(`${t}: no missions`);
+  else if (p.short < 2) warnings.push(`${t}: ${p.short} short missions; a 15-minute day needs two`);
   if (p.core < 1) warnings.push(`${t}: no core habit (anchor)`);
-  if (p.openEasy < 8) warnings.push(`${t}: ${p.openEasy} easy missions for an 18+ user who skipped About you; short days need at least 8`);
-  if (p.openFocused < 3) warnings.push(`${t}: ${p.openFocused} focused missions with a cooldown of 3 days or less for an 18+ user who skipped About you; focused slots need at least 3`);
 }
 console.log(`Total: ${missions.length} missions, ${programs.length} programs, ${rewards.length} reward tiers, ${statusList?.length ?? 0} status tiers`);
 if (warnings.length) {

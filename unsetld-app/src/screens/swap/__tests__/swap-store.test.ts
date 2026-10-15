@@ -30,9 +30,9 @@ const PROFILE = { tracks: ['discipline', 'school', 'fitness'], school: true, gym
 const PLAN = {
   day: TODAY,
   missions: [
-    { slot: 'easy', missionId: 'discipline-make-your-bed', area: 'discipline' }, // PHOTO, 5 pts
-    { slot: 'main', missionId: 'school-study-60', area: 'school' }, // TIMER_AND_PHOTO, 25 pts
-    { slot: 'main', missionId: 'fitness-stretch-10', area: 'fitness' }, // TIMER, 10 pts
+    { slot: 'easy', missionId: 'D4', area: 'discipline' }, // Plan Tomorrow's Top 3: PHOTO, 5 pts
+    { slot: 'main', missionId: 'F1', area: 'fitness' }, // Complete Your Workout: PHOTO 45 min, 20 pts
+    { slot: 'main', missionId: 'S1', area: 'school' }, // Study One Subject for 30 Minutes: TIMER_AND_PHOTO, 15 pts
   ],
   rerolls: 0,
   replaced: [] as string[],
@@ -63,7 +63,7 @@ describe('what the sheet says a mission of your own earns', () => {
     [0, 5],
     [1, 15],
   ] as const) {
-    it(`is what the day pays for it, in a ${pts === 5 ? '5' : '25'}-point spot`, async () => {
+    it(`is what the day pays for it, in a ${pts === 5 ? '5' : '20'}-point spot`, async () => {
       const { useApp, slotWorth, ownEarns, completeMission } = await load();
       const before = useApp.getState().plans[TODAY];
       expect(before?.missions.map(p => p.missionId)).toEqual(PLAN.missions.map(p => p.missionId));

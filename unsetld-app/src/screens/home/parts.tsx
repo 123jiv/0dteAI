@@ -475,9 +475,11 @@ export function MissionCard({
   // Looked up once per photo, not on every render (it checks the file is still there).
   const thumb = useMemo(() => (photoUri ? proofImage(photoUri) : null), [photoUri]);
   const time = done ? clockTime(done.doneAt) : '';
+  // Proven, it keeps the title it was proven under, as the record does (a goal edited since doesn't rename it).
+  const provenTitle = done?.title ?? mission.title;
   // The card says what the mission is; its START control says what state it's in.
   const said = done
-    ? HOME.a11y.card(mission.title, HOME.a11y.proven(area, time, done.points))
+    ? HOME.a11y.card(provenTitle, HOME.a11y.proven(area, time, done.points))
     : HOME.a11y.card(mission.title, HOME.a11y.cardMeta(area, mission.minutes, mission.points, mission.proofType, mission.when === 'evening'));
   const timed = mission.proofType === 'TIMER' || mission.proofType === 'TIMER_AND_PHOTO';
   const live = actionSaid(action, remaining, mission.proofType);
@@ -493,7 +495,7 @@ export function MissionCard({
             {area}
           </T>
           <T v="list" color={colorway.secondary} style={{ marginTop: 6 }}>
-            {mission.title}
+            {provenTitle}
           </T>
           <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Icon name="check" size={15} color={colorway.ink} />

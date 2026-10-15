@@ -5,7 +5,7 @@ import { reviewWeekFor, weekStart } from '../../core/review';
 import { pointsEarned } from '../../core/rewards';
 import { computeStreak } from '../../core/streak';
 import { addDays, diffDays, type DayKey } from '../../core/time';
-import { MISSION_BY_ID, RULES, TRACK_BY_ID } from '../../content';
+import { historyMission, RULES, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
 import { useApp } from '../../state/store';
@@ -16,7 +16,8 @@ import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN } from '../../ui/tokens';
 
 const S = PROGRESS.stats;
-const minutesOf = (id: string) => MISSION_BY_ID[id]?.minutes;
+// Time per area for a proof without a timer: its mission's minutes, a retired one's too (history only).
+const minutesOf = (id: string) => historyMission(id)?.minutes;
 
 type BarKind = 'on' | 'missed' | 'covered' | 'today' | 'pending';
 

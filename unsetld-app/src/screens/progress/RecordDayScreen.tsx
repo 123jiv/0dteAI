@@ -3,7 +3,6 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { dayDetail, type LegacyTask } from '../../core/history';
 import type { DayKey } from '../../core/time';
-import { MISSION_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootProps } from '../../navigation/types';
 import { proofImage } from '../../services/proof';
@@ -12,8 +11,9 @@ import { Button, NavRow } from '../../ui/kit';
 import { clockTime } from '../../ui/ProofStamp';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN } from '../../ui/tokens';
+import { useMissionTitle } from '../titles';
 import { hasPhoto, ProofTile, TILE_RADIUS } from './ProofTile';
-import { areaName, fromDay, type ProofView } from './proofView';
+import { fromDay, openMissions, type ProofView } from './proofView';
 import { ProofViewer } from './ProofViewer';
 
 const D = PROGRESS.day;
@@ -139,15 +139,12 @@ export function RecordDayScreen({ navigation, route }: RootProps<'RecordDay'>) {
   const detail = useMemo(() => dayDetail(record, plans, day), [record, plans, day]);
   const proofs = useMemo(() => detail.proven.map(p => fromDay(day, p)), [detail, day]);
   const isToday = day === today;
+  const titleOf = useMissionTitle();
   // 2.x put a day on record without a mission (record.days); nothing proven on it since.
   const legacyDay = proofs.length === 0 && day <= today && Boolean(record.days?.[day]);
   const status = D.status({ proven: proofs.length, planned: detail.planned, perfect: detail.perfect, legacy: legacyDay, today: isToday });
-  const open = detail.open.flatMap(id => {
-    const m = MISSION_BY_ID[id];
-    if (!m) return [];
-    const planned = plans[day]?.missions.find(p => p.missionId === id);
-    return [{ id, title: m.title, area: areaName(planned?.area ?? m.track) }];
-  });
+  // What the plan held that wasn't proven; a mission retired since shows by the title it had.
+  const open = openMissions(detail.open, plans[day]?.missions, titleOf);
   const legacy = detail.legacy.filter(t => t.text.trim());
   // The privacy line only while a photo shown here is still on this phone (cleared ones are nothing to keep private).
   const photos = proofs.some(hasPhoto) || legacy.some(t => Boolean(t.uri && proofImage(t.uri)));

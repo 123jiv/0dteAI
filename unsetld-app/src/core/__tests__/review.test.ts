@@ -33,20 +33,22 @@ function provenIn(entries: { day: DayKey; track: TrackId; id: string }[]): Recor
 }
 
 const notInSchool: Profile = { ...DEFAULT_PROFILE, tracks: ['school', 'fitness', 'money'], school: false, age: '18plus' };
+/** A library with no School missions: School can get none, whatever the user picked. */
+const NO_SCHOOL = LIBRARY.filter(m => m.track !== 'school');
 
 describe('weekly review and areas that can get missions', () => {
-  it('leaves School out of the usable areas for someone not in school', () => {
-    expect(usableAreas(LIBRARY, notInSchool)).toEqual(['fitness', 'money']);
-    expect(usableAreas(LIBRARY, { ...notInSchool, school: true })).toEqual(['school', 'fitness', 'money']);
+  it('keeps every area the user picked that has missions, School too: picking it is enough', () => {
+    expect(usableAreas(LIBRARY, notInSchool)).toEqual(['school', 'fitness', 'money']);
+    expect(usableAreas(NO_SCHOOL, notInSchool)).toEqual(['fitness', 'money']);
   });
 
   it("never says Didn't get to: School when School could get no missions", () => {
     const r = provenIn([
-      { day: WEEK, track: 'money', id: 'money-a' },
-      { day: '2026-10-06', track: 'fitness', id: 'fitness-a' },
-      { day: '2026-10-07', track: 'money', id: 'money-b' },
+      { day: WEEK, track: 'money', id: 'M1' },
+      { day: '2026-10-06', track: 'fitness', id: 'F1' },
+      { day: '2026-10-07', track: 'money', id: 'M2' },
     ]);
-    const areas = usableAreas(LIBRARY, notInSchool);
+    const areas = usableAreas(NO_SCHOOL, notInSchool);
     expect(weeklyReview(r, {}, notInSchool, WEEK, areas)).toMatchObject({ strongest: 'money', ignored: null });
     // Without the usable areas every chosen area counts, as before.
     expect(weeklyReview(r, {}, notInSchool, WEEK).ignored).toBe('school');
@@ -54,35 +56,36 @@ describe('weekly review and areas that can get missions', () => {
 
   it('still names a usable area that got nothing, skipping the one ruled out', () => {
     const profile: Profile = { ...notInSchool, tracks: ['school', 'fitness', 'money', 'discipline'] };
-    const r = provenIn([{ day: WEEK, track: 'fitness', id: 'fitness-a' }]);
-    expect(weeklyReview(r, {}, profile, WEEK, usableAreas(LIBRARY, profile)).ignored).toBe('money');
+    const r = provenIn([{ day: WEEK, track: 'fitness', id: 'F1' }]);
+    expect(weeklyReview(r, {}, profile, WEEK, usableAreas(NO_SCHOOL, profile)).ignored).toBe('money');
   });
 
-  it('names nothing outside the chosen areas when none of them can get missions', () => {
+  it('names nothing outside the chosen areas when none of them can get missions (no fallback areas)', () => {
     const profile: Profile = { ...notInSchool, tracks: ['school'] };
-    const areas = usableAreas(LIBRARY, profile);
-    expect(areas).toEqual(['discipline', 'organization']);
-    const r = provenIn([{ day: WEEK, track: 'discipline', id: 'discipline-a' }]);
+    const areas = usableAreas(NO_SCHOOL, profile);
+    expect(areas).toEqual([]);
+    const r = provenIn([{ day: WEEK, track: 'discipline', id: 'D1' }]);
     expect(weeklyReview(r, {}, profile, WEEK, areas)).toMatchObject({ strongest: 'discipline', ignored: null });
   });
 
   it('counts a proof for the area the plan put it in, never one the user did not choose', () => {
-    // "Work on Your Portfolio" (Career, also Projects) planned for Projects.
+    // "Improve One Part of Your Portfolio" (Career) planned for Projects.
     const profile: Profile = { ...DEFAULT_PROFILE, tracks: ['skills', 'projects'] };
-    const r = provenIn([{ day: WEEK, track: 'career', id: 'career-portfolio' }]);
-    const plans = { [WEEK]: { day: WEEK, missions: [{ slot: 'main' as const, missionId: 'career-portfolio', area: 'projects' as TrackId }], rerolls: 0, replaced: [] } };
+    const r = provenIn([{ day: WEEK, track: 'career', id: 'C4' }]);
+    const plans = { [WEEK]: { day: WEEK, missions: [{ slot: 'main' as const, missionId: 'C4', area: 'projects' as TrackId }], rerolls: 0, replaced: [] } };
     expect(weeklyReview(r, plans, profile, WEEK, usableAreas(LIBRARY, profile))).toMatchObject({ strongest: 'projects', ignored: 'skills' });
     // A plan from an earlier build has no area: the mission's own.
-    const old = { [WEEK]: { ...plans[WEEK], missions: [{ slot: 'main' as const, missionId: 'career-portfolio' }] } };
+    const old = { [WEEK]: { ...plans[WEEK], missions: [{ slot: 'main' as const, missionId: 'C4' }] } };
     expect(weeklyReview(r, old, profile, WEEK).strongest).toBe('career');
   });
 
-  it('never ranks an area the app no longer has as the strongest', () => {
+  it('never ranks an area the app no longer has as the strongest (Business, before the store moves it to Projects)', () => {
     const r = provenIn([
       { day: WEEK, track: 'mindset' as TrackId, id: 'mindset-a' },
-      { day: '2026-10-06', track: 'mindset' as TrackId, id: 'mindset-b' },
-      { day: '2026-10-07', track: 'fitness', id: 'fitness-a' },
+      { day: '2026-10-06', track: 'business' as TrackId, id: 'business-b' },
+      { day: '2026-10-06', track: 'business' as TrackId, id: 'business-c' },
+      { day: '2026-10-07', track: 'fitness', id: 'F1' },
     ]);
-    expect(weeklyReview(r, {}, notInSchool, WEEK, usableAreas(LIBRARY, notInSchool))).toMatchObject({ missions: 3, strongest: 'fitness', ignored: 'money' });
+    expect(weeklyReview(r, {}, notInSchool, WEEK, usableAreas(LIBRARY, notInSchool))).toMatchObject({ missions: 4, strongest: 'fitness', ignored: 'school' });
   });
 });

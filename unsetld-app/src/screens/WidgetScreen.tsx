@@ -19,11 +19,11 @@ const TABS: Tab[] = ['lock', 'home'];
 
 // ---------------------------------------------------------------------------
 // The preview: the 3.0 widgets drawn from the same copy the real ones use, on
-// an example day (Make Your Bed proven, Study for 30 Minutes next). Drawn rather
-// than photographed so it always matches what the widgets say.
+// an example day (Lock In for 30 Minutes proven, Study One Subject for 30 Minutes
+// next). Drawn rather than photographed so it always matches what the widgets say.
 
-/** The example day, in plan order. Missing ids (a library change) drop out. */
-const SAMPLE: Mission[] = ['discipline-make-your-bed', 'school-study-30', 'fitness-workout']
+/** The example day, in plan order: approved missions by their approved titles. Missing ids drop out. */
+const SAMPLE: Mission[] = ['D1', 'S1', 'F1']
   .map(id => MISSION_BY_ID[id])
   .filter((m): m is Mission => Boolean(m));
 const NEXT = SAMPLE[1] ?? SAMPLE[0] ?? null;

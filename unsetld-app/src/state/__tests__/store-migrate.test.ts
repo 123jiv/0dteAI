@@ -1,7 +1,9 @@
 // Loading state saved by earlier builds: v3 plans, timers and before photos for missions the
-// library no longer has, and old area ids in the tester snapshot and the Keychain backup; and
-// the updates App Store users take into v6 (3.0's v4 state, v5's minutes, 2.x's v1 state, a
-// 3.0 Keychain backup), from states the real builds saved (fixtures/).
+// library no longer has, and old area ids in the tester snapshot and the Keychain backup; the
+// updates App Store users take into v7 (3.0's v4 state, v5's minutes, 2.x's v1 state, a 3.0
+// Keychain backup), from states the real builds saved (fixtures/); and 3.3's v7, where Business
+// folds into Projects and only the approved library is planned. Old mission ids in the fixtures
+// are inputs: they are planned again or dropped, and stay on the record.
 // Hydrates the real store from a seeded storage entry.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import v1 from './fixtures/v1-state.json';
@@ -147,8 +149,8 @@ describe('v3 → v4: today keeps missions to prove', () => {
   });
 
   it('keeps a saved timer and before photo for missions the library has', async () => {
-    const timer = { missionId: 'fitness-stretch-10', day: TODAY, requiredSeconds: 600, startedAt: NOW.getTime() - 60_000, pausedAt: null, pausedMs: 0, speed: 1 };
-    const pendingBefore = { missionId: 'organization-clean-desk', day: TODAY, photo: { uri: 'file:///p/desk.jpg', takenAt: NOW.getTime() - 60_000, kind: 'before', hash: 'hd' } };
+    const timer = { missionId: 'F3', day: TODAY, requiredSeconds: 1200, startedAt: NOW.getTime() - 60_000, pausedAt: null, pausedMs: 0, speed: 1 };
+    const pendingBefore = { missionId: 'O1', day: TODAY, photo: { uri: 'file:///p/desk.jpg', takenAt: NOW.getTime() - 60_000, kind: 'before', hash: 'hd' } };
     const v4 = {
       installSalt: 'salt-4',
       settings: { onboarded: true },
@@ -157,8 +159,8 @@ describe('v3 → v4: today keeps missions to prove', () => {
         [TODAY]: {
           day: TODAY,
           missions: [
-            { slot: 'easy', missionId: 'fitness-stretch-10', area: 'fitness' },
-            { slot: 'easy', missionId: 'organization-clean-desk', area: 'organization' },
+            { slot: 'easy', missionId: 'F3', area: 'fitness' },
+            { slot: 'easy', missionId: 'O1', area: 'organization' },
           ],
           rerolls: 0,
           replaced: [],
@@ -172,6 +174,24 @@ describe('v3 → v4: today keeps missions to prove', () => {
     expect(useApp.getState().pendingBefore).toEqual(pendingBefore);
     expect(mem.cancelled).toBe(0);
     expect(mem.deleted).toEqual([]);
+  });
+
+  it("keeps the user's own missions, marked USER_CREATED, with a timer running for one", async () => {
+    const own = { id: 'custom-k1', track: 'skills', title: 'Practice guitar scales', short: 'Practice guitar scales.', proof: 'The timer, run to the end.', proofType: 'TIMER', points: 10, minutes: 15, timerMinutes: 15, cooldownDays: 0, repeatable: true, tags: ['custom'], active: true, custom: true };
+    const timer = { missionId: 'custom-k1', day: TODAY, requiredSeconds: 900, startedAt: NOW.getTime() - 60_000, pausedAt: null, pausedMs: 0, speed: 1 };
+    const { useApp, MISSION_BY_ID } = await load({
+      installSalt: 'salt-c',
+      settings: { onboarded: true },
+      profile: { tracks: ['skills', 'fitness'] },
+      plans: { [TODAY]: { day: TODAY, missions: [{ slot: 'main', missionId: 'custom-k1', area: 'skills', points: 10 }, { slot: 'easy', missionId: 'F3', area: 'fitness' }], rerolls: 1, replaced: ['K1'] } },
+      customMissions: [own],
+      timer,
+    }, 6);
+    const s = useApp.getState();
+    expect(s.customMissions).toEqual([{ ...own, source: 'USER_CREATED' }]);
+    expect(MISSION_BY_ID['custom-k1']).toMatchObject({ source: 'USER_CREATED', custom: true });
+    expect(s.timer).toEqual(timer);
+    expect(s.ensurePlan(TODAY).missions.map(p => p.missionId)).toEqual(['custom-k1', 'F3']);
   });
 });
 
@@ -246,7 +266,7 @@ describe('old area ids stay out of the record', () => {
 
   it('leaves a current record as it is, however many times it runs', async () => {
     const { migrateRecordTracks } = await load({ installSalt: 'fresh' }, 4);
-    const current = rec({ '2026-10-05': { 'school-study-30': done('school-study-30', 'school', 15) } });
+    const current = rec({ '2026-10-05': { S1: done('S1', 'school', 15), 'school-study-30': done('school-study-30', 'school', 15) } });
     expect(migrateRecordTracks(current as never)).toEqual(current);
     const old = rec({ '2026-10-05': { 'reset-x': done('reset-x', 'reset', 10) } });
     const once = migrateRecordTracks(old as never);
@@ -254,7 +274,7 @@ describe('old area ids stay out of the record', () => {
   });
 });
 
-describe('updating into v6 from what the real builds saved', () => {
+describe('updating into v7 from what the real builds saved', () => {
   const DAY = '2026-10-14';
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
@@ -268,18 +288,30 @@ describe('updating into v6 from what the real builds saved', () => {
     return { balance: balance(r), earned: pointsEarned(r), active: activeDays(r).size, streak: computeStreak(activeDays(r), DAY).current };
   }
 
-  it('3.0 (v4): points, days, codes and the running timer stay; 30–60 minutes become 45; saved as v6', async () => {
-    const { useApp } = await load({ ...v30.state, profile: { ...v30.state.profile, priority: 'school' } }, v30.version);
+  it("3.0 (v4): points, days and codes stay, and every proof still shows; the retired mission's timer goes and today is planned from the approved library; 30–60 minutes become 45; saved as v7", async () => {
+    const { useApp, isApproved, historyMission } = await load({ ...v30.state, profile: { ...v30.state.profile, priority: 'school' } }, v30.version);
     const s = useApp.getState();
     expect(await totals(s.record as never)).toEqual({ balance: 370, earned: 670, active: 20, streak: 9 });
     expect(s.record.redemptions).toHaveLength(1);
     expect(s.record.lettersShown).toEqual(['7']);
     expect(s.profile.minutes).toBe(45);
     expect(s.profile.priority).toBeNull();
-    expect(s.timer?.missionId).toBe('discipline-focus-20');
+    // Its timer ran on a retired mission (Do a 20-Minute Focus Session): it goes, with its notification.
+    expect(v30.state.timer.missionId).toBe('discipline-focus-20');
+    expect(s.timer).toBeNull();
+    expect(mem.cancelled).toBe(1);
     expect(s.program?.finishedDay).toBe('2026-10-02');
-    s.ensurePlan(DAY);
-    expect(JSON.parse(mem.map.get('unsetld-v2')!).version).toBe(6);
+    // Today's saved plan held retired missions and nothing was proven: planned again, approved only.
+    expect(v30.state.plans[DAY].missions.some(p => isApproved(p.missionId))).toBe(false);
+    const plan = s.ensurePlan(DAY);
+    expect(plan.missions.length).toBeGreaterThan(0);
+    for (const p of plan.missions) expect(isApproved(p.missionId)).toBe(true);
+    // Every proof on the record still has a title and a proof line to show.
+    for (const id of Object.values(s.record.missions).flatMap(d => Object.keys(d))) {
+      expect(historyMission(id)?.title).toBeTruthy();
+      expect(historyMission(id)?.proof).toBeTruthy();
+    }
+    expect(JSON.parse(mem.map.get('unsetld-v2')!).version).toBe(7);
   });
 
   it('3.0 (v4): 60+ minutes become 60; v5: 60 stays 60 and the retired weekly priority goes', async () => {
@@ -304,7 +336,7 @@ describe('updating into v6 from what the real builds saved', () => {
   });
 
   it('a Keychain backup written by 3.0 restores into a fresh install', async () => {
-    const { useApp } = await load({ installSalt: 'fresh', settings: { onboarded: false } }, 6);
+    const { useApp } = await load({ installSalt: 'fresh', settings: { onboarded: false } }, 7);
     mem.secure.clear();
     mem.secure.set('unsetld.record.v2', JSON.stringify({ installSalt: v30.state.installSalt, record: v30.state.record }));
     const { readBackup } = await import('../../services/backup');
@@ -316,5 +348,94 @@ describe('updating into v6 from what the real builds saved', () => {
     expect(await totals(s.record as never)).toEqual({ balance: 370, earned: 670, active: 20, streak: 9 });
     expect(s.record.lettersShown).toEqual(v30.state.record.lettersShown);
     expect(s.record.redemptions).toEqual(v30.state.record.redemptions);
+  });
+});
+
+describe('v6 → v7: Business folds into Projects', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
+  });
+
+  const own = { id: 'custom-shop', track: 'business', title: 'Post one product photo', short: 'Post one product photo.', proof: 'A photo that shows it done.', proofType: 'PHOTO', points: 5, minutes: 10, cooldownDays: 0, repeatable: true, tags: ['custom'], active: true, custom: true };
+  const swap = { from: 'business-post', to: 'P1', reason: 'another', area: 'business', at: NOW.getTime() - 60_000 };
+  const areasOf = (p: { missions: { area?: string }[] }) => p.missions.map(m => m.area);
+
+  it('moves every saved Business area to Projects: areas picked, plans and swaps, own missions, the record, and what tester time travel kept aside', async () => {
+    const v6 = {
+      installSalt: 'salt-b',
+      settings: { onboarded: true },
+      profile: { tracks: ['business', 'fitness', 'projects'], priority: 'business', focus: { week: '2026-10-05', id: 'business' }, minutes: 45, intensity: 'lockin' },
+      plans: {
+        [TODAY]: {
+          day: TODAY,
+          missions: [
+            { slot: 'main', missionId: 'P1', area: 'business' },
+            { slot: 'easy', missionId: 'F3', area: 'fitness' },
+            { slot: 'easy', missionId: 'custom-shop', area: 'business', points: 5 },
+          ],
+          rerolls: 1,
+          replaced: ['business-post'],
+          swaps: [swap],
+        },
+        '2026-10-09': { day: '2026-10-09', missions: [{ slot: 'main', missionId: 'business-work-30', area: 'business' }], rerolls: 0, replaced: [] },
+      },
+      customMissions: [own],
+      dayOffset: 2,
+      devPlans: { '2026-10-08': { day: '2026-10-08', missions: [{ slot: 'main', missionId: 'business-content', area: 'business' }], rerolls: 1, replaced: ['business-post'], swaps: [swap] } },
+      record: rec({ '2026-10-09': { 'business-work-30': done('business-work-30', 'business', 15) } }),
+      devSnapshot: rec({ '2026-10-08': { 'business-content': done('business-content', 'business', 15), M1: done('M1', 'money', 5) } }),
+    };
+    const { useApp, MISSION_BY_ID } = await load(v6, 6);
+    const s = useApp.getState();
+    expect(s.profile.tracks).toEqual(['projects', 'fitness']);
+    expect(s.profile.priority).toBe('projects');
+    // The weekly focus keeps its id ("Make progress on my business"); it leans Projects now.
+    expect(s.profile.focus).toEqual({ week: '2026-10-05', id: 'business' });
+    expect(areasOf(s.plans[TODAY])).toEqual(['projects', 'fitness', 'projects']);
+    expect(s.plans[TODAY].swaps?.map(w => w.area)).toEqual(['projects']);
+    expect(areasOf(s.plans['2026-10-09'])).toEqual(['projects']);
+    expect(s.customMissions.map(m => [m.track, m.source])).toEqual([['projects', 'USER_CREATED']]);
+    expect(MISSION_BY_ID['custom-shop'].track).toBe('projects');
+    expect(areasOf(s.devPlans!['2026-10-08'])).toEqual(['projects']);
+    expect(s.devPlans!['2026-10-08'].swaps?.map(w => w.area)).toEqual(['projects']);
+    expect(tracksOf(s.record)).toEqual(['projects']);
+    expect(tracksOf(s.devSnapshot!)).toEqual(['projects', 'money']);
+    const { trackProgress, TRACK_IDS } = await import('../../core/progress');
+    expect(TRACK_IDS).not.toContain('business');
+    expect(trackProgress(s.record).projects.xp).toBe(15);
+    expect(JSON.parse(mem.map.get('unsetld-v2')!).version).toBe(7);
+
+    // Back to the real today: the record and plans kept aside come back with Projects too.
+    useApp.getState().backToRealToday();
+    const back = useApp.getState();
+    expect(tracksOf(back.record)).toEqual(['projects', 'money']);
+    expect(areasOf(back.plans['2026-10-08'])).toEqual(['projects']);
+  });
+
+  it('keeps the areas picked in order, once each; none left falls back to the defaults', async () => {
+    const tracksAfter = async (tracks: string[]) => {
+      const { useApp } = await load({ installSalt: 'salt-o', settings: { onboarded: true }, profile: { tracks } }, 6);
+      return useApp.getState().profile.tracks;
+    };
+    expect(await tracksAfter(['business'])).toEqual(['projects']);
+    expect(await tracksAfter(['school', 'business', 'projects', 'money'])).toEqual(['school', 'projects', 'money']);
+    expect(await tracksAfter(['projects', 'business'])).toEqual(['projects']);
+    const { DEFAULT_PROFILE } = await import('../../core/missions');
+    expect(await tracksAfter([])).toEqual(DEFAULT_PROFILE.tracks);
+  });
+
+  it('maps a Keychain backup that still says Business', async () => {
+    const { useApp } = await load({ installSalt: 'fresh', settings: { onboarded: false } }, 7);
+    const backup = rec({ '2026-10-05': { 'business-post': done('business-post', 'business', 10), S1: done('S1', 'school', 15) } });
+    useApp.getState().restore('salt-kb', backup as never);
+    expect(tracksOf(useApp.getState().record)).toEqual(['projects', 'school']);
+  });
+
+  it('a state saved as v7 loads as it is', async () => {
+    const plan = { day: TODAY, missions: [{ slot: 'main', missionId: 'P1', area: 'projects' }, { slot: 'easy', missionId: 'F3', area: 'fitness' }], rerolls: 0, replaced: [] };
+    const { useApp } = await load({ installSalt: 'salt-7', settings: { onboarded: true }, profile: { tracks: ['projects', 'fitness'] }, plans: { [TODAY]: plan } }, 7);
+    expect(useApp.getState().profile.tracks).toEqual(['projects', 'fitness']);
+    expect(useApp.getState().ensurePlan(TODAY)).toEqual(plan);
   });
 });

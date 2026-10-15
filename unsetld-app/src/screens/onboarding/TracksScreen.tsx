@@ -166,7 +166,10 @@ function Tile({ track, on, dim, onPress }: { track: Track; on: boolean; dim: boo
   );
 }
 
-/** Two to a row; the ninth keeps its column. */
+/**
+ * Two to a row: the eight areas fill four rows, no tile on its own (scripts/validate-content
+ * keeps tracks.json at exactly eight).
+ */
 const ROWS: Track[][] = TRACKS.reduce<Track[][]>((rows, t, i) => {
   if (i % 2 === 0) rows.push([t]);
   else rows[rows.length - 1].push(t);
@@ -181,7 +184,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
   // A saved id the library no longer has would count toward four with no tile to take it off.
   const chosen = value.tracks.filter(id => TRACK_BY_ID[id]);
   const full = chosen.length >= MAX;
-  // Every School mission needs a yes to "In school or college?". Onboarding goes on to About you,
+  // School and a No to "In school or college?" don't go together. Onboarding goes on to About you,
   // where the answer can still change; edit mode saves straight away, so there School stays off.
   const schoolOff = value.school === false && chosen.includes('school');
   const schoolNote = edit ? COPY.schoolOffEdit : COPY.schoolOff;
@@ -257,7 +260,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
       <View style={{ marginTop: 24, gap: GAP.tight }}>
         {ROWS.map(row => (
           <View key={row[0].id} style={{ flexDirection: 'row', gap: GAP.tight }}>
-            {/* Each tile sits in a bare half-width cell, so a lone ninth tile keeps its column. */}
+            {/* Each tile sits in a bare half-width cell, so every row's tiles are the same width. */}
             {row.map(t => {
               const on = chosen.includes(t.id);
               return (
@@ -266,6 +269,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
                 </View>
               );
             })}
+            {/* Never with eight areas; were the count ever odd, the last tile would still keep its column. */}
             {row.length === 1 ? <View style={{ flex: 1 }} /> : null}
           </View>
         ))}

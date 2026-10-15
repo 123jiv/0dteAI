@@ -25,58 +25,22 @@ export function activeFocus(profile: Pick<Profile, 'focus' | 'nextFocus'>, day: 
   return focusFor(profile, mondayOf(day));
 }
 
-/** What each weekly focus leans the plan toward: an area to lead with, missions and tags to favour. */
+/**
+ * What each weekly focus leans the plan toward: an area to lead with, missions (approved ids,
+ * most fitting first) and tags to favour. "Make progress on my business" leans Projects: the
+ * approved library keeps business work there.
+ */
 export const FOCUS_LEAN: Record<Exclude<FocusId, 'other'>, { area: TrackId; ids: string[]; tags: string[] }> = {
-  'school-catchup': {
-    area: 'school',
-    ids: ['school-missing-assignment', 'school-finish-assignment', 'school-tonights-homework', 'school-study-30', 'school-term-deadlines'],
-    tags: ['homework', 'grades'],
-  },
-  exam: {
-    area: 'school',
-    ids: ['school-test-prep', 'school-practice-test', 'school-review-flashcards', 'school-make-flashcards', 'school-practice-problems', 'school-study-sheet', 'school-study-30'],
-    tags: ['exam', 'test'],
-  },
-  business: {
-    area: 'business',
-    ids: ['business-work-30', 'business-work-60', 'business-product', 'business-content', 'business-customer-interviews'],
-    tags: ['customers', 'sell'],
-  },
-  gym: {
-    area: 'fitness',
-    ids: ['fitness-gym', 'fitness-workout', 'fitness-train-30', 'fitness-home-workout'],
-    tags: ['gym', 'workout', 'strength'],
-  },
-  project: {
-    area: 'projects',
-    ids: ['projects-build-30', 'projects-build-60', 'projects-finish-feature', 'projects-finish-not-start', 'projects-launch'],
-    tags: ['build', 'launch'],
-  },
-  apply: {
-    area: 'career',
-    ids: ['career-apply-job', 'career-apply-internship', 'career-application-part', 'career-cover-letter', 'career-application-tracker', 'career-find-opportunities', 'career-improve-resume'],
-    tags: ['apply', 'job', 'internship', 'resume'],
-  },
-  routine: {
-    area: 'discipline',
-    ids: ['discipline-plan-tomorrow', 'discipline-make-your-bed', 'discipline-top-3', 'discipline-lock-in-30', 'discipline-most-important-first'],
-    tags: ['routine', 'habits'],
-  },
-  organize: {
-    area: 'organization',
-    ids: ['organization-clean-room-15', 'organization-declutter-30', 'organization-closet', 'organization-drawer', 'organization-clean-desk'],
-    tags: ['clean', 'organize'],
-  },
-  save: {
-    area: 'money',
-    ids: ['money-track-spending', 'money-save-today', 'money-simple-budget', 'money-month-review', 'money-compare-prices'],
-    tags: ['save', 'savings', 'budget'],
-  },
-  skill: {
-    area: 'skills',
-    ids: ['skills-learn-30', 'skills-course-lesson', 'skills-practice-not-watch', 'skills-coding', 'skills-design', 'skills-editing', 'skills-writing', 'skills-language', 'skills-instrument'],
-    tags: ['learn', 'practice'],
-  },
+  'school-catchup': { area: 'school', ids: ['S5', 'S6', 'S13', 'S11', 'S1'], tags: ['homework', 'assignment', 'grades'] },
+  exam: { area: 'school', ids: ['S2', 'S9', 'S4', 'S10', 'S15', 'S3', 'S12'], tags: ['exam', 'test'] },
+  business: { area: 'projects', ids: ['P1', 'P9', 'P3', 'P4', 'P10'], tags: ['business', 'brand', 'customers', 'sell', 'content'] },
+  gym: { area: 'fitness', ids: ['F1', 'F7', 'F5', 'F3', 'F8'], tags: ['gym', 'workout', 'strength'] },
+  project: { area: 'projects', ids: ['P1', 'P2', 'P5', 'P10', 'P12', 'P6'], tags: ['build', 'launch', 'project'] },
+  apply: { area: 'career', ids: ['C2', 'C3', 'C12', 'C1', 'C5'], tags: ['apply', 'job', 'internship', 'resume'] },
+  routine: { area: 'discipline', ids: ['D4', 'D1', 'D2', 'D5'], tags: ['routine', 'habits'] },
+  organize: { area: 'organization', ids: ['O1', 'O2', 'O8', 'O9', 'O5'], tags: ['clean', 'organize'] },
+  save: { area: 'money', ids: ['M3', 'M1', 'M2', 'M6', 'M5'], tags: ['save', 'savings', 'budget'] },
+  skill: { area: 'skills', ids: ['K1', 'K2', 'K3', 'K9', 'K10'], tags: ['learn', 'practice'] },
 };
 
 /**
@@ -104,19 +68,21 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
     tags: ['sport', 'training'],
   },
   { words: /\b(eat(ing)? (better|healthier|healthy)|healthier|nutrition|meals?|protein|cook(ing)?)\b/i, areas: ['fitness'], tags: ['meal', 'food'] },
+  // A brand or a business is something being built: Projects (3.3 folded Business into it).
   {
     words: /\b(brand|clothing|apparel|business|shop|store|sell(ing)?|customers?|clients?|startup|company|merch|side hustle|hustle|entrepreneur\w*|etsy|resell(ing)?)\b/i,
-    areas: ['business'],
-    tags: ['brand', 'clothing', 'shop', 'sell', 'customers'],
+    areas: ['projects'],
+    tags: ['brand', 'clothing', 'shop', 'sell', 'customers', 'business'],
   },
   // Career, split by stage: an internship, a job search, or moving up where they already work.
   { words: /\b(internships?)\b/i, areas: ['career'], tags: ['internship'] },
   { words: /\b(jobs?|hired|resume|cv|interviews?|linkedin|apply|applications?)\b/i, areas: ['career'], tags: ['job', 'resume', 'interview', 'apply'] },
   { words: /\b(career|promotion|raise|advanc\w*|professional(ly)?|salary|manager)\b/i, areas: ['career'], tags: ['work', 'skill', 'resume'] },
   { words: /\b(network(ing)?|connections?)\b/i, areas: ['career'], tags: ['network'] },
-  // Building a thing (an app, a site) is a project first; learning to code is a skill first.
-  { words: /\b(apps?|websites?|software)\b/i, areas: ['projects', 'skills'], tags: ['app', 'coding', 'code'] },
-  { words: /\b(cod(e|ing)|program(ming)?|developer|python|javascript)\b/i, areas: ['skills', 'projects'], tags: ['coding', 'code', 'programming'] },
+  // Building a thing (an app, a site) is a project first; learning to code is a skill first, and so
+  // is software on its own ("Become a software engineer" isn't building anything yet).
+  { words: /\b(apps?|websites?)\b/i, areas: ['projects', 'skills'], tags: ['app', 'coding', 'code'] },
+  { words: /\b(cod(e|ing)|program(ming)?|developer|software|python|javascript)\b/i, areas: ['skills', 'projects'], tags: ['coding', 'code', 'programming'] },
   {
     words: /\b(save|saving|savings|budget(ing)?|debt|invest(ing)?|money|spend(ing)?|income|financ\w*)\b|\$\s?\d/i,
     areas: ['money'],
@@ -140,6 +106,36 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
   { words: /\b(languages?|spanish|french|german|japanese|korean|chinese)\b/i, areas: ['skills'], tags: ['practice', 'learn', 'language'] },
   { words: /\b(learn(ing)?|skills?)\b/i, areas: ['skills'], tags: ['learn'] },
 ];
+
+/**
+ * Does the goal point at an area as the thing it's about: a KEYWORDS row that names the area
+ * first. School: grades, homework, studying, exams. Projects: an app or a website, shipping or
+ * launching, a brand or a business ("Learn coding" is Skills first, so it doesn't count; there's
+ * no bare "build": "Build muscle" is Fitness). core/missions eligibleAreas reads it.
+ */
+export function goalPointsAt(text: string | null | undefined, area: TrackId): boolean {
+  if (!text?.trim()) return false;
+  return KEYWORDS.some(k => k.areas[0] === area && k.words.test(text));
+}
+
+/** A goal that names a job or internship search ("Get a software job", "Land a summer internship"). */
+const JOB_SEARCH = /\b(jobs?|internships?|hired|hiring|apply(ing)?|applications?|job hunt(ing)?|job search)\b/i;
+/**
+ * The same words where they aren't a search: applying to college or for a scholarship, and the
+ * job they already have ("Get promoted at my job").
+ */
+const NOT_A_SEARCH =
+  /\b(?:(?:apply(?:ing)?|applications?)\s+(?:to|for)\s+(?:(?!jobs?\b|internships?\b)[a-z-]+\s+){0,2}(?:colleges?|universit(?:y|ies)|schools?|scholarships?|programs?)|(?:college|university|school|scholarship)\s+applications?|(?:at|in|keep|keeping)\s+my\s+(?:current\s+)?job)\b/gi;
+
+/**
+ * Is a job or internship search part of what the user is doing: their goal names one, or this
+ * week's focus is "Apply for jobs or internships" (with `day`). Career missions for someone who
+ * didn't pick Career, and the 'jobsearch' requirement (Apply to One Job or Internship), follow it.
+ */
+export function jobSearch(profile: Pick<Profile, 'goal' | 'focus' | 'nextFocus'>, day?: DayKey): boolean {
+  if (JOB_SEARCH.test((profile.goal ?? '').replace(NOT_A_SEARCH, ' '))) return true;
+  return day != null && activeFocus(profile, day)?.id === 'apply';
+}
 
 /** What a goal (or a weekly focus typed under "Something else") points at. Empty for no match. */
 export function goalLean(text: string | null | undefined): { areas: TrackId[]; tags: string[] } {
@@ -203,7 +199,7 @@ export interface Adaptation {
   ignored: Record<string, number>;
   /** Kinds of mission swapped away more than once (by group "g:" or tag "t:"): how many different missions. */
   swappedKinds: Record<string, number>;
-  /** Long missions (45+ min) mostly get left while 20–35 minute ones get done: keep focused missions shorter. */
+  /** Long missions (LONG_MINUTES or more) mostly get left while 15–25 minute ones get done: keep focused missions shorter. */
   preferShort: boolean;
   /** Areas proven consistently: they get slightly bigger missions. */
   stepUp: TrackId[];
@@ -215,6 +211,12 @@ export interface Adaptation {
   easeIn?: TrackId[];
 }
 
+/**
+ * A long mission, for preferShort: 30 minutes or more. The approved library's focused missions
+ * run 30–45 minutes, so this is where "long" starts; shorter ones (15–25) are the alternative.
+ */
+export const LONG_MINUTES = 30;
+
 export const NO_ADAPTATION: Adaptation = { ignored: {}, swappedKinds: {}, preferShort: false, stepUp: [], timeOfDay: null, notForMe: {}, easeIn: [] };
 
 /**
@@ -223,9 +225,10 @@ export const NO_ADAPTATION: Adaptation = { ignored: {}, swappedKinds: {}, prefer
  * down planning, not the whole area.
  */
 const KIND_TAGS: ReadonlySet<string> = new Set([
-  'planning', 'reading', 'writing', 'notes', 'flashcards', 'research',
+  'planning', 'reading', 'writing', 'notes', 'flashcards', 'research', 'recall',
   'cardio', 'run', 'walk', 'stretch', 'mobility', 'meal', 'cooking',
   'chores', 'declutter', 'video', 'editing', 'interview', 'resume', 'content',
+  'improve', 'portfolio',
 ]);
 
 /** The kinds a mission belongs to, for "this kind keeps getting swapped": its group and its activity tags. */
@@ -290,7 +293,7 @@ export function learnFrom(
       const a = (area[p.area ?? m.track] ??= { planned: 0, proven: 0 });
       a.planned += 1;
       if (ok) a.proven += 1;
-      const bucket = m.minutes >= 45 ? size.long : m.minutes >= 20 ? size.mid : null;
+      const bucket = m.minutes >= LONG_MINUTES ? size.long : m.minutes >= 15 ? size.mid : null;
       if (bucket) {
         bucket.planned += 1;
         if (ok) bucket.proven += 1;
@@ -347,7 +350,7 @@ export function personalWeight(m: Mission, area: TrackId, lean: Lean, adapt: Ada
   const notForMe = adapt.notForMe?.[m.id] ?? 0;
   if (notForMe) w *= notForMe >= 2 ? 0.1 : 0.25;
   if (adapt.stepUp.includes(area) && m.minutes >= 30) w *= 1.4;
-  if (adapt.easeIn?.includes(area)) w *= m.minutes >= 30 ? 0.5 : m.minutes <= 15 ? 1.3 : 1;
+  if (adapt.easeIn?.includes(area)) w *= m.minutes >= 30 ? 0.5 : m.minutes <= 20 ? 1.3 : 1;
   if (adapt.timeOfDay === 'evening' && m.when === 'morning') w *= 0.7;
   if (adapt.timeOfDay === 'morning' && m.when === 'evening') w *= 0.7;
   return w;

@@ -3,7 +3,7 @@ import { computeStreak } from './streak';
 import { addDays, type DayKey } from './time';
 import type { DayPlan, MissionDone, ProofPhoto, RecordState, TrackId } from './types';
 
-export const TRACK_IDS: readonly TrackId[] = ['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization'];
+export const TRACK_IDS: readonly TrackId[] = ['discipline', 'school', 'fitness', 'money', 'career', 'skills', 'projects', 'organization'];
 const KNOWN_TRACKS: ReadonlySet<string> = new Set(TRACK_IDS);
 
 /** Points a track needs to reach a level: L2 50, L3 150, L4 300, L5 500 ... */
@@ -210,7 +210,7 @@ export function areaProgress(r: RecordState, minutesOf: (missionId: string) => n
 /**
  * The areas Progress shows, in order: the ones the user chose that can get missions (in their
  * order), then any other area with points, most points first. An area the user chose but can't
- * get missions in (School for someone not in school) shows only once it has points.
+ * get missions in (every mission in it ruled out by their answers) shows only once it has points.
  */
 export function areasShown(chosen: readonly TrackId[], usable: readonly TrackId[], levels: Record<TrackId, Pick<TrackProgress, 'xp'>>): TrackId[] {
   const known = (t: TrackId) => KNOWN_TRACKS.has(t);

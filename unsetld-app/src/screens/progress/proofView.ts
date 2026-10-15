@@ -3,8 +3,8 @@
 import type { DayProof } from '../../core/history';
 import type { ProofEntry, ProofMonth } from '../../core/progress';
 import type { DayKey } from '../../core/time';
-import type { ProofPhoto, TrackId } from '../../core/types';
-import { MISSION_BY_ID, TRACK_BY_ID, TRACKS } from '../../content';
+import type { PlannedMission, ProofPhoto, TrackId } from '../../core/types';
+import { historyMission, TRACK_BY_ID, TRACKS, type HistoryMission } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 
 const H = PROGRESS.history;
@@ -30,11 +30,12 @@ export interface ProofView {
 export const areaName = (track: string) => TRACK_BY_ID[track as TrackId]?.short ?? '';
 
 /**
- * The mission's title: as it was proven (3.2 keeps it), else the library's, else one made from
- * its id or its area (a mission no longer in the library).
+ * The mission's title: as it was proven (3.2 keeps it, 3.3 as the user read it, "Work on Your
+ * Clothing Brand for 30 Minutes"), else the mission's (one retired in 3.3 by the title it had,
+ * content historyMission), else one made from its id or its area (an id nothing knows).
  */
 export function proofTitle(missionId: string, title: string | undefined, track: string): string {
-  return title?.trim() || MISSION_BY_ID[missionId]?.title || H.fallbackTitle(missionId, areaName(track));
+  return title?.trim() || historyMission(missionId)?.title || H.fallbackTitle(missionId, areaName(track));
 }
 
 export function fromEntry(e: ProofEntry): ProofView {
@@ -51,6 +52,29 @@ export function fromEntry(e: ProofEntry): ProofView {
     cover: e.cover,
     timerSeconds: typeof done.timerSeconds === 'number' && done.timerSeconds > 0 ? done.timerSeconds : 0,
   };
+}
+
+/** A mission a day's plan held and didn't prove, as the day's page lists it. */
+export interface OpenMission {
+  id: string;
+  title: string;
+  /** The area it was planned in ("School"), or '' for one the app no longer has. */
+  area: string;
+}
+
+/**
+ * What a day's plan held that wasn't proven, in plan order: an approved mission or one of the
+ * user's own by the title Today showed it with (`titleOf`), one retired in 3.3 by the title it
+ * had then (content historyMission, history only), so the rows match the planned count. An id
+ * nothing knows is left out.
+ */
+export function openMissions(ids: readonly string[], planned: readonly PlannedMission[] | undefined, titleOf: (m: HistoryMission) => string): OpenMission[] {
+  return ids.flatMap(id => {
+    const m = historyMission(id);
+    if (!m) return [];
+    const p = planned?.find(x => x.missionId === id);
+    return [{ id, title: titleOf(m), area: areaName(p?.area ?? m.track) }];
+  });
 }
 
 export function fromDay(day: DayKey, p: DayProof): ProofView {

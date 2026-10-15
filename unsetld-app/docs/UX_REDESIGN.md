@@ -11,7 +11,7 @@ Internal positioning (never pasted as-is into the UI): **UNSETLD — prove your 
 The product must be useful to someone who will never buy UNSETLD clothing. Rewards are a reward for progress, not the reason the app exists: no product promotion on Today, Progress or You; a user can spend minutes in the app without seeing apparel.
 
 Principles:
-1. **Progressive disclosure.** Show what matters now. Advanced numbers live one tap deeper (Stats). Day 1 shows the three missions, how each is proven, what each is worth, and the first reward — nothing else.
+1. **Progressive disclosure.** Show what matters now. Advanced numbers live one tap deeper (Stats). Day 1 shows the day's missions, how each is proven, what each is worth, and the first reward — nothing else.
 2. **Quiet.** Spacing, grouping and raised surfaces instead of rules. One kicker (spaced uppercase label) per card or section, not on every line.
 3. **Serif for meaning, sans for utility.** Serif: screen titles, mission titles, important numbers. Sans/mono: descriptions, metadata, buttons, times, proof types, category labels.
 4. **Proof is visible before you start.** Every mission row shows its proof method with an icon.
@@ -23,7 +23,7 @@ Bottom navigation, always on the main screens: **Today · Progress · Rewards ·
 
 | Tab | What it is | Opens |
 |---|---|---|
-| Today (`Main › Today`) | The three missions, the next reward, the active plan, the weekly focus question, the weekly review card on Sundays | Mission, Plans, WeeklyFocus, WeeklyReview, Share |
+| Today (`Main › Today`) | The day's missions (two to four, by the time the user has), the next reward, the active plan, the weekly focus question, the weekly review card on Sundays | Mission, Plans, WeeklyFocus, WeeklyReview, Share |
 | Progress (`Main › Progress`) | Streak, today, this week, your areas (levels) | ProofHistory, Achievements, Stats, Moment |
 | Rewards (`Main › Rewards`; only while rewards are on, or a code taken still works) | Points, next reward, up next, status | AllRewards, RewardHistory, HowPoints, Status, Milestone, Account |
 | You (`Main › You`) | Goals, profile, this week, reminders, membership, appearance, settings | Tracks/AboutYou/Pace/Goal (edit), Day, WeeklyFocus, Plans, Paywall, Widget, Account, Doc, DevTools |
@@ -78,17 +78,17 @@ ACTIVE PLAN  Build Something · Day 4 of 7   Continue →
 
 ```
 SCHOOL                                   (kicker, colorway.secondary)
-Study for 30 Minutes                     (serif, list 23)
+Study One Subject for 30 Minutes         (serif, list 23)
 30 min · ⏱📷 Timer + photo · +15 pts      (meta row; ProofMeta for the middle; "Tonight" after the time for an evening mission, which sorts after the others)
                                    [ START ]   Swap
 ```
 
 - Kicker: the planned area (`TodayMission.area`).
-- Title: serif.
+- Title: serif, as the user reads it (core/titles `missionTitle`: `Study Calculus for 30 Minutes` for a goal of Pass calculus).
 - Meta: time, `ProofMeta` (icons + label), points. Proof is always visible before START.
 - Actions: small filled `START` (or the live state: `TIMER 12:04`, `MARK DONE`, `TAKE PHOTO`, `AFTER PHOTO`), and a quiet `Swap` text while swaps are left.
 - Proven: the card dims (title in secondary), a check icon + "Proven 9:47 AM · +15", the proof thumbnail if there is one.
-- Whole card opens the mission; accessibility label "Study for 30 Minutes. School, 30 minutes, 15 points, proven with the timer and a photo."
+- Whole card opens the mission; accessibility label "Study One Subject for 30 Minutes. School, 30 minutes, 15 points, proven with the timer and a photo."
 
 ## 5. Mission page and completion
 
@@ -149,7 +149,7 @@ UNSETLD STATUS  Next: 15% off at 30 days  [meter]  29 / 30 days proven  →
 
 ## 10. Plans
 
-"Programs" becomes **Plans** in every user-facing string. List: free plans first, then one section labelled `With UNSETLD+` (no per-card edition label). Each card: serif title, one line, "7 days · Discipline" meta, `Start`. Active plan at the top: "Day 4 of 7", today's plan missions as rows like Today's, `Leave plan`. Titles and lines: 7 Day Lock In "Build seven days of consistency." · School Reset "Get organized, catch up, and get ahead." · Build Something "Seven days toward shipping something real." · Fitness Reset (was Fitness Base) "Build momentum again." · Business Week "Seven days of meaningful work on your business." · Get Organized "Five days to clear your space and your files." A running plan puts at least one of its missions in each day's plan (the engine already places the plan day's missions first).
+"Programs" becomes **Plans** in every user-facing string. List: free plans first, then one section labelled `With UNSETLD+` (no per-card edition label). Each card: serif title, one line, "7 days · Discipline" meta, `Start`. Active plan at the top: "Day 4 of 7", today's plan missions as rows like Today's, `Leave plan`. Titles and lines: 7 Day Lock In "Build seven days of consistency." · School Reset "Get organized, catch up, and get ahead." · Build Something "Seven days toward shipping something real." · Fitness Reset (was Fitness Base) "Build momentum again." · Business Week "Seven days of meaningful work on your business." · Get Organized "Five days to clear your space and get ready for the week." A running plan puts at least one of its missions in each day's plan (the engine already places the plan day's missions first).
 
 ## 11. You
 
@@ -163,9 +163,9 @@ Name → **Areas** ("What do you want to improve?", pick two to four; someone wi
 
 Real, deterministic rules — never called AI. Inputs: areas, answers (school, level, work, project, gym, age, skills), time, intensity, recent plans, proofs, swaps, ignored missions, time of day, the active plan, the weekly focus, the goal text.
 - **Weekly focus:** asked on Today from the second active day in a week with none set ("Not this week" skips it); also in You and in Sunday's review, which sets next week's (kept aside until Monday, so Sunday's missions don't change). Only options the user's answers can get missions for are offered. Each option leans the plan toward an area and specific missions (e.g. "Prepare for an exam" → practice tests, flashcards, study sessions; "Get back in the gym" → workouts).
-- **Goal text:** keywords map to missions and areas ("GPA", "grades" → school study; "brand", "clothing" → business; "internship" → career applications; "muscle", "gym" → workouts; "coding", "app" → coding drills and project builds; "save" → savings).
+- **Goal text:** keywords map to missions and areas ("GPA", "grades" → school study; "brand", "clothing", "business" → projects (3.3 folded Business into Projects); "internship" → career applications; "muscle", "gym" → workouts; "coding", "app" → coding drills and project builds; "save" → savings).
 - **Learning from behaviour** (last 28 days): missions swapped repeatedly come up less; missions planned and left undone (ignored) come up less; if long missions are mostly left undone while shorter ones get proven, the day prefers shorter missions; an area proven consistently gets slightly bigger missions; areas rarely completed keep their place (no punishment).
-- **Staples first:** each area's staple missions (Complete Your Workout, Study for 30 Minutes ...) come up far more than niche ones (a 5-minute plank set appears only when nothing else fits; so do medium-specific missions like Film One Video until the user names that medium). Day 1 leads with an area the goal names, is the areas' core habits wherever one fits, and in the morning holds nothing meant for tonight. A running plan never pushes the weekly focus out of the day.
+- **Staples first:** each area's staple missions (Complete Your Workout, Study One Subject for 30 Minutes ...) come up far more than the rest of the area (3.3: every mission is one of the founder's approved 66, docs/MISSIONS_SPEC.md §4). Day 1 leads with an area the goal names, is the areas' core habits wherever one fits, and in the morning holds nothing meant for tonight. A running plan never pushes the weekly focus out of the day.
 
 ## 14. Copy
 

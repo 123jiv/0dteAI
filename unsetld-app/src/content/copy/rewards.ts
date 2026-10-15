@@ -186,14 +186,13 @@ export const REWARDS_COPY = {
     earningNote: 'The longer a mission takes, the more it’s worth.',
     /**
      * By how long a mission takes, matching the library's rule (scripts/validate-content.mjs
-     * pointsFor: up to 5 min +5, up to 20 +10, up to 35 +15 or +20, under 60 +20, an hour +25).
-     * `said` is what VoiceOver reads for the points.
+     * pointsFor: up to 10 min +5, up to 20 +10, up to 45 +15 or +20). The approved missions
+     * run 5 to 45 minutes, so nothing earns more. `said` is what VoiceOver reads for the points.
      */
     rows: [
-      { title: 'A few minutes', value: '+5', said: '5 points' },
-      { title: '10–20 minutes', value: '+10', said: '10 points' },
+      { title: 'Up to 10 minutes', value: '+5', said: '5 points' },
+      { title: '15–20 minutes', value: '+10', said: '10 points' },
       { title: '25–45 minutes', value: '+15 to +20', said: '15 to 20 points' },
-      { title: 'An hour', value: '+25', said: '25 points' },
     ],
     perfect: 'Perfect day',
     perfectNote: 'Every mission in the day proven. On top of the missions.',

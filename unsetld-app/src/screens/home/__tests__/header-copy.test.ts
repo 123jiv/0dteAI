@@ -44,7 +44,7 @@ describe('the header says status, not sentences', () => {
 describe('START', () => {
   it('its own control, with what it does', () => {
     expect(HOME.action.start).toBe('START');
-    expect(HOME.a11y.start('Study for 30 Minutes')).toBe('Start Study for 30 Minutes');
+    expect(HOME.a11y.start('Study One Subject for 30 Minutes')).toBe('Start Study One Subject for 30 Minutes');
     expect(HOME.a11y.startHint(30)).toBe('Starts the 30-minute timer');
     expect(HOME.a11y.startHint(null)).toBe('Opens the mission to do it and prove it');
   });

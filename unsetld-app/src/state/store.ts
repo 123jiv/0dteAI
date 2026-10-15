@@ -14,6 +14,7 @@ import {
   DEFAULT_PROFILE,
   generatePlan,
   historyFrom,
+  planAreas,
   prunePlans,
   meetsRequirements,
   replacementChoices,
@@ -29,12 +30,13 @@ import { clearPhotos, oldestPhotos, photosToClear, photoUris } from '../core/pro
 import { activeDays } from '../core/progress';
 import { balance, effectiveStatus, parseRewards, parseStatus, redeem, statusFromMilestones } from '../core/rewards';
 import { computeStreak } from '../core/streak';
+import { missionTitle } from '../core/titles';
 import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as startCore, type FocusTimer } from '../core/timer';
 import { emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import type { DayKey } from '../core/time';
 import type { ChapterId, Colorway, DayPlan, Mission, Profile, Program, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, SwapReason, TrackId, Verification, WeeklyFocus } from '../core/types';
-import { COLORWAY_BY_ID, COLORWAYS, MILESTONES, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
+import { COLORWAY_BY_ID, COLORWAYS, isApproved, MILESTONES, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
 import { deletePhoto, webPhotoKeys } from '../services/proof';
@@ -255,10 +257,11 @@ export const useApp = create<State>()(
       setProfile: patch =>
         set(s => {
           const profile = { ...s.profile, ...patch };
-          // A program with missions the new answers rule out (School Reset after "not in school") stops;
-          // the days already proven stay on the record.
+          // A program with missions the new answers rule out (one holding "Apply to One Job or
+          // Internship" once the goal is no longer a job search) stops; the days already proven
+          // stay on the record.
           const p = s.program && !s.program.finishedDay ? PROGRAM_BY_ID[s.program.id] : undefined;
-          const fits = !p || p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile));
+          const fits = !p || p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile, today()));
           return fits ? { profile } : { profile, program: null };
         }),
 
@@ -266,6 +269,8 @@ export const useApp = create<State>()(
         const d = day ?? today();
         const s = get();
         const have = s.plans[d];
+        // Kept as it is only while every mission in it is an approved one or one of the user's own
+        // (MISSION_BY_ID): a day planned before 3.3's library holds retired ids and is planned again.
         if (have?.missions.length && have.missions.every(p => MISSION_BY_ID[p.missionId])) {
           if (have.missions.every(p => p.area)) return have;
           // A plan from an earlier build: record each mission's area once, as its row shows it.
@@ -277,11 +282,13 @@ export const useApp = create<State>()(
         if (!have) plan = buildPlan(s, d);
         else {
           // A library update removed a planned mission, or the day has none: a day that was swapped,
-          // proven or started keeps what's left while something in it is still open; an untouched
-          // day, or one with nothing left to prove, is planned again and keeps its swap count.
+          // proven or started keeps what's left while something in it is still open, with another
+          // approved mission in each retired one's place (refilled); an untouched day, or one with
+          // nothing left to prove, is planned again and keeps its swap count.
+          // A retired mission proven that day stays on the record with its title either way.
           const kept = withAreas({ ...have, missions: have.missions.filter(p => MISSION_BY_ID[p.missionId]) }, s.profile);
           const open = kept.missions.some(p => s.record.missions?.[d]?.[p.missionId]?.verification?.status !== 'accepted');
-          if (open && touched(s, kept, d)) plan = kept;
+          if (open && touched(s, kept, d)) plan = refilled(s, d, have);
           else {
             plan = { ...buildPlan(s, d), rerolls: have.rerolls, replaced: have.replaced };
             // Still nothing fits: keep the stored day rather than saving it again on every call.
@@ -339,12 +346,13 @@ export const useApp = create<State>()(
           const worth = typeof old.points === 'number' ? old.points : (MISSION_BY_ID[old.missionId]?.points ?? mission.points);
           points = Math.min(mission.points, worth);
         } else {
-          // One of the choices offered; else any library mission that could be planned today.
+          // One of the choices offered; else any approved mission that could be planned today, in
+          // one of the day's areas (core/missions planAreas: never one the user didn't choose).
           const pick = choicesFor(s, d, plan, index, reason, 6).find(p => p.mission.id === missionId);
           if (pick) area = pick.area;
           else {
-            const usable = MISSIONS.some(m => m.id === missionId) && meetsRequirements(mission.requires, s.profile) && !plan.replaced.includes(missionId);
-            const to = usable ? s.profile.tracks.find(t => serves(mission, t)) : undefined;
+            const usable = isApproved(missionId) && meetsRequirements(mission.requires, s.profile, d) && !plan.replaced.includes(missionId);
+            const to = usable ? planAreas({ library: MISSIONS, profile: s.profile, day: d }).find(t => serves(mission, t)) : undefined;
             if (!to) return 'invalid';
             area = to;
           }
@@ -418,6 +426,8 @@ export const useApp = create<State>()(
           verifiedClock: opts.verifiedClock,
           timerSeconds: opts.timerSeconds,
           programId,
+          // The title as the user saw it ("Work on Your Clothing Brand for 30 Minutes"), kept next to P1.
+          title: missionTitle(mission, s.profile),
         });
         const accepted = verification.status === 'accepted';
         let program = s.program;
@@ -558,12 +568,15 @@ export const useApp = create<State>()(
         focusSkipped: s.focusSkipped,
         customMissions: s.customMissions,
       }),
-      version: 6,
+      version: 7,
       migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
-        // The user's own missions first: a plan, a timer or a proof may name one.
+        // The user's own missions first: a plan, a timer or a proof may name one. One saved before
+        // 3.3 is marked USER_CREATED here, as registerCustomMissions marks it in the lookup.
         const saved = (persisted ?? {}) as Partial<State>;
-        const customMissions = Array.isArray(saved.customMissions) ? saved.customMissions.filter(m => m && isCustomId(String(m.id)) && m.custom) : [];
+        const customMissions = (Array.isArray(saved.customMissions) ? saved.customMissions.filter(m => m && isCustomId(String(m.id)) && m.custom) : []).map(m =>
+          m.source === 'USER_CREATED' ? m : { ...m, source: 'USER_CREATED' as const },
+        );
         registerCustomMissions(customMissions);
         const p = withoutUnknownMissions({ ...saved, customMissions });
         return {
@@ -612,6 +625,22 @@ function buildPlan(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
 }
 
 type PlanState = Pick<State, 'profile' | 'installSalt' | 'record' | 'plans' | 'skips' | 'program'>;
+
+/**
+ * A kept day whose plan holds retired missions (saved before 3.3): each one's slot gets another
+ * approved mission from its area, the way the swap button picks one, without using up a swap. The
+ * day keeps its size, so one mission of the user's own isn't the whole day (and a free perfect day).
+ */
+function refilled(s: PlanState, day: DayKey, have: DayPlan): DayPlan {
+  const input = planInput(s, day);
+  let plan = withAreas(have, s.profile);
+  for (let i = 0; i < plan.missions.length; i++) {
+    if (MISSION_BY_ID[plan.missions[i].missionId]) continue;
+    const next = rerollCore(plan, i, input);
+    if (next) plan = { ...next, rerolls: plan.rerolls, replaced: plan.replaced };
+  }
+  return { ...plan, missions: plan.missions.filter(p => MISSION_BY_ID[p.missionId]) };
+}
 
 /** "RECOMMENDED FOR YOU" for the mission at `index` of `plan` (core/missions replacementChoices). */
 function choicesFor(s: PlanState, day: DayKey, plan: DayPlan, index: number, reason: SwapReason, count = 3): SlotPick[] {
@@ -667,9 +696,10 @@ function stranded(s: Pick<State, 'timer' | 'pendingBefore'>, plan: DayPlan): Pic
 }
 
 /**
- * A saved timer or before photo for a mission removed from the library (3.0 preview builds had
- * other missions; retired missions are still known) can't be shown or proven: it goes on load,
- * with its notification and its photo.
+ * A saved timer or before photo for a mission that isn't approved or the user's own (3.0 preview
+ * builds had other missions, and 3.3 retired every mission outside the approved library) can't
+ * be shown or proven: it goes on load, with its notification and its photo. A retired mission
+ * already proven stays on the record.
  */
 function withoutUnknownMissions(p: Partial<State>): Partial<State> {
   const gone = (x: Started) => Boolean(x && !MISSION_BY_ID[x.missionId]);
@@ -700,14 +730,15 @@ const CHAPTER_TO_TRACK: Record<ChapterId, TrackId> = {
   stoic: 'discipline',
 };
 
-/** 3.0 preview builds had other goal areas; they map onto today's. */
-const OLD_TRACK: Record<string, TrackId> = { focus: 'discipline', reset: 'organization', mindset: 'discipline' };
-const KNOWN_TRACK = new Set<string>(['discipline', 'school', 'fitness', 'money', 'career', 'business', 'skills', 'projects', 'organization']);
+/** Goal areas that are gone, mapped onto today's: 3.0 preview builds' ids, and Business (folded into Projects in 3.3). */
+const OLD_TRACK: Record<string, TrackId> = { focus: 'discipline', reset: 'organization', mindset: 'discipline', business: 'projects' };
+const KNOWN_TRACK = new Set<string>(['discipline', 'school', 'fitness', 'money', 'career', 'skills', 'projects', 'organization']);
 const toTrack = (t: string): TrackId | null => (KNOWN_TRACK.has(t) ? (t as TrackId) : OLD_TRACK[t] ?? null);
 
 /**
- * The area stored on each proven mission, with 3.0 preview builds' ids mapped onto today's.
- * Used for the saved record, the tester snapshot and the Keychain backup; a current record comes back unchanged.
+ * The area stored on each proven mission, with gone area ids (3.0 preview builds', Business)
+ * mapped onto today's. Used for the saved record, the tester snapshot and the Keychain backup;
+ * a current record comes back unchanged.
  */
 export function migrateRecordTracks(r: RecordState): RecordState {
   if (!r.missions) return r;
@@ -725,8 +756,45 @@ export function migrateRecordTracks(r: RecordState): RecordState {
  * codes already taken) carry over as a starting balance.
  */
 export function migrateState(p: Partial<State>, version: number): Partial<State> {
-  if (version >= 6) return p;
-  return toV6(version >= 5 ? p : toV5(version >= 4 ? p : toV4(p, version)));
+  if (version >= 7) return p;
+  return toV7(version >= 6 ? p : toV6(version >= 5 ? p : toV5(version >= 4 ? p : toV4(p, version))));
+}
+
+/** Each planned mission's area and each swap's, with gone area ids mapped onto today's. */
+function migratePlanTracks(plans: Record<DayKey, DayPlan> | null | undefined): Record<DayKey, DayPlan> | null | undefined {
+  if (!plans) return plans;
+  const area = (t: TrackId | undefined) => (t ? (toTrack(t) ?? t) : t);
+  return Object.fromEntries(
+    Object.entries(plans).map(([d, plan]) => [
+      d,
+      plan && {
+        ...plan,
+        missions: Array.isArray(plan.missions) ? plan.missions.map(m => (m?.area ? { ...m, area: area(m.area) } : m)) : plan.missions,
+        ...(Array.isArray(plan.swaps) ? { swaps: plan.swaps.map(w => (w?.area ? { ...w, area: area(w.area) } : w)) } : {}),
+      },
+    ]),
+  );
+}
+
+/**
+ * 6 → 7 (3.3): Business folded into Projects. The areas picked (in order, once each, four at
+ * most), the plans' areas and swaps (and the real plans kept aside during tester time travel),
+ * the user's own missions, the record and its tester snapshot all say Projects now. The weekly
+ * focus "Make progress on my business" keeps its id; it leans Projects.
+ */
+function toV7(p: Partial<State>): Partial<State> {
+  const out: Partial<State> = { ...p };
+  if (p.profile) {
+    const tracks = [...new Set((p.profile.tracks ?? []).map(t => toTrack(t)).filter((t): t is TrackId => Boolean(t)))].slice(0, 4);
+    const priority = p.profile.priority ? toTrack(p.profile.priority) : null;
+    out.profile = { ...p.profile, tracks: tracks.length ? tracks : DEFAULT_PROFILE.tracks, priority };
+  }
+  if (p.plans) out.plans = migratePlanTracks(p.plans) as Record<DayKey, DayPlan>;
+  if (p.devPlans) out.devPlans = migratePlanTracks(p.devPlans) ?? null;
+  if (Array.isArray(p.customMissions)) out.customMissions = p.customMissions.map(m => (m?.track ? { ...m, track: toTrack(m.track) ?? m.track } : m));
+  if (p.record) out.record = migrateRecordTracks(p.record);
+  if (p.devSnapshot) out.devSnapshot = migrateRecordTracks(p.devSnapshot);
+  return out;
 }
 
 /** 5 → 6: the 3.0 weekly priority is retired (the weekly focus replaced it), so a lean nobody can see or clear goes. */

@@ -166,7 +166,7 @@ export const HOME = {
     lockedA11y: ', UNSETLD+',
     lockedBar: (name: string) => `${name} comes with UNSETLD+.`,
     seeFull: 'See UNSETLD+',
-    /** Swatch text when there is no plan to borrow a mission title from. */
-    previewFallback: 'Study for 30 Minutes',
+    /** Swatch text when there is no plan to borrow a mission title from (S1's approved title). */
+    previewFallback: 'Study One Subject for 30 Minutes',
   },
 } as const;

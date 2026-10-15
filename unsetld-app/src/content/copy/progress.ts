@@ -345,7 +345,7 @@ export const PROGRESS = {
     /** How the history is organised: by month (the default), by mission or by area. */
     by: { date: 'Date', mission: 'Mission', area: 'Area' },
     a11yBy: 'Show proof by',
-    /** A mission's or an area's section: its name and how many proofs ("Study for 30 Minutes", "12"). */
+    /** A mission's or an area's section: its name and how many proofs ("Study One Subject for 30 Minutes", "12"). */
     count: (n: number) => n.toLocaleString('en-US'),
     a11ySection: (name: string, n: number) => `${name}, ${plural(n, 'proof', 'proofs')}`,
     /** The section for proofs in an area the app no longer has. */
@@ -384,8 +384,9 @@ export const PROGRESS = {
     checked: 'Checked on this phone.',
     a11yPhoto: (title: string) => `Proof photo for ${title}`,
     /**
-     * A mission no longer in the library: its id made readable ("focus-plan-tomorrow-tonight" →
-     * "Plan tomorrow tonight"), else "<area> mission" from the area on the record, else "Mission".
+     * A mission nothing knows (not approved, not the user's own, not one retired in 3.3): its id
+     * made readable ("focus-plan-tomorrow-tonight" → "Plan tomorrow tonight"), else "<area>
+     * mission" from the area on the record, else "Mission".
      */
     fallbackTitle: (missionId: string, area = '') => {
       const words = missionId.split('-').slice(1).join(' ').trim();

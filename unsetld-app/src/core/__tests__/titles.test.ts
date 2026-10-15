@@ -33,6 +33,13 @@ describe('personalized titles', () => {
       expect(missionTitle(S1, me(goal))).toBe(S1.title);
       expect(missionTitle(C3, me(goal))).toBe(C3.title);
     }
+    // A capitalised word that's what they're doing, not a name; a count, an account or a sport's game isn't a project.
+    for (const goal of ['Build Muscle', 'Start Running', 'Make Varsity', 'Finish Chemistry', 'Start College', 'Open a savings account', 'Make my basketball game better', 'Finish one book a month']) {
+      expect(projectFrom(goal), goal).toBeNull();
+    }
+    // Abbreviations with another meaning ("my stats this season", "my Instagram bio") aren't subjects.
+    expect(subjectFrom('Improve my stats this season')).toBeNull();
+    expect(subjectFrom('Update my Instagram bio')).toBeNull();
     // Two subjects, or none: no guess.
     expect(subjectFrom('Pass chemistry and physics')).toBeNull();
     expect(opportunityFrom('find a better job')).toBeNull();

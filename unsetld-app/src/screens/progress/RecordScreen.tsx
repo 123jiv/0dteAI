@@ -7,7 +7,7 @@ import { achievementsView, areaProgress, areasShown, milestones, type AreaProgre
 import { weekStart } from '../../core/review';
 import { computeStreak } from '../../core/streak';
 import type { DayKey } from '../../core/time';
-import { MISSION_BY_ID, MISSIONS, TRACK_BY_ID } from '../../content';
+import { historyMission, MISSIONS, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { TabProps } from '../../navigation/types';
 import { useBalance } from '../../state/missions';
@@ -24,7 +24,8 @@ import { fromEntry } from './proofView';
 
 const R = PROGRESS.record;
 const H = PROGRESS.history;
-const minutesOf = (id: string) => MISSION_BY_ID[id]?.minutes;
+// Time per area for a proof without a timer: its mission's minutes, a retired one's too (history only).
+const minutesOf = (id: string) => historyMission(id)?.minutes;
 /** Recent proof: one row of four. */
 const RECENT = 4;
 const TILE_GAP = 6;

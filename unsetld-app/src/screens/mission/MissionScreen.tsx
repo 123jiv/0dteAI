@@ -11,7 +11,7 @@
 // at what a photo shows; nothing here says otherwise.
 // VoiceOver on iOS reads no live region, so a stage's new line (checking, not counted,
 // before saved) is said with ui/useAnnounce; the done stage says its own.
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { activeDays } from '../../core/progress';
 import { usedHashes } from '../../core/proofs';
@@ -40,6 +40,7 @@ import { color as C, GAP } from '../../ui/tokens';
 import { useAnnounce } from '../../ui/useAnnounce';
 import { showSwapLimit } from '../home/swap';
 import { SwapSheet, type SwapTarget } from '../swap/SwapSheet';
+import { titled, useMissionTitle } from '../titles';
 import { DoneStage } from './DoneStage';
 import { addsTo, AfterSlot, CameraNote, Instruction, LINING, MissionHeading, ProofCard, ProofFrame, ProofPhotos, ProvenLine } from './parts';
 import { TimerStage } from './TimerStage';
@@ -119,7 +120,11 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   // START on Today: decided once as the page opens; `started` makes sure it only ever runs once.
   const [startNow] = useState(() => startsOnOpen(missionId, route.params.start));
   const started = useRef(false);
-  const mission: Mission | undefined = MISSION_BY_ID[missionId];
+  const found: Mission | undefined = MISSION_BY_ID[missionId];
+  const titleOf = useMissionTitle();
+  // The mission as this user reads it: its title with their goal filled in (core/titles). The
+  // heading, the timer, Done and the swap sheet all say it; the store records it on proof.
+  const mission = useMemo(() => (found ? titled(found, titleOf) : undefined), [found, titleOf]);
   const current = useApp(s => s.currentDay);
   // The day this screen belongs to. If 4:00 AM comes while it's open, that day is over.
   const [day] = useState(current);
@@ -307,7 +312,8 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   const beforePressed = () => {
     const other = useApp.getState().pendingBefore;
     if (other && other.missionId !== missionId && other.day === today()) {
-      showDialog(MISSION.busy.beforeTitle(MISSION_BY_ID[other.missionId]?.title), MISSION.busy.beforeBody, [
+      const that = MISSION_BY_ID[other.missionId];
+      showDialog(MISSION.busy.beforeTitle(that && titleOf(that)), MISSION.busy.beforeBody, [
         { label: MISSION.busy.no, cancel: true },
         { label: MISSION.busy.yes, onPress: () => afterDialog(() => void takeBefore()) },
       ]);
@@ -340,7 +346,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     if (other && other.missionId !== missionId && other.day === today()) {
       const state = timerDone(other, Date.now()) ? 'done' : other.pausedAt != null ? 'paused' : 'running';
       const that = MISSION_BY_ID[other.missionId];
-      showDialog(MISSION.busy.timerTitle(that?.title, state, that?.proofType !== 'TIMER'), MISSION.busy.timerBody, [
+      showDialog(MISSION.busy.timerTitle(that && titleOf(that), state, that?.proofType !== 'TIMER'), MISSION.busy.timerBody, [
         { label: MISSION.busy.no, cancel: true },
         { label: MISSION.busy.yes, onPress: beginTimer },
       ]);
@@ -572,16 +578,18 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     const photos = proven.photos ?? [];
     const kept = photos.some(p => proofImage(p.uri));
     const minutes = Math.round((proven.timerSeconds ?? 0) / 60);
+    // The title it was proven under, as the record keeps it (a goal edited since doesn't rename a proof).
+    const shown = proven.title ? { ...mission, title: proven.title } : mission;
     return (
       <Screen nav={nav}>
-        <MissionHeading mission={mission} area={area} />
+        <MissionHeading mission={shown} area={area} />
         {photos.length > 0 ? (
           <View style={{ marginTop: GAP.block }}>
             {kept ? (
               photos.length === 1 ? (
-                <ProofFrame photo={photos[0]} day={day} label={mission.title} a11y={MISSION.a11y.photo} style={{ width: '100%' }} />
+                <ProofFrame photo={photos[0]} day={day} label={shown.title} a11y={MISSION.a11y.photo} style={{ width: '100%' }} />
               ) : (
-                <ProofPhotos photos={photos} day={day} single={mission.title} />
+                <ProofPhotos photos={photos} day={day} single={shown.title} />
               )
             ) : (
               <T v="note" color={C.stone}>

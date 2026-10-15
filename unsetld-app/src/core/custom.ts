@@ -6,13 +6,14 @@
 //  - it earns a small fixed amount by proof type and timer length (CUSTOM_POINTS_MAX at most),
 //    and never more than the planned mission it replaced was worth (PlannedMission.points);
 //  - a timer has to run to the end, and photos go through the same fresh / duplicate checks.
-// The generator never plans them (they aren't in the library it draws from).
+// The generator never plans them (they aren't in the library it draws from), and each carries
+// source USER_CREATED; approved library missions carry UNSETLD.
 import type { DayPlan, Mission, PlannedMission, ProofType, TrackId } from './types';
 
 export const CUSTOM_PREFIX = 'custom-';
 export const CUSTOM_TITLE_MIN = 3;
 export const CUSTOM_TITLE_MAX = 40;
-/** The most a mission of the user's own earns. Library missions earn 5–25. */
+/** The most a mission of the user's own earns. Library missions earn 5–20. */
 export const CUSTOM_POINTS_MAX = 15;
 /** A day's plan holds at most this many of them. */
 export const CUSTOM_PER_DAY = 1;
@@ -80,6 +81,7 @@ export function makeCustomMission(input: CustomInput, id: string): Mission | nul
     tags: ['custom'],
     active: true,
     custom: true,
+    source: 'USER_CREATED',
   };
 }
 

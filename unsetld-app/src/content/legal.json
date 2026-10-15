@@ -4,11 +4,11 @@
     "sections": [
       {
         "h": "Your missions",
-        "p": "Every day you get three missions from the areas you chose. How long they run follows the time you said you have: with 15 minutes all three are short; with 30, two are short and one takes real focus; with 45, one is short and two take real focus; with an hour or more, intensity decides, and Push me adds a fourth. They're picked to fit your answers, what you're working toward and this week's focus. A day runs from 4:00 AM to 3:59 AM, so a late night counts as the day it started."
+        "p": "Every day you get missions from the areas you chose. How many, and how long they run, follows the time you said you have: with 15 minutes, two short ones; with 30, one short and one that takes real focus; with 45, one short and two that take real focus; with an hour or more, intensity decides: three, or four with Push me. They're picked to fit your answers, what you're working toward and this week's focus. A day runs from 4:00 AM to 3:59 AM, so a late night counts as the day it started."
       },
       {
         "h": "Swaps",
-        "p": "Don't want one? Swap it before you prove it, and you get another mission from the same area when one fits today. One swap a day, three with UNSETLD+. A mission you swap stays away for a week, or three weeks after you swap it a third time in a month. An everyday habit like Study for 30 Minutes or Complete Your Workout comes back after a couple of days."
+        "p": "Don't want one? Swap it before you prove it, and you get another mission from the same area when one fits today. One swap a day, three with UNSETLD+. A mission you swap stays away for a week, or three weeks after you swap it a third time in a month. An everyday habit like Study One Subject for 30 Minutes or Complete Your Workout comes back after a couple of days."
       },
       {
         "h": "Proof",
@@ -22,11 +22,10 @@
         "h": "Points",
         "p": "Each proven mission earns the points shown on it, once. Longer missions earn more. Points come only from proven missions.",
         "list": [
-          "5 minutes or less: 5 points.",
-          "10 to 20 minutes: 10 points.",
-          "About 30 minutes: 15 or 20 points.",
+          "10 minutes or less: 5 points.",
+          "15 to 20 minutes: 10 points.",
+          "About 30 minutes: 15 points.",
           "About 45 minutes: 20 points.",
-          "An hour: 25 points.",
           "Perfect day, every mission proven: 15 more."
         ]
       },
@@ -87,7 +86,7 @@
       },
       {
         "h": "How points are earned",
-        "p": "Each mission proven in the app earns the points shown on it once, from 5 to 25 depending on how long it takes, and 15 more when every mission in the day is proven. Proof must be your own: a photo of that mission taken with the camera in the app, or, for a timer mission, the in-app timer run to the end. Points from earlier versions of the app carry over. We may remove points earned through misuse, such as proof that isn't of the mission."
+        "p": "Each mission proven in the app earns the points shown on it once, from 5 to 20 depending on how long it takes, and 15 more when every mission in the day is proven. Proof must be your own: a photo of that mission taken with the camera in the app, or, for a timer mission, the in-app timer run to the end. Points from earlier versions of the app carry over. We may remove points earned through misuse, such as proof that isn't of the mission."
       },
       {
         "h": "Rewards",

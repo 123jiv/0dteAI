@@ -1,5 +1,6 @@
 // Step 2, RECOMMENDED FOR YOU: up to three missions for the reason given, each drawn like the
-// card it becomes on Today (area, title, minutes · proof · points), then + Create my own.
+// card it becomes on Today (area, title, minutes · proof · points), then + Create my own. Each
+// title reads as it will on Today, with the user's goal filled in (screens/titles).
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TRACK_BY_ID } from '../../content';
@@ -7,6 +8,7 @@ import { SWAP } from '../../content/copy/swap';
 import type { SlotPick } from '../../core/missions';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN } from '../../ui/tokens';
+import { useMissionTitle } from '../titles';
 import { Back, Row } from './parts';
 
 export function ChoicesStep({
@@ -27,6 +29,7 @@ export function ChoicesStep({
   onBack: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const titleOf = useMissionTitle();
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: MARGIN, paddingBottom: insets.bottom + 24 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
@@ -40,11 +43,12 @@ export function ChoicesStep({
         <View style={{ gap: GAP.tight }}>
           {choices.map(({ mission: m, area }) => {
             const areaName = TRACK_BY_ID[area]?.short ?? '';
+            const title = titleOf(m);
             return (
               <Row
                 key={m.id}
                 onPress={() => onPick(m.id)}
-                accessibilityLabel={SWAP.choices.a11y(m.title, areaName, m.minutes, m.proofType, m.points)}
+                accessibilityLabel={SWAP.choices.a11y(title, areaName, m.minutes, m.proofType, m.points)}
                 accessibilityHint={SWAP.choices.hint}>
                 {areaName ? (
                   <T v="kicker" color={C.stone}>
@@ -52,7 +56,7 @@ export function ChoicesStep({
                   </T>
                 ) : null}
                 <T v="list" style={{ marginTop: areaName ? 6 : 0 }}>
-                  {m.title}
+                  {title}
                 </T>
                 <T v="meta" color={C.stone} style={{ marginTop: 6 }}>
                   {SWAP.choices.meta(m.minutes, m.proofType, m.points)}

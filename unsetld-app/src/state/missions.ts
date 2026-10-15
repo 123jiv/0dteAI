@@ -30,11 +30,15 @@ export function plannedArea(planned: Pick<PlannedMission, 'area'> | undefined, m
   return planned?.area ?? tracks.find(t => serves(mission, t)) ?? mission.track;
 }
 
-/** Today's plan with each mission and its proof (if proven). Missing missions (removed from the library) are skipped. */
+/**
+ * Today's plan with each mission and its proof (if proven). A mission that isn't approved or the
+ * user's own (retired in 3.3, or from a 3.0 preview build) is skipped: ensurePlan plans such a day
+ * again, and history views show retired missions through content historyMission.
+ */
 export function missionsOf(plan: DayPlan | undefined, done: Record<string, MissionDone> | undefined, tracks: readonly TrackId[] = []): TodayMission[] {
   if (!plan) return [];
-  // The focused missions first (Study for 30 Minutes before Make Your Bed), then the short ones,
-  // tonight's last (Lay Out Your Clothes for Tomorrow), at any hour so cards don't move at 3 PM;
+  // The focused missions first (Study One Subject for 30 Minutes before Clear Your Desk), then the
+  // short ones, tonight's last (Pack Everything You Need for Tomorrow), at any hour so cards don't move at 3 PM;
   // then the plan's order. `index` stays the mission's place in the plan, for swaps.
   const rows = plan.missions.flatMap((planned, index) => {
     const found = MISSION_BY_ID[planned.missionId];

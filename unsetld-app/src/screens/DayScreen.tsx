@@ -13,6 +13,7 @@ import { T } from '../ui/text';
 import { TimeSheet } from '../ui/TimeSheet';
 import { color as C, GAP, hairline } from '../ui/tokens';
 import { Walker } from '../ui/Walker';
+import { useMissionTitle } from './titles';
 
 /** Last stays after First in the 4 AM day: one at or before First moves to an hour after it (3:55 AM at most). */
 function lastAfter(first: number, last: number): number {
@@ -84,7 +85,11 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
 
   // Today's missions, as the first reminder of the day names them.
   const plan = useApp(s => s.plans[s.currentDay]);
-  const titles = (plan?.missions ?? []).map(p => MISSION_BY_ID[p.missionId]?.title).filter((t): t is string => Boolean(t));
+  const titleOf = useMissionTitle();
+  const titles = (plan?.missions ?? []).flatMap(p => {
+    const m = MISSION_BY_ID[p.missionId];
+    return m ? [titleOf(m)] : [];
+  });
   const previewBody = COPY.previewBody(titles);
 
   const save = (on: boolean) => update({ reminders: { on, count, first, last } });

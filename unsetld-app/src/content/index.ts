@@ -1,6 +1,7 @@
 // All editable content lives in JSON next to this file. Edit the JSON, not the code.
 import type { Colorway, Mission, Program, ReminderPrompt, RewardTier, StatusTier, Track, TrackId } from '../core/types';
 import colorwaysJson from './colorways.json';
+import legacyMissionsJson from './legacy-missions.json';
 import legalJson from './legal.json';
 import milestonesJson from './milestones.json';
 import missionsJson from './missions.json';
@@ -24,24 +25,55 @@ export const PROMPTS = remindersJson as ReminderPrompt[];
 // Missions
 export const TRACKS = tracksJson as Track[];
 export const TRACK_BY_ID = Object.fromEntries(TRACKS.map(t => [t.id, t])) as Record<TrackId, Track>;
-/** The mission library the planner draws from (active missions only). */
-export const MISSIONS = (missionsJson as Mission[]).filter(m => m.active);
 /**
- * Every mission ever in the library, retired ones too: a plan, a running timer or a proof
- * made before a mission was retired still finds it. Ids that were removed outright (the
- * 3.0 preview library) aren't here.
+ * The approved mission library (3.3: the founder's 66, scripts/missions/library.py), active
+ * missions only. The only missions the planner, swaps, recommendations and programs draw from.
  */
-export const MISSION_BY_ID: Record<string, Mission> = Object.fromEntries((missionsJson as Mission[]).map(m => [m.id, m]));
+export const MISSIONS = (missionsJson as Mission[]).filter(m => m.active && m.source === 'UNSETLD');
+/** The approved ids in the library's order (D1 … O9). The gaps are deliberate: ids are never renumbered. */
+export const APPROVED_IDS: readonly string[] = MISSIONS.map(m => m.id);
+const APPROVED = new Set(APPROVED_IDS);
+/** An approved library mission (not a mission of the user's own, not a retired one). */
+export function isApproved(id: string): boolean {
+  return APPROVED.has(id);
+}
+/**
+ * The approved missions and, once registered, the user's own (registerCustomMissions). Retired
+ * ids aren't here: a saved plan, a running timer or a before photo holding one is unknown, so
+ * the plan is made again and the timer or photo dropped. Past proofs read historyMission.
+ */
+// No prototype: an id like "constructor" (unsetld://mission/constructor) finds nothing.
+export const MISSION_BY_ID: Record<string, Mission> = Object.assign(Object.create(null) as Record<string, Mission>, Object.fromEntries(MISSIONS.map(m => [m.id, m])));
 
 /**
  * 3.2: missions of the user's own (core/custom), kept in the store, join this lookup so a plan,
  * a timer, a proof and the record find them like any other. They never join MISSIONS: the
  * planner doesn't draw from them. The store registers them as it loads and as each is made.
+ * 3.3: each carries source USER_CREATED (one saved before 3.3 gets it here).
  */
 export function registerCustomMissions(list: readonly Mission[] | null | undefined) {
   for (const m of list ?? []) {
-    if (m && typeof m.id === 'string' && m.id.startsWith('custom-') && m.custom && !(m.id in MISSION_BY_ID && !MISSION_BY_ID[m.id].custom)) MISSION_BY_ID[m.id] = m;
+    if (m && typeof m.id === 'string' && m.id.startsWith('custom-') && m.custom && !(m.id in MISSION_BY_ID && !MISSION_BY_ID[m.id].custom)) {
+      MISSION_BY_ID[m.id] = m.source === 'USER_CREATED' ? m : { ...m, source: 'USER_CREATED' };
+    }
   }
+}
+
+/** What a past proof needs to show its mission: the title, the area, its minutes and how it was proven. */
+export type HistoryMission = Pick<Mission, 'title' | 'track' | 'minutes' | 'proofType' | 'proof'>;
+/** The 235 missions retired in 3.3, by id, as they were (Business already moved to Projects). */
+const LEGACY = legacyMissionsJson as Record<string, HistoryMission>;
+
+/**
+ * DISPLAY ONLY: a mission as a past proof shows it, the approved or custom mission when the id
+ * is one, else the retired mission it was (content/legacy-missions.json). For history views only
+ * (proof titles and proof lines, a past day's open missions, time per area for old proofs).
+ * It must never feed the planner, swaps, ensurePlan, programs, notifications or widgets: a
+ * retired mission is never planned, swapped in or shown as something to do.
+ */
+export function historyMission(id: string): HistoryMission | undefined {
+  if (Object.prototype.hasOwnProperty.call(MISSION_BY_ID, id)) return MISSION_BY_ID[id];
+  return Object.prototype.hasOwnProperty.call(LEGACY, id) ? LEGACY[id] : undefined;
 }
 export const PROGRAMS = programsJson as Program[];
 export const PROGRAM_BY_ID: Record<string, Program> = Object.fromEntries(PROGRAMS.map(p => [p.id, p]));

@@ -8,6 +8,7 @@ import { dayDetail, dayMark, dayNumberOf, indexRecord, levelOf, monthView, plann
 import { DEFAULT_PROFILE, generatePlan, replacementChoices, replaceWith, type MissionHistory, type PlanInput } from '../missions';
 import { learnFrom, NO_ADAPTATION, personalWeight, leanFor, kindsOf } from '../personalize';
 import { emptyRecord } from '../record';
+import { missionTitle } from '../titles';
 import type { DayKey } from '../time';
 import type { DayPlan, Mission, MissionDone, Profile, ProofPhoto, RecordState } from '../types';
 
@@ -103,7 +104,7 @@ describe("a day's page", () => {
     const r = rec(
       {
         '2026-10-07': [
-          done('school-study-30', { doneAt: 30, points: 15, photos: [photo('')], title: 'Study for 30 Minutes' }),
+          done('S1', { doneAt: 30, points: 15, photos: [photo('')], title: 'Study Calculus for 30 Minutes' }),
           done('a', { doneAt: 10, points: 5, photos: [photo('b.jpg', 'before'), photo('a.jpg', 'after')] }),
           done('t', { doneAt: 20, points: 20, timerSeconds: 1500 }),
         ],
@@ -112,12 +113,12 @@ describe("a day's page", () => {
       { bonuses: { '2026-10-07': 15 }, planned: { '2026-10-07': 3 } },
     );
     const d = dayDetail(r, {}, '2026-10-07');
-    expect(d.proven.map(p => p.missionId)).toEqual(['a', 't', 'school-study-30']);
+    expect(d.proven.map(p => p.missionId)).toEqual(['a', 't', 'S1']);
     expect(d.proven[0].cover?.uri).toBe('a.jpg');
     expect(d.proven[1].timerSeconds).toBe(1500);
     // Cleared by the retention setting: the entry, its title and points stay.
     expect(d.proven[2].cover?.uri).toBe('');
-    expect(d.proven[2].title).toBe('Study for 30 Minutes');
+    expect(d.proven[2].title).toBe('Study Calculus for 30 Minutes');
     expect([d.points, d.bonus, d.total]).toEqual([40, 15, 55]);
     expect(d.perfect).toBe(true);
     expect(d.level).toBe('perfect');
@@ -152,6 +153,15 @@ describe('proving a mission keeps the day on the record', () => {
     expect(c.record.missions['2026-10-07'][mission.id].title).toBe(mission.title);
   });
 
+  it('keeps the title the user saw next to the approved id (template id + rendered title)', () => {
+    const p1 = BY_ID.P1;
+    const profile = { ...DEFAULT_PROFILE, goal: 'Launch my clothing brand' };
+    const title = missionTitle(p1, profile);
+    expect(title).toBe('Work on Your Clothing Brand for 30 Minutes');
+    const c = completeMission(emptyRecord(), '2026-10-07', plan('2026-10-07', ['P1']), p1, [photo('x')], accepted, { at: 1, verifiedClock: true, timerSeconds: 1800, title });
+    expect(c.record.missions['2026-10-07'].P1).toMatchObject({ missionId: 'P1', title: 'Work on Your Clothing Brand for 30 Minutes' });
+  });
+
   it('pays a mission of the user own no more than the planned mission it replaced', () => {
     const own = makeCustomMission({ title: 'Fix my bike chain', track: 'fitness', proofType: 'TIMER', timerMinutes: 30 }, 'custom-1')!;
     expect(own.points).toBe(15);
@@ -177,7 +187,7 @@ describe('missions of your own', () => {
     expect(makeCustomMission({ title: 'Run', track: 'fitness', proofType: 'TIMER', timerMinutes: 7 }, 'custom-2')).toBeNull();
     expect(makeCustomMission({ title: 'Run laps', track: 'fitness', proofType: 'PHOTO' }, 'school-x')).toBeNull();
     const m = makeCustomMission({ title: 'Clean the garage', track: 'organization', proofType: 'BEFORE_AFTER' }, 'custom-3')!;
-    expect(m).toMatchObject({ custom: true, proofType: 'BEFORE_AFTER', points: 10, repeatable: true, cooldownDays: 0 });
+    expect(m).toMatchObject({ custom: true, source: 'USER_CREATED', proofType: 'BEFORE_AFTER', points: 10, repeatable: true, cooldownDays: 0 });
     expect(m.timerMinutes).toBeUndefined();
   });
 

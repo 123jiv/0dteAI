@@ -21,8 +21,8 @@ const record = (days: Record<string, MissionDone[]>): RecordState => ({
 
 describe('areaGain', () => {
   it('a proof that crosses a level: School 40 → 55 is level 1 → 2', () => {
-    const r = record({ '2026-10-14': [proof('school-a', 'school', 40)], '2026-10-21': [proof('school-practice-problems', 'school', 15)] });
-    const g = areaGain(r, '2026-10-21', 'school-practice-problems');
+    const r = record({ '2026-10-14': [proof('school-a', 'school', 40)], '2026-10-21': [proof('S3', 'school', 15)] });
+    const g = areaGain(r, '2026-10-21', 'S3');
     expect(g).toMatchObject({ track: 'school', points: 15, up: true });
     expect(g?.before).toEqual({ level: 1, into: 40, span: 50 });
     expect(g?.after).toEqual({ level: 2, into: 5, span: 100 });

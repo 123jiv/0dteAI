@@ -7,7 +7,7 @@ import { dayCount } from '../core/record';
 import { daysAhead } from '../core/reminders';
 import { computeStreak } from '../core/streak';
 import { addDays, nextDayStart, type DayKey } from '../core/time';
-import type { DayPlan, MissionDone } from '../core/types';
+import type { DayPlan, MissionDone, Profile } from '../core/types';
 import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
 import { backupRecord, readBackup } from '../services/backup';
 import { now, today } from '../services/clock';
@@ -145,12 +145,16 @@ export function useBootstrap() {
   }, [hydrated]);
 }
 
-/** Planned missions for today and every later day that already has a plan, as the reminders name them. */
+/**
+ * Planned missions for today and every later day that already has a plan, as the reminders name
+ * them: as Today does, with the user's goal filled in (core/titles).
+ */
 function reminderPlans(
   plans: Record<DayKey, DayPlan>,
   missions: Record<DayKey, Record<string, MissionDone>> | undefined,
   day: DayKey,
   days: number,
+  who: Pick<Profile, 'goal' | 'skills'>,
 ): Record<DayKey, ReminderMission[]> {
   const out: Record<DayKey, ReminderMission[]> = {};
   for (let i = 0; i < days; i++) {
@@ -161,6 +165,7 @@ function reminderPlans(
     out[d] = reminderMissions(
       plan.missions.map(p => p.missionId),
       id => isProven(done[id]),
+      who,
     );
   }
   return out;
@@ -175,6 +180,10 @@ export function useSideEffects() {
   const plans = useApp(s => s.plans);
   const intensity = useApp(s => s.profile.intensity);
   const minutes = useApp(s => s.profile.minutes);
+  const goal = useApp(s => s.profile.goal);
+  const skills = useApp(s => s.profile.skills);
+  // What a mission's title fills its slot from ("Work on Your Clothing Brand for 30 Minutes").
+  const who = useMemo(() => ({ goal, skills }), [goal, skills]);
   const salt = useApp(s => s.installSalt);
   const day = useApp(s => s.currentDay);
   const account = useApp(s => s.account.userId);
@@ -202,13 +211,13 @@ export function useSideEffects() {
       count,
       first: reminders.first,
       last: reminders.last,
-      plans: reminderPlans(plans, record.missions, day, days),
+      plans: reminderPlans(plans, record.missions, day, days, who),
       perDay,
       streak,
       streaks,
       seed: salt,
     };
-  }, [reminders.on, reminders.first, reminders.last, count, plans, record.missions, day, perDay, streak, active, salt]);
+  }, [reminders.on, reminders.first, reminders.last, count, plans, record.missions, day, perDay, streak, active, salt, who]);
 
   // Notifications: after plans, proof, the profile or settings change, on a new
   // day, and on every foreground (so allowing notifications in iOS Settings
@@ -230,8 +239,8 @@ export function useSideEffects() {
   const premium = ent.premium;
   useEffect(() => {
     if (!hydrated || !onboarded) return;
-    updateWidgets({ today: day, premium, colorway, record, plans, perDay });
-  }, [hydrated, onboarded, day, premium, colorway, record, plans, perDay]);
+    updateWidgets({ today: day, premium, colorway, record, plans, perDay, profile: who });
+  }, [hydrated, onboarded, day, premium, colorway, record, plans, perDay, who]);
 
   // No focus timer, no "timer done" notification: whatever ended the timer
   // (proof, Home closing an old day's timer, tester tools) takes it with it.

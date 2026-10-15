@@ -72,7 +72,7 @@ export function AboutYouScreen({ navigation, route }: RootProps<'AboutYou'>) {
   const skills = value.skills ?? [];
   const learning = value.tracks.some(t => LEARNING_AREAS.includes(t));
 
-  // School is one of their areas, but they're not in school: every School mission needs a yes.
+  // School is one of their areas, but they're not in school: the two don't go together.
   // Continue (or Save) takes School off their areas; when that would leave too few, they pick another first.
   const conflict = value.school === false && value.tracks.includes('school');
   const others = value.tracks.filter(t => t !== 'school' && TRACK_BY_ID[t]);

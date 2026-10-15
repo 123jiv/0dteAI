@@ -1,21 +1,27 @@
 // Daily missions: which missions a user gets today, and swapping one out.
-// Goals first: every mission comes from an area the user chose, filtered by their
-// situation (school, work, business, gym, age, skills), their time, what they did
-// and skipped lately, and the time of day. Pure and deterministic: the same library,
-// profile, history and day always give the same plan.
-import { kindsOf, leanFor, leansTo, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
+// Goals first: every mission is an approved library mission (the library passed in: content
+// MISSIONS) from an area the user chose (or this week's focus, or one their goal points at:
+// eligibleAreas), filtered by their situation (a job search, skills), their time, what they
+// did and skipped lately, how often each mission should come round, and the time of day.
+// Nothing is ever made up or taken from outside the library. Pure and deterministic: the same
+// library, profile, history and day always give the same plan.
+import { goalPointsAt, jobSearch, kindsOf, leanFor, leansTo, LONG_MINUTES, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
 import { hash32, mulberry32 } from './random';
 import { addDays, DAY_START_HOUR, dayNumber, diffDays, parseDay, type DayKey } from './time';
+import { projectFrom } from './titles';
 import type { DayPlan, Mission, MissionSlot, PlannedMission, Profile, Requirement, SkillId, SwapReason, TrackId } from './types';
 
-/** An easy mission takes this many minutes or fewer. */
-export const EASY_MAX_MINUTES = 15;
+/**
+ * A short (easy) mission takes this many minutes or fewer. 20: the approved library runs 5–45
+ * minutes (most 20–30), and every area has at least two missions this short.
+ */
+export const EASY_MAX_MINUTES = 20;
 
 export function sizeOf(m: Pick<Mission, 'minutes'>): MissionSlot {
   return m.minutes <= EASY_MAX_MINUTES ? 'easy' : 'main';
 }
 
-/** The day by intensity, with 30 minutes or more: one easy mission, then focused ones (Push me adds a third). */
+/** The day by intensity, with an hour or more: one short mission, then focused ones (Push me adds a third). */
 export const SLOTS_BY_INTENSITY: Record<Profile['intensity'], MissionSlot[]> = {
   easy: ['easy', 'main', 'main'],
   lockin: ['easy', 'main', 'main'],
@@ -27,30 +33,32 @@ export const MAIN_MAX_MINUTES: Record<Profile['intensity'], number> = { easy: 30
 
 /**
  * The day's slots. The time the user has wins over intensity: with 15 minutes a day
- * it's three short missions, with 30 two short ones and one focused one, with 45 one
- * short and two focused. With an hour or more, intensity decides (Push me adds one).
+ * it's two short missions, with 30 one short and one focused, with 45 one short and
+ * two focused. With an hour or more, intensity decides (Push me adds one).
  */
 export function slotsFor(profile: Pick<Profile, 'intensity' | 'minutes'>): MissionSlot[] {
-  if (profile.minutes === 15) return ['easy', 'easy', 'easy'];
-  if (profile.minutes === 30) return ['easy', 'easy', 'main'];
+  if (profile.minutes === 15) return ['easy', 'easy'];
+  if (profile.minutes === 30) return ['easy', 'main'];
   if (profile.minutes === 45) return ['easy', 'main', 'main'];
   return SLOTS_BY_INTENSITY[profile.intensity] ?? SLOTS_BY_INTENSITY.lockin;
 }
 
 /**
- * Total minutes a day's missions should fit in, by the time the user has. Close to
- * what they said; with an hour or more, Start easy keeps it shorter and Push me longer.
+ * Total minutes a day's missions should fit in, by the time the user has. The approved
+ * missions run 5–45 minutes (most 20–30), so a 15-minute day is two short ones (about 30)
+ * and a 30-minute day one short and one focused (about 45); with an hour or more, Start
+ * easy keeps it shorter and Push me longer.
  */
 export function dayBudget(profile: Pick<Profile, 'intensity' | 'minutes'>): number {
   switch (profile.minutes) {
     case 15:
-      return 20;
+      return 30;
     case 30:
-      return 40;
+      return 45;
     case 45:
-      return profile.intensity === 'push' ? 65 : 55;
+      return profile.intensity === 'push' ? 85 : 75;
     default:
-      return profile.intensity === 'push' ? 150 : profile.intensity === 'easy' ? 75 : 90;
+      return profile.intensity === 'push' ? 150 : profile.intensity === 'easy' ? 80 : 95;
   }
 }
 
@@ -62,7 +70,10 @@ export const SKIP_MEMORY_DAYS = 30;
 /** A core habit (study, train, build) is only kept away this long after a swap. */
 export const SKIP_DAYS_CORE = 2;
 
-/** A mission shown but not done waits a few days before it's shown again (core habits excepted). */
+/**
+ * A mission shown but not done waits a few days before it's shown again (core habits excepted).
+ * A weekly or rarer one (frequency 'low') waits its whole cooldown instead (available).
+ */
 export const SHOWN_GAP_DAYS = 3;
 /** Missions that aren't core habits never show up two days running while something else fits. */
 export const SHOWN_GAP_MIN_DAYS = 2;
@@ -130,10 +141,12 @@ const SKILLS: readonly SkillId[] = ['coding', 'design', 'video', 'writing', 'lan
  * work, gym and "your customers" missions only for people who said yes; "your
  * product" missions not for people who said they have no business yet, and "pick a
  * business idea" ones not for people who have one; skill drills only for the skills
- * they named.
+ * they named; Apply to One Job or Internship ('jobsearch') only while a job or
+ * internship search is part of their goal or (with `day`) this week's focus.
  */
-export function meetsRequirements(requires: readonly Requirement[] | undefined, p: Profile): boolean {
+export function meetsRequirements(requires: readonly Requirement[] | undefined, p: Profile, day?: DayKey): boolean {
   for (const r of requires ?? []) {
+    if (r === 'jobsearch' && !jobSearch(p, day)) return false;
     if (r === 'school' && p.school === false) return false;
     if (r === 'highschool' && (p.school === false || p.schoolLevel === 'college')) return false;
     if (r === 'work' && p.work !== true) return false;
@@ -155,59 +168,115 @@ function skipDays(m: Mission, skip: { count: number }): number {
 }
 
 /**
- * Can this mission be offered today at all (requirements, time of day, history)?
- * `relaxShown` lets back a mission shown lately but not done; `ignoreSkips` lets
- * back one the user swapped away (only when nothing else in their areas is left).
+ * What a step of chooseForSlot lets back. Requirements, the time of day and the days of the
+ * week are never relaxed; neither is a mission that can only be done once.
  */
-export function available(
-  m: Mission,
-  input: Pick<PlanInput, 'profile' | 'day' | 'history' | 'hour'>,
-  relaxShown = false,
-  ignoreSkips = false,
-): boolean {
-  if (!m.active || !meetsRequirements(m.requires, input.profile)) return false;
+export interface Relax {
+  /** A mission shown lately but not done (a weekly or rarer one still waits: `lowShown`). */
+  shown?: boolean;
+  /** A mission the user swapped away lately. */
+  skips?: boolean;
+  /** A weekly or rarer mission shown within its cooldown. */
+  lowShown?: boolean;
+  /** A repeatable mission done within its cooldown. */
+  cooldown?: boolean;
+}
+
+/**
+ * Can this mission be offered today at all (requirements, time of day, history)? `relax`
+ * lets back what the steps of chooseForSlot let back, one after another, rather than
+ * leave a day short.
+ */
+export function available(m: Mission, input: Pick<PlanInput, 'profile' | 'day' | 'history' | 'hour'>, relax: Relax = {}): boolean {
+  if (!m.active || !meetsRequirements(m.requires, input.profile, input.day)) return false;
   if (m.when === 'morning' && tooLateForMorning(input.hour)) return false;
   if (m.days && !m.days.includes(parseDay(input.day).getDay())) return false;
   const { lastDone, lastPlanned, skips } = input.history;
   const done = lastDone[m.id];
   if (done) {
     if (!m.repeatable) return false;
-    if (diffDays(done, input.day) < m.cooldownDays) return false;
+    if (!relax.cooldown && diffDays(done, input.day) < m.cooldownDays) return false;
   }
   const skip = skips[m.id];
-  if (!ignoreSkips && skip && diffDays(skip.last, input.day) < skipDays(m, skip)) return false;
+  if (!relax.skips && skip && diffDays(skip.last, input.day) < skipDays(m, skip)) return false;
   const shown = lastPlanned[m.id];
-  if (!relaxShown && shown && shown !== input.day && !m.anchor) {
-    const gap = Math.max(SHOWN_GAP_MIN_DAYS, Math.min(SHOWN_GAP_DAYS, m.cooldownDays));
-    if (diffDays(shown, input.day) < gap) return false;
+  if (shown && shown !== input.day) {
+    const ago = diffDays(shown, input.day);
+    // A weekly or rarer mission (Create Your Study Plan for the Week, Check One Subscription) comes
+    // round once per cooldown, done or not: shown on Monday and left, it isn't back on Thursday.
+    if (m.frequency === 'low' && !relax.lowShown && ago < m.cooldownDays) return false;
+    if (!relax.shown && !m.anchor && ago < Math.max(SHOWN_GAP_MIN_DAYS, Math.min(SHOWN_GAP_DAYS, m.cooldownDays))) return false;
   }
   return true;
 }
 
-/** Areas that have universal easy missions (plan tomorrow, clean your desk) for a day nothing else fits. */
-const FALLBACK_TRACKS: readonly TrackId[] = ['discipline', 'organization'];
-
-/**
- * The chosen areas that can ever get a mission with the user's answers (School is
- * left out for someone not in school), or the defaults when none are known. When
- * none of the chosen areas can, the universal basics.
- */
-export function usableAreas(library: readonly Mission[], profile: Profile): TrackId[] {
-  const chosen = profile.tracks.length ? profile.tracks : DEFAULT_PROFILE.tracks;
-  const usable = chosen.filter(t => library.some(m => m.active && serves(m, t) && meetsRequirements(m.requires, profile)));
-  return usable.length ? usable : [...FALLBACK_TRACKS];
+/** The areas the user picked, or the defaults before onboarding (it can't finish with none). */
+function chosenAreas(profile: Pick<Profile, 'tracks'>): TrackId[] {
+  return profile.tracks.length ? [...profile.tracks] : [...DEFAULT_PROFILE.tracks];
 }
 
 /**
- * The areas a day draws from: the usable areas, plus this week's focus area when it isn't one
- * of them ("Get back in the gym" brings Fitness in for the week) and the user's answers allow it.
+ * Areas the user didn't pick that their answers and goal make eligible, in this order:
+ * School for someone in school whose goal is about school (grades, homework, an exam: age
+ * alone never counts); Career for a job or internship search (jobSearch); Projects for
+ * someone building something (they said so, or the goal names it: an app, a brand, a launch).
+ * A weekly focus brings its own area in on its own (eligibleAreas).
+ */
+export function impliedAreas(profile: Profile, day?: DayKey): TrackId[] {
+  const goal = profile.goal ?? '';
+  const out: TrackId[] = [];
+  if (profile.school === true && goalPointsAt(goal, 'school')) out.push('school');
+  if (jobSearch(profile, day)) out.push('career');
+  // "Land a software engineering job" or "Get a job at a startup" names a job, not something being
+  // built: the words in front of "job" and where it is ("in/at …") don't count.
+  const building = goalPointsAt(goal.replace(/\b(?:[a-z-]+\s+){0,3}(?:jobs?|internships?)\b(?:\s+(?:in|at|with)\s+(?:an?\s+|the\s+)?[a-z-]+)?/gi, ''), 'projects');
+  if (profile.project === true || projectFrom(goal) !== null || building) out.push('projects');
+  return out;
+}
+
+/**
+ * Every area this user can get missions from (docs/MISSIONS_SPEC.md, eligibility): the areas
+ * they picked, this week's focus area (picking a focus chooses its area for the week, with
+ * `day`), and the areas their answers and goal point at (impliedAreas). Fitness, Money,
+ * Skills, Organization and Discipline only when picked or the week's focus. Pure: tests and
+ * the simulations check every planned mission's area against it.
+ */
+export function eligibleAreas(profile: Profile, day?: DayKey): TrackId[] {
+  const out = chosenAreas(profile);
+  const add = (t: TrackId | null | undefined) => {
+    if (t && !out.includes(t)) out.push(t);
+  };
+  if (day) add(leanFor(profile, day).focusArea);
+  for (const t of impliedAreas(profile, day)) add(t);
+  return out;
+}
+
+/**
+ * The areas the user picked (the defaults before onboarding) that some mission fits with
+ * their answers. Never one they didn't pick: with none left, none (3.3 removed the fallback
+ * to Discipline and Organization).
+ */
+export function usableAreas(library: readonly Mission[], profile: Profile, day?: DayKey): TrackId[] {
+  return chosenAreas(profile).filter(t => library.some(m => m.active && serves(m, t) && meetsRequirements(m.requires, profile, day)));
+}
+
+/**
+ * The areas a day draws from, in order: this week's focus area when the user didn't pick it
+ * ("Get back into training" brings Fitness in for the week), the usable areas they picked,
+ * then, only when they picked fewer than three, the areas their goal and answers point at
+ * (impliedAreas: "Build a clothing brand" brings Projects in). Each only while some mission
+ * in it fits their answers. Nothing else, ever: every step of chooseForSlot stays in these.
  */
 export function planAreas(input: Pick<PlanInput, 'library' | 'profile' | 'day'>): TrackId[] {
-  const base = usableAreas(input.library, input.profile);
-  const f = leanFor(input.profile, input.day).focusArea;
-  if (!f || base.includes(f)) return base;
-  const ok = input.library.some(m => m.active && serves(m, f) && meetsRequirements(m.requires, input.profile));
-  return ok ? [f, ...base] : base;
+  const { library, profile, day } = input;
+  const plannable = (t: TrackId) => library.some(m => m.active && serves(m, t) && meetsRequirements(m.requires, profile, day));
+  const picked = usableAreas(library, profile, day);
+  const out: TrackId[] = [];
+  const f = leanFor(profile, day).focusArea;
+  if (f && !picked.includes(f) && plannable(f)) out.push(f);
+  out.push(...picked);
+  if (chosenAreas(profile).length < 3) for (const t of impliedAreas(profile, day)) if (!out.includes(t) && plannable(t)) out.push(t);
+  return out;
 }
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
@@ -224,9 +293,10 @@ export function leadArea(input: Pick<PlanInput, 'profile' | 'day'> & Partial<Pic
   const goal = lean.goalAreas.filter(a => areas.includes(a));
   // Day 1 leads with what the goal names first ("Build and ship an app": Projects); the turns start on Day 2.
   if (input.history && Object.keys(input.history.lastPlanned).length === 0) return goal[0];
-  // Counted over the days the lead doesn't rest (slotTracks rests it every third day), so each goal area gets lead days.
+  // Counted over the days the lead doesn't rest (slotTracks rests it every third day), so each goal
+  // area gets lead days; the resting day takes turns too, so the first one doesn't always give it up.
   const d = dayNumber(input.day);
-  return goal.length ? goal[mod(d - Math.floor(d / 3), goal.length)] : undefined;
+  return goal.length ? goal[mod(mod(d, 3) === 0 ? Math.floor(d / 3) : d - Math.floor(d / 3), goal.length)] : undefined;
 }
 
 const rotate = <T,>(xs: readonly T[], k: number): T[] => (xs.length ? [...xs.slice(mod(k, xs.length)), ...xs.slice(0, mod(k, xs.length))] : []);
@@ -258,8 +328,11 @@ export function slotTracks(
     leadOverride && tracks.includes(leadOverride) ? leadOverride : profile.priority && tracks.includes(profile.priority) ? profile.priority : tracks[0];
   const pool = tracks.filter(t => t !== lead);
   const rest = !alwaysLead && pool.length > 0 && mod(d, 3) === 0;
-  // The others' order moves on every day, so the one that goes first changes (on the third day too).
-  const turn = rotate(pool, mod(d, 3) === 0 ? Math.floor(d / 3) : d - Math.floor(d / 3));
+  // Goal areas taking turns to lead (leadArea): the others move on once every three days, not in
+  // step with the lead, or the first goal area would sit behind the other areas on its partner's days.
+  const goalTurns = !alwaysLead && preferred.length > 1 && preferred.includes(lead) && lead !== profile.priority;
+  // Otherwise the others' order moves on every day, so the one that goes first changes (on the third day too).
+  const turn = rotate(pool, mod(d, 3) === 0 || goalTurns ? Math.floor(d / 3) : d - Math.floor(d / 3));
   const others = rest || preferAlways ? [...turn.filter(t => preferred.includes(t)), ...turn.filter(t => !preferred.includes(t))] : turn;
   const queue = rest ? [...others, lead] : [lead, ...others];
   const at = (k: number) =>
@@ -353,19 +426,31 @@ export interface SlotPick {
   area: TrackId;
 }
 
+/** At most this many missions from one area in a day, unless it's this week's focus or the user's only area. */
+export const MAX_PER_AREA = 2;
+
 /**
- * One mission for a slot, and the area it fills. Tries, in order, stopping at the
+ * One mission for a slot, and the area it fills. Every step draws from `input.library` (the
+ * approved missions) and the plan areas only (planAreas), and tries, in order, stopping at the
  * first that has a candidate:
  * 1. the slot's area at the slot's size within the time left (missions shown lately but
  *    not done wait, then are let back), then (a focused slot) a shorter one in that area;
  * 2. the user's areas not in the day yet, the same way, so the day keeps its spread;
  * 3. the areas already in the day, at the slot's size, then shorter;
  * 4. missions the user swapped away lately, from any of their areas;
- * 5. the universal basics (plan tomorrow, clean your desk);
- * 6. the shortest few of their areas' missions, a little over the time left.
- * Never returns anything in `exclude`. A slot whose area is already in the day lets the
- * areas still missing go first, and is tried with the others in the day before any of
- * them is let back early; `keepTrack` (a swap) keeps the slot's own area first.
+ * 5. weekly or rarer missions shown within their cooldown;
+ * 6. the shortest few of their areas' missions at the slot's size, a little over the time left;
+ * 7. the shortest few of any size (a short slot takes a focused mission when that's all there is);
+ * 8. repeatable missions still in their cooldown: not yesterday's while another is left, then the
+ *    one furthest through its cooldown (M5, monthly, isn't back within days), then the oldest done.
+ * Steps 7 and 8 also let back what the plan learned to leave out (longer missions, preferShort),
+ * up to what the intensity hands out.
+ * Requirements, the time of day and the days of the week are never relaxed, and nothing outside
+ * the library or the plan areas is ever returned. Never returns anything in `exclude`. An area
+ * already holding MAX_PER_AREA missions of the day is left out (the week's focus and a single
+ * area excepted). A slot whose area is already in the day lets the areas still missing go
+ * first, and is tried with the others in the day before any of them is let back early;
+ * `keepTrack` (a swap) keeps the slot's own area first.
  */
 export function chooseForSlot(
   input: PlanInput,
@@ -378,29 +463,41 @@ export function chooseForSlot(
   keepTrack = false,
   /** The most the slot may take when nothing fits `maxMinutes` in its area (an even share of a short day is a preference). */
   stretch = maxMinutes,
+  /** Lets a third mission into an area (generatePlan's last try, when no other area has one left). */
+  crowd = false,
 ): SlotPick | null {
   const areas = planAreas(input);
-  // Long missions mostly left undone lately while shorter ones get proven: keep focused missions shorter.
-  const mainMax = Math.min(MAIN_MAX_MINUTES[input.profile.intensity] ?? 45, input.adapt?.preferShort ? 35 : Infinity);
+  const lean = leanFor(input.profile, input.day);
+  const intensityMax = MAIN_MAX_MINUTES[input.profile.intensity] ?? 45;
+  // Long missions mostly left undone lately while shorter ones get proven: keep focused missions
+  // shorter. A preference only: the last steps (7, 8) take a longer one rather than leave a slot empty.
+  const mainMax = Math.min(intensityMax, input.adapt?.preferShort ? LONG_MINUTES - 5 : Infinity);
+  // Two missions from one area is enough for a day ("Study One Subject", "Complete 10 Practice
+  // Problems" and "Spend 30 Minutes on Your Hardest Class" is too much School) unless it's the
+  // week's focus or their only area; a swap keeps its own area.
+  const full = (t: TrackId) =>
+    !crowd && areas.length > 1 && t !== lean.focusArea && !(keepTrack && t === track) && usedTracks.filter(x => x === t).length >= MAX_PER_AREA;
+  const open = areas.filter(t => !full(t));
   const trackUsed = !keepTrack && usedTracks.includes(track);
-  const fresh = trackUsed ? areas.filter(t => !usedTracks.includes(t)) : [track, ...areas.filter(t => t !== track && !usedTracks.includes(t))];
+  const fresh = trackUsed ? open.filter(t => !usedTracks.includes(t)) : [track, ...open.filter(t => t !== track && !usedTracks.includes(t))];
   const freshSet = new Set(fresh);
-  const rest = trackUsed ? [track, ...areas.filter(t => t !== track && !freshSet.has(t))] : areas.filter(t => !freshSet.has(t));
+  const rest = trackUsed ? [...(full(track) ? [] : [track]), ...open.filter(t => t !== track && !freshSet.has(t))] : open.filter(t => !freshSet.has(t));
+  const all = [...fresh, ...rest];
   const sizes: MissionSlot[] = slot === 'main' ? ['main', 'easy'] : ['easy'];
 
-  const fits = (m: Mission, size: MissionSlot, cap: number) =>
-    sizeOf(m) === size && m.minutes <= cap && (size === 'easy' || m.minutes <= mainMax) && !exclude.has(m.id);
+  // `size` null: any size. Nothing over what the intensity hands out, at any step (Start easy never gets a 45-minute workout).
+  const fits = (m: Mission, size: MissionSlot | null, cap: number, top = mainMax) =>
+    (size === null || sizeOf(m) === size) && m.minutes <= Math.min(cap, top) && !exclude.has(m.id);
 
-  // For a user who named skills, a mission made for another medium ("Edit One Video" for a coder)
+  // For a user who named skills, a mission made for another medium (a video one for a coder)
   // only when nothing else in the area is left.
   const named = input.profile.skills ?? [];
   const offMedium = (m: Mission) => named.length > 0 && Boolean(m.fits?.length) && !m.fits!.some(x => named.includes(x));
 
-  // Only when the area has nothing else that fits: a niche mission (a plank set, typing practice)
-  // or one made for a medium (Film One Video) the user never named, unless the week's focus or the
-  // goal points at it; and on Day 1, a follow-up to an earlier session (Review Yesterday's Notes)
-  // and, before 3 PM, a mission for tonight (the first list should be doable now).
-  const lean = leanFor(input.profile, input.day);
+  // Only when the area has nothing else that fits: a niche mission, or one made for a medium
+  // (`fits`) the user never named, unless the week's focus or the
+  // goal points at it; and on Day 1, a follow-up to an earlier session (Improve Something You Made
+  // Yesterday) and, before 3 PM, a mission for tonight (the first list should be doable now).
   const firstDay = Object.keys(input.history.lastPlanned).length === 0;
   const morning = input.hour != null && input.hour >= DAY_START_HOUR && input.hour < AFTERNOON_HOUR + 3;
   // Internship searches are for students: someone working and not in school gets job missions,
@@ -412,38 +509,54 @@ export function chooseForSlot(
     ((Boolean(m.tags?.includes('niche')) || (named.length === 0 && Boolean(m.fits?.length))) && !leansTo(m, lean)) ||
     (firstDay && ((morning && m.when === 'evening') || Boolean(m.tags?.includes('follow-up'))));
 
-  // A support task (Plan Tomorrow's Workout, Pack Your Gym Bag) is never an area's only mission
-  // of the day while a real one (a workout, a study session) fits.
+  // A support task (Write Your Next 3 Project Actions) is never an area's only mission of the
+  // day while a real one (a work session, a workout) fits.
   // A meal counts the same way unless the goal or focus is about food ("Eat healthier").
   const supportOnly = (m: Mission, area: TrackId) =>
     (Boolean(m.tags?.includes('support')) || (m.group === 'meal' && !leansTo(m, lean))) && !usedTracks.includes(area);
 
-  const tryAreas = (list: readonly TrackId[], size: MissionSlot, relaxShown: boolean, ignoreSkips: boolean, cap: number): SlotPick | null => {
+  // `strict`: only the usual missions, so a slot takes a real one a little longer (the stretch)
+  // or shown lately before a last resort (tonight's Plan Tomorrow's Top 3 on a Day 1 morning).
+  const tryAreas = (list: readonly TrackId[], size: MissionSlot | null, relax: Relax, cap: number, strict = false): SlotPick | null => {
     for (const area of list) {
-      const all = input.library.filter(m => serves(m, area) && fits(m, size, cap) && available(m, input, relaxShown, ignoreSkips));
-      const onMedium = all.filter(m => !offMedium(m));
-      const usual = (onMedium.length ? onMedium : all).filter(m => !lastResort(m) && !supportOnly(m, area));
-      const cands = usual.length ? usual : onMedium.length ? onMedium : all;
-      const m = pick(cands, input, area, `${seed}:${size}:${area}`);
+      const cands = input.library.filter(m => serves(m, area) && fits(m, size, cap) && available(m, input, relax));
+      const onMedium = cands.filter(m => !offMedium(m));
+      const usual = (onMedium.length ? onMedium : cands).filter(m => !lastResort(m) && !supportOnly(m, area));
+      const m = pick(usual.length || strict ? usual : onMedium.length ? onMedium : cands, input, area, `${seed}:${size ?? 'any'}:${area}`);
       if (m) return { mission: m, area };
     }
     return null;
   };
 
-  const shortest = (list: readonly TrackId[], cap: number): SlotPick | null => {
-    for (const size of sizes) {
+  /** The shortest few missions of these areas (of `size`, or any size), within `cap`. */
+  const shortest = (list: readonly TrackId[], bySize: readonly (MissionSlot | null)[], cap: number, relax: Relax, top = mainMax): SlotPick | null => {
+    for (const size of bySize) {
       for (const area of list) {
         const cands = input.library
-          .filter(m => serves(m, area) && fits(m, size, cap) && available(m, input, true, true))
+          .filter(m => serves(m, area) && fits(m, size, cap, top) && available(m, input, relax))
           .sort((a, b) => a.minutes - b.minutes)
           .slice(0, 3);
-        const m = pick(cands, input, area, `${seed}:short:${size}:${area}`);
+        const m = pick(cands, input, area, `${seed}:short:${size ?? 'any'}:${area}`);
         if (m) return { mission: m, area };
       }
     }
     return null;
   };
 
+  // The week's focus area in a focused slot, when everything the focus names is short ("Prepare for
+  // an exam": Test Yourself on Flashcards for 20 Minutes, not a plain study session): its short
+  // missions join the draw, so the focus steers the slot (pick's FOCUS_SHARE).
+  if (slot === 'main' && track === lean.focusArea && !trackUsed) {
+    const onFocus = (m: Mission) => lean.ids.has(m.id) || (m.tags ?? []).some(t => lean.focusTags.has(t));
+    const focusFits = (size: MissionSlot) =>
+      input.library.some(m => serves(m, track) && onFocus(m) && fits(m, size, maxMinutes) && available(m, input, { shown: true }));
+    if (!focusFits('main') && focusFits('easy')) {
+      for (const shown of [false, true]) {
+        const got = tryAreas([track], null, { shown }, maxMinutes, true);
+        if (got) return got;
+      }
+    }
+  }
   // 1–3: the user's areas, fresh ones first, by size, within the time left.
   // The slot's own area at every size first (a short School mission beats a focused Career one
   // in a School slot), then the other areas not in the day yet, then the ones already in it.
@@ -451,38 +564,59 @@ export function chooseForSlot(
   for (const list of groups) {
     if (!list.length) continue;
     for (const size of sizes) {
-      for (const relaxShown of [false, true]) {
-        const got = tryAreas(list, size, relaxShown, false, maxMinutes);
-        if (got) return got;
-      }
-      // Nothing in these areas fits the even share: take what's actually left before moving on.
-      if (stretch > maxMinutes) {
-        const got = tryAreas(list, size, true, false, stretch);
-        if (got) return got;
+      for (const strict of [true, false]) {
+        for (const shown of [false, true]) {
+          const got = tryAreas(list, size, { shown }, maxMinutes, strict);
+          if (got) return got;
+        }
+        // Nothing in these areas fits the even share: take what's actually left before moving on,
+        // still not yesterday's mission while another fits (Do 20 Minutes of Cardio three days running).
+        if (stretch > maxMinutes) {
+          for (const shown of [false, true]) {
+            const got = tryAreas(list, size, { shown }, stretch, strict);
+            if (got) return got;
+          }
+        }
       }
     }
   }
   // 4: let back missions swapped away lately rather than leave the day short.
   for (const size of sizes) {
-    const got = tryAreas([...fresh, ...rest], size, true, true, maxMinutes);
+    const got = tryAreas(all, size, { shown: true, skips: true }, maxMinutes);
     if (got) return got;
   }
-  // 5 (one area only): their own area's missions shown or swapped lately, within the time the day
-  // has left, before anything from outside it.
-  if (areas.length === 1) {
-    const own = shortest(areas, Math.max(maxMinutes, stretch));
-    if (own) return own;
-  }
-  // 5: the universal basics.
-  for (const relaxShown of [false, true]) {
-    for (const area of FALLBACK_TRACKS) {
-      const cands = input.library.filter(m => m.track === area && fits(m, 'easy', maxMinutes) && available(m, input, relaxShown));
-      const m = pick(cands, input, area, `${seed}:fallback:${area}`);
-      if (m) return { mission: m, area };
-    }
+  // 5: a weekly or rarer mission shown within its cooldown.
+  const loose: Relax = { shown: true, skips: true, lowShown: true };
+  for (const size of sizes) {
+    const got = tryAreas(all, size, loose, Math.max(maxMinutes, stretch));
+    if (got) return got;
   }
   // 6: nothing fits the time left; the shortest few of their areas' missions, a little over.
-  return shortest([...fresh, ...rest], maxMinutes + 15);
+  const over = shortest(all, sizes, maxMinutes + 15, loose);
+  if (over) return over;
+  // 7: any size, within what the intensity hands out.
+  const any = shortest(all, [null], intensityMax, loose, intensityMax);
+  if (any) return any;
+  // 8: a repeatable mission still in its cooldown, relaxed as little as can be: not one done
+  // yesterday while another is left, then the one furthest through its cooldown (a weekly one done
+  // 4 days ago before a monthly one done 4 days ago), then the one done longest ago.
+  const lastDone = input.history.lastDone;
+  const yesterday = (m: Mission) => (lastDone[m.id] && diffDays(lastDone[m.id], input.day) <= 1 ? 1 : 0);
+  const waitLeft = (m: Mission) => (lastDone[m.id] ? (m.cooldownDays - diffDays(lastDone[m.id], input.day)) / m.cooldownDays : 0);
+  for (const area of all) {
+    const cands = input.library
+      .filter(m => serves(m, area) && fits(m, null, intensityMax, intensityMax) && available(m, input, { ...loose, cooldown: true }))
+      .sort(
+        (a, b) =>
+          yesterday(a) - yesterday(b) ||
+          waitLeft(a) - waitLeft(b) ||
+          (lastDone[a.id] ?? '').localeCompare(lastDone[b.id] ?? '') ||
+          a.minutes - b.minutes ||
+          (a.id < b.id ? -1 : 1),
+      );
+    if (cands.length) return { mission: cands[0], area };
+  }
+  return null;
 }
 
 /** A mission's id plus every other mission in its group: none of them can join a day that has it. */
@@ -509,6 +643,14 @@ export function generatePlan(input: PlanInput): DayPlan {
   const goalAreas = lean.goalAreas.filter(a => areas.includes(a));
   // Day 1 also gives the goal's other areas the next slots: the first list is what they came for.
   const tracks = slotTracks(profile, slots, day, areas, lead, firstDay || Boolean(lead && lead === lean.focusArea), goalAreas, firstDay);
+  // Money and Organization are all short missions: a focused slot drawn for one of them trades
+  // areas with a short slot whose area has focused missions, so the day keeps its focused work.
+  const focusedIn = (t: TrackId) => input.library.some(m => m.active && serves(m, t) && sizeOf(m) === 'main');
+  slots.forEach((s, i) => {
+    if (s !== 'main' || focusedIn(tracks[i])) return;
+    const j = slots.findIndex((x, k) => x === 'easy' && focusedIn(tracks[k]));
+    if (j >= 0) [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+  });
   const budget = dayBudget(profile);
   const chosenSlots: PlannedMission[] = [];
   const used = new Set<string>();
@@ -533,8 +675,8 @@ export function generatePlan(input: PlanInput): DayPlan {
     if (focusArea && slots.length <= 3 && placed >= 1 && !usedTracks.includes(focusArea)) break;
     const m = byId.get(id);
     if (!m || !m.active || used.has(id)) continue;
-    // A mission the user's answers rule out (School Reset after "not in school") stays out.
-    if (!meetsRequirements(m.requires, profile)) continue;
+    // A mission the user's answers rule out (Apply to One Job or Internship with no job search) stays out.
+    if (!meetsRequirements(m.requires, profile, day)) continue;
     // Too late for a morning mission (or the wrong day of the week); the program day's other missions still move it on.
     if (m.when === 'morning' && tooLateForMorning(input.hour)) continue;
     if (m.days && !m.days.includes(parseDay(day).getDay())) continue;
@@ -562,20 +704,25 @@ export function generatePlan(input: PlanInput): DayPlan {
     const later = order.filter(o => !filled.has(o.i) && o.i !== i && !chosenSlots[o.i]);
     const laterMain = later.filter(o => o.s === 'main').length;
     const laterEasy = later.length - laterMain;
-    // A focused slot takes what the later slots don't need; easy slots share what's left evenly
-    // (10 + 10 + 5 on a 25-minute day, not 15 + 5 + 5), so the last one isn't squeezed to 5 minutes.
-    // The day's last slot rounds down instead, so 10 + 3 minutes doesn't get a 10-minute third (23 on a 20-minute day).
+    // A focused slot takes what the later slots don't need (10 minutes for each short one still to
+    // come); short slots share what's left evenly (15 + 15 on a 15-minute day's 30, not 20 + 10), so
+    // the last one isn't squeezed. The day's last slot rounds down instead.
     const last = later.length === 0;
     const room =
       s === 'main'
-        ? Math.max(20, budget - spent - laterMain * 20 - laterEasy * 5)
+        ? Math.max(20, budget - spent - laterMain * 20 - laterEasy * 10)
         : last
           ? Math.max(5, Math.min(EASY_MAX_MINUTES, Math.floor((budget - spent) / 5) * 5))
           : Math.max(5, Math.min(EASY_MAX_MINUTES, Math.ceil((budget - spent - laterMain * 20) / (laterEasy + 1) / 5) * 5));
     // The slot's area, or the first of the user's areas not in the day yet.
     const area = usedTracks.includes(tracks[i]) ? (areas.find(t => !usedTracks.includes(t)) ?? tracks[i]) : tracks[i];
-    const left = Math.max(room, budget - spent - laterMain * 20 - laterEasy * 5);
-    const got = chooseForSlot(input, s, area, used, room, `${salt}:${day}:${i}`, usedTracks, false, s === 'easy' ? Math.min(EASY_MAX_MINUTES, left) : room);
+    // A short slot may take up to EASY_MAX_MINUTES when its area has nothing within the even
+    // share (Fitness's shortest are 20 minutes), rather than give the slot to another area.
+    const stretch = s === 'easy' ? EASY_MAX_MINUTES : room;
+    const seed = `${salt}:${day}:${i}`;
+    // Never a slot left empty while an approved mission in their areas is left: when every other
+    // area is out, a third mission from one area beats a short day.
+    const got = chooseForSlot(input, s, area, used, room, seed, usedTracks, false, stretch) ?? chooseForSlot(input, s, area, used, room, seed, usedTracks, false, stretch, true);
     if (!got) continue;
     chosenSlots[i] = { slot: s, missionId: got.mission.id, area: got.area };
     for (const x of sameDayBlocked(input.library, got.mission)) used.add(x);
@@ -619,9 +766,9 @@ export function swapArea(plan: DayPlan, index: number, input: Pick<PlanInput, 'l
 /**
  * Swap one mission of today's plan for another from the same area (another
  * School mission for a School mission), the same size, not already in the day.
- * Same area and size come first, then a different kind of mission (not "Lock In"
- * for "Do a 20-Minute Focus Session"); the user's other areas only when that area
- * has nothing left.
+ * Same area and size come first, then a different kind of mission (not "Work With
+ * Your Phone Away for 30 Minutes" for "Lock In for 30 Minutes"); the user's other
+ * areas only when that area has nothing left.
  */
 export function rerollMission(plan: DayPlan, index: number, input: PlanInput): DayPlan | null {
   const current = plan.missions[index];
@@ -659,13 +806,16 @@ export function rerollMission(plan: DayPlan, index: number, input: PlanInput): D
  * "RECOMMENDED FOR YOU": up to `count` missions to replace the one at `index`, for the reason the
  * user gave. Each is a different kind (no two from one group), drawn the way a swap draws
  * (core/missions chooseForSlot: the slot's area first, the rest of the day left as it is):
- *  - too-hard: shorter than the mission it replaces (an easy one);
+ *  - too-hard: shorter than the mission it replaces (in its area first: Do 20 Minutes of Cardio for
+ *    Walk for 30 Minutes); only shorter ones, so a mission of 15 minutes or less may have none;
  *  - too-easy: longer than it (a focused one, up to what the intensity hands out);
  *  - not-relevant: nothing of the same kind (its group and activity tags);
  *  - cant-today / already-did: nothing from its group (its near-twins);
  *  - another: the usual swap.
- * When the reason leaves nothing, the usual swap's picks fill in. Pure: picking one is
- * `replaceWith`.
+ * Too hard and too easy are about length, not kind, so a near-twin of another length counts. No
+ * choice is still in its cooldown or was swapped away lately (chooseForSlot's last steps let those
+ * back to fill a day, never a swap). When the reason leaves fewer than `count`, the usual swap's
+ * picks fill in (not for too-hard: those would be no shorter). Pure: picking one is `replaceWith`.
  */
 export function replacementChoices(plan: DayPlan, index: number, input: PlanInput, reason: SwapReason = 'another', count = 3): SlotPick[] {
   const current = plan.missions[index];
@@ -690,8 +840,9 @@ export function replacementChoices(plan: DayPlan, index: number, input: PlanInpu
 
   type Rule = { slot: MissionSlot; cap: number; ok: (m: Mission) => boolean; apart: boolean };
   const rules: Record<SwapReason, Rule> = {
-    'too-hard': { slot: 'easy', cap: Math.max(5, Math.min(EASY_MAX_MINUTES, oldMinutes - 5)), ok: m => m.minutes < oldMinutes, apart: true },
-    'too-easy': { slot: 'main', cap: Math.max(room, Math.min(mainMax, oldMinutes + 30)), ok: m => m.minutes > oldMinutes, apart: true },
+    // The same slot, shorter: a too-hard 30-minute workout can be a 20-minute one (Do 20 Minutes of Cardio).
+    'too-hard': { slot: was, cap: Math.max(5, oldMinutes - 5), ok: m => m.minutes < oldMinutes, apart: false },
+    'too-easy': { slot: 'main', cap: Math.max(room, Math.min(mainMax, oldMinutes + 30)), ok: m => m.minutes > oldMinutes, apart: false },
     'not-relevant': { slot: was, cap: room, ok: m => !kindsOf(m).some(k => oldKinds.has(k)), apart: true },
     'cant-today': { slot: was, cap: room, ok: () => true, apart: true },
     'already-did': { slot: was, cap: room, ok: () => true, apart: true },
@@ -707,13 +858,14 @@ export function replacementChoices(plan: DayPlan, index: number, input: PlanInpu
       if (!got) return;
       // Different kinds: nothing else from its group comes up after it.
       for (const id of sameDayBlocked(input.library, got.mission)) ex.add(id);
-      if (!rule.ok(got.mission)) continue;
+      // A swap respects cooldowns and recent swaps: only a day's plan may take one of those back.
+      if (!rule.ok(got.mission) || !available(got.mission, input, { shown: true, skips: true })) continue;
       out.push(got);
       for (const id of sameDayBlocked(input.library, got.mission)) taken.add(id);
     }
   };
   draw(rules[reason], reason);
-  if (out.length < count && reason !== 'another') draw(rules.another, 'fill');
+  if (out.length < count && reason !== 'another' && reason !== 'too-hard') draw(rules.another, 'fill');
   return out;
 }
 

@@ -37,6 +37,7 @@ import {
   type CardAction,
 } from './parts';
 import { SwapSheet, type SwapTarget } from '../swap/SwapSheet';
+import { titled, useMissionTitle } from '../titles';
 import { showSwapLimit } from './swap';
 
 /** A beat after Today settles, so a card that was just proven plays first. */
@@ -92,7 +93,11 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const program = useApp(s => s.program);
   const reviewSeen = useApp(s => s.reviewSeen);
   const momentsShown = useApp(s => s.momentsShown);
-  const { plan, missions } = useTodayMissions(day);
+  const { plan, missions: rows } = useTodayMissions(day);
+  const titleOf = useMissionTitle();
+  // Each row's mission as this user reads it ("Work on Your Clothing Brand for 30 Minutes"):
+  // the card, its START and SWAP say that title, and so does the swap sheet.
+  const missions = rows.map(m => ({ ...m, mission: titled(m.mission, titleOf) }));
   const streak = useStreak(day);
   const points = useBalance();
   const next = useNextReward(day);
@@ -233,7 +238,9 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   const all = missions.length;
   const shownIds = seen.day === day ? seen.ids : [];
   const shownDone = shownIds.length;
-  const ready = Boolean(plan);
+  // Not ready while the saved plan still holds missions retired by an update (it's planned again on
+  // focus), so "Nothing fits today" and 0 / 0 don't flash first.
+  const ready = Boolean(plan && plan.missions.every(p => MISSION_BY_ID[p.missionId]));
   const perfect = ready && all > 0 && shownDone >= all;
 
   const prog = program ? PROGRAM_BY_ID[program.id] : undefined;
@@ -378,8 +385,9 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
         onClose={() => setSwapTarget(null)}
         onSwapped={id => {
           setSwapTarget(null);
-          const title = MISSION_BY_ID[id]?.title;
-          if (!title) return;
+          const m = MISSION_BY_ID[id];
+          if (!m) return;
+          const title = titleOf(m);
           setSwapped(id);
           AccessibilityInfo.announceForAccessibility(HOME.swap.done(title));
         }}
