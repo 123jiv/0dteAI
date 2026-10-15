@@ -2,7 +2,7 @@
 // `PRINT=1 npx vitest run src/core/__tests__/personas.test.ts` prints each day's plan.
 import { describe, expect, it } from 'vitest';
 import missionsJson from '../../content/missions.json';
-import { available, dayBudget, DEFAULT_PROFILE, EASY_MAX_MINUTES, eligibleAreas, generatePlan, historyFrom, planAreas, rerollMission, serves, slotsFor, usableAreas, type PlanInput } from '../missions';
+import { available, dayBudget, DEFAULT_PROFILE, EASY_MAX_MINUTES, eligibleAreas, fitsSlot, generatePlan, historyFrom, planAreas, rerollMission, serves, slotsFor, usableAreas, type PlanInput } from '../missions';
 import { goalLean, leanFor } from '../personalize';
 import { addDays, type DayKey } from '../time';
 import { missionTitle } from '../titles';
@@ -71,6 +71,7 @@ describe('personas', () => {
       }
       let focusedSlots = 0;
       let focusedFilled = 0;
+      let doubled = 0;
       for (const plan of week) {
         expect(plan.missions.length).toBe(slotsFor(p.profile).length);
         const ms = plan.missions.map(x => BY_ID.get(x.missionId)!);
@@ -81,19 +82,25 @@ describe('personas', () => {
           expect(eligible).toContain(x.area);
           expect(serves(BY_ID.get(x.missionId)!, x.area as TrackId)).toBe(true);
         }
-        // At least one focused mission every day.
-        expect(ms.some(m => m.minutes > EASY_MAX_MINUTES)).toBe(true);
+        // At least one focused mission every day (20 minutes or more in a focused slot: a 20-minute
+        // mission fits either slot; a weekly one whose turn has come may take a second focused slot).
+        expect(plan.missions.some(x => x.slot === 'main' && fitsSlot(BY_ID.get(x.missionId)!, 'main'))).toBe(true);
         focusedSlots += plan.missions.filter(x => x.slot === 'main').length;
-        focusedFilled += plan.missions.filter(x => x.slot === 'main' && BY_ID.get(x.missionId)!.minutes > EASY_MAX_MINUTES).length;
+        focusedFilled += plan.missions.filter(x => x.slot === 'main' && fitsSlot(BY_ID.get(x.missionId)!, 'main')).length;
         // Within the time they chose (a short mission over at most, when nothing shorter is left).
         expect(ms.reduce((t, m) => t + m.minutes, 0)).toBeLessThanOrEqual(dayBudget(p.profile) + 15);
-        // The day covers as many of their areas as it has slots: never three from one.
+        // The day covers as many of their areas as it has slots, never three from one. An area takes
+        // a second slot only when another area's short missions are all resting, or for a support
+        // task next to its real one (Write Your Next 3 Project Actions): at most one day a week.
         const areas = usableAreas(LIBRARY, p.profile);
-        expect(new Set(plan.missions.map(x => x.area)).size).toBe(Math.min(areas.length, plan.missions.length));
-        // Missions tied to days of the week keep to them (Create Your Study Plan for the Week: Sunday to Tuesday).
+        const per = plan.missions.reduce<Record<string, number>>((t, x) => ({ ...t, [x.area!]: (t[x.area!] ?? 0) + 1 }), {});
+        expect(Math.max(...Object.values(per))).toBeLessThanOrEqual(2);
+        if (Object.keys(per).length < Math.min(areas.length, plan.missions.length)) doubled += 1;
+        // Missions tied to days of the week keep to them (the engine supports `days`; no approved mission uses it now).
         const weekday = new Date(`${plan.day}T12:00:00`).getDay();
         for (const m of ms) if (m.days) expect(m.days).toContain(weekday);
       }
+      expect(doubled, 'days with two missions from one area').toBeLessThanOrEqual(1);
       // Focused slots hold focused missions on most days.
       expect(focusedFilled / focusedSlots).toBeGreaterThanOrEqual(0.75);
       // Days differ.
@@ -131,7 +138,8 @@ describe('personas', () => {
         expect(next!.missions[i].area).toBe(plan.missions[i].area);
         expect(serves(after, plan.missions[i].area as TrackId)).toBe(true);
         swaps += 1;
-        if ((after.minutes <= EASY_MAX_MINUTES) === (before.minutes <= EASY_MAX_MINUTES)) sameSize += 1;
+        // The same size: a mission the slot takes (a 20-minute one fits either).
+        if (fitsSlot(after, plan.missions[i].slot === 'easy' ? 'easy' : 'main')) sameSize += 1;
         lines.push(`    swap ${before.title} → ${after.title}`);
         plan = next;
       }
@@ -310,8 +318,8 @@ describe('short days stay useful', () => {
       for (const plan of run({ ...p.profile, minutes: 30 }, 14, 'm30')) {
         expect(plan.missions.map(x => x.slot)).toEqual(['easy', 'main']);
         const [short, focused] = plan.missions.map(x => BY_ID.get(x.missionId)!);
-        expect(short.minutes).toBeLessThanOrEqual(EASY_MAX_MINUTES);
-        expect(focused.minutes, `${p.key} ${plan.day}`).toBeGreaterThan(EASY_MAX_MINUTES);
+        expect(fitsSlot(short, 'easy')).toBe(true);
+        expect(fitsSlot(focused, 'main'), `${p.key} ${plan.day}`).toBe(true);
       }
     }
   });
@@ -349,15 +357,20 @@ describe('the founder test, round 3', () => {
     }
   });
 
-  it('every area stays in the day for C and E at 45 minutes, and comes round at least two days a week at 15 and 30', () => {
+  it('every area stays in the day for C and E at 45 minutes (Money six days in seven), and comes round at least two days a week at 15 and 30', () => {
     for (const key of ['C', 'E']) {
       for (const minutes of [15, 30, 45] as const) {
         const p = { ...persona(key), minutes };
         const areas = usableAreas(LIBRARY, p);
         const days = Array.from({ length: 6 }, (_, k) => run(p, 28, `c${k}`)).flat();
         if (minutes === 45) {
-          const missing = days.filter(plan => areas.some(a => !plan.missions.some(x => x.area === a))).length;
-          expect(missing / days.length, `${key} ${minutes}`).toBeLessThanOrEqual(0.05);
+          // Money is the exception: no mission comes up on more than four days of any seven
+          // (MAX_DAYS_IN_WEEK), Track Everything You Spend Today included, and Money's other missions
+          // are weekly or rarer, so it's in the day about six days in seven.
+          for (const a of areas) {
+            const missing = days.filter(plan => !plan.missions.some(x => x.area === a)).length;
+            expect(missing / days.length, `${key} ${minutes} ${a}`).toBeLessThanOrEqual(a === 'money' ? 1 / 7 : 0.05);
+          }
         } else {
           // Two slots, three areas; Career's short missions are mostly weekly or rarer, so it comes less often.
           for (const a of areas) expect(days.filter(plan => plan.missions.some(x => x.area === a)).length / days.length, `${key} ${minutes} ${a}`).toBeGreaterThanOrEqual(2 / 7);

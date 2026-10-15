@@ -299,7 +299,7 @@ describe('how often missions come round', () => {
   it('a weekly mission shown on Monday and left is not back until the next Monday, even when shown missions are let back', () => {
     const s12 = MISSION_BY_ID.S12;
     const shown = (day: DayKey, relax = {}) => available(s12, { profile: PEOPLE.A, day, history: { ...NONE, lastPlanned: { S12: '2026-10-12' } } }, relax);
-    // Sunday to Tuesday only: Tuesday the 13th would be one of its days.
+    // The next day, with shown missions and swaps let back: a weekly one still waits its week.
     expect(shown('2026-10-13', { shown: true, skips: true })).toBe(false);
     expect(shown('2026-10-18', { shown: true })).toBe(false);
     expect(shown('2026-10-19')).toBe(true);

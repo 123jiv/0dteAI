@@ -193,13 +193,23 @@ export function leanFor(profile: Pick<Profile, 'focus' | 'nextFocus' | 'goal'>, 
 
 /** How far back the plan looks at what was done, swapped and left undone. */
 export const LEARN_DAYS = 28;
+/**
+ * How far back preferShort looks: two weeks, not four, so what the user does once focused missions
+ * are shorter can turn it off again (it plans fewer long missions, so the evidence moves slowly).
+ */
+export const SHORT_LEARN_DAYS = 14;
+/** Long and mid-length missions each planned at least this often (on days with a proof) before preferShort decides. */
+export const SHORT_MIN_PLANNED = 6;
 
 export interface Adaptation {
   /** Times a mission was planned on a day the user proved something else, and left undone. */
   ignored: Record<string, number>;
   /** Kinds of mission swapped away more than once (by group "g:" or tag "t:"): how many different missions. */
   swappedKinds: Record<string, number>;
-  /** Long missions (LONG_MINUTES or more) mostly get left while 15–25 minute ones get done: keep focused missions shorter. */
+  /**
+   * Long missions (LONG_MINUTES or more) mostly get left while 15–25 minute ones get done, over the
+   * last SHORT_LEARN_DAYS: keep focused missions shorter (every other day, core/missions).
+   */
   preferShort: boolean;
   /** Areas proven consistently: they get slightly bigger missions. */
   stepUp: TrackId[];
@@ -249,6 +259,7 @@ export function learnFrom(
   before: DayKey,
 ): Adaptation {
   const since = addDays(before, -LEARN_DAYS);
+  const shortSince = addDays(before, -SHORT_LEARN_DAYS);
   const ignored: Record<string, number> = {};
   const swapped: Record<string, Set<string>> = {};
   const area: Record<string, { planned: number; proven: number }> = {};
@@ -293,7 +304,7 @@ export function learnFrom(
       const a = (area[p.area ?? m.track] ??= { planned: 0, proven: 0 });
       a.planned += 1;
       if (ok) a.proven += 1;
-      const bucket = m.minutes >= LONG_MINUTES ? size.long : m.minutes >= 15 ? size.mid : null;
+      const bucket = day < shortSince ? null : m.minutes >= LONG_MINUTES ? size.long : m.minutes >= 15 ? size.mid : null;
       if (bucket) {
         bucket.planned += 1;
         if (ok) bucket.proven += 1;
@@ -311,7 +322,10 @@ export function learnFrom(
   const swappedKinds: Record<string, number> = {};
   for (const [k, ids] of Object.entries(swapped)) if (ids.size >= 2) swappedKinds[k] = ids.size;
   const rate = (x: { planned: number; proven: number }) => (x.planned ? x.proven / x.planned : 0);
-  const preferShort = size.long.planned >= 3 && rate(size.long) < 0.34 && size.mid.planned >= 3 && rate(size.mid) >= 0.6;
+  // Six of each, not three: a focused slot takes 20-minute missions too, so three mid-length ones and
+  // two long ones left undone in the first days were enough to turn it on for a month.
+  const preferShort =
+    size.long.planned >= SHORT_MIN_PLANNED && rate(size.long) < 0.34 && size.mid.planned >= SHORT_MIN_PLANNED && rate(size.mid) >= 0.6;
   const easeIn = (Object.keys(tooHard) as TrackId[]).filter(t => tooHard[t] >= 2 && tooHard[t] > (tooEasy[t] ?? 0));
   const consistent = (Object.keys(area) as TrackId[]).filter(t => area[t].planned >= 8 && area[t].proven >= 6 && rate(area[t]) >= 0.75);
   // "Too easy" twice in an area asks for bigger missions there, as being consistent does.

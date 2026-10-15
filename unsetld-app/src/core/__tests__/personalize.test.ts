@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PROFILE, generatePlan, type PlanInput } from '../missions';
 import { activeFocus, FOCUS_LEAN, goalLean, goalPointsAt, jobSearch, learnFrom, leanFor, LONG_MINUTES, mondayOf, NO_ADAPTATION, personalWeight, type Adaptation } from '../personalize';
-import { addDays, type DayKey } from '../time';
+import { addDays, dayNumber, type DayKey } from '../time';
 import type { DayPlan, Mission, MissionDone, Profile, TrackId } from '../types';
 
 let n = 0;
@@ -206,25 +206,42 @@ describe('learning from what the user did', () => {
     expect(learnFrom(plans, {}, lib, '2026-10-12').swappedKinds['g:reading']).toBe(2);
   });
 
-  it('prefers shorter focused missions when only the shorter ones get done', () => {
+  it('prefers shorter focused missions when only the shorter ones get done, from enough recent evidence', () => {
     // Long: 30 minutes or more (the approved library's focused missions); the shorter ones: 15–25.
-    const long = LIB.filter(x => x.minutes === 30).slice(0, 4);
-    const mid = LIB.filter(x => x.minutes === 30).slice(4, 8).map(x => ({ ...x, minutes: 20 }));
+    const long = LIB.filter(x => x.minutes === 30).slice(0, 6);
+    const mid = LIB.filter(x => x.minutes === 30).slice(6, 12).map(x => ({ ...x, minutes: 20 }));
     const lib = { ...byId, ...Object.fromEntries(mid.map(x => [x.id, x])) };
-    const plans: Record<DayKey, DayPlan> = {};
-    const done: Record<DayKey, Record<string, MissionDone>> = {};
-    for (let i = 0; i < 4; i++) {
-      const day = addDays('2026-10-01', i);
-      plans[day] = plan(day, [long[i].id, mid[i].id]);
-      done[day] = { [mid[i].id]: accepted(mid[i].id) };
-    }
-    expect(learnFrom(plans, done, lib, '2026-10-12').preferShort).toBe(true);
-    // And then no mission of LONG_MINUTES or more.
+    /** `days` days from `start`, each a long mission left and a shorter one proven. */
+    const history = (start: DayKey, days: number) => {
+      const plans: Record<DayKey, DayPlan> = {};
+      const done: Record<DayKey, Record<string, MissionDone>> = {};
+      for (let i = 0; i < days; i++) {
+        const day = addDays(start, i);
+        plans[day] = plan(day, [long[i].id, mid[i].id]);
+        done[day] = { [mid[i].id]: accepted(mid[i].id) };
+      }
+      return [plans, done] as const;
+    };
+    expect(learnFrom(...history('2026-10-01', 6), lib, '2026-10-12').preferShort).toBe(true);
+    // Three of each isn't enough to decide (a focused slot takes 20-minute missions, so that comes
+    // within days), and what happened more than two weeks back no longer counts.
+    expect(learnFrom(...history('2026-10-01', 3), lib, '2026-10-12').preferShort).toBe(false);
+    expect(learnFrom(...history('2026-10-01', 6), lib, '2026-10-20').preferShort).toBe(false);
+    // And then, every other day, no mission of LONG_MINUTES or more: the days between still have
+    // long ones, so the user can show they do them and what the plan learned can change.
     const ad: Adaptation = { ...NO_ADAPTATION, preferShort: true };
     const hour45 = m('school', 45, {});
     const libList = [...LIB, hour45];
-    expect(count(14, x => x.minutes >= LONG_MINUTES, { adapt: ad, profile: profile({ minutes: 60 }) }, libList)).toBe(0);
-    expect(count(14, x => x.minutes >= LONG_MINUTES, { profile: profile({ minutes: 60 }) }, libList)).toBeGreaterThan(0);
+    const libById = new Map(libList.map(x => [x.id, x]));
+    const days = Array.from({ length: 14 }, (_, i) => addDays('2026-10-12', i));
+    const long60 = (day: DayKey, adapt?: Adaptation) =>
+      generatePlan(input({ library: libList, day, profile: profile({ minutes: 60 }), ...(adapt ? { adapt } : {}) })).missions.some(
+        x => libById.get(x.missionId)!.minutes >= LONG_MINUTES,
+      );
+    const even = (day: DayKey) => ((dayNumber(day) % 2) + 2) % 2 === 0;
+    expect(days.filter(d => even(d) && long60(d, ad))).toEqual([]);
+    expect(days.some(d => !even(d) && long60(d, ad))).toBe(true);
+    expect(days.filter(d => even(d) && long60(d)).length).toBeGreaterThan(0);
   });
 
   it('steps up an area the user proves consistently, and reads when they usually prove', () => {

@@ -300,7 +300,7 @@ for (const p of programs) {
     const groups = (day ?? []).map(id => byId.get(id)?.group).filter(Boolean);
     if (new Set(groups).size !== groups.length) e(`day ${i + 1} has two missions from one group`);
     // The day only moves on once one of its missions is proven: one of them has to fit any time and any day.
-    // (School Reset's first day is the founder's Create Your Study Plan for the Week alone, Sunday to Tuesday: flagged, not failed.)
+    // (A day whose missions are all tied to weekdays is flagged, not failed: the program waits for one of those days.)
     const ms = (day ?? []).map(id => byId.get(id)).filter(Boolean);
     if (ms.length && ms.every(m => m.when === 'morning')) e(`day ${i + 1} needs a mission that isn't morning-only`);
     else if (ms.length && ms.every(m => m.when === 'morning' || m.days)) warnings.push(`${where}: day ${i + 1} only has missions tied to weekdays, so the program waits for one of those days`);

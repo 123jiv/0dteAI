@@ -390,11 +390,6 @@
   "cooldownDays": 7,
   "repeatable": true,
   "group": "planning-week",
-  "days": [
-   0,
-   1,
-   2
-  ],
   "tags": [
    "school",
    "planning",
@@ -678,11 +673,6 @@
   "frequency": "low",
   "cooldownDays": 7,
   "repeatable": true,
-  "days": [
-   0,
-   1,
-   2
-  ],
   "tags": [
    "money",
    "budget",

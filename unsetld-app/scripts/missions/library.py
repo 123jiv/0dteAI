@@ -72,8 +72,6 @@ def m(id, title, short, proof_type, minutes, points, proof, *, freq, cooldown, t
 
 
 NOTES = 'A photo of your notes or the work in front of you.'
-# Sunday, Monday, Tuesday (Date.getDay): plans for "this week" come at its start.
-WEEK_START = [0, 1, 2]
 WORKOUT = 'A photo of where you trained: the gym, your equipment, mat or shoes. Not your body.'
 
 # ── DISCIPLINE ─────────────────────────────────────────────────────────────
@@ -127,7 +125,7 @@ m('S11', 'Spend 30 Minutes on Your Hardest Class',
   NOTES + ' After the timer.', freq='high', cooldown=1, group='study-block', tags=['study', 'grades', 'gpa'])
 m('S12', 'Create Your Study Plan for the Week',
   'Plan what subjects, assignments, or exams you need to work on this week.', P, 15, 10, 'Your written plan.',
-  freq='low', cooldown=7, days=WEEK_START, group='planning-week', tags=['planning', 'exam', 'study'])
+  freq='low', cooldown=7, group='planning-week', tags=['planning', 'exam', 'study'])
 m('S13', 'Work on an Upcoming Project for 30 Minutes',
   'Spend 30 focused minutes making progress on a school project that is not due today.', TP, 30, 15,
   'Your project work, after the timer.', freq='medium', cooldown=3, tags=['homework', 'assignment', 'grades'])
@@ -166,7 +164,7 @@ m('M2', 'Review Your Spending From the Last 7 Days',
   'Look over what you spent during the past week and identify where your money went.', P, 15, 10,
   'Your notes or a summary by category. ' + NO_BANK, freq='low', cooldown=7, tags=['spending', 'budget'])
 m('M3', 'Make a Spending Plan for This Week', 'Decide how you want to use your money this week before you spend it.',
-  P, 10, 5, 'Your written plan. ' + NO_BANK, freq='low', cooldown=7, days=WEEK_START, tags=['budget', 'save', 'planning'])
+  P, 10, 5, 'Your written plan. ' + NO_BANK, freq='low', cooldown=7, tags=['budget', 'save', 'planning'])
 m('M5', 'Check One Subscription or Recurring Charge',
   'Review one recurring expense and decide whether it is still worth paying for.', P, 10, 5,
   'A written note of the charge and what you decided. No account screenshots.', freq='low', cooldown=30,
