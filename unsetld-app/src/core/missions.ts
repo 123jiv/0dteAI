@@ -1341,12 +1341,19 @@ export function replaceWith(
   };
 }
 
-/** History for the generator, from the proven missions, recent plans and skips. */
+/**
+ * History for the generator, from the proven missions, recent plans and skips. `known`: the
+ * missions that can still be planned (the store passes the library and the user's own). Plans
+ * from before a library update don't count as the user's week (`recent`), so an updated user's
+ * first week with the new missions runs like a new user's: the new missions aren't all overdue
+ * on the first day.
+ */
 export function historyFrom(
   done: Record<DayKey, Record<string, { missionId: string; verification?: { status: string } }>>,
   plans: Record<DayKey, DayPlan>,
   skips: MissionHistory['skips'],
   before: DayKey,
+  known: (id: string) => boolean = () => true,
 ): MissionHistory {
   const lastDone: Record<string, DayKey> = {};
   for (const day of Object.keys(done).sort()) {
@@ -1360,7 +1367,7 @@ export function historyFrom(
     if (day >= before) continue;
     for (const p of plans[day]?.missions ?? []) {
       lastPlanned[p.missionId] = day;
-      if (day >= weekStart) (recent[p.missionId] ??= []).push(day);
+      if (day >= weekStart && known(p.missionId)) (recent[p.missionId] ??= []).push(day);
     }
   }
   return { lastDone, lastPlanned, skips, recent };

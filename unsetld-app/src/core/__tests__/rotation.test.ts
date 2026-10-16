@@ -591,4 +591,23 @@ describe('the goal shapes the week (spec-goal, 15 Oct 2026)', () => {
     expect(focusedShare(fitness.runs, 'fitness'), 'coder + Fitness').toBeGreaterThanOrEqual(0.2);
     expect(focusedShare(discipline.runs, 'discipline'), 'coder + Discipline').toBeGreaterThanOrEqual(0.2);
   });
+
+  it("an updated user's first day with the new library keeps every area: the old library's plans don't make every new mission overdue", () => {
+    // A week of plans from before the update (retired missions), then the first plan with the approved ones.
+    const profile: Profile = { ...DEFAULT_PROFILE, tracks: ['projects', 'fitness', 'career'], school: false, work: false, gym: true, project: true, skills: ['design'], age: '18plus', minutes: 45, intensity: 'lockin', priority: null, goal: 'Launch my clothing brand' };
+    const day: DayKey = '2026-10-28';
+    const old = ['projects-build-30', 'fitness-workout', 'career-improve-resume'];
+    const areas: TrackId[] = ['projects', 'fitness', 'career'];
+    const plans: Record<DayKey, DayPlan> = {};
+    for (let i = 1; i <= 7; i++) {
+      const d = addDays(day, -i);
+      plans[d] = { day: d, missions: old.map((id, k) => ({ slot: k ? 'main' : 'easy', missionId: id, area: areas[k] })), rerolls: 0, replaced: [] };
+    }
+    const history = historyFrom({}, plans, {}, day, id => id in MISSION_BY_ID);
+    expect(history.recent).toEqual({});
+    for (let k = 0; k < 20; k++) {
+      const plan = generatePlan({ library: MISSIONS, profile, day, salt: `update-${k}`, history, hour: 10 });
+      expect(new Set(plan.missions.map(m => m.area)).size, plan.missions.map(m => m.missionId).join(' + ')).toBe(3);
+    }
+  });
 });

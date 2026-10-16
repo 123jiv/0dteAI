@@ -88,7 +88,7 @@ function planFor(r: RecordState, plans: Record<DayKey, DayPlan>, day: DayKey): D
     profile: s.profile,
     day,
     salt: s.installSalt,
-    history: historyFrom(r.missions ?? {}, plans, s.skips, day),
+    history: historyFrom(r.missions ?? {}, plans, s.skips, day, id => id in MISSION_BY_ID),
     hour: day === today() ? now().getHours() : undefined,
     program: null,
   });

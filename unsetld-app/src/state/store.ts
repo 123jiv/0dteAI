@@ -611,7 +611,8 @@ function planInput(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
     profile: s.profile,
     day,
     salt: s.installSalt,
-    history: historyFrom(s.record.missions ?? {}, s.plans, s.skips, day),
+    // Plans from before a library update hold retired missions; they aren't this user's week with these ones.
+    history: historyFrom(s.record.missions ?? {}, s.plans, s.skips, day, id => id in MISSION_BY_ID),
     // Morning missions only go into a plan made in the morning.
     hour: day === today() ? now().getHours() : undefined,
     program: prog && ids.length ? { id: prog.id, missionIds: ids } : null,
