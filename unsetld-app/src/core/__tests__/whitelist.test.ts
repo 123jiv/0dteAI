@@ -245,7 +245,8 @@ function live(k: number, picked: TrackId[], seen: Seen, bad: string[], own: Miss
       else if (!serves(m, area)) fail(`${day} ${what}: ${id} doesn't count for ${area}`);
       // Checked again without planAreas: these areas come only from the user's picks, the week's focus or their program.
       if (area && PICKED_ONLY.includes(area) && !chosen.includes(area) && area !== focusArea && !progAreas.includes(area)) fail(`${day} ${what}: ${id} in ${area}, never picked`);
-      if (area === 'school' && !chosen.includes('school') && focusArea !== 'school' && !progAreas.includes('school') && profile.school !== true) fail(`${day} ${what}: ${id} in School for someone not in school`);
+      // Out of school is a No kept from an earlier version (launch pass: picking School means in school).
+      if (area === 'school' && !chosen.includes('school') && focusArea !== 'school' && !progAreas.includes('school') && profile.school === false) fail(`${day} ${what}: ${id} in School for someone not in school`);
       if (area === 'career' && !chosen.includes('career') && focusArea !== 'career' && !jobSearch(profile, day)) fail(`${day} ${what}: ${id} in Career without a job search`);
       if (id === 'C2' && !jobSearch(profile, day)) fail(`${day} ${what}: C2 without a job or internship search`);
       seen.ids.add(id);

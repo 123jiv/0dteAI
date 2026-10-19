@@ -162,9 +162,11 @@ describe('who can get which areas', () => {
     }
   });
 
-  it('School: picked, or in school with a goal about school; never age alone', () => {
+  it('School: picked, or a goal about school unless out of school; never age alone', () => {
     expect(eligibleAreas(p({ age: '16to17' }), day)).not.toContain('school');
-    expect(eligibleAreas(p({ age: '16to17', school: null, goal: 'Get better grades' }), day)).not.toContain('school');
+    // Onboarding no longer asks (launch pass): not having said No is enough for a goal about school.
+    expect(eligibleAreas(p({ age: '16to17', school: null, goal: 'Get better grades' }), day)).toContain('school');
+    expect(eligibleAreas(p({ school: false, goal: 'Get better grades' }), day)).not.toContain('school');
     expect(eligibleAreas(p({ school: true }), day)).not.toContain('school');
     expect(eligibleAreas(p({ school: true, goal: 'Get better grades' }), day)).toContain('school');
     expect(eligibleAreas(p({ school: false, tracks: ['school'] }), day)).toEqual(['school']);

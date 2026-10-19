@@ -296,15 +296,16 @@ function chosenAreas(profile: Pick<Profile, 'tracks'>): TrackId[] {
 
 /**
  * Areas the user didn't pick that their answers and goal make eligible, in this order:
- * School for someone in school whose goal is about school (grades, homework, an exam: age
- * alone never counts); Career for a job or internship search (jobSearch); Projects for
- * someone building something (they said so, or the goal names it: an app, a brand, a launch).
- * A weekly focus brings its own area in on its own (eligibleAreas).
+ * School for someone whose goal is about school (grades, homework, an exam: age alone never
+ * counts) unless they said they're out of school (a No kept from an earlier version; onboarding
+ * no longer asks: picking School means in school); Career for a job or internship search
+ * (jobSearch); Projects for someone building something (they said so, or the goal names it: an
+ * app, a brand, a launch). A weekly focus brings its own area in on its own (eligibleAreas).
  */
 export function impliedAreas(profile: Profile, day?: DayKey): TrackId[] {
   const goal = profile.goal ?? '';
   const out: TrackId[] = [];
-  if (profile.school === true && goalPointsAt(goal, 'school')) out.push('school');
+  if (profile.school !== false && goalPointsAt(goal, 'school')) out.push('school');
   if (jobSearch(profile, day)) out.push('career');
   // "Land a software engineering job" or "Get a job at a startup" names a job, not something being
   // built: the words in front of "job" and where it is ("in/at …") don't count.
