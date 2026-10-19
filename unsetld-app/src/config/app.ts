@@ -5,7 +5,8 @@ import { Platform } from 'react-native';
 export const AppConfig = {
   name: 'UNSETLD',
   appStoreName: 'UNSETLD: Daily Discipline',
-  version: '3.1.0',
+  /** The app's version: the same as app.json's expo.version and package.json's (config/__tests__/version). */
+  version: '3.3.0',
   bundleId: 'com.unsetld.app',
   appGroup: 'group.com.unsetld.app',
   scheme: 'unsetld',
