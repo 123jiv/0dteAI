@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import programsJson from '../../content/programs.json';
-import { programDayView, programFinished, programProgress, startProgram } from '../programs';
+import { emptyRecord } from '../record';
+import { finishOf, planMomentKey, programDayView, programFinished, programProgress, recordPlanFinish, startProgram } from '../programs';
 import type { DayPlan, PlannedMission, Program, ProgramState } from '../types';
 
 const p: Program = { id: 'lock', title: '7 Day Lock In', short: '', days: 3, tracks: ['discipline'], free: true, plan: [['a', 'b'], ['c'], ['d']] };
@@ -84,5 +85,45 @@ describe('programDayView', () => {
       }
       expect(programFinished(prog, st)).toBe(true);
     }
+  });
+});
+
+describe('recordPlanFinish', () => {
+  it('notes each finish once, oldest first, and never removes one', () => {
+    const r0 = emptyRecord();
+    expect(r0.plansFinished).toBeUndefined();
+    const r1 = recordPlanFinish(r0, 'lock-in-7', '2026-10-02');
+    expect(r1.plansFinished).toEqual([{ id: 'lock-in-7', finished: '2026-10-02' }]);
+    expect(r0.plansFinished).toBeUndefined();
+    // The same finish again: the record as it was (the same object).
+    expect(recordPlanFinish(r1, 'lock-in-7', '2026-10-02')).toBe(r1);
+    // The same plan finished again later, and another plan: both added after it.
+    const r2 = recordPlanFinish(recordPlanFinish(r1, 'lock-in-7', '2026-10-20'), 'get-organized', '2026-10-25');
+    expect(r2.plansFinished).toEqual([
+      { id: 'lock-in-7', finished: '2026-10-02' },
+      { id: 'lock-in-7', finished: '2026-10-20' },
+      { id: 'get-organized', finished: '2026-10-25' },
+    ]);
+    expect(recordPlanFinish(r2, 'get-organized', '2026-10-25')).toBe(r2);
+    // Everything else on the record stays.
+    expect({ ...r2, plansFinished: undefined }).toEqual({ ...r0, plansFinished: undefined });
+  });
+
+  it('a damaged list is read as none', () => {
+    const r = { ...emptyRecord(), plansFinished: null as never };
+    expect(recordPlanFinish(r, 'lock', DAY).plansFinished).toEqual([{ id: 'lock', finished: DAY }]);
+  });
+
+  it('the moment key and the finish a saved state stands for', () => {
+    expect(planMomentKey('lock-in-7', '2026-10-02')).toBe('plan:lock-in-7:2026-10-02');
+    let s: ProgramState = startProgram('lock', '2026-10-01');
+    expect(finishOf(p, s)).toBeNull();
+    for (const d of ['2026-10-01', '2026-10-03', '2026-10-02']) s = { ...s, doneDays: [...s.doneDays, d] };
+    expect(finishOf(p, s)).toBe('2026-10-03');
+    expect(finishOf(p, { ...s, finishedDay: '2026-10-04' })).toBe('2026-10-04');
+    expect(finishOf(p, { ...s, doneDays: ['2026-10-01'] })).toBeNull();
+    // A plan the library no longer has: only a finish day says it finished.
+    expect(finishOf(undefined, s)).toBeNull();
+    expect(finishOf(undefined, { ...s, finishedDay: '2026-10-04' })).toBe('2026-10-04');
   });
 });

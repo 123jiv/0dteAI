@@ -174,7 +174,7 @@ describe('browser preview storage', () => {
     // The other tab proves a mission and saves.
     const other = saved();
     other.record.missions[TODAY].F3 = proven('F3', key(TODAY, 'F3'));
-    const json = JSON.stringify({ state: other, version: 7 });
+    const json = JSON.stringify({ state: other, version: useApp.persist.getOptions().version });
     web.ls.map.set(KEY, json);
     web.listeners.storage({ key: 'web-proof:x', newValue: 'x' });
     expect(useApp.getState().record.missions[TODAY].F3).toBeUndefined();

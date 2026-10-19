@@ -1,13 +1,16 @@
 // Loading state saved by earlier builds: v3 plans, timers and before photos for missions the
 // library no longer has, and old area ids in the tester snapshot and the Keychain backup; the
 // updates App Store users take into v7 (3.0's v4 state, v5's minutes, 2.x's v1 state, a 3.0
-// Keychain backup), from states the real builds saved (fixtures/); and 3.3's v7, where Business
-// folds into Projects and only the approved library is planned. Old mission ids in the fixtures
-// are inputs: they are planned again or dropped, and stay on the record.
+// Keychain backup), from states the real builds saved (fixtures/); 3.3's v7, where Business
+// folds into Projects and only the approved library is planned; and the launch pass's v8, from
+// a v7 state the 3.3 build saved (fixtures/v33-state.json: ten days through the real store and
+// planner). Old mission ids in the fixtures are inputs: they are planned again or dropped, and
+// stay on the record.
 // Hydrates the real store from a seeded storage entry.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import v1 from './fixtures/v1-state.json';
 import v30 from './fixtures/v30-state.json';
+import v33 from './fixtures/v33-state.json';
 
 const mem = vi.hoisted(() => {
   (globalThis as { __DEV__?: boolean }).__DEV__ = false;
@@ -274,7 +277,7 @@ describe('old area ids stay out of the record', () => {
   });
 });
 
-describe('updating into v7 from what the real builds saved', () => {
+describe('updating from what the real builds saved', () => {
   const DAY = '2026-10-14';
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
@@ -288,7 +291,7 @@ describe('updating into v7 from what the real builds saved', () => {
     return { balance: balance(r), earned: pointsEarned(r), active: activeDays(r).size, streak: computeStreak(activeDays(r), DAY).current };
   }
 
-  it("3.0 (v4): points, days and codes stay, and every proof still shows; the retired mission's timer goes and today is planned from the approved library; 30–60 minutes become 45; saved as v7", async () => {
+  it("3.0 (v4): points, days and codes stay, and every proof still shows; the retired mission's timer goes and today is planned from the approved library; 30–60 minutes become 45; saved as v8", async () => {
     const { useApp, isApproved, historyMission } = await load({ ...v30.state, profile: { ...v30.state.profile, priority: 'school' } }, v30.version);
     const s = useApp.getState();
     expect(await totals(s.record as never)).toEqual({ balance: 370, earned: 670, active: 20, streak: 9 });
@@ -311,7 +314,10 @@ describe('updating into v7 from what the real builds saved', () => {
       expect(historyMission(id)?.title).toBeTruthy();
       expect(historyMission(id)?.proof).toBeTruthy();
     }
-    expect(JSON.parse(mem.map.get('unsetld-v2')!).version).toBe(7);
+    // Its finished plan goes on the record; finished well before yesterday, its moment is seen.
+    expect(s.record.plansFinished).toEqual([{ id: v30.state.program.id, finished: '2026-10-02' }]);
+    expect(s.momentsShown).toEqual(expect.arrayContaining([`plan:${v30.state.program.id}:2026-10-02`, 'plan-1']));
+    expect(JSON.parse(mem.map.get('unsetld-v2')!).version).toBe(8);
   });
 
   it('3.0 (v4): 60+ minutes become 60; v5: 60 stays 60 and the retired weekly priority goes', async () => {
@@ -332,7 +338,9 @@ describe('updating into v7 from what the real builds saved', () => {
     expect(s.record.codes.map(c => c.code)).toEqual(['UNS-OLD5X', 'UNS-TEN2X']);
     expect(Object.keys(s.settings).sort()).toEqual(Object.keys(DEFAULT_SETTINGS).sort());
     expect(s.settings).toMatchObject({ onboarded: true, dropAlerts: true, reminders: { on: true, count: 3, first: 450, last: 1290 } });
-    expect(Object.keys(s.reading).sort()).toEqual(['accessIntroShown', 'road']);
+    expect(Object.keys(s.reading).sort()).toEqual(['accessIntroShown', 'remindersOffer', 'road']);
+    expect(s.reading.remindersOffer).toBe('done');
+    expect(s.settings).toMatchObject({ ageCheck: null, shareUsage: null });
   });
 
   it('a Keychain backup written by 3.0 restores into a fresh install', async () => {
@@ -404,7 +412,7 @@ describe('v6 → v7: Business folds into Projects', () => {
     const { trackProgress, TRACK_IDS } = await import('../../core/progress');
     expect(TRACK_IDS).not.toContain('business');
     expect(trackProgress(s.record).projects.xp).toBe(15);
-    expect(JSON.parse(mem.map.get('unsetld-v2')!).version).toBe(7);
+    expect(JSON.parse(mem.map.get('unsetld-v2')!).version).toBe(8);
 
     // Back to the real today: the record and plans kept aside come back with Projects too.
     useApp.getState().backToRealToday();
@@ -437,5 +445,144 @@ describe('v6 → v7: Business folds into Projects', () => {
     const { useApp } = await load({ installSalt: 'salt-7', settings: { onboarded: true }, profile: { tracks: ['projects', 'fitness'] }, plans: { [TODAY]: plan } }, 7);
     expect(useApp.getState().profile.tracks).toEqual(['projects', 'fitness']);
     expect(useApp.getState().ensurePlan(TODAY)).toEqual(plan);
+  });
+});
+
+describe('v7 → v8 (launch pass): from the state the 3.3 build saved', () => {
+  const DAY = '2026-10-15';
+  const PLAN_KEY = `plan:${v33.state.program.id}:${v33.state.program.finishedDay}`;
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 15, 8, 0, 0)); // Thu 15 Oct 2026, 8 AM local
+  });
+
+  /** A copy of the fixture's state with some of it changed. */
+  const v33With = (patch: Record<string, unknown>) => ({ ...structuredClone(v33.state), ...patch });
+  const savedState = () => JSON.parse(mem.map.get('unsetld-v2')!) as { state: Record<string, unknown>; version: number };
+
+  /** Everything in `old` is in `now` as it was (arrays may have grown at the end): the update only adds. */
+  function onlyAdds(now: unknown, old: unknown, path = ''): string[] {
+    if (Array.isArray(old)) {
+      if (!Array.isArray(now) || now.length < old.length) return [path];
+      return old.flatMap((v, i) => onlyAdds(now[i], v, `${path}[${i}]`));
+    }
+    if (old && typeof old === 'object') {
+      if (!now || typeof now !== 'object') return [path];
+      return Object.entries(old).flatMap(([k, v]) => onlyAdds((now as Record<string, unknown>)[k], v, `${path}.${k}`));
+    }
+    return Object.is(now, old) ? [] : [path];
+  }
+
+  it('keeps the record, the plans, the profile and everything else as they were; saved as v8', async () => {
+    expect(v33.version).toBe(7);
+    const { useApp } = await load(v33.state, v33.version);
+    const s = useApp.getState();
+    const { plansFinished, ...record } = s.record;
+    expect(record).toEqual(v33.state.record);
+    expect(plansFinished).toHaveLength(1);
+    expect(s.plans).toEqual(v33.state.plans);
+    expect(s.profile).toEqual(v33.state.profile);
+    expect(s.program).toEqual(v33.state.program);
+    expect(s.customMissions).toEqual(v33.state.customMissions);
+    expect(s.installSalt).toBe(v33.state.installSalt);
+    const { balance, pointsEarned } = await import('../../core/rewards');
+    const { activeDays } = await import('../../core/progress');
+    const { computeStreak } = await import('../../core/streak');
+    expect({ balance: balance(s.record), active: activeDays(s.record).size, streak: computeStreak(activeDays(s.record), DAY).current }).toEqual({
+      balance: balance(v33.state.record as never),
+      active: 9,
+      streak: 4,
+    });
+    expect(pointsEarned(s.record)).toBe(pointsEarned(v33.state.record as never));
+    // Today is planned as usual, and yesterday's plan (one mission proven, one open) stays.
+    expect(s.ensurePlan(DAY).missions.length).toBeGreaterThan(0);
+    expect(useApp.getState().plans['2026-10-14']).toEqual(v33.state.plans['2026-10-14']);
+    const saved = savedState();
+    expect(saved.version).toBe(8);
+    // What a 3.3 (v7) build reads of it is what it saved: v8 only adds.
+    expect(onlyAdds(saved.state, v33.state)).toEqual([]);
+  });
+
+  it('new settings and keys start empty: the age gate asks once, nothing is shared, no goal area or focus area', async () => {
+    const { useApp, DEFAULT_SETTINGS } = await load(v33.state, 7);
+    const s = useApp.getState();
+    expect(s.settings).toEqual({ ...v33.state.settings, ageCheck: null, shareUsage: null });
+    expect(Object.keys(s.settings).sort()).toEqual(Object.keys(DEFAULT_SETTINGS).sort());
+    expect(DEFAULT_SETTINGS).toMatchObject({ ageCheck: null, shareUsage: null });
+    expect(s.remote.metrics).toBeUndefined();
+    expect(s.profile.goalArea).toBeUndefined();
+    expect(s.profile.focus).toEqual({ week: '2026-10-12', id: 'exam' });
+    expect(s.profile.focus?.area).toBeUndefined();
+  });
+
+  it('the reminders offer: already answered for someone onboarded, still to come for someone who is not', async () => {
+    const { useApp: a } = await load(v33.state, 7);
+    expect(a.getState().reading).toEqual({ ...v33.state.reading, remindersOffer: 'done' });
+    const { useApp: b } = await load({ installSalt: 'salt-n', settings: { onboarded: false }, reading: { accessIntroShown: false, road: 0 } }, 7);
+    expect(b.getState().reading.remindersOffer).toBeNull();
+    // No reading saved at all: the defaults, with the offer answered.
+    const { useApp: c } = await load({ installSalt: 'salt-r', settings: { onboarded: true } }, 7);
+    expect(c.getState().reading).toEqual({ accessIntroShown: false, road: 0, remindersOffer: 'done' });
+  });
+
+  it('fills the membership with the new fields as null, keeping what was saved', async () => {
+    const { useApp: a, EMPTY_PREMIUM } = await load(v33.state, 7);
+    expect(a.getState().premium).toEqual({ active: false, plan: null, renews: null, mode: 'revenuecat', trialEnds: null, ends: null, productId: null });
+    expect(EMPTY_PREMIUM).toEqual({ active: false, plan: null, renews: null, mode: null, trialEnds: null, ends: null, productId: null });
+    const member = { active: true, plan: 'annual', renews: '2027-10-01T10:00:00Z', mode: 'revenuecat' };
+    const { useApp: b } = await load(v33With({ premium: member }), 7);
+    expect(b.getState().premium).toEqual({ ...member, trialEnds: null, ends: null, productId: null });
+    const { useApp: c } = await load({ installSalt: 'salt-p', settings: { onboarded: true } }, 7);
+    expect(c.getState().premium).toEqual(EMPTY_PREMIUM);
+  });
+
+  it('puts the finished plan on the record; finished before yesterday, its moment and First plan are marked seen', async () => {
+    expect(v33.state.program).toMatchObject({ id: 'get-organized', finishedDay: '2026-10-09' });
+    const { useApp } = await load(v33.state, 7);
+    const s = useApp.getState();
+    expect(s.record.plansFinished).toEqual([{ id: 'get-organized', finished: '2026-10-09' }]);
+    expect(s.momentsShown).toEqual([...v33.state.momentsShown, PLAN_KEY, 'plan-1']);
+    // Loaded again (now v8): nothing is added twice.
+    const again = JSON.stringify(savedState());
+    const { useApp: b } = await load(savedState().state, 8);
+    expect(b.getState().record.plansFinished).toEqual([{ id: 'get-organized', finished: '2026-10-09' }]);
+    expect(b.getState().momentsShown).toEqual(s.momentsShown);
+    expect(JSON.stringify(savedState())).toBe(again);
+  });
+
+  it('a plan finished yesterday or today keeps its moment to come', async () => {
+    for (const finished of ['2026-10-14', DAY]) {
+      const program = { ...v33.state.program, doneDays: [...v33.state.program.doneDays.slice(0, 4), finished], finishedDay: finished };
+      const { useApp } = await load(v33With({ program }), 7);
+      const s = useApp.getState();
+      expect(s.record.plansFinished).toEqual([{ id: 'get-organized', finished }]);
+      expect(s.momentsShown).toEqual(v33.state.momentsShown);
+    }
+  });
+
+  it('a plan with every day proven but no finish day (an earlier build) finishes on its last day proven; a running plan adds nothing', async () => {
+    const { useApp: a } = await load(v33With({ program: { ...v33.state.program, finishedDay: null } }), 7);
+    expect(a.getState().record.plansFinished).toEqual([{ id: 'get-organized', finished: '2026-10-09' }]);
+    const running = { id: 'lock-in-7', startedDay: '2026-10-12', doneDays: ['2026-10-12', '2026-10-13'], finishedDay: null };
+    const { useApp: b } = await load(v33With({ program: running }), 7);
+    expect(b.getState().record.plansFinished).toBeUndefined();
+    expect(b.getState().momentsShown).toEqual(v33.state.momentsShown);
+    expect(b.getState().program).toEqual(running);
+    const { useApp: c } = await load(v33With({ program: null }), 7);
+    expect(c.getState().record.plansFinished).toBeUndefined();
+  });
+
+  it('a state saved by this build or a newer one loads as it is', async () => {
+    const { migrateState } = await load({ installSalt: 'fresh' }, 8);
+    const v8 = { ...structuredClone(v33.state), settings: { ...v33.state.settings, ageCheck: 'ok', shareUsage: null }, reading: { ...v33.state.reading, remindersOffer: '2026-10-14' } };
+    expect(migrateState(v8 as never, 8)).toBe(v8);
+    expect(migrateState(v8 as never, 9)).toBe(v8);
+    // A newer build's save (v9) is read without migrating: what it set stays, and no plan is backfilled.
+    const { useApp } = await load(v8, 9);
+    const s = useApp.getState();
+    expect(s.settings.ageCheck).toBe('ok');
+    expect(s.reading.remindersOffer).toBe('2026-10-14');
+    expect(s.record.plansFinished).toBeUndefined();
+    expect(s.momentsShown).toEqual(v33.state.momentsShown);
   });
 });

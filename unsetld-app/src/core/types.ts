@@ -112,6 +112,18 @@ export interface RecordState {
    * days proven before 3.2 (core/history falls back to the plan, then to the proven count).
    */
   planned?: Record<DayKey, number>;
+  /**
+   * 3.3 (store v8): every Plan (program) finished, oldest first: one entry per (id, finished)
+   * (core/programs recordPlanFinish), never removed by leaving, clearing or starting another
+   * plan. Absent on records and Keychain backups from earlier builds (read as none).
+   */
+  plansFinished?: PlanFinish[];
+}
+
+/** One Plan (program) finished: its id and the day its last day was proven. */
+export interface PlanFinish {
+  id: string;
+  finished: DayKey;
 }
 
 // ── 3.0 Missions ────────────────────────────────────────────────────────────
@@ -247,6 +259,11 @@ export interface Profile {
   priority: TrackId | null;
   /** "What are you working toward?" in their own words ("Launch my clothing brand"). Optional, at most 80 characters. */
   goal?: string | null;
+  /**
+   * 3.3 (launch pass): the area picked on the Goal screen when the goal's words reach none of
+   * the user's areas. Absent or null = none picked. Needs no migration.
+   */
+  goalArea?: TrackId | null;
   /** "What matters most this week?", for the week starting `week`. Absent or another week = not set. */
   focus?: WeeklyFocus | null;
   /** Next week's focus, picked in Sunday's review. It takes over on Monday (core/personalize focusFor); this week's stays until then. */
@@ -267,6 +284,8 @@ export interface WeeklyFocus {
   id: FocusId;
   /** 'other': what they typed (at most 60 characters). */
   text?: string;
+  /** 3.3 (launch pass), 'other' only: the area picked when the typed words point at none. Needs no migration. */
+  area?: TrackId;
 }
 
 /** One mission in today's plan. */

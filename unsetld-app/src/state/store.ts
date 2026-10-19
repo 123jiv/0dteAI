@@ -25,7 +25,7 @@ import {
   type SlotPick,
 } from '../core/missions';
 import { learnFrom, mondayOf } from '../core/personalize';
-import { programMissions, programProgress, startProgram as startProgramCore } from '../core/programs';
+import { finishOf, planMomentKey, programMissions, programProgress, recordPlanFinish, startProgram as startProgramCore } from '../core/programs';
 import { clearPhotos, oldestPhotos, photosToClear, photoUris } from '../core/proofs';
 import { activeDays } from '../core/progress';
 import { balance, effectiveStatus, parseRewards, parseStatus, redeem, statusFromMilestones } from '../core/rewards';
@@ -34,7 +34,7 @@ import { missionTitle } from '../core/titles';
 import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as startCore, type FocusTimer } from '../core/timer';
 import { emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
-import type { DayKey } from '../core/time';
+import { addDays, type DayKey } from '../core/time';
 import type { ChapterId, Colorway, DayPlan, Mission, Profile, Program, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, SwapReason, TrackId, Verification, WeeklyFocus } from '../core/types';
 import { COLORWAY_BY_ID, COLORWAYS, isApproved, MILESTONES, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
@@ -52,7 +52,20 @@ export interface Settings {
   proofRetentionDays: number;
   /** Tester tools: focus timers run this many times faster (preview and dev builds only). */
   timerSpeed: number;
+  /**
+   * 3.3 (store v8): the 13+ age gate. 'ok' once answered 13 or over; 'under13' blocks this
+   * install for good; null = not asked yet (installs from before the gate are asked once).
+   */
+  ageCheck: AgeCheck;
+  /**
+   * 3.3 (store v8): share anonymous usage counts. null = never asked, which records and sends
+   * nothing (only true does, and only where the remote switch allows it).
+   */
+  shareUsage: boolean | null;
 }
+
+/** The 13+ age gate's answer (Settings.ageCheck). */
+export type AgeCheck = 'ok' | 'under13' | null;
 
 /** One-time UI state. */
 export interface Reading {
@@ -60,6 +73,12 @@ export interface Reading {
   accessIntroShown: boolean;
   /** Active days when the Rewards road last showed; the walker walks only when it changes. */
   road: number;
+  /**
+   * 3.3 (store v8): the reminders offer on Today after the first proof. null = not offered
+   * yet; a day = first shown that day (it shows again only that day); 'done' = answered, or
+   * never needed (store v8 sets it for users onboarded before it existed).
+   */
+  remindersOffer: DayKey | 'done' | null;
 }
 
 export interface Premium {
@@ -67,6 +86,12 @@ export interface Premium {
   plan: PlanKind | null;
   renews: string | null;
   mode: 'preview' | 'revenuecat' | null;
+  /** 3.3 (store v8): ISO date a free trial ends, while in one that will renew. */
+  trialEnds?: string | null;
+  /** 3.3 (store v8): ISO date the membership ends, when it won't renew. */
+  ends?: string | null;
+  /** 3.3 (store v8): the store product id of the active membership. */
+  productId?: string | null;
 }
 
 export interface Account {
@@ -82,6 +107,8 @@ export interface Remote {
   rewards?: RewardTier[] | null;
   /** Status (consistency) tiers from unsetld.com's config; null = the defaults in content/milestones.json. */
   status?: StatusTier[] | null;
+  /** 3.3 (store v8): unsetld.com's switch for anonymous usage counts. Absent = off (nothing is sent). */
+  metrics?: boolean;
 }
 
 /** What proving a mission did, for the done screen. */
@@ -213,12 +240,18 @@ export const DEFAULT_SETTINGS: Settings = {
   dropAlerts: false,
   proofRetentionDays: RULES.proofRetentionDays,
   timerSpeed: 1,
+  ageCheck: null,
+  shareUsage: null,
 };
 
 const EMPTY_READING: Reading = {
   accessIntroShown: false,
   road: 0,
+  remindersOffer: null,
 };
+
+/** No membership. The saved membership is kept whole (not merged); store v8 fills these into older ones. */
+export const EMPTY_PREMIUM: Premium = { active: false, plan: null, renews: null, mode: null, trialEnds: null, ends: null, productId: null };
 
 /**
  * The built-in status tiers (content/milestones.json), for the letters' lower tiers: the same
@@ -234,7 +267,7 @@ export const useApp = create<State>()(
       settings: DEFAULT_SETTINGS,
       reading: EMPTY_READING,
       record: emptyRecord(),
-      premium: { active: false, plan: null, renews: null, mode: null },
+      premium: EMPTY_PREMIUM,
       account: { userId: null, email: null },
       remote: { accessEnabled: null, collection: AppConfig.defaultCollection },
       dayOffset: 0,
@@ -568,7 +601,7 @@ export const useApp = create<State>()(
         focusSkipped: s.focusSkipped,
         customMissions: s.customMissions,
       }),
-      version: 7,
+      version: 8,
       migrate: (persisted, version) => migrateState(persisted as Partial<State>, version),
       merge: (persisted, current) => {
         // The user's own missions first: a plan, a timer or a proof may name one. One saved before
@@ -757,8 +790,9 @@ export function migrateRecordTracks(r: RecordState): RecordState {
  * codes already taken) carry over as a starting balance.
  */
 export function migrateState(p: Partial<State>, version: number): Partial<State> {
-  if (version >= 7) return p;
-  return toV7(version >= 6 ? p : toV6(version >= 5 ? p : toV5(version >= 4 ? p : toV4(p, version))));
+  // A state saved by this build or a newer one loads as it is (a newer build only adds keys).
+  if (version >= 8) return p;
+  return toV8(version >= 7 ? p : toV7(version >= 6 ? p : toV6(version >= 5 ? p : toV5(version >= 4 ? p : toV4(p, version)))));
 }
 
 /** Each planned mission's area and each swap's, with gone area ids mapped onto today's. */
@@ -775,6 +809,42 @@ function migratePlanTracks(plans: Record<DayKey, DayPlan> | null | undefined): R
       },
     ]),
   );
+}
+
+/** What `toV8` adds to `momentsShown` for a Plan finished before yesterday: the "First plan" achievement's moment. */
+const FIRST_PLAN_MOMENT = 'plan-1';
+
+/**
+ * 7 → 8 (3.3 launch pass). The settings, the one-time UI state, the profile, the weekly focus and
+ * the remote config gain keys that need nothing here (merge fills each one's default: null or
+ * absent, so the age gate asks once and nothing is shared). This fills the rest:
+ * - the reminders offer on Today: 'done' for someone already onboarded (asked at onboarding);
+ * - the membership, saved whole, gets every field (trial end, end, product id) as null;
+ * - a Plan already finished goes on the record (`plansFinished`), from the saved program's
+ *   finish day (or its last day proven); finished before yesterday, its moment and the
+ *   "First plan" achievement's are marked shown, so the update brings no surprise moment.
+ * Only the real record: one kept aside by tester time travel comes back without it.
+ */
+function toV8(p: Partial<State>): Partial<State> {
+  const out: Partial<State> = { ...p };
+  const offered = p.reading?.remindersOffer;
+  out.reading = { ...p.reading, remindersOffer: offered !== undefined ? offered : p.settings?.onboarded ? 'done' : null } as Reading;
+  out.premium = { ...EMPTY_PREMIUM, ...p.premium };
+  const program = p.program;
+  const finished = program && typeof program.id === 'string' ? finishOf(PROGRAM_BY_ID[program.id], program) : null;
+  if (program && finished) {
+    const record = recordPlanFinish({ ...emptyRecord(), ...p.record }, program.id, finished);
+    out.record = record;
+    const before = addDays(today(), -1);
+    const first = record.plansFinished?.[0];
+    const seen = [
+      ...(finished < before ? [planMomentKey(program.id, finished)] : []),
+      ...(first && first.finished < before ? [FIRST_PLAN_MOMENT] : []),
+    ];
+    const shown = Array.isArray(p.momentsShown) ? p.momentsShown : [];
+    out.momentsShown = [...shown, ...seen.filter(k => !shown.includes(k))];
+  }
+  return out;
 }
 
 /**

@@ -1,7 +1,33 @@
 // Programs ("Plans" in the app): a curated run of missions over several days (7 Day Lock In, School Reset ...).
 // A program day moves on once a mission from it is proven, so a missed day doesn't fail the program.
 import type { DayKey } from './time';
-import type { DayPlan, Program, ProgramState } from './types';
+import type { DayPlan, PlanFinish, Program, ProgramState, RecordState } from './types';
+
+/**
+ * Notes a Plan finished on the record (`plansFinished`), once per (id, finished): the same
+ * finish again returns the record unchanged (the same object). Nothing ever removes an entry.
+ */
+export function recordPlanFinish(r: RecordState, id: string, finished: DayKey): RecordState {
+  const list: PlanFinish[] = Array.isArray(r.plansFinished) ? r.plansFinished : [];
+  if (list.some(f => f?.id === id && f.finished === finished)) return r;
+  return { ...r, plansFinished: [...list, { id, finished }] };
+}
+
+/** The `momentsShown` key of a Plan's finish moment: `plan:<id>:<finished>`. */
+export function planMomentKey(id: string, finished: DayKey): string {
+  return `plan:${id}:${finished}`;
+}
+
+/**
+ * The finish a saved program state stands for: its finish day, else (a state from an earlier
+ * build, or a plan that got shorter) the last day proven once every day is. Null while running.
+ */
+export function finishOf(p: Pick<Program, 'days'> | null | undefined, s: ProgramState): DayKey | null {
+  if (s.finishedDay) return s.finishedDay;
+  if (!p || !Array.isArray(s.doneDays) || s.doneDays.length < p.days) return null;
+  const days = [...s.doneDays].sort();
+  return days[days.length - 1] ?? null;
+}
 
 export function startProgram(id: string, today: DayKey): ProgramState {
   return { id, startedDay: today, doneDays: [], finishedDay: null };
