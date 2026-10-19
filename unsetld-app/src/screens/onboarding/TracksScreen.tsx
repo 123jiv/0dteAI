@@ -6,15 +6,15 @@ import { MAX_AREAS, MIN_AREAS, ONBOARDING } from '../../content/copy/onboarding'
 import type { RootProps } from '../../navigation/types';
 import { selection, warning } from '../../services/haptics';
 import { useApp } from '../../state/store';
-import { Button, NavRow, PageTitle, Screen, Square, TextButton } from '../../ui/kit';
+import { Button, NavRow, PageTitle, Screen, Square } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, font, GAP, radius } from '../../ui/tokens';
-import { minAreasFor } from './areas';
+import { areasSave, minAreasFor } from './areas';
 
 const COPY = ONBOARDING.tracks;
 const MAX = MAX_AREAS;
 
-// ── Shared by the onboarding screens (Areas, About you, Time, Goal) ─────────
+// ── Shared by the onboarding screens (Areas, Time, Goal) and What you're learning
 
 /**
  * The profile as the screen shows it. Onboarding writes each answer as it is
@@ -49,8 +49,7 @@ export function useProfileDraft(edit: boolean) {
 /**
  * The fewest areas a save may leave: two, or one for someone whose saved profile
  * already has one (earlier versions allowed it). Onboarding always asks for two.
- * Read once, as the screen opens: an area saved meanwhile (About you › Change areas,
- * adding one to a lone School) doesn't raise it and block the save that follows.
+ * Read once, as the screen opens, so it stays the same while the areas change on screen.
  */
 export function useMinAreas(edit: boolean): number {
   const [min] = useState(() => minAreasFor(useApp.getState().profile.tracks, edit));
@@ -185,14 +184,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
   // A saved id the library no longer has would count toward four with no tile to take it off.
   const chosen = value.tracks.filter(id => TRACK_BY_ID[id]);
   const full = chosen.length >= MAX;
-  // School and a No to "In school or college?" don't go together. Onboarding goes on to About you,
-  // where the answer can still change; edit mode saves straight away, so there School stays off.
-  const schoolOff = value.school === false && chosen.includes('school');
-  const schoolNote = edit ? COPY.schoolOffEdit : COPY.schoolOff;
-  /** What a save keeps: in edit mode School comes off while the answer is No. */
-  const kept = edit && schoolOff ? chosen.filter(t => t !== 'school') : chosen;
-  const enough = kept.length >= min;
-  const stuck = edit && schoolOff && !enough;
+  const enough = chosen.length >= min;
   const [flash] = useState(() => new Animated.Value(1));
 
   const blocked = () => {
@@ -212,20 +204,20 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
     else {
       selection();
       change({ tracks: [...chosen, id] });
-      if (id === 'school' && value.school === false) AccessibilityInfo.announceForAccessibility(schoolNote);
     }
   };
 
   const done = () => {
     if (!enough) return;
-    // A week's lean on a track that's no longer chosen goes with it.
-    const priority = value.priority && kept.includes(value.priority) ? value.priority : null;
+    // A week's lean on a track that's no longer chosen goes with it; School picked clears an old No to school.
+    const patch = areasSave(value, chosen);
     if (edit) {
-      save({ tracks: kept, priority });
+      save(patch);
       navigation.goBack();
     } else {
-      if (priority !== value.priority || chosen.length !== value.tracks.length) change({ tracks: chosen, priority });
-      navigation.navigate('AboutYou');
+      const changed = (Object.keys(patch) as (keyof Profile)[]).some(k => JSON.stringify(patch[k]) !== JSON.stringify(value[k]));
+      if (changed) change(patch);
+      navigation.navigate('Pace');
     }
   };
 
@@ -234,12 +226,6 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
       nav={<NavRow onBack={edit ? () => navigation.goBack() : undefined} step={edit ? undefined : ONBOARDING.step(1)} />}
       footer={
         <View style={{ gap: 10 }}>
-          {schoolOff ? (
-            <T v="note" color={C.stone} align="center">
-              {schoolNote}
-            </T>
-          ) : null}
-          {stuck ? <TextButton title={COPY.aboutYou} onPress={() => navigation.navigate('AboutYou', { edit: true })} /> : null}
           <Animated.View style={{ opacity: flash, alignItems: 'center', gap: 4 }}>
             <T
               v="mono"
@@ -248,7 +234,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
               accessibilityLiveRegion="polite">
               {COPY.counter(chosen.length)}
             </T>
-            {!schoolOff && kept.length > 0 && kept.length === min - 1 ? (
+            {chosen.length > 0 && chosen.length === min - 1 ? (
               <T v="note" color={C.stone}>
                 {edit ? COPY.oneMoreEdit : COPY.oneMore}
               </T>

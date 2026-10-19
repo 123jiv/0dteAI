@@ -126,6 +126,20 @@ export const HOME = {
     ok: 'OK',
   },
 
+  /**
+   * Once, after the first proof (launch pass P1-3): onboarding no longer asks about reminders.
+   * The count and times are the saved ones (3 a day, 7:00 AM to 10:00 PM unless changed in You).
+   */
+  remindersCard: {
+    title: 'Get reminded about open missions?',
+    body: (count: number, first: string, last: string) =>
+      `${count === 1 ? `One a day at ${first}` : `Up to ${count} a day, ${first} to ${last}`}. None once the day is proven.`,
+    on: 'Turn on',
+    notNow: 'Not now',
+    /** Said by VoiceOver as the card goes, when reminders came on. */
+    turnedOn: 'Reminders on.',
+  },
+
   week: {
     label: 'YOUR WEEK',
     /** Monday and Tuesday: the card is about the week before. */

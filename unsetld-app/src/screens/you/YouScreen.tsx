@@ -7,9 +7,11 @@ import { programDay } from '../../core/programs';
 import { photosToClear } from '../../core/proofs';
 import { weekStart } from '../../core/review';
 import { formatTime } from '../../core/time';
-import type { Profile, TrackId, WeeklyFocus } from '../../core/types';
+import type { WeeklyFocus } from '../../core/types';
 import { DOCS, PROGRAM_BY_ID, TRACK_BY_ID } from '../../content';
 import { FOCUS } from '../../content/copy/focus';
+import { ONBOARDING } from '../../content/copy/onboarding';
+import { asksLearning, learningValue } from '../onboarding/learning';
 import { PLATFORM } from '../../content/copy/platform';
 import { newNonce } from '../../navigation/nonce';
 import type { TabProps } from '../../navigation/types';
@@ -30,23 +32,6 @@ import { renewText } from './membership';
 const S = PLATFORM.you;
 /** Proof photos: 30 days, 1 year, or keep (0). */
 const RETENTION: readonly number[] = [30, 365, 0];
-/** "What are you learning?" is only asked with one of these areas (About you). */
-const LEARNING_AREAS: readonly TrackId[] = ['skills', 'projects', 'career'];
-
-/**
- * The About you questions this profile is asked: school, work, business or project, gym and age;
- * High school or college? after a yes to school; What are you learning? with Skills, Projects or Career.
- */
-function aboutQuestions(p: Profile): number {
-  return 5 + (p.school === true ? 1 : 0) + (p.tracks.some(t => LEARNING_AREAS.includes(t)) ? 1 : 0);
-}
-
-/** How many of them have an answer. Learning counts once a skill is picked. */
-function answered(p: Profile): number {
-  const yesNo = [p.school, p.work, p.project, p.gym, p.age].filter(v => v !== null && v !== undefined).length;
-  const learning = p.tracks.some(t => LEARNING_AREAS.includes(t)) && (p.skills ?? []).length > 0 ? 1 : 0;
-  return yesNo + learning + (p.school === true && p.schoolLevel ? 1 : 0);
-}
 
 /** This week's focus in the user's words, or null when none is set for this week. */
 function focusLabel(focus: WeeklyFocus | null, gym: boolean | null | undefined): string | null {
@@ -203,11 +188,10 @@ export function YouScreen({ navigation }: TabProps<'You'>) {
         />
         <LinkRow title={S.goal} detail={goal ?? S.notSet} onPress={() => navigation.navigate('Goal', { edit: true })} />
         <LinkRow title={S.focus} detail={focus ?? S.notSet} onPress={() => navigation.navigate('WeeklyFocus')} />
-        <LinkRow
-          title={S.aboutYou}
-          detail={S.aboutValue(answered(profile), aboutQuestions(profile))}
-          onPress={() => navigation.navigate('AboutYou', { edit: true })}
-        />
+        {/* Only with Skills, Projects or Career: the areas whose missions can name a skill. */}
+        {asksLearning(profile) ? (
+          <LinkRow title={ONBOARDING.about.row} detail={learningValue(profile)} onPress={() => navigation.navigate('AboutYou', { edit: true })} />
+        ) : null}
         <LinkRow
           title={S.pace}
           detail={S.paceValue(profile.minutes, profile.intensity)}

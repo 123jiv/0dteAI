@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { intentGate } from './core/age';
 import { newNonce } from './navigation/nonce';
 import { RootNavigator } from './navigation/RootNavigator';
 import type { RootParams } from './navigation/types';
@@ -43,16 +44,18 @@ function openMission(intent: Intent): string | null {
 function useIntents(ready: boolean) {
   const intent = useIntent(s => s.intent);
   const nonce = useIntent(s => s.nonce);
+  // Held while the age gate is open (someone onboarded before it existed), then followed.
+  const gate = useApp(s => intentGate(s.settings));
   useEffect(() => {
-    if (!intent || !ready || !navigationRef.isReady()) return;
+    if (!intent || !ready || !navigationRef.isReady() || gate === 'wait') return;
     useIntent.getState().clear();
-    if (!useApp.getState().settings.onboarded) return;
+    if (gate === 'drop') return;
     // Every intent starts from Today, with whatever was open on top of it closed.
     navigationRef.dispatch(StackActions.popTo('Main', { screen: 'Today', params: { nonce: newNonce() } }));
     const missionId = openMission(intent);
     if (intent.kind === 'record') navigationRef.navigate('Main', { screen: 'Record' });
     else if (missionId) navigationRef.navigate('Mission', { missionId });
-  }, [intent, nonce, ready]);
+  }, [intent, nonce, ready, gate]);
 }
 
 function Shell() {

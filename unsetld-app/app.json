@@ -15,7 +15,10 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryAddUsageDescription": "unsetld saves your share card to Photos only when you choose Save Image."
       },
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "entitlements": {
+        "com.apple.developer.declared-age-range": true
+      }
     },
     "android": {
       "package": "com.unsetld.app",

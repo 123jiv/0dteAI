@@ -34,6 +34,7 @@ import {
   WeeklyCard,
   type CardAction,
 } from './parts';
+import { RemindersCard } from './RemindersCard';
 import { SwapSheet, type SwapTarget } from '../swap/SwapSheet';
 import { titled, useMissionTitle } from '../titles';
 import { showSwapLimit } from './swap';
@@ -302,7 +303,10 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
               }}
             />
           </View>
-        ) : null}
+        ) : (
+          // The same place, once, after the first proof: reminders (nothing when there's nothing to offer).
+          <RemindersCard colorway={colorway} day={day} provenToday={activeToday} focusAsked={askFocus} style={{ marginTop: GAP.block }} />
+        )}
 
         <View style={{ marginTop: GAP.section }}>
           <TodayHeader

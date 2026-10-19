@@ -45,8 +45,6 @@ export const PLATFORM = {
     goal: "What you're working toward",
     focus: "This week's focus",
     notSet: 'Not set',
-    aboutYou: 'About you',
-    aboutValue: (answered: number, all: number) => (answered === 0 ? 'Skipped' : `${answered} of ${all} answered`),
     pace: 'Time and intensity',
     paceValue: (minutes: Profile['minutes'], intensity: Profile['intensity']) => `${MINUTES[minutes] ?? ''} a day · ${INTENSITY[intensity] ?? ''}`,
     /** Matches the store's replanToday: today's plan is rebuilt only while nothing in it was started (a timer, a before photo), proven or swapped. */

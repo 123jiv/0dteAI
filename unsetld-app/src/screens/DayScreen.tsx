@@ -8,7 +8,7 @@ import type { RootProps } from '../navigation/types';
 import { notificationStatus, requestNotifications, type Permission } from '../services/notifications';
 import { useApp, useEntitlements } from '../state/store';
 import { Card } from '../ui/blocks';
-import { Button, InlineLink, NavRow, PageTitle, Screen, Segmented, TextButton, Toggle } from '../ui/kit';
+import { Button, InlineLink, NavRow, PageTitle, Screen, Segmented, Toggle } from '../ui/kit';
 import { T } from '../ui/text';
 import { TimeSheet } from '../ui/TimeSheet';
 import { color as C, GAP, hairline } from '../ui/tokens';
@@ -53,9 +53,11 @@ function TimeValue({ value, onPress, disabled, label }: { value: number; onPress
 
 const COPY = ONBOARDING.day;
 
-/** Onboarding's last step (Goal → Reminders → Today), and You › Reminders. */
-export function DayScreen({ navigation, route }: RootProps<'Day'>) {
-  const edit = Boolean(route.params?.edit);
+/**
+ * You › Reminders. Onboarding doesn't ask any more: Today offers reminders after the first
+ * proof (home/RemindersCard), and starting a focus timer asks for notifications in context.
+ */
+export function DayScreen({ navigation }: RootProps<'Day'>) {
   const settings = useApp(s => s.settings);
   const update = useApp(s => s.updateSettings);
   const ent = useEntitlements();
@@ -63,9 +65,9 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   const [first, setFirst] = useState(settings.reminders.first);
   const [last, setLast] = useState(settings.reminders.last);
   const [picker, setPicker] = useState<'first' | 'last' | null>(null);
-  /** You › Reminders only: the switch at the top. Off hides the rest and saves on:false. */
+  /** The switch at the top. Off hides the rest and saves on:false. */
   const [on, setOn] = useState(settings.reminders.on);
-  const shown = !edit || on;
+  const shown = on;
   const [perm, setPerm] = useState<Permission>('undetermined');
 
   // Checked again on return from iOS Settings, where Open Settings sends people.
@@ -78,10 +80,8 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
     return () => sub.remove();
   }, []);
 
-  // Onboarding offers only the counts the user can pick; You › Reminders also shows the
-  // UNSETLD+ ones, locked, with the note.
+  // Every count shows; the UNSETLD+ ones are locked, with the note.
   const disabled = REMINDER_COUNTS.filter(n => n > ent.maxReminders);
-  const options: readonly (typeof REMINDER_COUNTS)[number][] = edit ? REMINDER_COUNTS : REMINDER_COUNTS.filter(n => n <= ent.maxReminders);
 
   // Today's missions, as the first reminder of the day names them.
   const plan = useApp(s => s.plans[s.currentDay]);
@@ -93,18 +93,6 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   const previewBody = COPY.previewBody(titles);
 
   const save = (on: boolean) => update({ reminders: { on, count, first, last } });
-
-  /** Onboarding ends here: today's plan is built and Today opens, with the tabs. No widget guide, no paywall. */
-  const finish = () => {
-    useApp.getState().completeOnboarding(false);
-    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
-  };
-
-  const allow = async () => {
-    const granted = await requestNotifications().catch(() => false);
-    save(granted || Platform.OS === 'web');
-    finish();
-  };
 
   const saveEdit = async () => {
     // Off needs no permission. Saved as on:false, the scheduled reminders are cancelled (state/lifecycle).
@@ -126,26 +114,10 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
   return (
     <View style={{ flex: 1 }}>
       <Screen
-        nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(5)} />}
-        footer={
-          edit ? (
-            <Button title={COPY.save} onPress={saveEdit} />
-          ) : (
-            <View>
-              <Button title={COPY.allow} onPress={allow} />
-              <TextButton
-                title={COPY.notNow}
-                style={{ marginTop: 8 }}
-                onPress={() => {
-                  save(false);
-                  finish();
-                }}
-              />
-            </View>
-          )
-        }>
-        <PageTitle title={edit ? COPY.remindersTitle : COPY.title} body={edit ? undefined : COPY.body} />
-        {edit && on && perm === 'denied' ? (
+        nav={<NavRow onBack={() => navigation.goBack()} />}
+        footer={<Button title={COPY.save} onPress={saveEdit} />}>
+        <PageTitle title={COPY.remindersTitle} />
+        {on && perm === 'denied' ? (
           <Card style={{ marginTop: 20, gap: 4 }}>
             <T v="small">{COPY.permOff}</T>
             <InlineLink title={COPY.openSettings} v="note" onPress={() => Linking.openSettings().catch(() => {})} />
@@ -175,18 +147,16 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
         </View>
 
         <Card padding={0} style={{ marginTop: GAP.block, paddingHorizontal: 18, paddingVertical: 6 }}>
-          {edit ? (
-            <Row title={COPY.toggle}>
-              <Toggle label={COPY.toggle} value={on} onChange={setOn} />
-            </Row>
-          ) : null}
+          <Row title={COPY.toggle}>
+            <Toggle label={COPY.toggle} value={on} onChange={setOn} />
+          </Row>
           {shown ? (
             <>
               {/* The count on its own line, the control full width under it. */}
               <View style={{ paddingTop: 14, paddingBottom: 8, gap: 12 }}>
                 <T v="row">{COPY.perDay}</T>
                 <Segmented
-                  options={options}
+                  options={REMINDER_COUNTS}
                   value={count as (typeof REMINDER_COUNTS)[number]}
                   onChange={setCount}
                   disabled={disabled}
@@ -194,7 +164,7 @@ export function DayScreen({ navigation, route }: RootProps<'Day'>) {
                   lockedNote={COPY.perDayNote}
                   style={{ alignSelf: 'stretch' }}
                 />
-                {edit && disabled.length > 0 ? (
+                {disabled.length > 0 ? (
                   <T v="note" color={C.stone}>
                     {COPY.perDayNote}
                   </T>
