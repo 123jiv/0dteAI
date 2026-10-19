@@ -6,6 +6,7 @@ import { IS_PREVIEW } from '../config/app';
 import { proofsByDay } from '../core/legacy';
 import { sortedDays } from '../core/record';
 import { COPY } from '../content/copy';
+import { DATA } from '../content/copy/data';
 import type { RootProps } from '../navigation/types';
 import { appleSignInAvailable, signInWithApple, signOutApple } from '../services/account';
 import { deleteAccount, syncRecord } from '../services/access';
@@ -14,6 +15,7 @@ import { showDialog } from '../ui/actions';
 import { NavRow, PageTitle, Screen, TextButton } from '../ui/kit';
 import { T } from '../ui/text';
 import { color as C } from '../ui/tokens';
+import { announce } from '../ui/useAnnounce';
 
 const A = COPY.account;
 
@@ -45,6 +47,8 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
   // 'delete-sign-in': a delete found the session gone, so the phone signed out with the account maybe still there.
   const [error, setError] = useState<'sign-in' | 'delete' | 'delete-sign-in' | null>(null);
   const [busy, setBusy] = useState(false);
+  // The account is gone from unsetld.com: said once, above the sign-in that replaces it.
+  const [deleted, setDeleted] = useState(false);
 
   useEffect(() => {
     if (Platform.OS === 'ios') appleSignInAvailable().then(setAvailable);
@@ -72,12 +76,15 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
     setBusy(true);
     const r = await deleteAccount();
     setBusy(false);
-    if (r !== 'deleted') setError(r === 'needs-account' ? 'delete-sign-in' : 'delete');
+    if (r !== 'deleted') return setError(r === 'needs-account' ? 'delete-sign-in' : 'delete');
+    setDeleted(true);
+    announce(DATA.account.deleted);
   };
 
   const confirmDelete = () => {
     if (busy) return;
-    showDialog(A.deleteTitle, A.deleteBody, [
+    // What's on this phone stays: the body says where to clear it too.
+    showDialog(A.deleteTitle, `${A.deleteBody} ${DATA.account.clearToo}`, [
       { label: A.deleteNo, cancel: true },
       { label: A.deleteYes, destructive: true, onPress: removeAccount },
     ]);
@@ -108,6 +115,7 @@ export function AccountScreen({ navigation }: RootProps<'Account'>) {
         </View>
       ) : (
         <View style={{ marginTop: 32, gap: 12 }}>
+          {deleted ? <T v="body">{DATA.account.deleted}</T> : null}
           <T v="note" color={C.stone}>
             {A.legal}
           </T>

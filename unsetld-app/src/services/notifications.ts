@@ -2,7 +2,7 @@
 // trial reminder (`trial-end`). The timer-done notification lives in timerNotify.ts.
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { dayReminderTimes, planNotifications, type PlannedNotification } from '../core/reminders';
+import { dayReminderTimes, DROP_ALERT_SLOTS, overBudget, planNotifications, type PlannedNotification } from '../core/reminders';
 import { reminderAt } from '../core/trial';
 import { dayKeyOf, type DayKey } from '../core/time';
 import { missionTitle } from '../core/titles';
@@ -163,6 +163,20 @@ function oneAtATime<T, R>(job: (input: T, stale: () => boolean) => Promise<R>, s
 /** Rebuilds the rolling schedule. Call on every foreground and after plans, proof or settings change. */
 export const reschedule = oneAtATime(rebuild, 0);
 
+/** No reminders at all: what a reschedule gets once the user isn't onboarded (startup, Delete data on this phone). */
+export const NO_REMINDERS: ScheduleInput = { remindersOn: false, count: 0, first: 0, last: 0, plans: {}, perDay: 0, streak: 0, seed: '' };
+
+/**
+ * Keeps the pending list inside the budget (core/reminders overBudget): ids from older builds go,
+ * then the latest-firing reminders if everything together is still over. Runs after each rebuild
+ * of the reminders or the drop alerts, so the focus timer's notification always has its place.
+ */
+async function trimPending(): Promise<void> {
+  const pending = await Notifications.getAllScheduledNotificationsAsync();
+  const cancel = overBudget(pending.map(n => n.identifier));
+  await Promise.all(cancel.map(id => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
+}
+
 async function rebuild(input: ScheduleInput, stale: () => boolean): Promise<number> {
   if (!supported) return 0;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
@@ -183,6 +197,7 @@ async function rebuild(input: ScheduleInput, stale: () => boolean): Promise<numb
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: p.date },
     });
   }
+  await trimPending().catch(() => {});
   return plan.length;
 }
 
@@ -257,7 +272,20 @@ function whenText(publicAt: Date, from: Date): string {
 }
 
 /**
- * Drop alerts: opt-in only, a heads-up 24 hours before each drop opens. One run at a time.
+ * The drop alerts to schedule now: the next DROP_ALERT_SLOTS (two) still ahead, soonest first,
+ * each with its time (24 hours before the drop opens). Later drops come in on a later foreground.
+ */
+export function nextDropAlerts(drops: readonly Drop[], now: number, max = DROP_ALERT_SLOTS): { drop: Drop; at: Date }[] {
+  return drops
+    .map(drop => ({ drop, at: new Date(new Date(drop.publicAt).getTime() - 86_400_000) }))
+    .filter(x => !Number.isNaN(x.at.getTime()) && x.at.getTime() >= now)
+    .sort((a, b) => a.at.getTime() - b.at.getTime())
+    .slice(0, max);
+}
+
+/**
+ * Drop alerts: opt-in only, a heads-up 24 hours before each drop opens, the next two at most.
+ * One run at a time.
  */
 export const scheduleDropAlerts = oneAtATime(dropAlerts, undefined);
 
@@ -268,17 +296,31 @@ async function dropAlerts({ drops, optedIn }: { drops: Drop[]; optedIn: boolean 
     scheduled.filter(n => n.identifier.startsWith('drop-')).map(n => Notifications.cancelScheduledNotificationAsync(n.identifier)),
   );
   if (!optedIn) return;
-  for (const d of drops) {
+  for (const { drop: d, at } of nextDropAlerts(drops, Date.now())) {
     if (stale()) return;
     const publicAt = new Date(d.publicAt);
-    const at = new Date(publicAt.getTime() - 86_400_000);
-    if (Number.isNaN(at.getTime()) || at.getTime() < Date.now()) continue;
     await Notifications.scheduleNotificationAsync({
       identifier: `drop-${d.id}`,
       content: { title: N.title, body: N.dropPublic(d.collection, whenText(publicAt, at)), sound: false, data: { drop: d.id } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
     });
   }
+  await trimPending().catch(() => {});
+}
+
+/**
+ * Delete data on this phone, after the reminders, drop alerts and timer were cleared through
+ * their own queues (services/wipe): anything of this app's still pending goes too, except the
+ * trial reminder (it only names the price, so an unexpected charge doesn't come as a surprise),
+ * and what's already in Notification Center is dismissed.
+ */
+export async function clearPendingExceptTrial(): Promise<void> {
+  if (!supported) return;
+  const pending = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    pending.filter(n => !n.identifier.startsWith('trial-')).map(n => Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {})),
+  );
+  await Notifications.dismissAllNotificationsAsync().catch(() => {});
 }
 
 export type NotificationEvent = { kind: 'open-today' } | { kind: 'open-mission'; missionId: string; day: DayKey };

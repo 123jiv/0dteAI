@@ -24,6 +24,7 @@ import { InlineLink, Segmented, Toggle } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN } from '../../ui/tokens';
 import { enableDropAlerts } from '../access';
+import { DataSection } from './DataSection';
 import { renewText } from './membership';
 
 const S = PLATFORM.you;
@@ -270,6 +271,8 @@ export function YouScreen({ navigation }: TabProps<'You'>) {
           />
         </Group>
       ) : null}
+
+      <DataSection onOpen={() => navigation.navigate('DeleteData')} />
 
       <Group label={S.sections.help}>
         <LinkRow title={DOCS.record.title} onPress={() => navigation.navigate('Doc', { id: 'record' })} />

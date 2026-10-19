@@ -73,6 +73,15 @@ export async function saveSession(token: string): Promise<boolean> {
 }
 
 export async function signOutApple() {
+  await clearSession();
+}
+
+/**
+ * Deletes the session token and older builds' Apple token from the Keychain. Signing out does
+ * this; so do startup when no one is signed in here (the Keychain outlives the app, so a token
+ * can outlive its account after a reinstall), and Delete data on this phone.
+ */
+export async function clearSession(): Promise<void> {
   if (Platform.OS !== 'ios') return;
   await Promise.all([SESSION_KEY, OLD_TOKEN_KEY].map(k => SecureStore.deleteItemAsync(k).catch(() => {})));
 }

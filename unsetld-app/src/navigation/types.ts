@@ -61,6 +61,8 @@ export type RootParams = {
   Widget: { guide?: boolean } | undefined;
   Paywall: { from: PaywallFrom } | undefined;
   Account: undefined;
+  /** You › YOUR DATA: Delete data on this phone (everything local; the account stays). */
+  DeleteData: undefined;
   Doc: { id: DocId };
   /** The same page presented as a sheet (from the paywall, which is itself a modal). */
   DocSheet: { id: DocId };

@@ -92,3 +92,52 @@ export function oldestPhotos(uris: readonly string[], keep: ReadonlySet<string>,
   const first = old.map(u => dayOf(u)!).sort()[0];
   return old.filter(u => dayOf(u) === first);
 }
+
+/** The file name of a stored proof URI ("…/proof/2026-10-09-D1-after.jpg"), or null if it isn't one in a proof folder. */
+export function proofFileName(uri: string): string | null {
+  const m = /\/proof\/([A-Za-z0-9_-]+\.[A-Za-z0-9]+)$/.exec(uri);
+  return m ? m[1] : null;
+}
+
+/** A file in the proof folder: its name, and when it was last written (ms; null when unknown). */
+export interface ProofFile {
+  name: string;
+  modified: number | null;
+}
+
+/** A photo just taken but not sent yet (the Mission screen's) isn't on the record: files this new stay. */
+export const ORPHAN_GRACE_MS = 10 * 60_000;
+
+export interface OrphanInput {
+  files: readonly ProofFile[];
+  /** The record: proven missions' photos and 2.x tasks'. */
+  record: RecordState;
+  /** Tester time travel: the real record kept aside, whose photos come back with it. */
+  snapshot?: RecordState | null;
+  /** A before photo waiting for its after. */
+  waiting?: string | null;
+  now: number;
+  /** The state came from defaults because storage couldn't be read: nothing is known, so nothing goes. */
+  readFailed?: boolean;
+  grace?: number;
+}
+
+/**
+ * The proof-folder files nothing points to, deleted at startup: not the record's, the tester
+ * snapshot's or the waiting before photo's (matched by file name: the app's container path
+ * changes after updates and restores), and older than the grace period. None at all when the
+ * record is empty or the state couldn't be read: then what the files belong to isn't known.
+ */
+export function orphans(i: OrphanInput): string[] {
+  const r = i.record;
+  const empty = !Object.keys(r.days ?? {}).length && !Object.keys(r.missions ?? {}).length && !Object.keys(r.work ?? {}).length;
+  if (i.readFailed || empty) return [];
+  const keep = new Set<string>();
+  const refs = [...photoUris(r), ...(i.snapshot ? photoUris(i.snapshot) : []), ...(i.waiting ? [i.waiting] : [])];
+  for (const uri of refs) {
+    const name = proofFileName(uri);
+    if (name) keep.add(name);
+  }
+  const grace = i.grace ?? ORPHAN_GRACE_MS;
+  return i.files.filter(f => !keep.has(f.name) && f.modified !== null && i.now - f.modified >= grace).map(f => f.name);
+}

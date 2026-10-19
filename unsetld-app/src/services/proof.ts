@@ -3,11 +3,14 @@
 // any location) and fingerprinted so the same photo can't count twice.
 // The browser preview has no camera, so it picks a file and keeps a small copy
 // in local storage.
+// The only copy kept is the one in the proof folder: the camera's original and the resized
+// copy go once it's made, startup clears what's left in those caches and deletes proof files
+// nothing points to (core/proofs orphans), and the photo views keep images in memory only.
 import { Directory, File, Paths } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
-import { fingerprint } from '../core/proofs';
+import { fingerprint, proofFileName, type ProofFile } from '../core/proofs';
 import { isQuotaError, makeRoom } from '../state/storage';
 
 export type Capture = { ok: true; uri: string } | { ok: false; reason: 'cancelled' | 'denied' | 'failed' };
@@ -16,6 +19,8 @@ const web = Platform.OS === 'web';
 const WEB_PREFIX = 'web-proof:';
 /** Proof photos live in <Documents>/proof. */
 const PROOF_DIR = 'proof';
+/** Where the camera (expo-image-picker) and the resize (expo-image-manipulator) leave their files, in <Caches>. */
+const CACHE_DIRS = ['ImagePicker', 'ImageManipulator'] as const;
 
 /**
  * This install's proof folder. iOS gives the app a new container path after an
@@ -23,12 +28,6 @@ const PROOF_DIR = 'proof';
  */
 function proofDir(): Directory {
   return new Directory(Paths.document, PROOF_DIR);
-}
-
-/** The file name of a stored proof URI ("…/proof/2026-10-09-focus-lock-in-25-after.jpg"), or null if it isn't one. */
-function proofFileName(uri: string): string | null {
-  const m = /\/proof\/([A-Za-z0-9_-]+\.[A-Za-z0-9]+)$/.exec(uri);
-  return m ? m[1] : null;
 }
 
 /**
@@ -139,17 +138,36 @@ export async function savePhoto(uri: string, key: string): Promise<SavedPhoto> {
       }
     }
   }
-  const ref = await ImageManipulator.manipulate(uri).resize({ width: 1600 }).renderAsync();
-  const out = await ref.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true });
-  const dir = proofDir();
-  dir.create({ intermediates: true, idempotent: true });
-  // Never over an existing file: a proof stored before an update can still
-  // point at that name (see proofFile), so a retake gets a name of its own.
-  let dest = new File(dir, `${safe}.jpg`);
-  for (let n = 2; dest.exists && n < 100; n++) dest = new File(dir, `${safe}-${n}.jpg`);
-  if (dest.exists) dest.delete();
-  await new File(out.uri).copy(dest);
-  return { uri: dest.uri, hash: fingerprint(out.base64 ?? dest.uri) };
+  let resized: string | null = null;
+  try {
+    const ref = await ImageManipulator.manipulate(uri).resize({ width: 1600 }).renderAsync();
+    const out = await ref.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true });
+    resized = out.uri;
+    const dir = proofDir();
+    dir.create({ intermediates: true, idempotent: true });
+    // Never over an existing file: a proof stored before an update can still
+    // point at that name (see proofFile), so a retake gets a name of its own.
+    let dest = new File(dir, `${safe}.jpg`);
+    for (let n = 2; dest.exists && n < 100; n++) dest = new File(dir, `${safe}-${n}.jpg`);
+    if (dest.exists) dest.delete();
+    await new File(out.uri).copy(dest);
+    return { uri: dest.uri, hash: fingerprint(out.base64 ?? dest.uri) };
+  } finally {
+    // The full-size original from the camera and the resized copy: the proof folder's is the one kept.
+    deleteCached(uri);
+    if (resized) deleteCached(resized);
+  }
+}
+
+/** A file the camera or the resize left in their cache folders (and nothing anywhere else). Missing files are fine. */
+function deleteCached(uri: string): void {
+  if (!CACHE_DIRS.some(d => uri.includes(`/Caches/${d}/`))) return;
+  try {
+    const f = new File(uri);
+    if (f.exists) f.delete();
+  } catch {
+    // Already gone.
+  }
 }
 
 /** Browser preview: the names of the proof photos kept in local storage (none in the app). */
@@ -166,6 +184,75 @@ export function webPhotoKeys(): string[] {
   } catch {
     return [];
   }
+}
+
+/** The files in this install's proof folder, with when each was last written (none in the preview). */
+export function listProofFiles(): ProofFile[] {
+  if (web) return [];
+  try {
+    const dir = proofDir();
+    if (!dir.exists) return [];
+    return dir
+      .list()
+      .filter((x): x is File => x instanceof File)
+      .map(f => ({ name: f.name, modified: f.modificationTime ?? null }));
+  } catch {
+    return [];
+  }
+}
+
+/** Deletes files in the proof folder by name (the startup sweep's orphans). Missing files are fine. */
+export function deleteProofFiles(names: readonly string[]): void {
+  if (web) return;
+  for (const name of names) {
+    try {
+      const f = new File(proofDir(), name);
+      if (f.exists) f.delete();
+    } catch {
+      // Already gone.
+    }
+  }
+}
+
+/**
+ * The camera's and the resize's cache folders: files older than `olderThan` ms go (startup, so a
+ * photo being saved right now stays), or everything (Delete data on this phone).
+ */
+export function clearPhotoCaches(olderThan?: number, now = Date.now()): void {
+  if (web) return;
+  for (const name of CACHE_DIRS) {
+    try {
+      const dir = new Directory(Paths.cache, name);
+      if (!dir.exists) continue;
+      if (olderThan === undefined) {
+        dir.delete();
+        continue;
+      }
+      for (const f of dir.list()) {
+        if (!(f instanceof File)) continue;
+        const at = f.modificationTime ?? null;
+        if (at !== null && now - at >= olderThan) f.delete();
+      }
+    } catch {
+      // Nothing there, or it went already.
+    }
+  }
+}
+
+/**
+ * Delete data on this phone: every proof photo (the whole proof folder, orphans included) and the
+ * camera's and the resize's caches. The preview's photos are in local storage: the store's reset
+ * removes them.
+ */
+export function deleteAllPhotos(): void {
+  if (web) return;
+  try {
+    const dir = proofDir();
+    if (dir.exists) dir.delete();
+  } catch {
+    // Already gone.
+  }
+  clearPhotoCaches();
 }
 
 /** Deletes a saved proof photo (retention policy, or a retake), wherever this install keeps it. Missing files are fine. */

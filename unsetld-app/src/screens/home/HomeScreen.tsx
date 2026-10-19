@@ -14,8 +14,6 @@ import { HOME } from '../../content/copy/home';
 import { MISSION } from '../../content/copy/mission';
 import type { TabProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
-import { deletePhoto } from '../../services/proof';
-import { cancelTimerDone } from '../../services/timerNotify';
 import { useBalance, useNextReward, useRerollsLeft, useStreak, useTodayMissions, useWeekFocus, type TodayMission } from '../../state/missions';
 import { useAccessEnabled, useApp, useAppActive, useReaderColorway } from '../../state/store';
 import { showDialog } from '../../ui/actions';
@@ -112,25 +110,15 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
 
   // Today's plan, on focus and again when the day turns over at 4:00 AM.
   // A timer or a before photo left from an earlier day can't count any more
-  // (that day's plan is closed): it goes, with its photo and its notification.
+  // (that day's plan is closed): the store's refreshDay takes it, with its photo
+  // and its notification, and Today says why once, the same way the mission page does.
   // Today in focus means no Mission screen is open on top of it.
   useFocusEffect(
     useCallback(() => {
       const s = useApp.getState();
       s.ensurePlan(day);
-      let ended = false;
-      if (s.pendingBefore && s.pendingBefore.day < day) {
-        deletePhoto(s.pendingBefore.photo.uri);
-        s.setPendingBefore(null);
-        ended = true;
-      }
-      if (s.timer && s.timer.day < day) {
-        s.cancelTimer();
-        cancelTimerDone();
-        ended = true;
-      }
-      // Say why it's gone, the same way the mission page does.
-      if (ended) showDialog(MISSION.dayEnded.title, MISSION.dayEnded.unfinished, [{ label: MISSION.dayEnded.ok, cancel: true }]);
+      s.refreshDay();
+      if (s.takeDayEnded()) showDialog(MISSION.dayEnded.title, MISSION.dayEnded.unfinished, [{ label: MISSION.dayEnded.ok, cancel: true }]);
     }, [day]),
   );
 

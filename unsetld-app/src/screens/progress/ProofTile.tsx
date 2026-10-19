@@ -56,7 +56,7 @@ export function ProofTile({
 
   const content = src ? (
     <>
-      <Image source={{ uri: src }} style={StyleSheet.absoluteFill} contentFit="cover" recyclingKey={proof.key} />
+      <Image source={{ uri: src }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory" recyclingKey={proof.key} />
       {pair && size >= 64 ? (
         <View style={{ position: 'absolute', right: 6, bottom: 6, borderRadius: 4, padding: 3, backgroundColor: 'rgba(10,10,10,0.6)' }}>
           <Icon name="before-after" size={14} color={C.bone} />

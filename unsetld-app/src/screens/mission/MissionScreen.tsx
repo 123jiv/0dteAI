@@ -97,19 +97,13 @@ const ours = (missionId: string, day: DayKey) => (x: { missionId: string; day: D
 
 /**
  * 4:00 AM passed with this mission's timer or before photo still going: that day's plan is
- * closed, so they go (the photo, and the timer's notification), and the dialog says why.
+ * closed, so the store's rollover takes them (the photo, and the timer's notification), and the
+ * dialog says why. This dialog is the one: Today doesn't say it again.
  */
-function endDay(missionId: string, day: DayKey, close: () => void, proof = false) {
-  const isOurs = ours(missionId, day);
+function endDay(close: () => void, proof = false) {
   const s = useApp.getState();
-  if (isOurs(s.pendingBefore)) {
-    deletePhoto(s.pendingBefore!.photo.uri);
-    s.setPendingBefore(null);
-  }
-  if (isOurs(s.timer)) {
-    s.cancelTimer();
-    cancelTimerDone();
-  }
+  s.refreshDay();
+  s.takeDayEnded();
   // A proof sent after 4:00 AM, or a timer or before photo still going at 4:00 AM.
   const body = proof ? MISSION.dayEnded.body : MISSION.dayEnded.unfinished;
   showDialog(MISSION.dayEnded.title, body, [{ label: MISSION.dayEnded.ok, cancel: true, onPress: close }]);
@@ -163,15 +157,16 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
   }, [day]);
 
   // The day turned over. Nothing in progress: back to the new day. A timer or a before photo
-  // on screen was for the day that ended: say so before closing (once).
+  // on screen was for the day that ended: say so before closing (once). When the store's
+  // rollover already took them, Today says it instead, once this page has closed.
   const holding = inPlan && Boolean(timerHere || beforeHere);
   const ended = useRef(false);
   useEffect(() => {
     if (current === day || stage.kind !== 'detail' || ended.current) return;
     ended.current = true;
-    if (holding) endDay(missionId, day, () => navigation.goBack());
+    if (holding) endDay(() => navigation.goBack());
     else navigation.goBack();
-  }, [current, day, stage.kind, holding, missionId, navigation]);
+  }, [current, day, stage.kind, holding, navigation]);
 
   // Camera access, checked again on coming back from Settings.
   useEffect(() => {
@@ -267,7 +262,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     clockCheck.current = null;
     // The dialog's OK closes the screen; the day-turned effect doesn't close it under the dialog.
     ended.current = true;
-    endDay(missionId, day, close, photos.length > 0);
+    endDay(close, photos.length > 0);
   };
 
   /** The proof photo itself: the single photo, the result, or the after. */

@@ -6,9 +6,11 @@
 // no-op there.
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { addDays, dayStart } from '../core/time';
 import { clock, endsAt, type FocusTimer } from '../core/timer';
 import { MISSION_BY_ID } from '../content';
 import { MISSION } from '../content/copy/mission';
+import { getDayOffset } from './clock';
 
 const supported = Platform.OS !== 'web';
 
@@ -37,8 +39,18 @@ async function allowed(ask: boolean): Promise<boolean> {
 }
 
 /**
+ * When the timer's day ends (the next 4:00 AM), in real time: a timer's day is on the app's clock,
+ * which tester time travel moves, while notifications fire on the phone's.
+ */
+export function timerDayEnds(timer: Pick<FocusTimer, 'day'>, offsetDays = getDayOffset()): number {
+  return dayStart(addDays(timer.day, 1)).getTime() - offsetDays * 86_400_000;
+}
+
+/**
  * Schedules the notification for when `timer` reaches zero (replacing any
- * earlier one). A paused or finished timer only cancels it. `ask` asks for
+ * earlier one). A paused or finished timer only cancels it, and so does one that would only
+ * reach zero after its day ended at 4:00 AM (a timer resumed late): by then it can't count, and
+ * the app clears it at the rollover (store refreshDay). `ask` asks for
  * notification permission first if it was never asked (starting a timer is a
  * good moment: the screen says it will ring).
  */
@@ -47,7 +59,7 @@ export function scheduleTimerDone(timer: FocusTimer, opts: { ask?: boolean } = {
   return queue(async stale => {
     await Notifications.cancelScheduledNotificationAsync(TIMER_NOTIFICATION_ID).catch(() => {});
     const at = endsAt(timer);
-    if (at == null || at <= Date.now() + 1000) return;
+    if (at == null || at <= Date.now() + 1000 || at > timerDayEnds(timer)) return;
     if (!(await allowed(Boolean(opts.ask))) || stale()) return;
     await Notifications.scheduleNotificationAsync({
       identifier: TIMER_NOTIFICATION_ID,
