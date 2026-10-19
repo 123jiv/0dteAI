@@ -17,8 +17,15 @@ const me = (tracks: TrackId[], patch: Partial<Profile> = {}): Profile => ({ ...D
 
 describe('goalReach: the goal’s own areas among the plan’s', () => {
   it('a school goal reaches nothing without School, and School with it', () => {
-    expect(goalReach(MISSIONS, me(['fitness', 'discipline']), 'Get my GPA up', DAY)).toEqual([]);
+    // Three areas picked: nothing is brought in (core/missions planAreas), so School stays out.
+    expect(goalReach(MISSIONS, me(['fitness', 'discipline', 'money']), 'Get my GPA up', DAY)).toEqual([]);
     expect(goalReach(MISSIONS, me(['school', 'fitness']), 'Get my GPA up', DAY)).toEqual(['school']);
+  });
+
+  it('with fewer than three areas a school goal brings School in, unless a legacy No says out of school', () => {
+    // core/missions impliedAreas: school !== false (onboarding no longer asks).
+    expect(goalReach(MISSIONS, me(['fitness', 'discipline']), 'Get my GPA up', DAY)).toEqual(['school']);
+    expect(goalReach(MISSIONS, me(['fitness', 'discipline'], { school: false }), 'Get my GPA up', DAY)).toEqual([]);
   });
 
   it('a brand reaches Projects through the areas it brings in (fewer than three picked)', () => {
@@ -34,7 +41,7 @@ describe('goalReach: the goal’s own areas among the plan’s', () => {
 
   it("this week's focus doesn't count: the goal has to reach an area on its own", () => {
     const focus = { week: '2026-10-19', id: 'exam' as const };
-    expect(goalReach(MISSIONS, me(['fitness', 'discipline'], { focus }), 'Get my GPA up', DAY)).toEqual([]);
+    expect(goalReach(MISSIONS, me(['fitness', 'discipline', 'money'], { focus }), 'Get my GPA up', DAY)).toEqual([]);
   });
 });
 
@@ -46,7 +53,13 @@ describe('goalQuestion: when the Goal screen asks which area', () => {
   });
 
   it("names an area the words point at that isn't one of theirs", () => {
-    expect(goalQuestion(MISSIONS, me(['fitness', 'discipline']), 'Get my GPA up', DAY)).toEqual({ ask: true, choices: ['fitness', 'discipline'], outside: 'school' });
+    expect(goalQuestion(MISSIONS, me(['fitness', 'discipline', 'money']), 'Get my GPA up', DAY)).toEqual({
+      ask: true,
+      choices: ['fitness', 'discipline', 'money'],
+      outside: 'school',
+    });
+    // Two areas: School comes in with the goal, so there's nothing to ask.
+    expect(goalQuestion(MISSIONS, me(['fitness', 'discipline']), 'Get my GPA up', DAY).ask).toBe(false);
   });
 
   it("doesn't ask when the words reach an area, with one area or none to pick, or for empty or refused text", () => {

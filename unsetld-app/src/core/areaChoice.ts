@@ -13,8 +13,8 @@ import type { Mission, Profile, TrackId } from './types';
 /**
  * The goal's own areas (what its words match) among the areas the plan draws from, with the
  * weekly focus left out. Empty means no confident match: the Goal screen asks which area it's
- * about. "Get my GPA up" with Fitness and Discipline reaches nothing; "Launch my clothing
- * brand" with two areas reaches Projects (it brings Projects in, core/missions impliedAreas).
+ * about. "Get my GPA up" with Fitness, Discipline and Money reaches nothing; with two areas it
+ * brings School in, as "Launch my clothing brand" brings Projects (core/missions impliedAreas).
  */
 export function goalReach(library: readonly Mission[], profile: Profile, goal: string | null | undefined, day: DayKey): TrackId[] {
   const words = goalLean(goal).areas;

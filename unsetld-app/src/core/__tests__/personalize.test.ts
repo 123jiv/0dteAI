@@ -1,6 +1,6 @@
 // Personalization: the weekly focus, the goal text and what the user did lately.
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PROFILE, generatePlan, type PlanInput } from '../missions';
+import { DEFAULT_PROFILE, generatePlan, impliedAreas, type PlanInput } from '../missions';
 import { activeFocus, FOCUS_LEAN, goalLean, goalPointsAt, jobSearch, learnFrom, leanFor, LONG_MINUTES, mondayOf, NO_ADAPTATION, personalWeight, type Adaptation } from '../personalize';
 import { addDays, dayNumber, type DayKey } from '../time';
 import type { DayPlan, Mission, MissionDone, Profile, TrackId } from '../types';
@@ -356,6 +356,14 @@ describe('text the safety check refuses steers nothing (launch pass)', () => {
     expect(goalPointsAt('Get my GPA up without sleep', 'school')).toBe(false);
     expect(jobSearch({ goal: 'Get a job at the smoke shop' })).toBe(false);
     expect(jobSearch({ goal: 'Get a job and buy a vape' })).toBe(false);
+  });
+
+  it('a refused goal brings no area in, even with the unsafe words inside its "job" phrase', () => {
+    const me = (goal: string): Profile => ({ ...DEFAULT_PROFILE, school: null, tracks: ['fitness', 'money'], goal });
+    expect(impliedAreas(me('Get a job at a vape shop and launch my app'))).toEqual([]);
+    expect(impliedAreas(me('Get a job at a vape shop and get my GPA up'))).toEqual([]);
+    // The same words without the unsafe part still bring their areas in.
+    expect(impliedAreas(me('Get a job at a coffee shop and launch my app'))).toEqual(['career', 'projects']);
   });
 
   it('a goal with only a note still steers: weight goals lean on training', () => {

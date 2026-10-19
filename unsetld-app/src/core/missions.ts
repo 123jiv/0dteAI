@@ -7,6 +7,7 @@
 // library, profile, history and day always give the same plan.
 import { goalPointsAt, jobSearch, kindsOf, leanFor, leansTo, LONG_MINUTES, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
 import { hash32, mulberry32 } from './random';
+import { usableText } from './safety';
 import { addDays, DAY_START_HOUR, dayNumber, diffDays, parseDay, type DayKey } from './time';
 import { projectFrom } from './titles';
 import type { DayPlan, Mission, MissionSlot, PlannedMission, Profile, Requirement, SkillId, SwapReason, TrackId } from './types';
@@ -305,7 +306,9 @@ function chosenAreas(profile: Pick<Profile, 'tracks'>): TrackId[] {
  * app, a brand, a launch). A weekly focus brings its own area in on its own (eligibleAreas).
  */
 export function impliedAreas(profile: Profile, day?: DayKey): TrackId[] {
-  const goal = profile.goal ?? '';
+  // A goal the safety check refuses (core/safety) brings nothing in, even where its unsafe words
+  // sit inside the "job" phrase taken out below.
+  const goal = usableText(profile.goal) ? (profile.goal ?? '') : '';
   const out: TrackId[] = [];
   if (profile.school !== false && goalPointsAt(goal, 'school')) out.push('school');
   if (jobSearch(profile, day)) out.push('career');
