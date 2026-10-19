@@ -3,8 +3,11 @@
 // user's own goal or skills; the action never changes, and when nothing clear comes out of the
 // goal the approved title stands as it is. No text is generated: each slot is a word or two
 // lifted from what the user wrote, or a known name ("Coding"). The mission id stays the
-// approved one, so the record and analytics see one mission however it reads.
+// approved one, so the record and analytics see one mission however it reads. A goal the safety
+// check refuses fills nothing, and words lifted from any goal must check as ok and hold no
+// swearing (core/safety fitForTitle): these titles show on the Lock Screen and in reminders.
 import { goalLean } from './personalize';
+import { fitForTitle, usableText } from './safety';
 import type { Mission, Profile, SkillId } from './types';
 
 export type Slot = NonNullable<Mission['personalize']>;
@@ -55,10 +58,10 @@ const titleCase = (s: string) => s.replace(/\b[a-z]/g, c => c.toUpperCase());
 /**
  * The thing a goal says the user is building: "Launch my clothing brand" → "Your Clothing
  * Brand", "Build and ship an app" → "Your App", "Launch UNSETLD" → "UNSETLD". null when the goal
- * doesn't clearly name one.
+ * doesn't clearly name one, or is one the safety check refuses (core/safety).
  */
 export function projectFrom(goal: string | null | undefined): string | null {
-  if (!goal) return null;
+  if (!goal || !usableText(goal)) return null;
   const m = /\b(?:launch|build|start|grow|run|ship|finish|make|create|scale|open|release|publish)(?:\s+and\s+[a-z]+)?\s+(.{1,40})/i.exec(goal);
   if (!m) return null;
   const rest = m[1].split(/\s+(?:and|by|to|this|before|in|for|while|with|that|so|from|on)\b|[,.;!?]/i)[0].trim();
@@ -92,7 +95,7 @@ export function projectFrom(goal: string | null | undefined): string | null {
 
 /** One school subject the goal names ("Pass calculus" → "Calculus"); null for none or more than one. */
 export function subjectFrom(goal: string | null | undefined): string | null {
-  if (!goal) return null;
+  if (!goal || !usableText(goal)) return null;
   const text = goal.toLowerCase();
   const found = new Set<string>();
   for (const [k, v] of Object.entries(SUBJECTS)) if (new RegExp(`\\b${k.replace('-', '\\-')}\\b`).test(text)) found.add(v);
@@ -101,7 +104,7 @@ export function subjectFrom(goal: string | null | undefined): string | null {
 
 /** The opportunity the goal names: "Get a finance internship" → { one: 'Finance Internship', many: 'Finance Internships' }. */
 export function opportunityFrom(goal: string | null | undefined): { one: string; many: string } | null {
-  if (!goal) return null;
+  if (!goal || !usableText(goal)) return null;
   const m = /\b([a-z-]+)\s+(internship|job)s?\b/i.exec(goal);
   if (!m) return null;
   const field = FIELDS[m[1].toLowerCase()];
@@ -122,7 +125,9 @@ export function skillFrom(profile: Pick<Profile, 'skills' | 'goal'>): string | n
 
 /**
  * The title the user sees for a mission: its template with the slot filled from their goal
- * or skills, or the approved title when there's nothing clear to fill it with.
+ * or skills, or the approved title when there's nothing clear to fill it with. A goal the
+ * safety check refuses (core/safety) fills nothing, and neither do lifted words that don't
+ * check as ok on their own or that swear.
  */
 export function missionTitle(m: Pick<Mission, 'title' | 'template' | 'personalize'>, profile: Pick<Profile, 'goal' | 'skills'>): string {
   if (!m.template || !m.personalize) return m.title;
@@ -132,8 +137,8 @@ export function missionTitle(m: Pick<Mission, 'title' | 'template' | 'personaliz
   else if (m.personalize === 'skill') fill = skillFrom(profile);
   else if (m.personalize === 'opportunity') {
     const o = opportunityFrom(profile.goal);
-    if (o) return m.template.replace('{opportunity}', o.one).replace('{opportunities}', o.many);
+    if (o && fitForTitle(o.one)) return m.template.replace('{opportunity}', o.one).replace('{opportunities}', o.many);
   }
-  if (!fill) return m.title;
+  if (!fill || !fitForTitle(fill)) return m.title;
   return m.template.replace(/\{(project|subject|skill)\}/, fill);
 }

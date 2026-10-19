@@ -1,18 +1,22 @@
 // Step 3, a mission of the user's own: what they'll do, its area, how they'll prove it (the
 // same proof types and checks as every mission) and, for a timer, how long. What it earns in
 // this spot is said before it's added, and it never earns more than the mission it replaces.
-// While they type, the field stays in view above the keyboard and the pinned button.
+// While they type, the field stays in view above the keyboard and the pinned button. A title
+// the app can't use (core/safety) gets one line after a pause in typing, and can't be added.
 import { useRef, useState } from 'react';
 import { ScrollView, TextInput, View, type LayoutRectangle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TRACK_BY_ID } from '../../content';
 import { SWAP } from '../../content/copy/swap';
 import { CUSTOM_PROOFS, CUSTOM_TIMER_MINUTES, CUSTOM_TITLE_MAX } from '../../core/custom';
+import { settledCheck } from '../../core/safety';
 import type { Mission, TrackId } from '../../core/types';
 import { selection } from '../../services/haptics';
 import { Button } from '../../ui/kit';
+import { SafetyNote } from '../../ui/SafetyNote';
 import { T } from '../../ui/text';
 import { color as C, font, GAP, MARGIN, radius } from '../../ui/tokens';
+import { useSettled } from '../../ui/useSettled';
 import { Chip } from '../onboarding/TracksScreen';
 import { draftFrom, draftInput, isTimed, ownEarns, sameAs, type OwnDraft } from './logic';
 import { Back, GroupLabel, ROW, SHEET_GRABBER, useKeyboardInset } from './parts';
@@ -48,6 +52,9 @@ export function CreateStep({
   const cut = useKeyboardInset(sheetHeight);
   const [focused, setFocused] = useState(false);
   const input = draftInput(draft);
+  // What the title gets said about it, once typing pauses (null for most).
+  const [settled] = useSettled(draft.title);
+  const flagged = settledCheck(draft.title, settled, 'mission');
   const timed = isTimed(draft.proofType);
   const earns = ownEarns(draft.proofType, draft.minutes, worth);
   const length = draft.title.length;
@@ -227,7 +234,9 @@ export function CreateStep({
           <T v="note" color={C.muted} accessibilityLiveRegion="polite" style={{ marginTop: 6 }}>
             {note}
           </T>
-        ) : null}
+        ) : (
+          <SafetyNote result={flagged} style={{ marginTop: 6 }} />
+        )}
         <Button title={COPY.add} accessibilityLabel={COPY.add} disabled={!input} onPress={onAdd} style={{ marginTop: 12 }} />
       </View>
     </View>
