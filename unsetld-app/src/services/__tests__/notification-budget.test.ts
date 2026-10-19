@@ -173,3 +173,24 @@ describe('timer done', () => {
     expect(timerDayEnds({ day: '2026-10-22' }, 2)).toBe(end);
   });
 });
+
+// Stream E's trial reminder, as its real sync schedules it, inside stream F's budget.
+describe('the trial reminder from the store, inside the budget', () => {
+  for (const model of ['soonest', 'reject'] as const) {
+    it(`${model}: syncTrialReminder's trial-end survives a full rebuild, and the 2.x trial-day2 goes`, async () => {
+      q.model = model;
+      const { reschedule, scheduleDropAlerts, syncTrialReminder, TRIAL_REMINDER_ID } = await import('../notifications');
+      expect(TRIAL_REMINDER_ID).toBe('trial-end');
+      expect(isOwnNotification(TRIAL_REMINDER_ID)).toBe(true);
+      await trial('trial-day2');
+      const at = await syncTrialReminder({ trialEnds: new Date(NOW.getTime() + 3 * 86_400_000).toISOString(), price: '$24.99', kind: 'annual' });
+      expect(at).not.toBeNull();
+      await scheduleDropAlerts({ drops: drops(3), optedIn: true });
+      await reschedule(input(10));
+      expect(q.dropped).toEqual([]);
+      expect(ids()).toContain('trial-end');
+      expect(ids()).not.toContain('trial-day2');
+      expect(q.pending.length).toBeLessThanOrEqual(PENDING_BUDGET);
+    });
+  }
+});

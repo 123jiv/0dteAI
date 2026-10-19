@@ -144,6 +144,22 @@ describe('swap parity: a swap after the first never raises what the day earns', 
     expect(useApp.getState().replaceMission(0, 'F2', 'another')).toBe('ok');
     expect(useApp.getState().plans[TODAY]!.missions[0]).toMatchObject({ missionId: 'F2', points: 5 });
   });
+
+  it("a member's later swap to a mission of their own: a refused title makes nothing, a safe one is capped", async () => {
+    const { useApp, ownEarns, slotWorth } = await load({ ...member, plans: { [TODAY]: { ...PLAN, rerolls: 1, replaced: ['D1'] } } });
+    // The safety check (stream C) comes first: nothing is made, kept or swapped.
+    expect(useApp.getState().createCustomMission({ ...GUITAR, title: 'Buy a vape' })).toBeNull();
+    expect(useApp.getState().customMissions).toHaveLength(0);
+    expect(useApp.getState().plans[TODAY]!.rerolls).toBe(1);
+    // A safe one goes in at no more than the spot it takes (stream E's cap).
+    const worth = slotWorth(useApp.getState().plans[TODAY], 0)!;
+    const m = useApp.getState().createCustomMission({ ...GUITAR })!;
+    expect(useApp.getState().replaceMission(0, m.id, 'another')).toBe('ok');
+    const planned = useApp.getState().plans[TODAY]!.missions[0]!;
+    expect(planned.missionId).toBe(m.id);
+    expect(planned.points).toBe(ownEarns(GUITAR.proofType, GUITAR.timerMinutes, worth));
+    expect(planned.points).toBeLessThanOrEqual(worth);
+  });
 });
 
 describe('using one of your own again', () => {
