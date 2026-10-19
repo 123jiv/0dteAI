@@ -7,6 +7,7 @@ import { randomSalt } from '../core/random';
 import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
 import { FEATURES, hasFeature, type Feature, type FeatureMap } from '../core/features';
+import { goalReach } from '../core/areaChoice';
 import { asPlanned, customsIn, CUSTOM_KEEP, CUSTOM_PER_DAY, isCustomId, makeCustomMission, type CustomInput } from '../core/custom';
 import { dayNumberOf } from '../core/history';
 import {
@@ -24,6 +25,7 @@ import {
   type MissionHistory,
   type SlotPick,
 } from '../core/missions';
+import { focusFacts, onboardingFacts, planLeft, provenEvents, swapFacts } from '../core/metrics';
 import { learnFrom, mondayOf } from '../core/personalize';
 import { finishOf, planMomentKey, programMissions, programProgress, recordPlanFinish, startProgram as startProgramCore } from '../core/programs';
 import { clearPhotos, oldestPhotos, photosToClear, photoUris } from '../core/proofs';
@@ -32,12 +34,13 @@ import { balance, effectiveStatus, parseRewards, parseStatus, redeem, statusFrom
 import { computeStreak } from '../core/streak';
 import { missionTitle } from '../core/titles';
 import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as startCore, type FocusTimer } from '../core/timer';
-import { emptyRecord, markLetterShown, type Letter } from '../core/record';
+import { dayCount, emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
 import { addDays, dayKeyOf, type DayKey } from '../core/time';
 import type { ChapterId, Colorway, DayPlan, Mission, Profile, Program, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, SwapReason, TrackId, Verification, WeeklyFocus } from '../core/types';
 import { clearCustomMissions, COLORWAY_BY_ID, COLORWAYS, isApproved, MILESTONES, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
+import { track, trackEach } from '../services/metrics';
 import type { PlanKind } from '../services/purchases';
 import { deletePhoto, webPhotoKeys } from '../services/proof';
 import { cancelTimerDone } from '../services/timerNotify';
@@ -433,6 +436,7 @@ export const useApp = create<State>()(
         // "Can't do this today" keeps nothing away beyond today (plan.replaced does that).
         const skips = reason === 'cant-today' ? s.skips : addSkip(s.skips, old.missionId, d);
         set(st => ({ plans: { ...st.plans, [d]: next }, skips, timer, pendingBefore }));
+        track('mission_swapped', swapFacts(old.missionId, missionId, reason, next.rerolls, entitlementsOf(s).maxSwaps));
         return 'ok';
       },
 
@@ -515,6 +519,7 @@ export const useApp = create<State>()(
         const firstToday = accepted && !Object.values(s.record.missions?.[d] ?? {}).some(isAccepted);
         const provenToday = plan ? plan.missions.filter(p => isAccepted(c.record.missions[d]?.[p.missionId])).length : Object.values(c.record.missions[d] ?? {}).filter(isAccepted).length;
         const shownUp = activeDays(c.record);
+        if (accepted) trackEach(provenEvents({ before: s.record, after: c.record, day: d, plan, mission, streak: after.streak, clock: opts.verifiedClock, hour: now().getHours(), minutes: s.profile.minutes, finished: program && prog && finished ? { id: program.id, startedDay: program.startedDay, days: prog.days, finishedDay: finished } : null }));
         return {
           points: c.points,
           bonus: c.bonus,
@@ -536,15 +541,21 @@ export const useApp = create<State>()(
       startProgram: id => {
         if (!PROGRAM_BY_ID[id]) return;
         const d = today();
+        if (get().program?.id !== id) track('plan_left', planLeft(get().program, p => Boolean(PROGRAM_BY_ID[p]), 'switched'));
         set({ program: startProgramCore(id, d) });
+        track('plan_started', { plan: id, free: PROGRAM_BY_ID[id].free });
         // Put the program's first day in today's plan if today hasn't been touched yet.
         get().replanToday();
       },
-      leaveProgram: () => set({ program: null }),
+      leaveProgram: () => {
+        track('plan_left', planLeft(get().program, p => Boolean(PROGRAM_BY_ID[p]), 'left'));
+        set({ program: null });
+      },
       markReviewSeen: weekStart => set({ reviewSeen: weekStart }),
       setFocus: (focus, week) => {
         const now = mondayOf(get().currentDay);
         const target = week ?? focus?.week ?? now;
+        track('weekly_focus_set', focusFacts(focus, target > now));
         if (target > now) {
           set(s => ({ profile: { ...s.profile, nextFocus: focus } }));
           return;
@@ -553,7 +564,10 @@ export const useApp = create<State>()(
         set(s => ({ profile: { ...s.profile, focus, nextFocus: s.profile.nextFocus?.week === target ? null : s.profile.nextFocus } }));
         get().replanToday();
       },
-      skipFocus: week => set({ focusSkipped: week }),
+      skipFocus: week => {
+        track('weekly_focus_set', focusFacts('skip', week > mondayOf(get().currentDay)));
+        set({ focusSkipped: week });
+      },
       markMomentShown: key => set(s => (s.momentsShown.includes(key) ? {} : { momentsShown: [...s.momentsShown, key] })),
 
       expireProofPhotos: () => {
@@ -572,6 +586,7 @@ export const useApp = create<State>()(
         void verified;
         set(s => ({ settings: { ...s.settings, onboarded: true } }));
         get().ensurePlan(today());
+        track('onboarding_completed', onboardingFacts(get().profile, goalReach(MISSIONS, get().profile, get().profile.goal, today()), dayCount(get().record) > 0));
       },
 
       setPremium: p => set(s => ({ premium: { ...s.premium, ...p } })),

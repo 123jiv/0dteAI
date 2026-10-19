@@ -5,6 +5,7 @@ import { TRACK_BY_ID, TRACKS } from '../../content';
 import { MAX_AREAS, MIN_AREAS, ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection, warning } from '../../services/haptics';
+import { track } from '../../services/metrics';
 import { useApp } from '../../state/store';
 import { Button, NavRow, PageTitle, Screen, Square } from '../../ui/kit';
 import { T } from '../../ui/text';
@@ -217,6 +218,7 @@ export function TracksScreen({ navigation, route }: RootProps<'Tracks'>) {
     } else {
       const changed = (Object.keys(patch) as (keyof Profile)[]).some(k => JSON.stringify(patch[k]) !== JSON.stringify(value[k]));
       if (changed) change(patch);
+      track('onboarding_step', { step: 'areas' });
       navigation.navigate('Pace');
     }
   };

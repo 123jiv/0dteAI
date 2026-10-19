@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MISSIONS } from '../../content';
 import { COPY } from '../../content/copy';
 import type { RootProps } from '../../navigation/types';
+import { track } from '../../services/metrics';
 import { useApp } from '../../state/store';
 import { Button } from '../../ui/kit';
 import { T, useSerifScale } from '../../ui/text';
@@ -65,6 +66,7 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
   const begin = () => {
     if (busy) return;
     setBusy(true);
+    track('onboarding_started');
     Animated.sequence([
       Animated.timing(drop, { toValue: 1, duration: 300, easing: ease.in, useNativeDriver: false }),
       Animated.timing(close, { toValue: 0, duration: reduce ? 0 : 200, easing: ease.out, useNativeDriver: false }),

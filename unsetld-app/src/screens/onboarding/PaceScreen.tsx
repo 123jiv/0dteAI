@@ -4,6 +4,7 @@ import type { MissionSlot, Profile } from '../../core/types';
 import { ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
 import { selection } from '../../services/haptics';
+import { track } from '../../services/metrics';
 import { Button, NavRow, PageTitle, Screen, Square } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP } from '../../ui/tokens';
@@ -55,6 +56,7 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
       navigation.goBack();
       return;
     }
+    track('onboarding_step', { step: 'pace' });
     navigation.navigate('Goal');
   };
 

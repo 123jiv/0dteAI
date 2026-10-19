@@ -9,6 +9,7 @@ import { COLORWAYS, PROGRAMS, RULES } from '../content';
 import { PLATFORM } from '../content/copy/platform';
 import type { RootProps } from '../navigation/types';
 import { selection } from '../services/haptics';
+import { track } from '../services/metrics';
 import { notificationStatus } from '../services/notifications';
 import { getPlans, NO_ENTITLEMENT, purchase, purchaseMode, restore, type Plan, type PlanKind } from '../services/purchases';
 import { setPremiumFrom } from '../state/premium';
@@ -46,8 +47,11 @@ const PLUS_ROWS = (Object.keys(FEATURES) as Feature[])
  * UNSETLD+, set like a product page. Prices and the trial always come from the store
  * (services/purchases); a build that can't sell it says so and offers nothing to buy.
  */
-export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
+export function PaywallScreen({ navigation, route }: RootProps<'Paywall'>) {
   const insets = useSafeAreaInsets();
+  // Where it was opened from, for the usage counts (docs/METRICS.md); nothing else reads it.
+  const from = route.params?.from ?? 'other';
+  useEffect(() => track('paywall_viewed', { from }), [from]);
   // Rewards are named as staying free only while they're on.
   const accessEnabled = useAccessEnabled();
   const unavailable = purchaseMode === 'unavailable';
@@ -100,6 +104,7 @@ export function PaywallScreen({ navigation }: RootProps<'Paywall'>) {
       if (r.premium) {
         // Saved as the store reports it; the trial reminder follows from its end date.
         setPremiumFrom(true, r.info ?? { ...NO_ENTITLEMENT, plan: r.plan }).catch(() => {});
+        track('purchase_completed', { product: plan.kind, trial: Boolean(trial), from });
         // Leave with a 400ms fade, not the modal's slide down. UIKit reads the
         // transition when it dismisses, so the option lands first.
         if (Platform.OS !== 'web') navigation.setOptions({ animation: 'fade', animationDuration: 400 });

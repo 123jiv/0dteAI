@@ -13,6 +13,7 @@
 // before saved) is said with ui/useAnnounce; the done stage says its own.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
+import { firstStart, rejectFacts } from '../../core/metrics';
 import { activeDays } from '../../core/progress';
 import { usedHashes } from '../../core/proofs';
 import { elapsedSeconds, endsAt, timerDone, type FocusTimer } from '../../core/timer';
@@ -24,6 +25,7 @@ import { MISSION } from '../../content/copy/mission';
 import type { RootProps } from '../../navigation/types';
 import { syncProof } from '../../services/access';
 import { now, today } from '../../services/clock';
+import { track } from '../../services/metrics';
 import { notificationStatus } from '../../services/notifications';
 import { cameraPermission, capture, deletePhoto, PROOF_FROM_CAMERA, proofImage, savePhoto } from '../../services/proof';
 import { cancelTimerDone, syncTimerDone } from '../../services/timerNotify';
@@ -270,6 +272,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     const kinds = requiredPhotos(mission.proofType);
     const shot = await shoot(kinds[kinds.length - 1]);
     if (!shot) return;
+    track('first_mission_started', firstStart(useApp.getState().record, mission, plan?.missions[index]?.area));
     // On iOS a retake gets its own file; in the preview it replaces the same key. Anything else from before goes.
     unsent.current.filter(u => u !== shot.uri).forEach(deletePhoto);
     unsent.current = [shot.uri];
@@ -301,6 +304,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     const old = s.pendingBefore;
     if (old && old.photo.uri !== shot.uri) deletePhoto(old.photo.uri);
     s.setPendingBefore({ missionId, day, photo: shot });
+    track('first_mission_started', firstStart(s.record, mission, plan?.missions[index]?.area));
   };
 
   /** TAKE THE BEFORE PHOTO: one before photo waits at a time. */
@@ -328,6 +332,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
     }
     const s = useApp.getState();
     s.startTimer(missionId);
+    track('first_mission_started', firstStart(s.record, mission, plan?.missions[index]?.area));
     // Starting is when to ask for notifications: then the screen can say it will ring.
     void syncTimerDone(useApp.getState().timer, { ask: true })
       .then(notificationStatus)
@@ -399,6 +404,7 @@ export function MissionScreen({ navigation, route }: RootProps<'Mission'>) {
    * A TIMER mission's timer was its whole proof: it goes, so Try again starts a new one.
    */
   const reject = (photos: readonly ProofPhoto[], verification: Verification) => {
+    track('proof_rejected', rejectFacts(mission, verification.checks));
     const s = useApp.getState();
     const used = usedHashes(s.record);
     for (const p of photos) {
