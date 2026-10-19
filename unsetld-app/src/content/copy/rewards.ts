@@ -199,6 +199,8 @@ export const REWARDS_COPY = {
     plus: (n: number) => `+${n}`,
     plusSaid: (n: number) => plural(n, 'point', 'points'),
     earnedOnly: "Points come only from proven missions. They don't expire, and UNSETLD+ doesn't change them.",
+    /** Swap parity (state/store swapCap): extra swaps never raise what a day can earn. */
+    swaps: 'Swaps after the first earn up to what the mission they replace was worth.',
     /** Shown whether rewards are on or off: what points do besides rewards. */
     levels: "Each mission's points also count toward its area's level on your Record.",
     codes: 'CODES',

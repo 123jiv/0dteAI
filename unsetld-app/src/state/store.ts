@@ -7,7 +7,7 @@ import { randomSalt } from '../core/random';
 import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
 import { FEATURES, hasFeature, type Feature, type FeatureMap } from '../core/features';
-import { customsIn, CUSTOM_KEEP, CUSTOM_PER_DAY, isCustomId, makeCustomMission, type CustomInput } from '../core/custom';
+import { asPlanned, customsIn, CUSTOM_KEEP, CUSTOM_PER_DAY, isCustomId, makeCustomMission, type CustomInput } from '../core/custom';
 import { dayNumberOf } from '../core/history';
 import {
   addSkip,
@@ -349,8 +349,15 @@ export const useApp = create<State>()(
         if (plan.rerolls >= entitlementsOf(s).maxSwaps) return 'limit';
         const old = plan.missions[index];
         if (!old || s.record.missions?.[d]?.[old.missionId]) return 'none';
-        const next = rerollCore(plan, index, planInput(s, d));
-        if (!next) return 'none';
+        const rolled = rerollCore(plan, index, planInput(s, d));
+        if (!rolled) return 'none';
+        // Like replaceMission: a swap after the first earns at most what it replaces.
+        const cap = swapCap(plan, index);
+        const got = rolled.missions[index];
+        const next =
+          cap !== undefined && got && cap < (MISSION_BY_ID[got.missionId]?.points ?? 0)
+            ? { ...rolled, missions: rolled.missions.map((p, i) => (i === index ? { ...p, points: cap } : p)) }
+            : rolled;
         // A running timer or a waiting before photo for the swapped-out mission goes with it.
         const timer = s.timer?.missionId === old.missionId ? null : s.timer;
         const pendingBefore = s.pendingBefore?.missionId === old.missionId ? null : s.pendingBefore;
@@ -389,6 +396,9 @@ export const useApp = create<State>()(
             if (!to) return 'invalid';
             area = to;
           }
+          // Swaps after the first earn at most what they replace: UNSETLD+ never earns more.
+          const cap = swapCap(plan, index);
+          if (cap !== undefined && cap < mission.points) points = cap;
         }
         const next = replaceWith(plan, index, mission, area, reason, Date.now(), points);
         if (!next) return 'invalid';
@@ -676,9 +686,27 @@ function refilled(s: PlanState, day: DayKey, have: DayPlan): DayPlan {
   return { ...plan, missions: plan.missions.filter(p => MISSION_BY_ID[p.missionId]) };
 }
 
-/** "RECOMMENDED FOR YOU" for the mission at `index` of `plan` (core/missions replacementChoices). */
+/**
+ * The most a swap's mission may earn: nothing past the usual for the day's first swap (the one
+ * everyone has); for every swap after it, what the mission it replaces was worth. So UNSETLD+'s
+ * extra swaps never raise what a day can earn: a free day and a member's day have the same
+ * ceiling. undefined = no cap. Proof credits the planned value (core/complete).
+ */
+export function swapCap(plan: DayPlan, index: number, freeSwaps: number = RULES.rerolls.free): number | undefined {
+  if (plan.rerolls < freeSwaps) return undefined;
+  const old = plan.missions[index];
+  if (!old) return undefined;
+  return typeof old.points === 'number' ? old.points : MISSION_BY_ID[old.missionId]?.points;
+}
+
+/**
+ * "RECOMMENDED FOR YOU" for the mission at `index` of `plan` (core/missions replacementChoices),
+ * each showing what it would earn here (swapCap), as its card on Today will.
+ */
 function choicesFor(s: PlanState, day: DayKey, plan: DayPlan, index: number, reason: SwapReason, count = 3): SlotPick[] {
-  return replacementChoices(plan, index, planInput(s, day), reason, count);
+  const picks = replacementChoices(plan, index, planInput(s, day), reason, count);
+  const cap = swapCap(plan, index);
+  return cap === undefined ? picks : picks.map(p => ({ ...p, mission: asPlanned(p.mission, { points: cap }) }));
 }
 
 /** The replacements the swap sheet offers for today's mission at `index`, for the reason picked. */

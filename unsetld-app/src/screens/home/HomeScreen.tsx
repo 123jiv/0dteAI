@@ -231,7 +231,7 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
   // Busy: its timer is running or its before photo is saved, so it can't be swapped out.
   const busyWith = (m: TodayMission) =>
     (timer?.missionId === m.mission.id && timer.day === day) || (pendingBefore?.missionId === m.mission.id && pendingBefore.day === day);
-  // A mission with any proof on record today (a rejected attempt included) stays: the store won't swap it.
+  // A mission proven today stays: the store won't swap it. A rejected proof isn't recorded, so its mission still can be.
   // Swap shows only while swaps are left (brief §3: swaps live on the card and in the dialog).
   const canSwap = (m: TodayMission) => swapsLeft > 0 && !m.done && !busyWith(m);
 

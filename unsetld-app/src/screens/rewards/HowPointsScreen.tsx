@@ -77,6 +77,9 @@ export function HowPointsScreen({ navigation }: RootProps<'HowPoints'>) {
           {H.earnedOnly}
         </T>
         <T v="note" color={C.stone} style={{ marginTop: 8 }}>
+          {H.swaps}
+        </T>
+        <T v="note" color={C.stone} style={{ marginTop: 8 }}>
           {H.levels}
         </T>
       </View>
