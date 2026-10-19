@@ -1,6 +1,8 @@
 // Step 2, RECOMMENDED FOR YOU: up to three missions for the reason given, each drawn like the
 // card it becomes on Today (area, title, minutes · proof · points), then + Create my own. Each
-// title reads as it will on Today, with the user's goal filled in (screens/titles).
+// title reads as it will on Today, with the user's goal filled in (screens/titles). The points
+// are what it would earn in this spot: after the day's first swap, never more than the mission
+// it replaces (state/store replacementsFor, swapCap), so an extra swap never shows a raise.
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TRACK_BY_ID } from '../../content';

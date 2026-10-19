@@ -15,7 +15,8 @@ import { newNonce } from '../../navigation/nonce';
 import type { TabProps } from '../../navigation/types';
 import { today } from '../../services/clock';
 import { deletePhoto } from '../../services/proof';
-import { restore } from '../../services/purchases';
+import { NO_ENTITLEMENT, purchaseMode, restore } from '../../services/purchases';
+import { setPremiumFrom } from '../../state/premium';
 import { useAccessEnabled, useApp, useEntitlements } from '../../state/store';
 import { showDialog } from '../../ui/actions';
 import { Card, LinkRow, SectionLabel } from '../../ui/blocks';
@@ -23,20 +24,13 @@ import { InlineLink, Segmented, Toggle } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN } from '../../ui/tokens';
 import { enableDropAlerts } from '../access';
+import { renewText } from './membership';
 
 const S = PLATFORM.you;
 /** Proof photos: 30 days, 1 year, or keep (0). */
 const RETENTION: readonly number[] = [30, 365, 0];
 /** "What are you learning?" is only asked with one of these areas (About you). */
 const LEARNING_AREAS: readonly TrackId[] = ['skills', 'projects', 'career'];
-
-function renewText(plan: string | null, renews: string | null): string {
-  const name = plan ? S.planName[plan] ?? S.member : S.member;
-  if (!plan || plan === 'lifetime' || !renews) return name;
-  const d = new Date(renews);
-  if (Number.isNaN(d.getTime())) return name;
-  return S.renews(name, `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()}`);
-}
 
 /**
  * The About you questions this profile is asked: school, work, business or project, gym and age;
@@ -149,10 +143,12 @@ export function YouScreen({ navigation }: TabProps<'You'>) {
   const openColorway = () => navigation.navigate('Today', { sheet: 'colorway', nonce: newNonce() });
 
   const doRestore = async () => {
+    if (purchaseMode === 'unavailable') return showDialog(PLATFORM.paywall.unavailableTitle, PLATFORM.paywall.unavailableBody);
     try {
       const res = await restore();
       if (res.premium) {
-        useApp.getState().setPremium({ active: true });
+        // Saved as the store reports it (plan, renewal, trial end), not just "Member".
+        setPremiumFrom(true, res.info ?? NO_ENTITLEMENT).catch(() => {});
         showDialog(S.restored);
       } else showDialog(S.noneTitle, S.noneBody);
     } catch {
@@ -240,9 +236,9 @@ export function YouScreen({ navigation }: TabProps<'You'>) {
       <Group label={S.sections.membership}>
         {premium.active ? (
           manage ? (
-            <LinkRow title={S.plus} detail={renewText(premium.plan, premium.renews)} onPress={manage} />
+            <LinkRow title={S.plus} detail={renewText(premium)} onPress={manage} />
           ) : (
-            <ActionRow title={S.plus} detail={renewText(premium.plan, premium.renews)} />
+            <ActionRow title={S.plus} detail={renewText(premium)} />
           )
         ) : (
           <LinkRow title={S.plus} detail={S.plusPitch} onPress={() => navigation.navigate('Paywall', { from: 'settings' })} />

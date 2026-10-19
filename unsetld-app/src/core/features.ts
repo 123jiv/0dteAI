@@ -23,12 +23,15 @@ export const FEATURES = {
   /** Plans marked free in programs.json (7 Day Lock In, Get Organized). */
   basicPlans: 'free',
   widgets: 'free',
-  /** More swaps a day (rules.json rerolls.full). */
-  extraSwaps: 'plus',
+  // The UNSETLD+ side, in the order the paywall lists it (PaywallScreen PLUS_ROWS): the plans
+  // first, reminders, a convenience, last. Extra swaps never earn more than the first
+  // (state/store replaceMission), so none of these changes what anyone earns.
   /** Every plan in programs.json. */
   allPlans: 'plus',
   /** All colorways. */
   colorways: 'plus',
+  /** More swaps a day (rules.json rerolls.full). */
+  extraSwaps: 'plus',
   /** More reminders a day (core/reminders). */
   extraReminders: 'plus',
 } as const satisfies Record<string, Edition>;

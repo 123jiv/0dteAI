@@ -10,7 +10,7 @@ export const AppConfig = {
   appGroup: 'group.com.unsetld.app',
   scheme: 'unsetld',
 
-  /** RevenueCat public iOS SDK key. Leave empty to run the paywall in preview mode. */
+  /** RevenueCat public iOS SDK key. Release builds need an App Store key (appl_); without one they sell nothing (services/purchases). */
   revenueCatIosKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '',
   entitlementId: 'full_edition',
   offeringId: 'default',

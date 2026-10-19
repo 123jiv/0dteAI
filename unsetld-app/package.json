@@ -58,6 +58,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "validate": "node scripts/validate-content.mjs",
+    "eas-build-pre-install": "node scripts/check-release-env.mjs",
     "check": "npm run typecheck && npm run lint && npm test && npm run validate",
     "build:web": "expo export --platform web",
     "build:preview": "expo export --platform web && node scripts/build-preview.mjs",

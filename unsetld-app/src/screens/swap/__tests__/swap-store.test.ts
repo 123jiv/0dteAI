@@ -84,6 +84,68 @@ describe('what the sheet says a mission of your own earns', () => {
   }
 });
 
+describe('swap parity: a swap after the first never raises what the day earns', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
+  });
+
+  const member = { premium: { active: true, plan: 'annual', renews: null, mode: 'revenuecat' } };
+
+  it("the day's first swap is unchanged: Too easy can turn 5 points into more, for everyone", async () => {
+    const { useApp, replacementsFor, MISSION_BY_ID } = { ...(await load(member)), ...(await import('../../../content')) };
+    const choices = replacementsFor(0, 'too-easy');
+    expect(choices.length).toBeGreaterThan(0);
+    // Shown at full worth.
+    for (const c of choices) expect(c.mission.points).toBe(MISSION_BY_ID[c.mission.id]!.points);
+    const up = choices.find(c => c.mission.points > 5)!;
+    expect(up).toBeTruthy();
+    expect(useApp.getState().replaceMission(0, up.mission.id, 'too-easy')).toBe('ok');
+    const planned = useApp.getState().plans[TODAY]!.missions[0]!;
+    expect(planned.missionId).toBe(up.mission.id);
+    expect(planned.points).toBeUndefined();
+  });
+
+  it("a member's second and third swaps: offered and planned at what they replace, and proving credits that", async () => {
+    const { useApp, replacementsFor, completeMission, MISSION_BY_ID } = { ...(await load(member)), ...(await import('../../../content')) };
+    // The first swap, on another mission.
+    const first = replacementsFor(1, 'another')[0]!;
+    expect(useApp.getState().replaceMission(1, first.mission.id, 'another')).toBe('ok');
+
+    // Second: Too easy on the 5-point mission. The choices say what they'd earn here.
+    const choices = replacementsFor(0, 'too-easy');
+    expect(choices.some(c => MISSION_BY_ID[c.mission.id]!.points > 5)).toBe(true);
+    for (const c of choices) expect(c.mission.points).toBeLessThanOrEqual(5);
+    const up = choices.find(c => MISSION_BY_ID[c.mission.id]!.points > 5)!;
+    expect(useApp.getState().replaceMission(0, up.mission.id, 'too-easy')).toBe('ok');
+    let plan = useApp.getState().plans[TODAY]!;
+    expect(plan.missions[0]!.points).toBe(5);
+
+    // Proving it credits 5, not the mission's own worth.
+    const m = MISSION_BY_ID[up.mission.id]!;
+    const done = completeMission(useApp.getState().record, TODAY, plan, m, [], accepted, { at: NOW.getTime(), verifiedClock: true });
+    expect(done.points).toBe(5);
+
+    // Third: the swapped-in one again keeps its cap (worth 5 now), whatever comes in.
+    const third = replacementsFor(0, 'too-easy');
+    for (const c of third) expect(c.mission.points).toBeLessThanOrEqual(5);
+    if (third[0]) {
+      expect(useApp.getState().replaceMission(0, third[0].mission.id, 'too-easy')).toBe('ok');
+      plan = useApp.getState().plans[TODAY]!;
+      expect(Math.min(plan.missions[0]!.points ?? Infinity, MISSION_BY_ID[plan.missions[0]!.missionId]!.points)).toBeLessThanOrEqual(5);
+    }
+    expect(useApp.getState().replaceMission(2, 'S2', 'another')).toBe('limit');
+  });
+
+  it('any approved mission swapped in by id is capped the same way', async () => {
+    const { useApp, MISSION_BY_ID } = { ...(await load({ ...member, plans: { [TODAY]: { ...PLAN, rerolls: 1, replaced: ['D1'] } } })), ...(await import('../../../content')) };
+    // A fitness mission worth more for D4 (5 points), not one of the choices, on the second swap.
+    expect(MISSION_BY_ID.F2!.points).toBeGreaterThan(5);
+    expect(useApp.getState().replaceMission(0, 'F2', 'another')).toBe('ok');
+    expect(useApp.getState().plans[TODAY]!.missions[0]).toMatchObject({ missionId: 'F2', points: 5 });
+  });
+});
+
 describe('using one of your own again', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
