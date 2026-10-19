@@ -174,7 +174,11 @@ interface State {
   program: ProgramState | null;
   /** Week start of the last weekly review the user closed. */
   reviewSeen: DayKey | null;
-  /** Progress milestones whose moment was already shown (core/progress MilestoneKey). */
+  /**
+   * Full-screen moments already shown (core/moments): progress milestones (core/progress
+   * MilestoneKey), Plan finishes (core/programs planMomentKey) and `day:<DayKey>` for a day that
+   * already had its one moment or status letter.
+   */
   momentsShown: string[];
   /** Week start (Monday) of the week the user said "Not this week" to the weekly focus question. */
   focusSkipped: DayKey | null;

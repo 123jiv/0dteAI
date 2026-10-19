@@ -34,7 +34,7 @@ function DayShape({ slots, longest, on }: { slots: readonly MissionSlot[]; longe
   );
 }
 
-/** Onboarding step 3, and You › Time and intensity. */
+/** Onboarding step 2 (02/03), and You › Time and intensity. */
 export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
   const edit = Boolean(route.params?.edit);
   const { value, change, save } = useProfileDraft(edit);

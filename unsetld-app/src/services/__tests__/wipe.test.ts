@@ -228,3 +228,47 @@ describe('Delete data on this phone', () => {
     expect(m.log.filter(x => x === 'reset')).toHaveLength(1);
   });
 });
+
+// The age gate's under-13 answer (screens/onboarding/ageGate, stream B) runs this real delete:
+// everything goes, then the install is blocked; a delete that can't finish still blocks, and the
+// block screen sees data left to try again.
+describe('Under 13: the age gate runs the real delete', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+    vi.setSystemTime(NOW);
+  });
+
+  it('deletes everything on this phone, then blocks the install for good', async () => {
+    const { useApp } = await setUp();
+    const { blockUnder13, holdsData } = await import('../../screens/onboarding/ageGate');
+    const { startRoute } = await import('../../core/age');
+    expect(holdsData(useApp.getState())).toBe(true);
+    expect(await blockUnder13()).toBe('done');
+    for (const k of KEYS) expect(m.keychain.has(k), k).toBe(false);
+    const s = useApp.getState();
+    expect(s.settings.ageCheck).toBe('under13');
+    expect(s.settings.onboarded).toBe(false);
+    expect(holdsData(s)).toBe(false);
+    expect(startRoute(s.settings)).toBe('AgeBlocked');
+    // Nothing left but the trial reminder, which belongs to the Apple ID.
+    expect(m.pending.map(p => p.identifier)).toEqual(['trial-end']);
+    // The block is saved with the reset state, and the record never goes back to the Keychain.
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(JSON.parse(m.storage.get('unsetld-v2') ?? '{}').state?.settings?.ageCheck).toBe('under13');
+    expect(m.keychain.has('unsetld.record.v2')).toBe(false);
+  });
+
+  it('a delete that fails still blocks, with the data left for the block screen to try again', async () => {
+    const { useApp } = await setUp();
+    const { blockUnder13, holdsData } = await import('../../screens/onboarding/ageGate');
+    m.failRecordDelete = true;
+    expect(await blockUnder13()).toBe('failed');
+    const s = useApp.getState();
+    expect(s.settings.ageCheck).toBe('under13');
+    expect(holdsData(s)).toBe(true);
+    m.failRecordDelete = false;
+    expect(await blockUnder13()).toBe('done');
+    expect(holdsData(useApp.getState())).toBe(false);
+    expect(useApp.getState().settings.ageCheck).toBe('under13');
+  });
+});

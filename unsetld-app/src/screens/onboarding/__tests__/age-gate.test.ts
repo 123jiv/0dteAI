@@ -30,7 +30,8 @@ vi.mock('../../../state/storage', () => ({
 vi.mock('../../../services/proof', () => ({ deletePhoto: () => {}, webPhotoKeys: () => [] }));
 vi.mock('../../../services/timerNotify', () => ({ cancelTimerDone: () => Promise.resolve() }));
 // Stream F's deleteLocalData, by its contract: 'failed' touches nothing; 'done' leaves the store at
-// its defaults (hydrated, a new day) with the Keychain record gone. Until F lands it throws.
+// its defaults (hydrated, a new day) with the Keychain record gone. The real delete under the
+// age gate is tested in services/__tests__/wipe.test.ts.
 vi.mock('../../../services/wipe', () => ({
   deleteLocalData: async () => {
     const { useApp } = await import('../../../state/store');
