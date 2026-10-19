@@ -27,6 +27,9 @@ async function priceOf(productId: string | null): Promise<{ price: string; kind:
   }
 }
 
+/** How many answers setPremiumFrom has had: only the latest sets the trial reminder. */
+let answers = 0;
+
 /**
  * The store's answer about the membership (launch, foreground, RevenueCat's listener, a purchase,
  * a restore): saved whole, so the You row can say a trial or a cancelled subscription ends, and
@@ -36,7 +39,9 @@ async function priceOf(productId: string | null): Promise<{ price: string; kind:
 export function setPremiumFrom(active: boolean, info: EntitlementInfo): Promise<Date | null> {
   const e = active ? info : { plan: null, renews: null, productId: null, trialEnds: null, ends: null };
   useApp.getState().setPremium({ active, plan: e.plan, renews: e.renews, productId: e.productId, trialEnds: e.trialEnds, ends: e.ends });
+  const answer = ++answers;
   const trialEnds = e.trialEnds;
   if (!trialEnds) return syncTrialReminder({ trialEnds: null });
-  return priceOf(e.productId).then(p => syncTrialReminder({ trialEnds, price: p?.price ?? null, kind: p?.kind ?? e.plan }));
+  // The price lookup is async: a newer answer (a cancel heard meanwhile) wins over this one.
+  return priceOf(e.productId).then(p => (answer === answers ? syncTrialReminder({ trialEnds, price: p?.price ?? null, kind: p?.kind ?? e.plan }) : null));
 }

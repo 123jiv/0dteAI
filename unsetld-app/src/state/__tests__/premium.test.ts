@@ -126,6 +126,15 @@ describe("the store's answer, saved whole", () => {
     expect(mem.synced).toEqual([{ trialEnds: null }]);
   });
 
+  it('a cancel heard while the trial’s price is still being read wins', async () => {
+    const { setPremiumFrom, purchases } = await load(premium({ mode: 'revenuecat' }));
+    mem.plans = [{ id: 'unsetld_full_annual', kind: 'annual', priceString: '$24.99' }];
+    const trial = setPremiumFrom(true, purchases.entitlementInfo({ productIdentifier: 'unsetld_full_annual', expirationDate: end, willRenew: true, periodType: 'TRIAL' }));
+    const cancel = setPremiumFrom(true, purchases.entitlementInfo({ productIdentifier: 'unsetld_full_annual', expirationDate: end, willRenew: false, periodType: 'TRIAL' }));
+    await Promise.all([trial, cancel]);
+    expect(mem.synced).toEqual([{ trialEnds: null }]);
+  });
+
   it('a restore saves the plan, not just "Member"', async () => {
     const { useApp, setPremiumFrom, purchases } = await load({ active: false, plan: null, renews: null, mode: 'revenuecat' });
     await setPremiumFrom(true, purchases.entitlementInfo({ productIdentifier: 'unsetld_full_lifetime', expirationDate: null, willRenew: false }));
