@@ -510,7 +510,7 @@ export function MissionCard({
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
             style={{ width: 48, height: 60, borderRadius: 6, overflow: 'hidden', backgroundColor: colorway.rule, opacity: hold ? 0 : settle }}>
-            <Image source={{ uri: thumb }} style={{ width: 48, height: 60 }} contentFit="cover" accessibilityLabel={HOME.a11y.provenThumb} />
+            <Image source={{ uri: thumb }} style={{ width: 48, height: 60 }} contentFit="cover" cachePolicy="memory" accessibilityLabel={HOME.a11y.provenThumb} />
           </Animated.View>
         ) : null}
       </View>

@@ -6,3 +6,5 @@ export const widgetsAvailable = () => false;
 export function updateWidgets(_input: WidgetInput) {}
 
 export async function prepareWidgetAssets() {}
+
+export async function resetWidgets() {}

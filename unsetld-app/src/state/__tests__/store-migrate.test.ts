@@ -66,13 +66,21 @@ const oldPlan = (rerolls: number, replaced: string[]) => ({
   replaced,
 });
 
-async function load(state: object, version: number) {
+/**
+ * Hydrates the store from `state` saved at `version`. A release build unless `preview`: tester
+ * state (time travel's snapshot) is only kept by preview and dev builds (release builds drop it as
+ * they load: store-release.test.ts).
+ */
+async function load(state: object, version: number, { preview = false }: { preview?: boolean } = {}) {
   mem.map.clear();
   mem.deleted = [];
   mem.cancelled = 0;
   mem.map.set('unsetld-v2', JSON.stringify({ state, version }));
   vi.resetModules();
-  const store = await import('../store');
+  (globalThis as { __DEV__?: boolean }).__DEV__ = preview;
+  const store = await import('../store').finally(() => {
+    (globalThis as { __DEV__?: boolean }).__DEV__ = false;
+  });
   const content = await import('../../content');
   // Clean-up after a load runs once hydration has finished.
   await new Promise(r => setTimeout(r, 0));
@@ -217,7 +225,7 @@ describe('old area ids stay out of the record', () => {
         '2026-10-06': { 'mindset-y': done('mindset-y', 'mindset', 25) },
       }),
     };
-    const { useApp } = await load(v3, 3);
+    const { useApp } = await load(v3, 3, { preview: true });
     expect(tracksOf(useApp.getState().record)).toEqual(['discipline']);
     useApp.getState().backToRealToday();
     const r = useApp.getState().record;
@@ -394,7 +402,7 @@ describe('v6 → v7: Business folds into Projects', () => {
       record: rec({ '2026-10-09': { 'business-work-30': done('business-work-30', 'business', 15) } }),
       devSnapshot: rec({ '2026-10-08': { 'business-content': done('business-content', 'business', 15), M1: done('M1', 'money', 5) } }),
     };
-    const { useApp, MISSION_BY_ID } = await load(v6, 6);
+    const { useApp, MISSION_BY_ID } = await load(v6, 6, { preview: true });
     const s = useApp.getState();
     expect(s.profile.tracks).toEqual(['projects', 'fitness']);
     expect(s.profile.priority).toBe('projects');

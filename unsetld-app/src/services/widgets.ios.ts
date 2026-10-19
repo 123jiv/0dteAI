@@ -478,13 +478,13 @@ export function updateWidgets(input: WidgetInput): void {
 /**
  * Before onboarding finishes nothing calls updateWidgets, and a widget with no
  * timeline renders empty in the gallery. Fill any empty timeline with a Black
- * preview: missions waiting, no streak yet.
+ * preview: missions waiting, no streak yet. `all`: every timeline, empty or not.
  */
-async function writePreviews(w: Loaded) {
+async function writePreviews(w: Loaded, all = false) {
   if (latest) return;
-  const empty = await Promise.all(
-    [w.line, w.record, w.standard].map(x => x.getTimeline().then(t => t.length === 0, () => false)),
-  );
+  const empty = all
+    ? [true, true, true]
+    : await Promise.all([w.line, w.record, w.standard].map(x => x.getTimeline().then(t => t.length === 0, () => false)));
   if (latest || !empty.some(Boolean)) return;
   const clock = readClock();
   const colorway = COLORWAYS[0];
@@ -497,3 +497,14 @@ async function writePreviews(w: Loaded) {
   });
 }
 
+/**
+ * Delete data on this phone, and startup before onboarding: the last input goes first (or the
+ * foreground listener would write the old missions, streak and points back), then every widget
+ * shows the Black preview: missions waiting, no streak yet. Never throws.
+ */
+export async function resetWidgets(): Promise<void> {
+  latest = null;
+  const w = load();
+  if (!w) return;
+  await writePreviews(w, true).catch(() => {});
+}

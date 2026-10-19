@@ -922,8 +922,9 @@ describe('reminders', () => {
     expect(narrow.every(x => x <= 483)).toBe(true);
   });
 
-  it('schedules floor(60 / reminders a day) days ahead, reminders only', () => {
-    expect([0, 1, 3, 5, 10].map(c => daysAhead(c))).toEqual([60, 60, 20, 12, 6]);
+  it("schedules floor(56 / reminders a day) days ahead, reminders only: the budget's share for reminders", () => {
+    expect(MAX_PENDING).toBe(56);
+    expect([0, 1, 3, 5, 10].map(c => daysAhead(c))).toEqual([56, 56, 18, 11, 5]);
     const now = new Date(2026, 9, 7, 6, 0);
     const opts = { now, today: '2026-10-07', first: 7 * 60, last: 22 * 60, prompts: PROMPTS, seed: 's' };
     for (const count of [1, 3, 10]) {
@@ -932,7 +933,8 @@ describe('reminders', () => {
       expect(plan.every(p => p.id.startsWith('rem-') && (p.kind === 'today' || p.kind === 'task'))).toBe(true);
       expect(plan.every(p => p.date > now)).toBe(true);
     }
-    expect(planNotifications({ ...opts, count: 3 }).some(p => p.id === `rem-${addDays('2026-10-07', 19)}-2`)).toBe(true);
+    expect(planNotifications({ ...opts, count: 3 }).some(p => p.id === `rem-${addDays('2026-10-07', 17)}-2`)).toBe(true);
+    expect(planNotifications({ ...opts, count: 3 }).some(p => p.day === addDays('2026-10-07', 18))).toBe(false);
     // Rebuilt later in the day: what's still ahead keeps its prompt.
     const early = new Map(planNotifications({ ...opts, count: 3 }).map(p => [p.id, p.prompt]));
     const later = planNotifications({ ...opts, count: 3, now: atMinutes('2026-10-07', 16 * 60) });

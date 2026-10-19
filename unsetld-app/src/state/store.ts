@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { AppState, Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type PersistStorage } from 'zustand/middleware';
-import { AppConfig } from '../config/app';
+import { AppConfig, IS_PREVIEW } from '../config/app';
 import { randomSalt } from '../core/random';
 import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
@@ -34,9 +34,9 @@ import { missionTitle } from '../core/titles';
 import { pauseTimer as pauseCore, resumeTimer as resumeCore, startTimer as startCore, type FocusTimer } from '../core/timer';
 import { emptyRecord, markLetterShown, type Letter } from '../core/record';
 import { FREE_MAX_REMINDERS, FULL_MAX_REMINDERS } from '../core/reminders';
-import { addDays, type DayKey } from '../core/time';
+import { addDays, dayKeyOf, type DayKey } from '../core/time';
 import type { ChapterId, Colorway, DayPlan, Mission, Profile, Program, ProgramState, ProofPhoto, RecordState, RewardTier, StatusTier, SwapReason, TrackId, Verification, WeeklyFocus } from '../core/types';
-import { COLORWAY_BY_ID, COLORWAYS, isApproved, MILESTONES, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
+import { clearCustomMissions, COLORWAY_BY_ID, COLORWAYS, isApproved, MILESTONES, MISSION_BY_ID, MISSIONS, PROGRAM_BY_ID, registerCustomMissions, RULES } from '../content';
 import { getDayOffset, now, setDayOffset, today } from '../services/clock';
 import type { PlanKind } from '../services/purchases';
 import { deletePhoto, webPhotoKeys } from '../services/proof';
@@ -158,6 +158,11 @@ interface State {
   currentDay: DayKey;
   /** Colorway shown while browsing the colorway sheet (not saved). */
   previewColorway: string | null;
+  /**
+   * The day turned over (4:00 AM) with an earlier day's timer or before photo still going: they
+   * went (refreshDay), and Today says so once (takeDayEnded). Not saved.
+   */
+  dayEnded: boolean;
 
   // 3.0 missions
   profile: Profile;
@@ -189,7 +194,21 @@ interface State {
   setPreviewColorway: (id: string | null) => void;
   setDayOffset: (days: number) => void;
   backToRealToday: () => void;
+  /**
+   * The UNSETLD day as the clock says now. A timer or a before photo from an earlier day goes
+   * (that day's plan is closed): the timer's notification is cancelled, the photo deleted, and
+   * dayEnded set for Today to say so.
+   */
   refreshDay: () => void;
+  /** Whether a timer or before photo went at the rollover since this was last asked (it's asked once: the dialog). */
+  takeDayEnded: () => boolean;
+  /**
+   * Delete data on this phone (services/wipe): the state a new install starts with, saved: a new
+   * salt, today's day, not onboarded. The server config is kept, and the membership is inactive
+   * until the store says otherwise (its mode kept). The user's own missions leave the lookup, the
+   * clock's tester offset goes to 0, and the first build's saved state and the preview's photos go.
+   */
+  resetLocalData: () => void;
   restore: (salt: string, record: RecordState) => void;
   setRecord: (record: RecordState) => void;
 
@@ -275,6 +294,7 @@ export const useApp = create<State>()(
       devPlans: null,
       currentDay: today(),
       previewColorway: null,
+      dayEnded: false,
 
       profile: DEFAULT_PROFILE,
       plans: {},
@@ -571,7 +591,35 @@ export const useApp = create<State>()(
       },
       refreshDay: () => {
         const d = today();
-        if (d !== get().currentDay) set({ currentDay: d });
+        const s = get();
+        const left = endedEarlier(s, d);
+        if (d === s.currentDay && !left) return;
+        set({ currentDay: d, ...(left ? { ...left, dayEnded: true } : {}) });
+      },
+      takeDayEnded: () => {
+        if (!get().dayEnded) return false;
+        set({ dayEnded: false });
+        return true;
+      },
+      resetLocalData: () => {
+        const s = get();
+        clearCustomMissions();
+        setDayOffset(0);
+        useApp.persist.clearStorage();
+        // A new install's state (actions included), saved as this version's defaults.
+        useApp.setState(
+          {
+            ...useApp.getInitialState(),
+            hydrated: true,
+            installSalt: randomSalt(),
+            currentDay: today(),
+            remote: s.remote,
+            premium: { ...EMPTY_PREMIUM, mode: s.premium.mode },
+          },
+          true,
+        );
+        removeLegacyState();
+        for (const key of webPhotoKeys()) deletePhoto(key);
       },
       restore: (salt, record) => set({ installSalt: salt, record: fromBackup(record) }),
       setRecord: record => set({ record }),
@@ -611,7 +659,10 @@ export const useApp = create<State>()(
           m.source === 'USER_CREATED' ? m : { ...m, source: 'USER_CREATED' as const },
         );
         registerCustomMissions(customMissions);
-        const p = withoutUnknownMissions({ ...saved, customMissions });
+        const loaded = withoutUnknownMissions({ ...saved, customMissions });
+        // A dev build updated to a release one (same bundle id) leaves tester state behind; a
+        // release build has no tester tools to undo it.
+        const p = IS_PREVIEW ? loaded : withoutTesterState(loaded);
         return {
           ...current,
           ...p,
@@ -727,6 +778,59 @@ function stranded(s: Pick<State, 'timer' | 'pendingBefore'>, plan: DayPlan): Pic
   if (s.timer && !timer) void cancelTimerDone();
   if (s.pendingBefore && !pendingBefore) deletePhoto(s.pendingBefore.photo.uri);
   return { timer, pendingBefore };
+}
+
+/**
+ * 4:00 AM: a timer or a before photo from a day before `day` can't count any more (that day's
+ * plan is closed). They go, with the timer's notification and the photo; null when there were none.
+ */
+function endedEarlier(s: Pick<State, 'timer' | 'pendingBefore'>, day: DayKey): Pick<State, 'timer' | 'pendingBefore'> | null {
+  const timer = s.timer && s.timer.day < day ? null : s.timer;
+  const pendingBefore = s.pendingBefore && s.pendingBefore.day < day ? null : s.pendingBefore;
+  if (timer === s.timer && pendingBefore === s.pendingBefore) return null;
+  if (s.timer && !timer) void cancelTimerDone();
+  if (s.pendingBefore && !pendingBefore) deletePhoto(s.pendingBefore.photo.uri);
+  return { timer, pendingBefore };
+}
+
+/**
+ * Release builds: tester state saved by a dev build on this phone goes as it loads. Time travel
+ * comes back to the real date (the real record and plans kept aside, as Back to real today
+ * brings them), timers run at normal speed, and a timer or before photo from a travelled day
+ * after the real one goes with its notification and photo.
+ */
+export function withoutTesterState(p: Partial<State>): Partial<State> {
+  const out: Partial<State> = { ...p, dayOffset: 0, devSnapshot: null, devPlans: null };
+  if (p.devSnapshot) out.record = fromBackup(p.devSnapshot);
+  if (p.devSnapshot && p.devPlans) out.plans = p.devPlans;
+  if (p.settings && p.settings.timerSpeed !== 1) out.settings = { ...p.settings, timerSpeed: 1 };
+  if (p.dayOffset) {
+    const real = dayKeyOf(new Date());
+    const ahead = (x: Started) => Boolean(x && x.day > real);
+    const timer = ahead(p.timer);
+    const before = ahead(p.pendingBefore) ? p.pendingBefore : null;
+    if (timer) out.timer = null;
+    if (before) out.pendingBefore = null;
+    // Afterwards: with synchronous storage this runs while the store is still being created.
+    if (timer || before) {
+      Promise.resolve().then(() => {
+        if (timer) void cancelTimerDone();
+        if (before) deletePhoto(before.photo.uri);
+      });
+    }
+  }
+  return out;
+}
+
+/** The first build's saved state (git 96f8ec8), never read since. */
+const LEGACY_STATE_KEY = 'unsetld-state-v1';
+
+function removeLegacyState() {
+  try {
+    void Promise.resolve(appStorage.removeItem(LEGACY_STATE_KEY)).catch(() => {});
+  } catch {
+    // Nothing there.
+  }
 }
 
 /**
@@ -984,6 +1088,15 @@ if (Platform.OS === 'web' && typeof window !== 'undefined') {
 }
 
 let readFails = 0;
+let onDefaults = false;
+
+/**
+ * The state came from defaults because storage couldn't be read (readFailed): what it holds isn't
+ * known, so startup's sweep of proof files deletes nothing.
+ */
+export function loadedOnDefaults(): boolean {
+  return onDefaults;
+}
 
 /**
  * Storage couldn't be read. A notification tap (timer done, a drop alert) can launch the app in the
@@ -997,7 +1110,10 @@ function readFailed() {
   readFails += 1;
   if (AppState.currentState === 'active') {
     if (readFails < 2) useApp.persist.rehydrate();
-    else markHydrated();
+    else {
+      onDefaults = true;
+      markHydrated();
+    }
     return;
   }
   const sub = AppState.addEventListener('change', st => {

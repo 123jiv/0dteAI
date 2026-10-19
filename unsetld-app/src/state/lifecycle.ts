@@ -3,31 +3,34 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import { slotsFor } from '../core/missions';
 import { activeDays, isProven } from '../core/progress';
+import { ORPHAN_GRACE_MS, orphans } from '../core/proofs';
 import { dayCount } from '../core/record';
 import { daysAhead } from '../core/reminders';
 import { computeStreak } from '../core/streak';
 import { addDays, nextDayStart, type DayKey } from '../core/time';
 import type { DayPlan, MissionDone, Profile } from '../core/types';
 import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
-import { backupRecord, readBackup } from '../services/backup';
+import { clearSession } from '../services/account';
+import { backupRecord, openBackups } from '../services/backup';
 import { now, today } from '../services/clock';
 import {
   cancelTrialReminder,
+  NO_REMINDERS,
   reminderMissions,
   reschedule,
   scheduleDropAlerts,
   type ReminderMission,
   type ScheduleInput,
 } from '../services/notifications';
-import { deletePhoto } from '../services/proof';
+import { clearPhotoCaches, deletePhoto, deleteProofFiles, listProofFiles } from '../services/proof';
 import { initPurchases, purchaseMode, refreshPremium, type EntitlementInfo } from '../services/purchases';
 import { cancelTimerDone } from '../services/timerNotify';
-import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
+import { prepareWidgetAssets, resetWidgets, updateWidgets } from '../services/widgets';
 import { showDialog } from '../ui/actions';
 import { PLATFORM } from '../content/copy/platform';
 import { parseUrl, useIntent } from './intents';
 import { useSaveFailed } from './storage';
-import { useApp, useEntitlements } from './store';
+import { loadedOnDefaults, useApp, useEntitlements } from './store';
 
 let toldOutOfSpace = false;
 
@@ -73,6 +76,39 @@ function expirePhotos() {
   for (const uri of s.expireProofPhotos()) deletePhoto(uri);
 }
 
+/** Delete data on this phone (services/wipe): UNSETLD+ read again from the store, as at startup. */
+export function refreshMembership() {
+  applyPremium();
+}
+
+/**
+ * Startup clean-up, once the Keychain restore check is over (so a restored record's photos
+ * count). Whatever an earlier run left half done (Delete data on this phone stopped partway, a
+ * reinstall, onboarding started again in tester tools) is finished here:
+ * - nobody onboarded: no reminders queued and the widgets back to their preview;
+ * - proof files nothing points to (a photo taken and never sent when the app was closed) go, and
+ *   so do the camera's and the resize's leftovers (core/proofs orphans; never on an empty record
+ *   or one that couldn't be read).
+ */
+function cleanUpAfterLoad() {
+  const s = useApp.getState();
+  if (!s.settings.onboarded) {
+    reschedule(NO_REMINDERS).catch(() => {});
+    void resetWidgets();
+  }
+  const files = listProofFiles();
+  const gone = orphans({
+    files,
+    record: s.record,
+    snapshot: s.devSnapshot,
+    waiting: s.pendingBefore?.photo.uri ?? null,
+    now: Date.now(),
+    readFailed: loadedOnDefaults(),
+  });
+  deleteProofFiles(gone);
+  clearPhotoCaches(ORPHAN_GRACE_MS);
+}
+
 /** One-time startup work after the store has hydrated. */
 export function useBootstrap() {
   const hydrated = useApp(s => s.hydrated);
@@ -82,16 +118,21 @@ export function useBootstrap() {
     done.current = true;
     const s = useApp.getState();
 
-    // Reinstall: bring the record back from the Keychain.
-    if (dayCount(s.record) === 0 && !Object.keys(s.record.missions ?? {}).length) {
-      readBackup()
-        .then(b => {
-          if (b && (Object.keys(b.record.days ?? {}).length || Object.keys(b.record.missions ?? {}).length)) {
-            useApp.getState().restore(b.installSalt, b.record);
-          }
-        })
-        .catch(() => {});
-    }
+    // Reinstall: bring the record back from the Keychain. Backups wait until this read is over
+    // (services/backup), so the empty record never goes over the one being restored.
+    openBackups({
+      read: dayCount(s.record) === 0 && !Object.keys(s.record.missions ?? {}).length,
+      restore: b => {
+        if (Object.keys(b.record.days ?? {}).length || Object.keys(b.record.missions ?? {}).length) {
+          useApp.getState().restore(b.installSalt, b.record);
+        }
+      },
+      current: () => ({ installSalt: useApp.getState().installSalt, record: useApp.getState().record }),
+    })
+      .then(cleanUpAfterLoad)
+      .catch(() => {});
+    // No one signed in here: a session token in the Keychain (it outlives the app) goes.
+    if (!s.account.userId) clearSession().catch(() => {});
 
     useApp.getState().setPremium({ mode: purchaseMode });
     initPurchases(setPremiumFrom)

@@ -38,7 +38,7 @@ function Photo({ photo, day, width, maxHeight, label, cleared, said }: { photo: 
       style={{ width, height: h, borderRadius: TILE_RADIUS, backgroundColor: C.card, overflow: 'hidden' }}>
       {src ? (
         <>
-          <Image source={{ uri: src }} style={StyleSheet.absoluteFill} contentFit="cover" />
+          <Image source={{ uri: src }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory" />
           <View style={{ position: 'absolute', left: inset, right: inset, bottom: inset }}>
             <ProofStamp day={day} takenAt={photo.takenAt} label={label} small={small} />
           </View>

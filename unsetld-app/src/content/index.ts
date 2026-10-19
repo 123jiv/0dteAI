@@ -59,6 +59,14 @@ export function registerCustomMissions(list: readonly Mission[] | null | undefin
   }
 }
 
+/**
+ * Delete data on this phone: the user's own missions leave the lookup (registerCustomMissions only
+ * ever adds), so none of them is found again before the app restarts.
+ */
+export function clearCustomMissions() {
+  for (const id of Object.keys(MISSION_BY_ID)) if (MISSION_BY_ID[id]?.custom) delete MISSION_BY_ID[id];
+}
+
 /** What a past proof needs to show its mission: the title, the area, its minutes and how it was proven. */
 export type HistoryMission = Pick<Mission, 'title' | 'track' | 'minutes' | 'proofType' | 'proof'>;
 /** The 235 missions retired in 3.3, by id, as they were (Business already moved to Projects). */

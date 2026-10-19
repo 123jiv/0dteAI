@@ -4,8 +4,22 @@ import { hash32, mulberry32 } from './random';
 import { addDays, atMinutes, dayNumber, minutesIntoDay, type DayKey } from './time';
 import type { ReminderPrompt } from './types';
 
-/** iOS keeps at most 64 pending local notifications per app; stay under it. */
-export const MAX_PENDING = 60;
+/**
+ * The pending-notification budget. iOS keeps at most 64 pending local notifications per app, and
+ * past that it drops some without a word (the latest ones, or the newest request). So the app
+ * keeps 4 free, and holds a place for each kind that isn't a reminder: the focus timer's "done"
+ * (one at a time), the trial reminder and the next two drop alerts. What's left is for reminders.
+ */
+export const IOS_PENDING_LIMIT = 64;
+export const PENDING_HEADROOM = 4;
+export const TIMER_SLOTS = 1;
+export const TRIAL_SLOTS = 1;
+/** Drop alerts scheduled at a time: the next two (a later one is added on a later foreground). */
+export const DROP_ALERT_SLOTS = 2;
+/** Every pending notification together: 64 − 4 = 60. */
+export const PENDING_BUDGET = IOS_PENDING_LIMIT - PENDING_HEADROOM;
+/** Mission reminders queued at most: 60 − 1 − 1 − 2 = 56. */
+export const MAX_PENDING = PENDING_BUDGET - TIMER_SLOTS - TRIAL_SLOTS - DROP_ALERT_SLOTS;
 export const REMINDER_COUNTS = [1, 3, 5, 10] as const;
 export const FREE_MAX_REMINDERS = 3;
 export const FULL_MAX_REMINDERS = 10;
@@ -93,7 +107,7 @@ export interface PlanOptions {
   seed: string;
 }
 
-/** How many days ahead fit under the pending limit: floor(60 / reminders a day). */
+/** How many days ahead fit in the reminders' share of the budget: floor(56 / reminders a day). */
 export function daysAhead(count: number): number {
   return Math.max(1, Math.floor(MAX_PENDING / Math.max(1, Math.floor(count))));
 }
@@ -127,4 +141,40 @@ export function planNotifications(o: PlanOptions): PlannedNotification[] {
     });
   }
   return out.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, MAX_PENDING);
+}
+
+/**
+ * The notification ids this app schedules: mission reminders (`rem-`), drop alerts (`drop-`), the
+ * focus timer's (`timer-done`) and the trial reminder (`trial-end`; `trial-day2` is the one
+ * earlier builds scheduled, kept until the trial code cancels it).
+ */
+const OWN_PREFIXES = ['rem-', 'drop-'];
+const OWN_IDS = ['timer-done', 'trial-end', 'trial-day2'];
+
+export function isOwnNotification(id: string): boolean {
+  return OWN_IDS.includes(id) || OWN_PREFIXES.some(p => id.startsWith(p));
+}
+
+/** "rem-2026-10-07-2" → its day and place in the day, so the latest-firing sort last. */
+function reminderOrder(id: string): string | null {
+  const m = /^rem-(\d{4}-\d{2}-\d{2})-(\d+)$/.exec(id);
+  return m ? `${m[1]}:${m[2].padStart(3, '0')}` : null;
+}
+
+/**
+ * What to cancel so the pending list stays inside the budget: first anything that isn't one of
+ * this app's ids (an earlier build's, like 2.x night checks), then the latest-firing mission
+ * reminders until at most PENDING_BUDGET are left. The timer, the trial reminder and drop
+ * alerts are never trimmed: the reminders' queue is rebuilt on every foreground anyway.
+ */
+export function overBudget(pending: readonly string[], budget = PENDING_BUDGET): string[] {
+  const unknown = pending.filter(id => !isOwnNotification(id));
+  const kept = pending.filter(id => isOwnNotification(id));
+  const extra = kept.length - budget;
+  if (extra <= 0) return unknown;
+  const reminders = kept
+    .map(id => ({ id, at: reminderOrder(id) }))
+    .filter((r): r is { id: string; at: string } => r.at !== null)
+    .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+  return [...unknown, ...reminders.slice(0, extra).map(r => r.id)];
 }
