@@ -7,6 +7,7 @@ import type { RecordWidgetProps } from '../../widgets/UnsetldRecord';
 import type { StandardWidgetProps } from '../../widgets/UnsetldStandard';
 import { emptyRecord } from '../core/record';
 import { asPlanned } from '../core/custom';
+import { DEFAULT_PROFILE, slotsFor } from '../core/missions';
 import { activeDays } from '../core/progress';
 import { balance } from '../core/rewards';
 import { computeStreak } from '../core/streak';
@@ -478,7 +479,8 @@ export function updateWidgets(input: WidgetInput): void {
 /**
  * Before onboarding finishes nothing calls updateWidgets, and a widget with no
  * timeline renders empty in the gallery. Fill any empty timeline with a Black
- * preview: missions waiting, no streak yet.
+ * preview: missions waiting (as many as the default day has: core/missions
+ * slotsFor), no streak yet.
  */
 async function writePreviews(w: Loaded) {
   if (latest) return;
@@ -488,7 +490,7 @@ async function writePreviews(w: Loaded) {
   if (latest || !empty.some(Boolean)) return;
   const clock = readClock();
   const colorway = COLORWAYS[0];
-  const input: WidgetInput = { today: clock.today, premium: false, colorway, record: emptyRecord(), plans: {}, perDay: 3 };
+  const input: WidgetInput = { today: clock.today, premium: false, colorway, record: emptyRecord(), plans: {}, perDay: slotsFor(DEFAULT_PROFILE).length };
   ensurePlates(w, colorway);
   writeTimelines(w, context(input, artFor(w.directory, colorway)), clock, {
     line: empty[0],

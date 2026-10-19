@@ -47,7 +47,9 @@ export const PLATFORM = {
     aboutYou: 'About you',
     aboutValue: (answered: number, all: number) => (answered === 0 ? 'Skipped' : `${answered} of ${all} answered`),
     pace: 'Time and intensity',
-    paceValue: (minutes: Profile['minutes'], intensity: Profile['intensity']) => `${MINUTES[minutes] ?? ''} a day · ${INTENSITY[intensity] ?? ''}`,
+    /** "45 min a day"; with an hour or more, the intensity too ("60+ min a day · Lock in"): below that it changes nothing. */
+    paceValue: (minutes: Profile['minutes'], intensity: Profile['intensity']) =>
+      minutes === 60 ? `${MINUTES[minutes]} a day · ${INTENSITY[intensity] ?? ''}` : `${MINUTES[minutes] ?? ''} a day`,
     /** Matches the store's replanToday: today's plan is rebuilt only while nothing in it was started (a timer, a before photo), proven or swapped. */
     goalsNote: "Changes shape tomorrow's missions, and today's too if you haven't started, proven or swapped one yet.",
 
@@ -218,7 +220,7 @@ export const PLATFORM = {
     next: 'NEXT MISSION',
     today: 'TODAY',
     streak: 'STREAK',
-    waiting: (n: number) => `${word(n)} missions are waiting.`,
+    waiting: (n: number) => (n === 1 ? 'One mission is waiting.' : `${word(n)} missions are waiting.`),
     perfect: 'Perfect day.',
     proven: (n: number) => `${n} / ${n} PROVEN`,
     count: (done: number, all: number) => `${done} / ${all}`,
@@ -238,7 +240,7 @@ export const PLATFORM = {
     lastCall: (streak: number) =>
       streak > 0 ? 'Last call: prove one mission today to keep your streak.' : 'Last call: prove one mission today to start a streak.',
     /** A day the app hasn't planned yet names no mission. */
-    waiting: (n: number) => `${word(n)} missions are waiting.`,
+    waiting: (n: number) => (n === 1 ? 'One mission is waiting.' : `${word(n)} missions are waiting.`),
     trial: (p: string) => `Your free trial ends tomorrow. ${p} for the year starts then. Cancel any time in Settings.`,
     /** The drop alert, 24 hours before a drop opens: "Collection 005 opens tomorrow at 9:00 AM." */
     dropPublic: (c: string, when: string) => `Collection ${c} opens ${when}.`,

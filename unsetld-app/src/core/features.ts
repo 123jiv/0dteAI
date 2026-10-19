@@ -6,7 +6,7 @@
 export type Edition = 'free' | 'plus';
 
 export const FEATURES = {
-  /** Three personalized missions a day. */
+  /** Personalized missions every day, as many as the time the user chose (core/missions DAY_SHAPE): one to four. */
   dailyMissions: 'free',
   /** Photo, timer and before/after proof. */
   proof: 'free',

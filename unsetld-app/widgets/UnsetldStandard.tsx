@@ -28,7 +28,7 @@ export type StandardWidgetProps = {
   titles: string[];
   /** Same order as titles: true = proven. */
   done: boolean[];
-  /** Shown when there's no plan yet: 'Two missions are waiting.' (from today's count; the fallback names none). */
+  /** Shown when there's no plan yet: 'Two missions are waiting.' (from the day's shape, one to four; the fallback names none). */
   empty: string;
   /** file:// URL in the App Group folder, or ''. */
   walkerTemplate: string;

@@ -98,39 +98,30 @@ export const ONBOARDING = {
     } satisfies Record<Profile['minutes'], string>,
     hard: 'How hard?',
     /**
-     * Under How hard? when the time chosen sets the day's shape (core/missions slotsFor):
-     * with 15 or 30 minutes every intensity gets the same day; with 45 the shape is set
-     * and intensity only changes how long the focused ones run (dayBudget, MAIN_MAX_MINUTES).
+     * The day each time choice gives (core/missions DAY_SHAPE), under the minutes for every choice.
+     * "How hard?" is asked only with an hour or more: below that, intensity changes nothing.
      */
-    timeNote: {
-      15: 'With 15 minutes, you get two short missions a day, whatever you pick.',
-      30: 'With 30 minutes, you get one short mission and one focused one a day, whatever you pick.',
-      45: 'With 45 minutes, you get one short mission and two focused ones a day. Your pick here sets how long the focused ones run.',
-    },
-    /**
-     * `body` with an hour or more; `later` on a 15 or 30 minute day, where every card
-     * gets the same day (what it does once there's more time); `at45` on a 45 minute day.
-     */
+    shape: {
+      15: 'One mission a day, 20 minutes at most.',
+      30: 'Two missions a day. About 30 minutes.',
+      45: 'Two missions a day. About 45 minutes.',
+      60: 'Three or four missions a day, by how hard you want it.',
+    } satisfies Record<Profile['minutes'], string>,
+    /** The cards under "How hard?", with an hour or more (DAY_SHAPE[60]). */
     intensity: {
       easy: {
         name: 'Start easy',
-        body: 'Three missions a day, shorter ones.',
-        later: 'With more time a day: three missions, shorter ones.',
-        at45: 'The focused ones stay shorter.',
+        body: 'Three missions. About an hour, shorter sessions.',
       },
       lockin: {
         name: 'Lock in',
-        body: 'Three missions a day: one easy, two that take real focus.',
-        later: 'With more time a day: one easy, two that take real focus.',
-        at45: 'The focused ones take real focus.',
+        body: 'Three missions. About an hour, two that take real focus.',
       },
       push: {
         name: 'Push me',
-        body: 'Four missions a day, longer sessions.',
-        later: 'With more time a day: four missions, longer sessions.',
-        at45: 'The focused ones run a little longer.',
+        body: 'Four missions. About an hour and a half.',
       },
-    } satisfies Record<Profile['intensity'], { name: string; body: string; later: string; at45: string }>,
+    } satisfies Record<Profile['intensity'], { name: string; body: string }>,
     a11yIntensity: (name: string, body: string) => `${spoken(name)}. ${body}`,
   },
 

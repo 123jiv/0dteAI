@@ -11,7 +11,7 @@ export interface WidgetInput {
   record: RecordState;
   /** Day plans: today's, and any later day that already has one. */
   plans: Record<DayKey, DayPlan>;
-  /** Missions a day, for days without a plan yet ("Three missions are waiting."). */
+  /** Missions a day (core/missions slotsFor: one to four), for days without a plan yet ("Two missions are waiting."). */
   perDay: number;
   /**
    * The user's goal and skills, so each mission is named as Today names it ("Work on Your
