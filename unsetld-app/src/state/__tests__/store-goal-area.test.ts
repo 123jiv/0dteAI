@@ -28,7 +28,7 @@ const TODAY = '2026-10-21';
 /** A new user part way through onboarding: areas and time answered, nothing planned yet. */
 async function load() {
   mem.map.clear();
-  const profile = { tracks: ['school', 'fitness', 'discipline'], school: null, minutes: 30, intensity: 'lockin' };
+  const profile = { tracks: ['school', 'skills', 'discipline'], school: null, minutes: 30, intensity: 'lockin' };
   mem.map.set('unsetld-v2', JSON.stringify({ state: { installSalt: 'salt-goal', settings: { onboarded: false }, profile }, version: 8 }));
   vi.resetModules();
   const store = await import('../store');
