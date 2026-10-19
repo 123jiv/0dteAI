@@ -60,7 +60,7 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
 
   return (
     <Screen
-      nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(3)} />}
+      nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(2)} />}
       footer={<Button title={edit ? ONBOARDING.save : ONBOARDING.continue} onPress={done} />}>
       <PageTitle title={COPY.title} />
       <View accessibilityRole="radiogroup" accessibilityLabel={COPY.title} style={{ marginTop: 24, flexDirection: 'row', gap: GAP.tight }}>

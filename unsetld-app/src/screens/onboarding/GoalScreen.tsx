@@ -78,7 +78,7 @@ export function GoalScreen({ navigation, route }: RootProps<'Goal'>) {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.ink }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Screen
-        nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(4)} />}
+        nav={<NavRow onBack={() => navigation.goBack()} step={edit ? undefined : ONBOARDING.step(3)} />}
         footer={
           edit ? (
             <Button title={ONBOARDING.save} onPress={() => finish(clean(text))} />
