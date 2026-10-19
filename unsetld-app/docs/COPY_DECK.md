@@ -1,5 +1,7 @@
 # UNSETLD copy deck
 
+> **Launch pass note (19 Oct 2026, version 3.3.0):** the app version is 3.3.0 in `app.json`, `package.json` and `src/config/app.ts` (a test keeps them equal). The day has one to four missions by the time chosen; onboarding is Name → Age (13+) → Areas → Time → Goal; UNSETLD+ fails closed and reads its trial from the store; notifications keep within a 56-reminder budget. The live specs are [MISSIONS_SPEC.md](MISSIONS_SPEC.md), [UX_REDESIGN.md](UX_REDESIGN.md) and [RECORD.md](RECORD.md); every change is listed in [LAUNCH_PASS_PLAN.md](LAUNCH_PASS_PLAN.md).
+>
 > **3.2 note (12 Oct 2026):** every reward is a discount. UNSETLD status is one discount code per tier (10% off at 7 days proven, 15% at 30, 20% at 90, 25% at 365, each up to $25 off, once per person); early access, the patch, the 365 piece, the pause and the comeback letter are gone, and drop alerts are a plain heads-up. The status strings below (Status, a tier's page, the status letter, drop alerts) are the 3.2 ones; the live strings are in `src/content/copy/rewards.ts` and `src/content/copy/platform.ts`.
 >
 > **3.1 note (10 Oct 2026):** the screens and their copy follow [UX_REDESIGN.md](UX_REDESIGN.md). "Full Edition" is UNSETLD+, "programs" are Plans, Access is UNSETLD status, Settings is You. The live strings are only in `src/content/copy/`; anything below that says otherwise is history.
@@ -345,7 +347,7 @@ SETTINGS
   - Contact · unsetldclothing@gmail.com
   - Terms of Use
   - Privacy Policy
-- Footer: unsetld · version 2.0.0 · volume 001
+- Footer: unsetld · version 2.0.0 · volume 001 (2.x history; the version is 3.3.0 now)
 
 Sub-pages
 - Your standard: title Set your standard. · button Save
@@ -380,7 +382,7 @@ NOTIFICATIONS (title always: unsetld)
 - Night check:
   - Did you hold your standard today?
   - Actions: Held · Not today
-- Trial day 2: Your free trial ends tomorrow. $24.99 for the year starts then. Cancel any time in Settings.
+- Trial day 2: Your free trial ends tomorrow. $24.99 for the year starts then. Cancel any time in Settings. (Since the launch pass the reminder is `trial-end`, 24 hours before the store's own trial end, with the price and unit from the store: `Your free trial ends tomorrow. {price} a {year|month} starts then. Cancel any time in Settings.`)
 - Drop alerts (opt-in only; You: Drop alerts · A heads-up 24 hours before a new UNSETLD drop.):
   - Collection 004 opens tomorrow at 9:00 PM.
 
@@ -396,7 +398,7 @@ ERRORS AND EMPTY STATES
 - Code used this collection: USED (row) / One code each collection. The next one opens with the next collection.
 - No toasts anywhere. Confirmations are haptics or inline label swaps.
 
-APP STORE LISTING (3.0)
+APP STORE LISTING (3.0) — **proposed, not live; superseded.** Nothing in App Store Connect exists yet. The listing proposed for the first release (name, subtitle, keywords, description, seven screenshots without Rewards, privacy label, age rating, review notes) is [founder/STORE_METADATA.md](founder/STORE_METADATA.md), awaiting the founder's approval. The text below is kept as history: it still says Full Edition, programs, two to four missions a day and a Rewards screenshot, none of which the first release will use.
 - Name: UNSETLD: Daily Missions
 - Subtitle: Do the mission. Prove it.
 - Promotional text: Missions every day, picked for what you want to improve. Do them for real, prove them with the camera, and keep the streak going.

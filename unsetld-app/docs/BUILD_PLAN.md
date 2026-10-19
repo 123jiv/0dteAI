@@ -1,5 +1,7 @@
 # UNSETLD app: build plan
 
+> **Launch pass note (19 Oct 2026, version 3.3.0):** the app version is 3.3.0 in `app.json`, `package.json` and `src/config/app.ts` (a test keeps them equal). The day has one to four missions by the time chosen; onboarding is Name → Age (13+) → Areas → Time → Goal; UNSETLD+ fails closed and reads its trial from the store; notifications keep within a 56-reminder budget. The live specs are [MISSIONS_SPEC.md](MISSIONS_SPEC.md), [UX_REDESIGN.md](UX_REDESIGN.md) and [RECORD.md](RECORD.md); every change is listed in [LAUNCH_PASS_PLAN.md](LAUNCH_PASS_PLAN.md).
+>
 > **3.2 note (12 Oct 2026):** every reward is a discount. Access is UNSETLD status: one discount code per tier of days proven (10% off at 7, 15% at 30, 20% at 90, 25% at 365, each up to $25 off, once per person), and drop alerts are a plain heads-up before each public drop. The early access, patch, 365 piece, pause and comeback letter described below are retired; see [ACCESS.md](ACCESS.md).
 >
 > **3.0 note (9 Oct 2026):** this is the original 1.0 plan, kept for its history. The product is now UNSETLD 3.0, a missions app for ages 13–25 (tracks, daily missions proven with the in-app camera, points, a streak, levels, programs, rewards at unsetld.com), specified in [MISSIONS_SPEC.md](MISSIONS_SPEC.md). The lines, swipe feed, quotes, chapters, night check, XP and ranks described below are retired; for how to run and ship the app, see the [README](../README.md).
@@ -63,20 +65,20 @@ Prices live in App Store Connect + RevenueCat, never in code.
 
 | RevenueCat package | App Store product | Price | Notes |
 |---|---|---|---|
-| Annual (**default, most prominent**) | auto-renewing, 1 year | **$24.99/year** | 3-day free trial set up as an introductory offer in App Store Connect. Badge **"Save 58%"** |
+| Annual (**default, most prominent**) | auto-renewing, 1 year | **$24.99/year** | 3-day free trial set up as an introductory offer in App Store Connect (history: since the launch pass the app reads the trial's length from the store; the recommendation is 7 days on Annual only, [founder/PRICING.md](founder/PRICING.md)). Badge **"Save 58%"** |
 | Monthly | auto-renewing, 1 month | **$4.99/month** | Same subscription group as annual |
-| Lifetime | non-consumable | **$39.99** once | |
+| Lifetime | non-consumable | **$39.99** once | Sample price. Recommended: $69.99 ([founder/PRICING.md](founder/PRICING.md), a founder decision) |
 
 All three unlock one `premium` entitlement. The app reads RevenueCat's current Offering and shows StoreKit's localized prices.
 
 - **"Save 58%" is calculated, not typed:** `1 − annual ÷ (monthly × 12)` = `1 − 24.99 ÷ 59.88` = 58.3%, rounded down. That keeps it true in every country and after any price change, and the badge is hidden if a price fails to load.
 - **Apple layout rules:**
   - The billed amount ("$24.99/year") is the most prominent price. The badge and any per-month figure are smaller.
-  - The trial is spelled out: "3 days free, then $24.99/year. Cancel anytime in Settings." That copy only shows when StoreKit says the user is eligible.
+  - The trial is spelled out: "3 days free, then $24.99/year. Cancel anytime in Settings." That copy only shows when StoreKit says the user is eligible. (Since the launch pass the length comes from the product's intro offer: "1 week free, then billed yearly".)
   - Restore, Terms and Privacy are visible, along with a clear close button. No fake timers.
 - **Free tier (unchanged):** 2 categories, 1 theme, basic widget.
 - **Premium:** all categories, all themes, more reminders, and custom affirmations in the widget and feed.
-  - **"Unlimited reminders" needs a decision:** iOS can hold 64 pending notifications, so the reliable ceiling is about 12/day. I suggest marketing it as "up to 12 a day" so the App Store listing stays accurate.
+  - **"Unlimited reminders" needs a decision:** iOS can hold 64 pending notifications, so the reliable ceiling is about 12/day. I suggest marketing it as "up to 12 a day" so the App Store listing stays accurate. (Decided: free 3 a day, UNSETLD+ up to 10, within a 56-reminder budget, `src/core/reminders.ts`.)
 - **XP is the same for free and premium.** You can't buy rank, not even with Premium. It's a strong brand line and keeps Apple happy.
 
 ---

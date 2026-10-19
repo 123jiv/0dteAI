@@ -7,6 +7,11 @@ Internal principle (never printed in the app): build a record you can't fake.
 a record you can see, and that record gets more valuable every day you show up, with or without
 clothing rewards. This document supersedes `UX_REDESIGN.md` §7 (Progress) where they differ.
 
+> **Launch pass (19 Oct 2026):** the day's size follows the time chosen (one to four missions,
+> §2); the Record, Stats and the weekly review add a completion measure next to the streak
+> (§3); a finished Plan goes on the record with one moment and the First plan achievement
+> (§3). See [LAUNCH_PASS_PLAN.md](LAUNCH_PASS_PLAN.md).
+
 ## 1. Tabs
 
 Today · **Record** · Rewards · You. Progress is renamed Record (route `Record`, deep link
@@ -17,8 +22,9 @@ Today · **Record** · Rewards · You. Progress is renamed Record (route `Record
 - **One proven mission = you showed up.** The day is active, it starts or keeps the streak
   (core/streak), and it goes on the record.
 - **Every mission in the day's plan proven = a perfect day**, with the perfect-day bonus
-  (`rules.json` `perfectDayBonus`). The plan is two missions with 15 or 30 minutes a day, three
-  with 45 or more (four on Push me with an hour or more).
+  (`rules.json` `perfectDayBonus`, the same at every day shape). Since the launch pass the plan
+  is one mission with 15 minutes a day, two with 30 or 45, and three with an hour or more (four
+  on Push me); a Plan day keeps every Plan mission and can hold more.
 - Missing one is not a failed day: it reads as "showed up" on the calendar.
 
 ## 3. Data (src/core/history.ts)
@@ -40,6 +46,21 @@ plans alone: plans are kept six weeks and aren't in the Keychain backup.
   `recentProofs`. Tests: src/core/__tests__/record-history.test.ts.
 - A photo cleared by the retention setting keeps its entry (`uri: ''`): mission, date, area,
   completion and points stay; the image becomes a placeholder. History never breaks.
+- **Completion (launch pass P1-7, core/progress `completionIn`).** The streak counts showing up;
+  completion counts how much of those days was done. Only days with a proof count, each at its
+  own size (`record.planned`, then the plan, then proven), so a restore, pruned plans, an Off
+  Day or a day never opened change nothing; today counts after its first proof. The percent is
+  100 only when complete, else 1–99, and hidden with nothing to count. Stats: one Completion card
+  (This week "76%" / "13 of 17 missions proven · 3 perfect days"; Last 30 days once the record
+  goes back 8 days or more; "Counted on the days you showed up."), and All time adds Perfect
+  days and Plans finished above 0. Weekly review: "Missions proven 13 / 17" and "Days proven".
+  The month line: "18 days proven · 42 of 51 missions". `weeklyReview` reads damaged entries as
+  nothing instead of crashing Today.
+- **Plans finished (P1-8).** `record.plansFinished`: `{ id, finished }` per finish, written by the
+  proof that finishes a Plan, never removed (Clear, leaving, starting another); in the Keychain
+  copy, and read as none from older backups. Achievements has eight since PF-3: First plan
+  (`plan-1`) after 7 days ("x of 8"). One moment per finish, on Today (core/moments
+  `dueMoment`): it stands in for the milestones reached with it, one full-screen moment a day.
 
 ## 4. Screens
 
@@ -62,8 +83,11 @@ plans alone: plans are kept six weeks and aren't in the Keychain backup.
 - **Completion**: PROVEN., the points (secondary), the week's dots with today's filling in,
   "Day 12 added to your record.", 1 / 3 today, the streak, then the reward meter. All but one
   proven says "One more for a perfect day."; a perfect day adds 3 / 3 and the bonus. Continue.
-- **Weekly focus**: the question shows Monday to Wednesday (from the second active day), eight
-  options, one tap.
+- **Weekly focus**: the question shows Monday to Wednesday (from the second active day), the
+  founder's seven options, then Improve my routine, Get my space in order and Learn a skill
+  (back since the launch pass), then Something else, which asks "Which area is this about?" when its
+  words point at none; one tap. After the first proof of a day, with reminders off, the
+  reminders offer can take its place.
 - **START**: a timer mission's START opens the execution state straight away (Lock in for 30
   minutes, the clock, Stay here. Get it done., then Take proof). A photo mission's START opens the
   brief: Do it, then Prove it.
@@ -113,4 +137,5 @@ the app.
 Public feeds, leaderboards, comments, followers, chat, AI coaching, journaling, mood tracking,
 new tabs. **Lock in with a friend** is future work: a shared streak would read only each
 person's active days (`activeDays`), never their proofs, so it needs a server for the pairing
-and nothing in the Record has to change.
+and nothing in the Record has to change. The proposal is
+[founder/LOCK_IN_TOGETHER.md](founder/LOCK_IN_TOGETHER.md) (not built).

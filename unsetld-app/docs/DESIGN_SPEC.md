@@ -1,5 +1,7 @@
 # UNSETLD design spec (final)
 
+> **Launch pass note (19 Oct 2026, version 3.3.0):** the app version is 3.3.0 in `app.json`, `package.json` and `src/config/app.ts` (a test keeps them equal). The day has one to four missions by the time chosen; onboarding is Name → Age (13+) → Areas → Time → Goal; UNSETLD+ fails closed and reads its trial from the store; notifications keep within a 56-reminder budget. The live specs are [MISSIONS_SPEC.md](MISSIONS_SPEC.md), [UX_REDESIGN.md](UX_REDESIGN.md) and [RECORD.md](RECORD.md); every change is listed in [LAUNCH_PASS_PLAN.md](LAUNCH_PASS_PLAN.md).
+>
 > **3.2 note (12 Oct 2026):** every reward is a discount. Access is UNSETLD status: one discount code per tier of days proven (10% off at 7, 15% at 30, 20% at 90, 25% at 365, each up to $25 off, once per person), and drop alerts are a plain heads-up before each public drop. The early access, patch, 365 piece, pause and comeback letter described below are retired; see [ACCESS.md](ACCESS.md).
 >
 > **3.0 note (9 Oct 2026):** UNSETLD 3.0 is a missions app, specified in [MISSIONS_SPEC.md](MISSIONS_SPEC.md), which wins wherever the two disagree. The reader, the daily line and quotes, chapters, the standard (three rules), the night check, saved lines, your lines, the line share card and strong language are retired, and Record became Progress (Access moved to Rewards). Still current here: tokens, type, colorways, the walker, the paywall layout, accounts and purchases. The App Store name, subtitle and age rating below are out of date (3.0 ships no strong language): see the README's App Store section and [COMPLIANCE.md](COMPLIANCE.md).
@@ -598,7 +600,7 @@ SETTINGS (push, ink, flat grouped list, no row icons)
   - UNSETLD: Drop alerts, Account
   - FULL EDITION: Plan, Restore purchases
   - ABOUT: How the record works, Access terms, Contact, Terms of Use, Privacy Policy
-- Footer: mono.s stone 'unsetld · version 2.0.0 · volume 001'.
+- Footer: mono.s stone 'unsetld · version 2.0.0 · volume 001'. (2.x history. The app's version is 3.3.0 since the launch pass, from `app.json`; nothing in 3.x shows this footer.)
 
 REMINDERS (push)
 - The O5 content, with the title 'Reminders' and primary 'Save'.
@@ -643,7 +645,7 @@ ACCOUNT (push)
   - A reminder within 30 min of the night check moves 45 min earlier.
   - Title is always 'unsetld'. No sound. threadIdentifier 'lines'.
   - Data { line: no } deep-links to that line.
-  - The iOS limit is 64 pending, so schedule floor(60/(count+1)) days ahead and reschedule on every foreground.
+  - The iOS limit is 64 pending, so schedule floor(60/(count+1)) days ahead and reschedule on every foreground. (Superseded by the launch pass: `src/core/reminders.ts` keeps 4 free and a place each for the timer, the trial reminder and two drop alerts, so reminders get 56 and are queued floor(56 / count) days ahead; `overBudget` trims anything past 60.)
 - Night check notification:
   - category 'NIGHT_CHECK', actions HELD 'Held' and NOT_TODAY 'Not today', opensAppToForeground false
   - body 'Did you hold your standard today?'

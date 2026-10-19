@@ -1,6 +1,6 @@
 # Rewards and status: what the app earns you at unsetld.com
 
-Updated for 3.2 (12 Oct 2026). Everything is earned by proving missions, and none of it can be bought. UNSETLD+ doesn't change any of it. **Every reward is a discount code** for one order at unsetld.com: no merchandise, no early access, nothing else.
+Updated for 3.2 (12 Oct 2026); launch pass notes 19 Oct 2026. Everything is earned by proving missions, and none of it can be bought. UNSETLD+ doesn't change any of it: since the launch pass every swap after the day's first earns at most what the mission it replaces was worth, so a member's extra swaps never raise what a day earns. **Rewards stay off at launch** (`accessEnabled: false`): sign-in, the routes below, account deletion on the server, drop alerts and the $25 cap (below) are out of the launch scope and on the launch checklist's "before rewards turn on" list ([LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md)). **Every reward is a discount code** for one order at unsetld.com: no merchandise, no early access, nothing else.
 
 There are two separate things, and the app keeps them apart:
 
@@ -48,7 +48,7 @@ How it's worked out (`src/core/rewards.ts`):
 
 | | |
 |---|---|
-| Missions | Two to four a day, by the time the user has (two with 15 or 30 minutes, three with 45, three or four on Push me with an hour or more), chosen per user from the approved library (`src/content/missions.json`, 3.3). Only a mission in today's plan can be proven, and each one earns points once. |
+| Missions | One to four a day, by the time the user has (one with 15 minutes, two with 30 or 45, three with an hour or more, four on Push me; launch pass, model J), chosen per user from the approved library (`src/content/missions.json`, 3.3). Only a mission in today's plan can be proven, and each one earns points once. |
 | Proof | Taken with the camera inside the app (iOS never offers the photo library): one photo, a photo of the result, before and after photos, or a focus timer and then a photo. Stamped with the time and date. |
 | Checks | On the phone: the right photos are there, taken in the last 30 minutes, before and after at least 2 minutes apart, the timer finished first, and the photo was never used before (fingerprints). They don't look at what's in the photo. A rejected proof earns nothing. |
 | Where photos go | Nowhere. They're saved inside the app on the phone, re-encoded without EXIF or location, and deleted after 30 days by default (You → Proof photos). When signed in, only the date, the number of proven missions and the points that day go to the server. |
@@ -161,7 +161,7 @@ The app also reads `https://www.unsetld.com/api/app/drops.json`; see [`Web/api/a
 
 Taking a code (points or status) needs a free account made with **Sign in with Apple** (`expo-apple-authentication`; the entitlement is added by the config plugin). Nothing else needs an account: missions, proof photos, points and the streak stay on the phone, with a Keychain backup of the record (not the photos) so a reinstall keeps it.
 
-The phone counts as signed in only once the server has returned a session token at sign-in (below). The signed-in Account page has **Sign out** and, under it, **Delete account** (App Store Guideline 5.1.1(v)): it asks to confirm, calls `account/delete` and then signs out on the phone. The record and proof photos stay on the phone. The browser preview simulates sign-in and deletion.
+The phone counts as signed in only once the server has returned a session token at sign-in (below). The signed-in Account page has **Sign out** and, under it, **Delete account** (App Store Guideline 5.1.1(v)): it asks to confirm, calls `account/delete` and then signs out on the phone, saying "Account deleted." The record and proof photos stay on the phone; the dialog says "To clear them too, use Delete data on this phone in You." (You › YOUR DATA, launch pass P0-5: local only, no network call; it signs out on the phone but never deletes the account, and a signed-in user is pointed to "Delete account first"). The two are separate actions. The browser preview simulates sign-in and deletion.
 
 ## Backend (to build before turning `accessEnabled` on)
 
@@ -189,7 +189,11 @@ The app shows each redeem error in plain words. Points rewards: `used` "You've t
 There is no `claim` route any more: 3.0 and 3.1 used `POST /api/app/claim` for early access, the patch and the 365 piece, all retired in 3.2. The server can answer it with `{ error: "unavailable" }` for builds that still call it.
 
 Minting codes (Shopify Admin API): single use, usage limit 1, `combinesWith` nothing, valid for the tier's `codeValidDays` (30 by default), and with `minimumRequirement.subtotal` set to the tier's `minimumPurchase` when it has one. Return `https://www.unsetld.com/discount/{CODE}`, which applies it at checkout.
-- **`discount`:** a percentage code. Shopify percentage codes can't cap at `maxOff` by themselves. Either enforce the cap with a small **Shopify Discount Function** that applies `min(percent × subtotal, maxOff)`, or mint a fixed-amount code worth `min(percent × the cart, maxOff)` at redeem time.
+- **`discount`:** a percentage code. Shopify percentage codes can't cap at `maxOff` by themselves, and the cart isn't known when the code is minted (the code is taken in the app, the order is placed later), so a fixed-amount code worth `min(percent × the cart, maxOff)` can't be minted at redeem time. **Decide before rewards turn on** (founder decision 34; the leading option is the second):
+  1. **Keep percent codes and enforce the cap at checkout** with a small **Shopify Discount Function** that applies `min(percent × subtotal, maxOff)`. The copy stays "10% off, up to $25".
+  2. **Mint fixed-amount codes** (for example $5, $10, $15 off) with a minimum order, so the amount is known at redeem. The tiers, the app copy ("$10 off") and the rewards terms change from percent to amount.
+
+  Until one is built, `maxOff` is shown in the app but not enforced by Shopify, which is one more reason rewards stay off at launch.
 - No other type: every reward, points or status, is a `discount` code. A free-shipping code taken before 3.0 keeps its name in Reward history.
 
 All store links open in Safari, never an in-app browser.

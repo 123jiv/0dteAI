@@ -2,11 +2,13 @@
 
 Status: the brief for the 3.1 redesign (10 Oct 2026). Where it disagrees with MISSIONS_SPEC.md on screens, layout or copy, this file wins; MISSIONS_SPEC.md still owns the mission model, the plan engine and proof.
 
+> **Launch pass note (19 Oct 2026).** Progress is the Record tab since 3.2 ([RECORD.md](RECORD.md)). Since the launch pass: onboarding is Name → Age → Areas `01 / 03` → Time `02 / 03` → Goal `03 / 03` → Today (§12); the day has one to four missions by the time chosen (one at 15 minutes, two at 30 or 45, three or four with an hour or more); a zero streak on Today reads "Prove a mission today to start a streak"; Today offers reminders after the first proof (§3); a Plan finish gets one moment; You has YOUR DATA with Delete data on this phone, and About you became the What you're learning row (§11). [LAUNCH_PASS_PLAN.md](LAUNCH_PASS_PLAN.md) lists every change.
+
 ## 0. What we're fixing
 
 The app works, but it shows too much at once, puts zeros everywhere on day one, separates everything with hairlines, and spreads the core loop over a Home screen with its own bottom bar plus Progress, Programs, Rewards and Settings stacks. The redesign keeps every working system (missions, proof, points, streak, rewards, programs, migration, notifications, widgets) and changes how it's organised and how it looks.
 
-Internal positioning (never pasted as-is into the UI): **UNSETLD — prove your progress.** Pick what you want to improve. Get three missions every day. Do the work. Prove it. Build your record. Earn rewards.
+Internal positioning (never pasted as-is into the UI): **UNSETLD — prove your progress.** Pick what you want to improve. Get missions every day that fit the time you have. Do the work. Prove it. Build your record. Earn rewards.
 
 The product must be useful to someone who will never buy UNSETLD clothing. Rewards are a reward for progress, not the reason the app exists: no product promotion on Today, Progress or You; a user can spend minutes in the app without seeing apparel.
 
@@ -23,7 +25,7 @@ Bottom navigation, always on the main screens: **Today · Progress · Rewards ·
 
 | Tab | What it is | Opens |
 |---|---|---|
-| Today (`Main › Today`) | The day's missions (two to four, by the time the user has), the next reward, the active plan, the weekly focus question, the weekly review card on Sundays | Mission, Plans, WeeklyFocus, WeeklyReview, Share |
+| Today (`Main › Today`) | The day's missions (one to four, by the time the user has), the next reward, the active plan, the weekly focus question or, after the first proof, the reminders offer, the weekly review card on Sundays | Mission, Plans, WeeklyFocus, WeeklyReview, Share |
 | Progress (`Main › Progress`) | Streak, today, this week, your areas (levels) | ProofHistory, Achievements, Stats, Moment |
 | Rewards (`Main › Rewards`; only while rewards are on, or a code taken still works) | Points, next reward, up next, status | AllRewards, RewardHistory, HowPoints, Status, Milestone, Account |
 | You (`Main › You`) | Goals, profile, this week, reminders, membership, appearance, settings | Tracks/AboutYou/Pace/Goal (edit), Day, WeeklyFocus, Plans, Paywall, Widget, Account, Doc, DevTools |
@@ -65,12 +67,14 @@ ACTIVE PLAN  Build Something · Day 4 of 7   Continue →
 ```
 
 - Top row: `UNSETLD` wordmark (kicker) left, `DAY 12` right (mono). Day N = days with a proven mission (+1 if today has none yet).
-- Stats row: streak (serif number + "day streak") left, points (serif number + "pts") right; tap points → Rewards tab (How points work while rewards are off). **Day 1 / streak 0:** no zero — "Your first mission starts your streak." in its place.
+- Stats row: streak (serif number + "day streak") left, points (serif number + "pts") right; tap points → Rewards tab (How points work while rewards are off). **Day 1 / streak 0:** no zero — "Prove a mission today to start a streak" in its place (launch pass P1-9; it was "0 day streak" in places).
 - Next reward: kicker `NEXT REWARD`, a `Meter`, "220 pts to 10% off" (or "10% off is ready" → Rewards). Shown when rewards are enabled. Day 1: "300 pts to 5% off — your first reward."
 - `TODAY` kicker with `0 / 3` (mono). Below it the three mission cards (§4), `GAP.card` apart. Swaps left appear only on the card ("Swap") and in the confirm dialog, not as a separate line.
 - Active plan card (when a plan runs): kicker `ACTIVE PLAN`, plan title (serif), "Day 4 of 7", `Continue →` → Plans. No plan: a quiet `LinkRow` "Plans" ("Guided 5–7 day runs") at the very bottom, after the missions.
 - Weekly focus: from the user's second active day on, Monday to Saturday (on Sunday the weekly review asks about next week), in a week with no focus set and not skipped, a compact card above the missions: "What matters most this week?" / "Pick one and your missions lean toward it." → WeeklyFocus; dismiss "Not this week". When set, one meta line under TODAY: "This week: Work on my business" (tap → WeeklyFocus).
+- Reminders card (launch pass P1-3, `src/screens/home/RemindersCard.tsx`): in the weekly focus card's place, only when that question isn't showing, once something is proven today, reminders are off and notifications aren't turned off for the app: "Get reminded about open missions?" / "Up to 3 a day, 7:00 AM to 10:00 PM. None once the day is proven." / `Turn on` / `Not now`. Either button settles it for good; the first showing lasts until 4:00 AM. The iOS permission ask at the first timer stays.
 - Sunday: the weekly review card (existing) after the missions.
+- Moments: one full-screen moment a day at most. A Plan finished today or yesterday comes first: "Finished 18 Oct" / "7 DAY LOCK IN." / "Seven days. Each one proven." / "Never settle for less." (no points); a status letter due the same day waits until the next.
 - Perfect day: the TODAY row reads `3 / 3` with "Perfect day." and a `Share today` text button → Share.
 - Removed from Today: the access/drops note, the colorway button, the old bottom bar, the separate swaps line.
 
@@ -153,15 +157,15 @@ UNSETLD STATUS  Next: 15% off at 30 days  [meter]  29 / 30 days proven  →
 
 ## 11. You
 
-Sections (cards and link rows, no rules): **Your goals** (Areas, What you're working toward, This week's focus, About you, Time and intensity) · **Your day** (Plans, Reminders, Drop alerts when access is on) · **Membership** (UNSETLD+ → Paywall; Restore) · **Appearance** (Colorway → opens the sheet on Today; Widgets) · **Proof photos** (retention) · **Account** · **Help** (How missions work, Terms, Privacy, the rewards and status terms when access is on) · **Tester tools** (dev/preview only).
+Sections (cards and link rows, no rules): **Your goals** (Areas, What you're working toward, This week's focus, What you're learning (only with Skills, Projects or Career; it replaced About you in the launch pass), Time and intensity (the intensity named only at 60+)) · **Your day** (Plans, Reminders, Drop alerts when access is on) · **Membership** (UNSETLD+ → Paywall; Restore; "Free trial, ends 22 Oct" or "Annual, ends 22 Oct 2026" when cancelled) · **Appearance** (Colorway → opens the sheet on Today; Widgets) · **Proof photos** (retention) · **Account** (while access is on or signed in) · **Your data** (launch pass P0-5: one row, Delete data on this phone → `DeleteData`: WHAT GOES, WHAT STAYS, a destructive confirm, then onboarding's first screen; signed in, a note and "Delete account first") · **Help** (How missions work, Terms, Privacy, the rewards and status terms when access is on) · **Tester tools** (dev/preview only).
 
 ## 12. Onboarding
 
-Name → **Areas** ("What do you want to improve?", pick two to four; someone with one area from an earlier version can keep one when editing) → **About you** (In school or college? + High school/College; Working?; Building a business or project?; Gym access?; Age; "What are you learning?" only when Skills, Projects or Career is chosen) → **Time** ("How much time do you realistically have each day?" 15 / 30 / 45 / 60+ min, then intensity) → **Goal** ("What are you working toward?", optional, up to 80 characters, example chips: Get my GPA up · Launch my clothing brand · Get an internship · Build muscle · Learn coding · Save $1,000) → **Reminders** → Today with the first plan built. Steps `01 / 05`…`05 / 05`. No widget guide and no paywall in onboarding.
+Since the launch pass (19 Oct 2026; MISSIONS_SPEC.md §3 has the copy): Name → **Age** ("What year were you born?", a year wheel, the month only on the 13 line; Apple's Declared Age Range on iOS 26+ where Apple says age rules apply; under 13 deletes everything on the phone and ends on "UNSETLD is for 13 and over."; installs from before the gate are asked once) → **Areas** `01 / 03` ("What are you trying to improve right now?", pick up to four; picking School means in school) → **Time** `02 / 03` ("How much time do you realistically have each day?" 15 / 30 / 45 / 60+, the day's shape under it, "How hard?" only at 60+) → **Goal** `03 / 03` ("What are you working toward?", optional, up to 80 characters, example chips Get my GPA up · Launch my clothing brand · Get an internship · Build muscle · Learn coding · Save $1,000; "Which of your areas is this about?" when the words reach none of the user's areas; Continue or Skip finishes) → Today with the first plan built. No About you, no reminders step (Today offers reminders after the first proof), no widget guide and no paywall in onboarding.
 
 ## 13. Personalization (engine; core/personalize.ts, core/missions.ts)
 
-Real, deterministic rules — never called AI. Inputs: areas, answers (school, level, work, project, gym, age, skills), time, intensity, recent plans, proofs, swaps, ignored missions, time of day, the active plan, the weekly focus, the goal text.
+Real, deterministic rules — never called AI. Inputs: areas, the goal and the area picked for it, the weekly focus (and its area for Something else), what you're learning, the age range, answers kept from earlier versions (school, work, project), time, intensity at 60+, recent plans, proofs, swaps, ignored missions, time of day, the active plan, the weekly focus, the goal text.
 - **Weekly focus:** asked on Today from the second active day in a week with none set ("Not this week" skips it); also in You and in Sunday's review, which sets next week's (kept aside until Monday, so Sunday's missions don't change). Only options the user's answers can get missions for are offered. Each option leans the plan toward an area and specific missions (e.g. "Prepare for an exam" → practice tests, flashcards, study sessions; "Get back in the gym" → workouts).
 - **Goal text:** keywords map to missions and areas ("GPA", "grades" → school study; "brand", "clothing", "business" → projects (3.3 folded Business into Projects); "internship" → career applications; "muscle", "gym" → workouts; "coding", "app" → coding drills and project builds; "save" → savings).
 - **Learning from behaviour** (last 28 days): missions swapped repeatedly come up less; missions planned and left undone (ignored) come up less; if long missions are mostly left undone while shorter ones get proven, the day prefers shorter missions; an area proven consistently gets slightly bigger missions; areas rarely completed keep their place (no punishment).
