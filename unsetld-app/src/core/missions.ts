@@ -67,8 +67,10 @@ export interface DayShape {
 /**
  * The day's shape by the time the user has (launch pass, model J). The reserve rule is the same
  * for every row: a focused slot keeps aside, for each short slot still to come, the shortest
- * mission free in that slot's area (5 for Money, 20 for Fitness), not a flat 10, so a 30-minute
- * mission can pair with a 5-minute one and a 20-minute workout isn't squeezed out.
+ * mission free in that slot's area (5 for Money, 20 for Fitness; its weekly one first when that
+ * one's turn has come: reserveFor), not a flat 10, so a 30-minute mission can pair with a 5-minute
+ * one and a 20-minute workout isn't squeezed out. src/core/__tests__/day-shape.sim.test.ts holds
+ * the gates every row keeps (the time promise) and what each measured.
  * - 15: one mission, 20 minutes at most.
  * - 30: two, one short and one focused, about 30 minutes in all.
  * - 45: two, the focused one 30 minutes or more when one is free, about 45.
