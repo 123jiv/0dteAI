@@ -23,6 +23,7 @@ import { InlineLink, Segmented, Toggle } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, GAP, MARGIN } from '../../ui/tokens';
 import { enableDropAlerts } from '../access';
+import { DataSection } from './DataSection';
 
 const S = PLATFORM.you;
 /** Proof photos: 30 days, 1 year, or keep (0). */
@@ -274,6 +275,8 @@ export function YouScreen({ navigation }: TabProps<'You'>) {
           />
         </Group>
       ) : null}
+
+      <DataSection onOpen={() => navigation.navigate('DeleteData')} />
 
       <Group label={S.sections.help}>
         <LinkRow title={DOCS.record.title} onPress={() => navigation.navigate('Doc', { id: 'record' })} />

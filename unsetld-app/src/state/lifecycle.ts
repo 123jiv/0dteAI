@@ -26,6 +26,7 @@ import { clearPhotoCaches, deletePhoto, deleteProofFiles, listProofFiles } from 
 import { initPurchases, purchaseMode, refreshPremium, type EntitlementInfo } from '../services/purchases';
 import { cancelTimerDone } from '../services/timerNotify';
 import { prepareWidgetAssets, resetWidgets, updateWidgets } from '../services/widgets';
+import { afterLocalDelete } from '../services/wipe';
 import { showDialog } from '../ui/actions';
 import { PLATFORM } from '../content/copy/platform';
 import { parseUrl, useIntent } from './intents';
@@ -74,11 +75,6 @@ function expirePhotos() {
   const s = useApp.getState();
   if (!s.settings.onboarded) return;
   for (const uri of s.expireProofPhotos()) deletePhoto(uri);
-}
-
-/** Delete data on this phone (services/wipe): UNSETLD+ read again from the store, as at startup. */
-export function refreshMembership() {
-  applyPremium();
 }
 
 /**
@@ -142,6 +138,8 @@ export function useBootstrap() {
     prepareWidgetAssets().catch(() => {});
     ensureToday();
     expirePhotos();
+    // Delete data on this phone: UNSETLD+ read again from the store, as at startup.
+    const offDelete = afterLocalDelete(applyPremium);
 
     // Roll the day over at 4:00 AM even if the app stays open: the new day gets its plan.
     let timer: ReturnType<typeof setTimeout>;
@@ -181,6 +179,7 @@ export function useBootstrap() {
     return () => {
       sub.remove();
       linkSub?.remove();
+      offDelete();
       clearTimeout(timer);
     };
   }, [hydrated]);

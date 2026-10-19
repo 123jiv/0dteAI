@@ -32,6 +32,7 @@ import { RewardsScreen } from '../screens/rewards/RewardsScreen';
 import { StatusScreen } from '../screens/rewards/StatusScreen';
 import { ShareScreen } from '../screens/share/ShareScreen';
 import { WidgetScreen } from '../screens/WidgetScreen';
+import { DeleteDataScreen } from '../screens/you/DeleteDataScreen';
 import { YouScreen } from '../screens/you/YouScreen';
 import { useAccessEnabled, useApp } from '../state/store';
 import { TabBar } from '../ui/TabBar';
@@ -101,6 +102,7 @@ export function RootNavigator() {
       <Stack.Screen name="WeeklyFocus" component={WeeklyFocusScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="Share" component={ShareScreen} options={{ presentation: 'fullScreenModal', animation: fade }} />
       <Stack.Screen name="Account" component={AccountScreen} />
+      <Stack.Screen name="DeleteData" component={DeleteDataScreen} />
       <Stack.Screen name="Doc" component={DocScreen} />
       <Stack.Screen name="Milestone" component={MilestoneScreen} />
       <Stack.Screen name="DevTools" component={DevToolsScreen} />
