@@ -190,8 +190,10 @@ There is no `claim` route any more: 3.0 and 3.1 used `POST /api/app/claim` for e
 
 Minting codes (Shopify Admin API): single use, usage limit 1, `combinesWith` nothing, valid for the tier's `codeValidDays` (30 by default), and with `minimumRequirement.subtotal` set to the tier's `minimumPurchase` when it has one. Return `https://www.unsetld.com/discount/{CODE}`, which applies it at checkout.
 - **`discount`:** a percentage code. Shopify percentage codes can't cap at `maxOff` by themselves, and the cart isn't known when the code is minted (the code is taken in the app, the order is placed later), so a fixed-amount code worth `min(percent × the cart, maxOff)` can't be minted at redeem time. **Decide before rewards turn on** (founder decision 34; the leading option is the second):
-  1. **Keep percent codes and enforce the cap at checkout** with a small **Shopify Discount Function** that applies `min(percent × subtotal, maxOff)`. The copy stays "10% off, up to $25".
+  1. **Keep percent codes and enforce the cap at checkout** with a **Shopify Discount Function** that applies `min(percent × subtotal, maxOff)`. A custom Function needs Shopify Plus; on other plans it takes a public discount app from the Shopify App Store. The copy stays "10% off, up to $25".
   2. **Mint fixed-amount codes** (for example $5, $10, $15 off) with a minimum order, so the amount is known at redeem. The tiers, the app copy ("$10 off") and the rewards terms change from percent to amount.
+
+  3. (Not recommended) Drop "up to $25 off" and accept uncapped percentages, which changes the tiers, the copy and the terms.
 
   Until one is built, `maxOff` is shown in the app but not enforced by Shopify, which is one more reason rewards stay off at launch.
 - No other type: every reward, points or status, is a `discount` code. A free-shipping code taken before 3.0 keeps its name in Reward history.
