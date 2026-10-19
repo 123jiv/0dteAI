@@ -1,68 +1,8 @@
-import { useEffect, useRef } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import { selection } from '../services/haptics';
-import { T } from './text';
-import { color as C, font, hairline } from './tokens';
+import { View } from 'react-native';
+import { WheelColumn as Column, WHEEL_ROW as ROW } from './WheelColumn';
 
 const HOURS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
-const ROW = 40;
-
-function Column<V extends number | string>({
-  items,
-  value,
-  onPick,
-  format,
-  label,
-}: {
-  items: V[];
-  value: V;
-  onPick: (v: V) => void;
-  format: (v: V) => string;
-  label: string;
-}) {
-  const index = Math.max(0, items.indexOf(value));
-  const ref = useRef<ScrollView>(null);
-  const placed = useRef(false);
-  // react-native-web ignores contentOffset, so scroll the picked row into the
-  // middle band ourselves: at once when the sheet opens, smoothly after a tap.
-  useEffect(() => {
-    ref.current?.scrollTo({ x: 0, y: index * ROW, animated: placed.current });
-    placed.current = true;
-  }, [index]);
-  return (
-    <ScrollView
-      ref={ref}
-      accessibilityRole="radiogroup"
-      accessibilityLabel={label}
-      style={{ flex: 1, height: ROW * 5 }}
-      // Two empty rows above and below so the first and last values can centre.
-      contentContainerStyle={{ paddingVertical: ROW * 2 }}
-      contentOffset={{ x: 0, y: index * ROW }}
-      showsVerticalScrollIndicator={false}>
-      {items.map(v => {
-        const on = v === value;
-        return (
-          <Pressable
-            key={String(v)}
-            // A radio with aria-checked: react-native-web drops accessibilityState, and
-            // the web has no selected state for a plain button.
-            accessibilityRole="radio"
-            aria-checked={on}
-            onPress={() => {
-              selection();
-              onPick(v);
-            }}
-            style={{ height: ROW, alignItems: 'center', justifyContent: 'center', borderTopWidth: on ? hairline : 0, borderBottomWidth: on ? hairline : 0, borderColor: C.ruleStrong }}>
-            <T v="row" color={on ? C.bone : C.ash} style={{ fontFamily: font.sans, fontSize: 20, fontVariant: ['tabular-nums'] }}>
-              {format(v)}
-            </T>
-          </Pressable>
-        );
-      })}
-    </ScrollView>
-  );
-}
 
 /** Wheel-style time picker for the browser preview (iOS uses the native wheel). */
 export function TimeWheel({ value, onChange }: { value: number; onChange: (m: number) => void }) {

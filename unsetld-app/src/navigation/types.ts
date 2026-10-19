@@ -6,7 +6,7 @@ import type { Letter } from '../core/record';
 import type { DayKey } from '../core/time';
 import type { DocId } from '../content';
 
-export type PaywallFrom = 'onboarding' | 'colorway' | 'settings' | 'reminders' | 'programs' | 'swaps';
+export type PaywallFrom = 'colorway' | 'settings' | 'reminders' | 'programs' | 'swaps';
 
 /** The four tabs, always at the bottom: Today, Record, Rewards, You. */
 export type TabParams = {
@@ -22,11 +22,17 @@ export type TabParams = {
 
 export type RootParams = {
   Name: undefined;
-  /** 3.0 onboarding (and Settings → Your plan with edit). */
+  /** The 13+ age gate: after Name, and once for someone onboarded before it existed. */
+  Age: undefined;
+  /** Under 13: where this install stays. */
+  AgeBlocked: undefined;
+  /** Onboarding step 1 (Areas), and You › Areas with edit. */
   Tracks: { edit?: boolean } | undefined;
+  /** You › What you're learning (the skills; only with Skills, Projects or Career). Not part of onboarding. */
   AboutYou: { edit?: boolean } | undefined;
+  /** Onboarding step 2 (Time), and You › Time and intensity with edit. */
   Pace: { edit?: boolean } | undefined;
-  /** "What are you working toward?" (optional free text; onboarding, and You to edit). */
+  /** "What are you working toward?" (optional free text): onboarding's last step, and You to edit. */
   Goal: { edit?: boolean } | undefined;
   /** The tabs. Reach one from a stack screen with navigate('Main', { screen: 'Rewards' }). */
   Main: NavigatorScreenParams<TabParams> | undefined;
@@ -57,6 +63,7 @@ export type RootParams = {
   WeeklyFocus: undefined;
   /** A progress milestone reached (first 10 missions, 7 days ...). `revisit`: opened again from Achievements. */
   Moment: { key: MilestoneKey; revisit?: boolean };
+  /** You › Reminders. Onboarding no longer asks: Today offers them after the first proof. */
   Day: { edit?: boolean } | undefined;
   Widget: { guide?: boolean } | undefined;
   Paywall: { from: PaywallFrom } | undefined;

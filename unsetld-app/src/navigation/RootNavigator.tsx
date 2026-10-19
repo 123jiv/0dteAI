@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform } from 'react-native';
+import { startRoute } from '../core/age';
 import { AccountScreen } from '../screens/AccountScreen';
 import { DayScreen } from '../screens/DayScreen';
 import { DevToolsScreen } from '../screens/DevToolsScreen';
@@ -11,6 +12,8 @@ import { LetterScreen } from '../screens/LetterScreen';
 import { MilestoneScreen } from '../screens/MilestoneScreen';
 import { MissionScreen } from '../screens/mission/MissionScreen';
 import { AboutYouScreen } from '../screens/onboarding/AboutYouScreen';
+import { AgeBlockedScreen } from '../screens/onboarding/AgeBlockedScreen';
+import { AgeScreen } from '../screens/onboarding/AgeScreen';
 import { GoalScreen } from '../screens/onboarding/GoalScreen';
 import { NameScreen } from '../screens/onboarding/NameScreen';
 import { PaceScreen } from '../screens/onboarding/PaceScreen';
@@ -65,17 +68,21 @@ function MainTabs() {
 
 /** One native stack: onboarding, the tabs, and everything opened from them. */
 export function RootNavigator() {
-  // Read once: the navigator only mounts after the store has hydrated.
-  const onboarded = useApp.getState().settings.onboarded;
+  // Read once: the navigator only mounts after the store has hydrated. Under 13 stays blocked;
+  // someone onboarded before the age gate answers it once, then goes on to Today.
+  const settings = useApp.getState().settings;
   return (
     <Stack.Navigator
-      initialRouteName={onboarded ? 'Main' : 'Name'}
+      initialRouteName={startRoute(settings)}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: C.ink },
         animation: web ? 'none' : 'default',
       }}>
       <Stack.Screen name="Name" component={NameScreen} />
+      {/* The age gate: Name hands over to it with no way back; an under-13 answer ends on AgeBlocked. */}
+      <Stack.Screen name="Age" component={AgeScreen} options={{ animation: fade, gestureEnabled: false }} />
+      <Stack.Screen name="AgeBlocked" component={AgeBlockedScreen} options={{ animation: fade, gestureEnabled: false }} />
       {/* Onboarding starts a fresh stack at Tracks (no back); You opens it to edit. */}
       <Stack.Screen
         name="Tracks"

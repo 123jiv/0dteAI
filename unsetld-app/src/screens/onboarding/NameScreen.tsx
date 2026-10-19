@@ -72,8 +72,10 @@ export function NameScreen({ navigation }: RootProps<'Name'>) {
       Animated.timing(page, { toValue: 0, duration: 250, easing: ease.in, useNativeDriver: false }),
     ]).start(() => {
       // Tracks starts at 0 OF 4: the pick is theirs, not the defaults.
-      useApp.getState().setProfile({ tracks: [], priority: null });
-      navigation.replace('Tracks');
+      const s = useApp.getState();
+      s.setProfile({ tracks: [], priority: null });
+      // The age gate comes first, unless it was answered before (closed during the steps after it).
+      navigation.replace(s.settings.ageCheck === 'ok' ? 'Tracks' : 'Age');
     });
   };
 
