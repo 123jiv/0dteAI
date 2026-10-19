@@ -2,7 +2,7 @@
 // weekly focus for the next one.
 import { meetsRequirements, serves } from './missions';
 import { FOCUS_LEAN } from './personalize';
-import { completion, TRACK_IDS } from './progress';
+import { completionIn, isProven, TRACK_IDS } from './progress';
 import { addDays, parseDay, type DayKey } from './time';
 import type { DayPlan, FocusId, Mission, Profile, RecordState, TrackId } from './types';
 
@@ -26,7 +26,9 @@ export function reviewWeekFor(today: DayKey): DayKey | null {
 export interface WeeklyReview {
   from: DayKey;
   to: DayKey;
+  /** Missions proven. */
   missions: number;
+  /** What the days with a mission proven held (core/progress completionIn): "13 / 17". */
   planned: number;
   focusMinutes: number;
   points: number;
@@ -61,18 +63,22 @@ export function weeklyReview(
   let perfectDays = 0;
   let activeDays = 0;
   const byTrack: Partial<Record<TrackId, number>> = {};
+  // Damaged or old entries (null, no verification, no points) count as nothing, never a crash:
+  // Today reads this Sunday to Tuesday.
+  const num = (n: unknown) => (typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : 0);
   for (let d = from; d <= to; d = addDays(d, 1)) {
-    const done = Object.values(r.missions?.[d] ?? {}).filter(m => m.verification?.status === 'accepted');
+    const done = Object.values(r.missions?.[d] ?? {}).filter(isProven);
     if (done.length) activeDays += 1;
+    const planned = plans[d]?.missions;
     for (const m of done) {
       missions += 1;
-      points += m.points;
-      seconds += m.timerSeconds ?? 0;
+      points += num(m.points);
+      seconds += num(m.timerSeconds);
       // The area the plan put it in (a second area it serves), else its own.
-      const t = plans[d]?.missions?.find(p => p.missionId === m.missionId)?.area ?? m.track;
-      byTrack[t] = (byTrack[t] ?? 0) + 1;
+      const t = (Array.isArray(planned) ? planned.find(p => p?.missionId === m.missionId)?.area : undefined) ?? m.track;
+      if (t) byTrack[t] = (byTrack[t] ?? 0) + 1;
     }
-    const bonus = r.bonuses?.[d] ?? 0;
+    const bonus = num(r.bonuses?.[d]);
     if (bonus) {
       perfectDays += 1;
       points += bonus;
@@ -87,7 +93,7 @@ export function weeklyReview(
     const could = areas ? profile.tracks.filter(t => areas.includes(t)) : profile.tracks;
     ignored = could.find(t => t !== strongest && !byTrack[t]) ?? null;
   }
-  const c = completion(r, plans, from, to);
+  const c = completionIn(r, plans, from, to);
   return { from, to, missions, planned: c.planned, focusMinutes: Math.floor(seconds / 60), points, perfectDays, activeDays, byTrack, strongest, ignored };
 }
 

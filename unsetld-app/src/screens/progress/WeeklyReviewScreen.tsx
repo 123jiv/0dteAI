@@ -74,7 +74,8 @@ function Option({ label, on, onPress }: { label: string; on: boolean; onPress: (
 }
 
 /**
- * The weekly review (a modal): what the week added up to, the strongest area and one not got
+ * The weekly review (a modal): what the week added up to (missions proven out of what the days
+ * shown up held, days proven, points, focus time, perfect days), the strongest area and one not got
  * to, and, at the end of a week, what matters most next: the weekly focus options. Picking one
  * sets the weekly focus for the week after the one reviewed (store.setFocus). "Something else"
  * isn't offered here; typing one is on the weekly focus page (Today and You).
@@ -145,10 +146,15 @@ export function WeeklyReviewScreen({ navigation, route }: RootProps<'WeeklyRevie
 
       {review.missions > 0 ? (
         <>
-          <View style={{ marginTop: GAP.block }} accessible accessibilityLabel={R.a11y(review.missions, review.focusMinutes, review.points, review.perfectDays)}>
+          <View
+            style={{ marginTop: GAP.block }}
+            accessible
+            accessibilityLabel={R.a11y(review.missions, review.planned, review.activeDays, review.focusMinutes, review.points, review.perfectDays)}>
             <Card style={{ paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                <Figure value={PROGRESS.number(review.missions)} label={R.missions} />
+                {/* "13 / 17": proven out of what the days with a proof held (the streak counts the days). */}
+                <Figure value={R.missionsValue(review.missions, review.planned)} label={R.missions} />
+                <Figure value={PROGRESS.number(review.activeDays)} label={R.days} />
                 <Figure value={PROGRESS.number(review.points)} label={R.points} />
                 {review.focusMinutes > 0 ? <Figure value={PROGRESS.focused(review.focusMinutes)} label={R.focused} /> : null}
                 {review.perfectDays > 0 ? <Figure value={String(review.perfectDays)} label={R.perfect(review.perfectDays)} /> : null}

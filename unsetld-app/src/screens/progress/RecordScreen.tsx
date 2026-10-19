@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { indexRecord, monthOf, monthView, recentProofs, recordMonths, recordSummary, weekMarks } from '../../core/history';
+import { indexRecord, monthOf, monthView, recentProofs, recordMonths, recordSummary, shiftMonth, weekMarks } from '../../core/history';
 import { usableAreas } from '../../core/missions';
-import { achievementsView, areaProgress, areasShown, milestones, type AreaProgress } from '../../core/progress';
+import { achievementsView, areaProgress, areasShown, completionIn, milestones, type AreaProgress } from '../../core/progress';
 import { weekStart } from '../../core/review';
 import { computeStreak } from '../../core/streak';
-import type { DayKey } from '../../core/time';
+import { addDays, type DayKey } from '../../core/time';
 import { historyMission, MISSIONS, TRACK_BY_ID } from '../../content';
 import { PROGRESS } from '../../content/copy/progress';
 import type { TabProps } from '../../navigation/types';
@@ -119,6 +119,11 @@ export function RecordScreen({ navigation }: TabProps<'Record'>) {
   const month = picked && months.includes(picked) ? picked : (months[months.length - 1] ?? monthOf(today));
   const at = months.indexOf(month);
   const view = useMemo(() => monthView(record, plans, month, ix), [record, plans, month, ix]);
+  // The month's missions proven out of what its proven days held ("42 of 51"), up to today.
+  const done = useMemo(() => {
+    const last = addDays(`${shiftMonth(month, 1)}-01`, -1);
+    return completionIn(record, plans, `${month}-01`, last < today ? last : today);
+  }, [record, plans, month, today]);
   const week = useMemo(() => weekMarks(record, plans, weekStart(today), ix), [record, plans, today, ix]);
   const summary = recordSummary(record);
   const streak = computeStreak(ix.active, today).current;
@@ -187,12 +192,13 @@ export function RecordScreen({ navigation }: TabProps<'Record'>) {
               <View style={{ marginTop: 18 }}>
                 <Legend offDay={view.weeks.some(w => w.some(d => d?.covered && d.level === 'none'))} />
               </View>
-              {/* The month on the grid: its days and missions proven; then the momentum and the whole record
-                  (the days on record are Today's DAY N). Never "0 days", never "0 day streak". */}
-              <View style={{ marginTop: GAP.block }} accessible accessibilityLabel={R.a11ySummary(view.days, view.missions, streak, summary.days)}>
+              {/* The month on the grid: its days proven and its missions proven out of what those days held;
+                  then the momentum and the whole record (the days on record are Today's DAY N). Never
+                  "0 days", never "0 day streak". */}
+              <View style={{ marginTop: GAP.block }} accessible accessibilityLabel={R.a11ySummary(view.days, view.missions, done.planned, streak, summary.days)}>
                 {view.days > 0 ? (
                   <T v="kicker" color={C.bone}>
-                    {R.summary(view.days, view.missions)}
+                    {R.summary(view.days, view.missions, done.planned)}
                   </T>
                 ) : null}
                 <T v="meta" color={C.stone} style={{ marginTop: view.days > 0 ? 8 : 0 }}>

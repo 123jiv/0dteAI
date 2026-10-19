@@ -3,20 +3,25 @@
 import { describe, expect, it } from 'vitest';
 import { FOCUS } from '../../../content/copy/focus';
 import { HOME } from '../../../content/copy/home';
+import { PROGRESS } from '../../../content/copy/progress';
 
 const NB = ' ';
 
 describe('the header says status, not sentences', () => {
-  it('a number and its unit: "12 day streak", "380 pts", "0 day streak" after a break', () => {
+  it('a number and its unit: "12 day streak", "380 pts"', () => {
     expect(HOME.day(12)).toBe('DAY 12');
     expect(HOME.stats.streak).toBe('day streak');
     expect(HOME.stats.points).toBe('pts');
-    expect(HOME.stats.a11yStreak(0)).toBe('0 day streak');
     expect(HOME.stats.a11yStreak(1)).toBe('1 day streak');
+    expect(HOME.stats.a11yStreak(12)).toBe('12 day streak');
     expect(HOME.stats.a11yPoints(380)).toBe('380 points');
   });
 
-  it('no sentence in place of the streak', () => {
+  it('never "0 day streak": with no streak going, what starts one (as the Record says it)', () => {
+    expect(HOME.stats.noStreak).toBe('Prove a mission today to start a streak');
+    expect(HOME.stats.noStreak).not.toMatch(/\d|!/);
+    expect(PROGRESS.record.momentum(0, 0)).toBe(HOME.stats.noStreak);
+    // One line, not a pep talk.
     const stats = HOME.stats as Record<string, unknown>;
     expect(stats.first).toBeUndefined();
     expect(stats.restart).toBeUndefined();

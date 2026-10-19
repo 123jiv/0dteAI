@@ -98,6 +98,7 @@ const MOMENTS: Record<MilestoneKey, { title: string; line: string }> = {
   'missions-10': { title: '10 MISSIONS.', line: 'Ten times you said you would, and then you did.' },
   'perfect-day': { title: 'PERFECT DAY.', line: 'Every mission on the list, proven in one day.' },
   'streak-7': { title: '7 DAYS.', line: 'Seven days in a row.' },
+  'plan-1': { title: 'FIRST PLAN.', line: 'A plan, every day proven.' },
   'missions-30': { title: '30 MISSIONS.', line: 'Thirty proven. This is what you do now.' },
   'missions-100': { title: '100 MISSIONS.', line: 'A hundred missions proven.' },
   'streak-30': { title: '30 DAYS.', line: 'Thirty days in a row.' },
@@ -109,6 +110,7 @@ const ACHIEVEMENTS: Record<MilestoneKey, { title: string; how: string }> = {
   'missions-10': { title: '10 missions', how: 'Prove 10 missions.' },
   'perfect-day': { title: 'First perfect day', how: 'Prove every mission on one day.' },
   'streak-7': { title: '7-day streak', how: 'Prove a mission 7 days in a row.' },
+  'plan-1': { title: 'First plan', how: 'Prove every day of one plan.' },
   'missions-30': { title: '30 missions', how: 'Prove 30 missions.' },
   'missions-100': { title: '100 missions', how: 'Prove 100 missions.' },
   'streak-30': { title: '30-day streak', how: 'Prove a mission 30 days in a row.' },
@@ -150,8 +152,12 @@ export const PROGRESS = {
     legend: { one: '1 mission', two: '2', perfect: 'Perfect day', off: 'Off Day' },
     a11yLegend: 'A small dot is 1 mission proven, a larger dot 2 or more, a solid dot a perfect day.',
     a11yLegendOff: 'A ring with a line is a missed day an Off Day covered.',
-    /** Under the grid, for the month on it: "18 days proven · 42 missions" (kicker style uppercases it). */
-    summary: (days: number, missions: number) => `${plural(days, 'day', 'days')} proven · ${plural(missions, 'mission', 'missions')}`,
+    /**
+     * Under the grid, for the month on it: "18 days proven · 42 of 51 missions" (kicker style
+     * uppercases it): the missions proven out of what those days held (core/progress completionIn).
+     */
+    summary: (days: number, missions: number, planned: number) =>
+      `${plural(days, 'day', 'days')} proven · ${missions.toLocaleString('en-US')} of ${plural(Math.max(planned, missions), 'mission', 'missions')}`,
     /**
      * The momentum line: "12 day streak · 30 days on record" (the streak as Today says it, and the
      * whole record: Today's DAY N). A broken streak says what starts one, never "0 day streak".
@@ -163,9 +169,9 @@ export const PROGRESS = {
       ]
         .filter(Boolean)
         .join(' · '),
-    a11ySummary: (days: number, missions: number, streak: number, onRecord: number) =>
+    a11ySummary: (days: number, missions: number, planned: number, streak: number, onRecord: number) =>
       [
-        days > 0 ? `This month, ${plural(days, 'day', 'days')} proven, ${plural(missions, 'mission', 'missions')}.` : '',
+        days > 0 ? `This month, ${plural(days, 'day', 'days')} proven, ${missions.toLocaleString('en-US')} of ${plural(Math.max(planned, missions), 'mission', 'missions')} proven.` : '',
         streak > 0 ? `${streak.toLocaleString('en-US')} day streak.` : 'Prove a mission today to start a streak.',
         onRecord > 0 ? `${plural(onRecord, 'day', 'days')} on record.` : '',
       ]
@@ -251,7 +257,7 @@ export const PROGRESS = {
     next: 'Next',
     /** Progress toward one not reached yet; '' when there's nothing to count (the how line says it). */
     progress: (kind: MilestoneDef['kind'], n: number, target: number) =>
-      n <= 0 || kind === 'perfect' ? '' : kind === 'streak' ? `Longest streak ${n} of ${target} days` : `${n} of ${target}`,
+      n <= 0 || kind === 'perfect' || kind === 'plan' ? '' : kind === 'streak' ? `Longest streak ${n} of ${target} days` : `${n} of ${target}`,
     empty: { title: 'Nothing reached yet.', body: 'Your first proven mission is the first one.' },
     allReached: 'Every achievement reached.',
     a11yReached: (title: string, day: DayKey, today: DayKey) => `${title}. Reached ${date(day, today)}.`,
@@ -267,11 +273,26 @@ export const PROGRESS = {
     missions: 'Missions proven',
     points: 'Points earned',
     focused: 'On the focus timer',
+    /** All time, each shown only once there's one. */
+    perfect: 'Perfect days',
+    plans: 'Plans finished',
     streakDays: (n: number) => plural(n, 'day', 'days'),
+    /**
+     * Completion (core/progress completionIn): how much of each day you showed up was done. Only
+     * shown once there's a proven day to count, so never "0%". The percent is 100 only when complete.
+     */
+    completion: 'Completion',
     week: 'This week',
-    weekPercent: (done: number, planned: number) => `${Math.round((done / planned) * 100)}%`,
-    weekLine: (done: number, planned: number) => `${done} of ${planned} missions proven`,
-    a11yWeek: (done: number, planned: number) => `This week, ${Math.round((done / planned) * 100)} percent: ${done} of ${planned} missions proven.`,
+    month: 'Last 30 days',
+    percent: (n: number) => `${n}%`,
+    /** "13 of 17 missions proven · 3 perfect days" (the perfect days only when there are some). */
+    completionLine: (proven: number, planned: number, perfect: number) =>
+      [`${proven.toLocaleString('en-US')} of ${plural(planned, 'mission', 'missions')} proven`, perfect > 0 ? plural(perfect, 'perfect day', 'perfect days') : '']
+        .filter(Boolean)
+        .join(' · '),
+    a11yCompletion: (label: string, percent: number, proven: number, planned: number, perfect: number) =>
+      `${label}, ${percent} percent: ${proven.toLocaleString('en-US')} of ${plural(planned, 'mission', 'missions')} proven${perfect > 0 ? `, ${plural(perfect, 'perfect day', 'perfect days')}` : ''}.`,
+    completionNote: 'Counted on the days you showed up.',
     /** The way back to the weekly review (this week's, or last week's on Monday and Tuesday). */
     review: 'Weekly review',
     active: 'Active days',
@@ -305,12 +326,21 @@ export const PROGRESS = {
     dates: (range: string, left: number) => (left > 0 ? `${range} · ${plural(left, 'day', 'days')} left` : range),
     /** "2 days left", under the dates while the week is still on. */
     daysLeft: (left: number) => `${plural(left, 'day', 'days')} left`,
-    missions: 'Missions',
+    /** "13 / 17": missions proven out of what the days with a proof held (core/progress completionIn). */
+    missions: 'Missions proven',
+    missionsValue: (proven: number, planned: number) => `${proven.toLocaleString('en-US')} / ${Math.max(planned, proven).toLocaleString('en-US')}`,
+    days: 'Days proven',
     focused: 'On the focus timer',
     points: 'Points',
     perfect: (n: number) => (n === 1 ? 'Perfect day' : 'Perfect days'),
-    a11y: (missions: number, minutes: number, points: number, perfect: number) =>
-      [plural(missions, 'mission', 'missions'), minutes ? `${focusedSaid(minutes)} on the focus timer` : '', plural(points, 'point', 'points'), perfect ? plural(perfect, 'perfect day', 'perfect days') : '']
+    a11y: (missions: number, planned: number, days: number, minutes: number, points: number, perfect: number) =>
+      [
+        `${missions.toLocaleString('en-US')} of ${plural(Math.max(planned, missions), 'mission', 'missions')} proven`,
+        `${plural(days, 'day', 'days')} proven`,
+        minutes ? `${focusedSaid(minutes)} on the focus timer` : '',
+        plural(points, 'point', 'points'),
+        perfect ? plural(perfect, 'perfect day', 'perfect days') : '',
+      ]
         .filter(Boolean)
         .join(', ') + '.',
     strongest: 'Strongest',

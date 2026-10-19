@@ -26,7 +26,7 @@ import {
 import { NO_ADAPTATION } from '../personalize';
 import { programDay, programMissions, programProgress, startProgram } from '../programs';
 import { clearPhotos, fingerprint, photosToClear, usedHashes } from '../proofs';
-import { activeDays, allDone, completion, isProven, levelFor, levelStart, milestones, photosOf, totals, trackProgress } from '../progress';
+import { activeDays, allDone, completionIn, isProven, levelFor, levelStart, milestones, photosOf, totals, trackProgress } from '../progress';
 import { emptyRecord } from '../record';
 import { reviewWeekFor, weekStart, weeklyReview } from '../review';
 import { balance, effectiveTiers, isAvailable, nextReward, pointsEarned, redeem, rewardStatus, takenThisCollection } from '../rewards';
@@ -739,7 +739,9 @@ describe('progress', () => {
     const plans: Record<DayKey, DayPlan> = { '2026-10-05': { day: '2026-10-05', missions: [{ slot: 'quick', missionId: 'x' }, { slot: 'progress', missionId: f.id }, { slot: 'challenge', missionId: 'y' }], rerolls: 0, replaced: [] } };
     const w = weeklyReview(r, plans, { tracks: ['discipline', 'skills', 'fitness'] }, '2026-10-05');
     expect(w).toMatchObject({ missions: 3, focusMinutes: 50, points: 35, activeDays: 3, strongest: 'discipline', ignored: 'fitness' });
-    expect(completion(r, plans, '2026-10-05', '2026-10-11')).toEqual({ done: 3, planned: 3 });
+    // Completion counts each proven day at its own size: the 1-of-3 Monday, then two days with no plan kept.
+    expect(w.planned).toBe(5);
+    expect(completionIn(r, plans, '2026-10-05', '2026-10-11')).toMatchObject({ days: 3, proven: 3, planned: 5, percent: 60 });
   });
 });
 
@@ -768,7 +770,7 @@ describe('old or damaged records', () => {
     expect([...activeDays(r)].sort()).toEqual(['2026-10-01', '2026-10-02']);
     expect(allDone(r).map(m => m.missionId)).toEqual([q.id, 'gone-x', 'bare']);
     expect(milestones(r, '2026-10-04').find(x => x.key === 'first-mission')!.reached).toBe('2026-10-01');
-    expect(completion(r, {}, '2026-10-01', '2026-10-04')).toEqual({ done: 2, planned: 2 });
+    expect(completionIn(r, {}, '2026-10-01', '2026-10-04')).toEqual({ days: 2, proven: 2, planned: 2, perfect: 0, percent: 100 });
     expect(isProven(bare)).toBe(false);
     expect(isProven(undefined)).toBe(false);
     expect(photosOf(bare)).toEqual([]);

@@ -4,6 +4,15 @@
 
 const num = (n: number) => n.toLocaleString('en-US');
 
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+
+/** "Seven days. Each one proven." in words up to twenty, digits past it; "One day. Proven." for one. */
+function daysProven(days: number): string {
+  const word = WORDS[days] ?? num(days);
+  const said = word.charAt(0).toUpperCase() + word.slice(1);
+  return days === 1 ? `${said} day. Proven.` : `${said} days. Each one proven.`;
+}
+
 export const PROGRAMS_COPY = {
   title: 'Plans',
   body: 'Guided runs of five to seven days. A day moves on when you prove one of its missions.',
@@ -42,6 +51,24 @@ export const PROGRAMS_COPY = {
   finished: 'Finished',
   finishedLine: (days: number) => `${days} days, each one proven.`,
   clear: 'Clear',
+
+  /**
+   * The moment a plan is finished (Today, once, full screen; no points): "Finished 18 Oct",
+   * "7 DAY LOCK IN.", "Seven days. Each one proven.", then the moment's footer. The days need
+   * not have been in a row: a missed day doesn't fail a plan.
+   */
+  moment: {
+    /** Kicker: "Finished 18 Oct" (`date` as the Record writes it). */
+    finished: (date: string) => `Finished ${date}`,
+    /** "7 DAY LOCK IN.": three words or more keep the last two together ("LOCK IN." never leaves "IN." alone). */
+    title: (title: string) => {
+      const words = title.toUpperCase().split(' ');
+      return words.length > 2 ? `${words.slice(0, -1).join(' ')}\u00A0${words[words.length - 1]}.` : `${words.join(' ')}.`;
+    },
+    line: (days: number) => daysProven(days),
+    /** One label for VoiceOver, in sentence case: "7 Day Lock In, finished. Seven days. Each one proven." */
+    a11y: (title: string, days: number) => `${title}, finished. ${daysProven(days)}`,
+  },
 
   // The list
   /** Above the free plans when a plan card sits above them. */

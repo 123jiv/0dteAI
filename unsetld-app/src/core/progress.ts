@@ -1,7 +1,9 @@
-// Progress beyond points: a level per track, totals, milestones and the week.
+// Progress beyond points: a level per track, totals, milestones, completion and the week.
+// history.ts reads this module too; the one function used from it (plannedOn) runs only when called.
+import { plannedOn } from './history';
 import { computeStreak } from './streak';
 import { addDays, type DayKey } from './time';
-import type { DayPlan, MissionDone, ProofPhoto, RecordState, TrackId } from './types';
+import type { DayPlan, MissionDone, PlanFinish, ProofPhoto, RecordState, TrackId } from './types';
 
 export const TRACK_IDS: readonly TrackId[] = ['discipline', 'school', 'fitness', 'money', 'career', 'skills', 'projects', 'organization'];
 const KNOWN_TRACKS: ReadonlySet<string> = new Set(TRACK_IDS);
@@ -93,12 +95,12 @@ export function totals(r: RecordState): Totals {
   };
 }
 
-export type MilestoneKey = 'first-mission' | 'missions-10' | 'streak-7' | 'missions-30' | 'perfect-day' | 'missions-100' | 'streak-30';
+export type MilestoneKey = 'first-mission' | 'missions-10' | 'streak-7' | 'plan-1' | 'missions-30' | 'perfect-day' | 'missions-100' | 'streak-30';
 
 export interface MilestoneDef {
   key: MilestoneKey;
   title: string;
-  kind: 'missions' | 'streak' | 'perfect';
+  kind: 'missions' | 'streak' | 'perfect' | 'plan';
   target: number;
 }
 
@@ -107,6 +109,8 @@ export const MILESTONES_30: readonly MilestoneDef[] = [
   { key: 'missions-10', title: 'First 10 missions', kind: 'missions', target: 10 },
   { key: 'perfect-day', title: 'First perfect day', kind: 'perfect', target: 1 },
   { key: 'streak-7', title: '7 days', kind: 'streak', target: 7 },
+  // 3.3: every day of one Plan proven (reachable free: two Plans are free). No points.
+  { key: 'plan-1', title: 'First plan', kind: 'plan', target: 1 },
   { key: 'missions-30', title: '30 missions', kind: 'missions', target: 30 },
   { key: 'missions-100', title: '100 missions', kind: 'missions', target: 100 },
   { key: 'streak-30', title: '30-day streak', kind: 'streak', target: 30 },
@@ -118,11 +122,23 @@ export interface MilestoneState extends MilestoneDef {
   progress: number;
 }
 
+/**
+ * The Plans finished on record (`plansFinished`), oldest first: one entry per (plan, finish
+ * day). Damaged entries (no id, no day) are left out; a record from before 3.3 has none.
+ */
+export function finishedPlans(r: RecordState): PlanFinish[] {
+  const list = Array.isArray(r.plansFinished) ? r.plansFinished : [];
+  return list
+    .filter((f): f is PlanFinish => Boolean(f) && typeof f.id === 'string' && f.id !== '' && typeof f.finished === 'string' && f.finished !== '')
+    .sort((a, b) => (a.finished < b.finished ? -1 : a.finished > b.finished ? 1 : 0));
+}
+
 /** Milestones with the day each was reached, found by replaying the record. */
 export function milestones(r: RecordState, today: DayKey): MilestoneState[] {
   const done = allDone(r).filter(isProven);
   const reachedMissions = (n: number) => (done.length >= n ? done[n - 1].day : null);
   const perfectDays = Object.keys(r.bonuses ?? {}).sort();
+  const plans = finishedPlans(r);
   const active = [...activeDays(r)].sort();
   const streakReached = (n: number): DayKey | null => {
     const seen = new Set<DayKey>();
@@ -136,21 +152,57 @@ export function milestones(r: RecordState, today: DayKey): MilestoneState[] {
   return MILESTONES_30.map(m => {
     if (m.kind === 'missions') return { ...m, reached: reachedMissions(m.target), progress: Math.min(done.length, m.target) };
     if (m.kind === 'perfect') return { ...m, reached: perfectDays[m.target - 1] ?? null, progress: Math.min(perfectDays.length, m.target) };
+    if (m.kind === 'plan') return { ...m, reached: plans[m.target - 1]?.finished ?? null, progress: Math.min(plans.length, m.target) };
     return { ...m, reached: streakReached(m.target), progress: Math.min(longest, m.target) };
   });
 }
 
-/** Missions proven out of missions planned, for the days from `from` to `to`. */
-export function completion(r: RecordState, plans: Record<DayKey, DayPlan>, from: DayKey, to: DayKey): { done: number; planned: number } {
-  let done = 0;
+/**
+ * Completion: how much of each day you showed up was done (the streak already counts showing up).
+ * Only days with a mission proven count, so a missed day, an Off Day or a day never opened
+ * changes nothing, and today counts once its first mission is proven, at its full size.
+ */
+export interface Completion {
+  /** Days in the range with a mission proven. */
+  days: number;
+  /** Missions proven on those days. */
+  proven: number;
+  /** What those days held: each day's size (core/history plannedOn: the record first, then its plan), never less than proven. */
+  planned: number;
+  /** Of those days, the perfect ones (the perfect-day bonus was paid). */
+  perfect: number;
+  /** 100 when every planned mission was proven, else 1–99 (never 0, never a rounded 100); null with nothing to count. */
+  percent: number | null;
+}
+
+/**
+ * Completion for the days from `from` to `to` (pass today or earlier as `to`). A day's size comes
+ * from the record (`record.planned`, backed up with it), so it reads the same after the plans are
+ * pruned (six weeks) or gone (a restore); a day from before that was saved, with no plan kept,
+ * counts as complete. A mission of the user's own fills a planned slot like any other.
+ */
+export function completionIn(r: RecordState, plans: Readonly<Record<DayKey, DayPlan>>, from: DayKey, to: DayKey): Completion {
+  let days = 0;
+  let proven = 0;
   let planned = 0;
+  let perfect = 0;
   for (let d = from; d <= to; d = addDays(d, 1)) {
-    const plan = plans[d];
-    const byId = r.missions?.[d] ?? {};
-    if (plan) planned += plan.missions.length;
-    done += Object.values(byId).filter(isProven).length;
+    const n = Object.values(r.missions?.[d] ?? {}).filter(isProven).length;
+    if (!n) continue;
+    days += 1;
+    proven += n;
+    planned += Math.max(n, plannedOn(r, plans, d) ?? n);
+    const bonus = r.bonuses?.[d];
+    if (typeof bonus === 'number' && bonus > 0) perfect += 1;
   }
-  return { done, planned: Math.max(planned, done) };
+  return { days, proven, planned, perfect, percent: completionPercent(proven, planned) };
+}
+
+/** 100 only when complete; otherwise 1–99, so 2 of 300 isn't "0%" and 299 of 300 isn't "100%". Null with nothing planned. */
+export function completionPercent(proven: number, planned: number): number | null {
+  if (planned <= 0) return null;
+  if (proven >= planned) return 100;
+  return Math.min(99, Math.max(1, Math.round((100 * proven) / planned)));
 }
 
 // ---------------------------------------------------------------------------------------------
