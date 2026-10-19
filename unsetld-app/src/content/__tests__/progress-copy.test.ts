@@ -73,15 +73,17 @@ describe('the Record tab', () => {
   });
 
   it('sums up the month and the record without a zero or a 0 day streak', () => {
-    expect(R.summary(18, 42)).toBe('18 days proven · 42 missions');
-    expect(R.summary(1, 1)).toBe('1 day proven · 1 mission');
+    // The month's missions proven out of what its proven days held (core/progress completionIn).
+    expect(R.summary(18, 42, 51)).toBe('18 days proven · 42 of 51 missions');
+    expect(R.summary(1, 1, 1)).toBe('1 day proven · 1 of 1 mission');
+    expect(R.summary(1, 2, 0)).toBe('1 day proven · 2 of 2 missions');
     expect(R.momentum(12, 30)).toBe('12 day streak · 30 days on record');
     expect(R.momentum(1, 1)).toBe('1 day streak · 1 day on record');
     expect(R.momentum(0, 4)).toBe('Prove a mission today to start a streak · 4 days on record');
     expect(R.momentum(0, 0)).not.toMatch(/\b0\b/);
-    expect(R.a11ySummary(18, 42, 12, 30)).toBe('This month, 18 days proven, 42 missions. 12 day streak. 30 days on record.');
+    expect(R.a11ySummary(18, 42, 51, 12, 30)).toBe('This month, 18 days proven, 42 of 51 missions proven. 12 day streak. 30 days on record.');
     // A 2.x record with nothing proven since: no "0 days proven".
-    expect(R.a11ySummary(0, 0, 0, 0)).toBe('Prove a mission today to start a streak.');
+    expect(R.a11ySummary(0, 0, 0, 0, 0)).toBe('Prove a mission today to start a streak.');
   });
 
   it('starts Day 1 with one line and one button, no numbers', () => {
@@ -183,6 +185,51 @@ describe('the mission card for an evening mission', () => {
   it('says tonight, to VoiceOver too', () => {
     expect(HOME.a11y.cardMeta('School', 5, 5, 'PHOTO', true)).toMatch(/^School, 5 minutes, for tonight, 5 points, /);
     expect(HOME.a11y.cardMeta('School', 5, 5, 'PHOTO')).not.toContain('tonight');
+  });
+});
+
+describe('completion (Stats, the weekly review)', () => {
+  const S = PROGRESS.stats;
+  const W = PROGRESS.review;
+
+  it('Stats: the percent, then missions proven out of planned, perfect days only when there are some', () => {
+    expect(S.completion).toBe('Completion');
+    expect(S.week).toBe('This week');
+    expect(S.month).toBe('Last 30 days');
+    expect(S.percent(76)).toBe('76%');
+    expect(S.completionLine(13, 17, 3)).toBe('13 of 17 missions proven · 3 perfect days');
+    expect(S.completionLine(1, 1, 1)).toBe('1 of 1 mission proven · 1 perfect day');
+    expect(S.completionLine(2, 6, 0)).toBe('2 of 6 missions proven');
+    expect(S.a11yCompletion('This week', 76, 13, 17, 3)).toBe('This week, 76 percent: 13 of 17 missions proven, 3 perfect days.');
+    expect(S.a11yCompletion('Last 30 days', 33, 2, 6, 0)).toBe('Last 30 days, 33 percent: 2 of 6 missions proven.');
+    expect(S.completionNote).toBe('Counted on the days you showed up.');
+    expect(S.perfect).toBe('Perfect days');
+    expect(S.plans).toBe('Plans finished');
+  });
+
+  it('the weekly review: "13 / 17" missions proven, and the days proven', () => {
+    expect(W.missions).toBe('Missions proven');
+    expect(W.missionsValue(13, 17)).toBe('13 / 17');
+    expect(W.missionsValue(4, 3)).toBe('4 / 4');
+    expect(W.days).toBe('Days proven');
+    expect(W.a11y(13, 17, 5, 130, 340, 3)).toBe('13 of 17 missions proven, 5 days proven, 2 hours 10 minutes on the focus timer, 340 points, 3 perfect days.');
+    expect(W.a11y(1, 1, 1, 0, 5, 0)).toBe('1 of 1 mission proven, 1 day proven, 5 points.');
+  });
+
+  it('says no zero and no "!" when there is something to count', () => {
+    const lines = [
+      S.completionLine(1, 3, 0),
+      S.a11yCompletion('This week', 33, 1, 3, 0),
+      S.percent(1),
+      W.missionsValue(1, 3),
+      W.a11y(1, 3, 1, 0, 5, 0),
+      R.summary(1, 1, 3),
+      R.a11ySummary(1, 1, 3, 1, 1),
+    ];
+    for (const line of lines) {
+      expect(line).not.toMatch(/(^|[^\d])0(?![\d])/);
+      expect(line).not.toContain('!');
+    }
   });
 });
 

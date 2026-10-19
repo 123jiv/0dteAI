@@ -1,6 +1,7 @@
 import { useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { activeDays, areaProgress, completion, totals, TRACK_IDS } from '../../core/progress';
+import { recordSummary } from '../../core/history';
+import { activeDays, areaProgress, completionIn, finishedPlans, totals, TRACK_IDS, type Completion } from '../../core/progress';
 import { reviewWeekFor, weekStart } from '../../core/review';
 import { pointsEarned } from '../../core/rewards';
 import { computeStreak } from '../../core/streak';
@@ -106,10 +107,33 @@ function Figure({ value, label }: { value: string; label: string }) {
   );
 }
 
+/** "This week" or "Last 30 days": the percent, "13 of 17 missions proven · 3 perfect days" and a meter, read as one. */
+function CompletionRow({ label, c }: { label: string; c: Completion & { percent: number } }) {
+  return (
+    <View accessible accessibilityLabel={S.a11yCompletion(label, c.percent, c.proven, c.planned, c.perfect)}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+        <T v="stat">{S.percent(c.percent)}</T>
+        <T v="meta" color={C.stone}>
+          {label}
+        </T>
+      </View>
+      <T v="meta" color={C.muted} style={{ marginTop: 6 }}>
+        {S.completionLine(c.proven, c.planned, c.perfect)}
+      </T>
+      <View style={{ marginTop: 14 }}>
+        <Meter value={c.proven} max={c.planned} />
+      </View>
+    </View>
+  );
+}
+
+const counted = (c: Completion): c is Completion & { percent: number } => c.percent !== null;
+
 /**
  * Record › Stats: the detailed numbers the Record leaves out. Longest streak, missions,
- * points earned (all time, 2.x points included, as on the share card) and focused time; this
- * week's completion and the way to the weekly review; active days; Off Days with how they work;
+ * points earned (all time, 2.x points included, as on the share card), focused time, perfect
+ * days and Plans finished; completion (this week, and the last 30 days once there's more than a
+ * week of record) and the way to the weekly review; active days; Off Days with how they work;
  * and every area's totals.
  */
 export function StatsScreen({ navigation }: RootProps<'Stats'>) {
@@ -121,8 +145,12 @@ export function StatsScreen({ navigation }: RootProps<'Stats'>) {
   const active = activeDays(record);
   const streak = computeStreak(active, today);
   const t = totals(record);
+  const perfectDays = recordSummary(record).perfect;
+  const plansDone = finishedPlans(record).length;
   const thisWeek = weekStart(today);
-  const week = completion(record, plans, thisWeek, today);
+  // Completion counts only days with a mission proven: nothing shows before this week's first
+  // proof (no "0%"), and the last 30 days only once the record goes back more than a week.
+  const week = completionIn(record, plans, thisWeek, today);
   // The review Today offers (last week's on Monday and Tuesday), else this week so far: the way
   // back to it once its card on Today is gone.
   const reviewWeek = reviewWeekFor(today) ?? thisWeek;
@@ -130,6 +158,11 @@ export function StatsScreen({ navigation }: RootProps<'Stats'>) {
   const byArea = TRACK_IDS.filter(id => areas[id].missions > 0).sort((a, b) => areas[b].xp - areas[a].xp);
   const bars = activeBars(active, streak.covered, today);
   const firstActive = [...active].sort()[0];
+  const month = firstActive && diffDays(firstActive, today) >= 8 ? completionIn(record, plans, addDays(today, -29), today) : null;
+  const rows = [
+    ...(counted(week) ? [{ label: S.week, c: week }] : []),
+    ...(month && counted(month) ? [{ label: S.month, c: month }] : []),
+  ];
   const lastCovered = streak.current > 0 ? coveredInRun(active, streak.covered, today) : null;
   const back = () => (navigation.canGoBack() ? navigation.goBack() : navigation.popTo('Main', { screen: 'Record' }));
 
@@ -156,29 +189,28 @@ export function StatsScreen({ navigation }: RootProps<'Stats'>) {
             <Figure value={PROGRESS.number(t.missions)} label={S.missions} />
             <Figure value={PROGRESS.number(pointsEarned(record))} label={S.points} />
             {t.focusMinutes > 0 ? <Figure value={PROGRESS.focused(t.focusMinutes)} label={S.focused} /> : null}
+            {perfectDays > 0 ? <Figure value={PROGRESS.number(perfectDays)} label={S.perfect} /> : null}
+            {plansDone > 0 ? <Figure value={PROGRESS.number(plansDone)} label={S.plans} /> : null}
           </View>
         </Card>
       </View>
 
-      {week.planned > 0 ? (
+      {rows.length ? (
         <View style={{ marginTop: GAP.section }}>
-          <SectionLabel>{S.week}</SectionLabel>
+          <SectionLabel>{S.completion}</SectionLabel>
           <Card>
-            <View accessible accessibilityLabel={S.a11yWeek(week.done, week.planned)}>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
-                <T v="stat">{S.weekPercent(week.done, week.planned)}</T>
-                <T v="meta" color={C.muted}>
-                  {S.weekLine(week.done, week.planned)}
-                </T>
-              </View>
-              <View style={{ marginTop: 14 }}>
-                <Meter value={week.done} max={week.planned} />
-              </View>
+            <View style={{ gap: 22 }}>
+              {rows.map(r => (
+                <CompletionRow key={r.label} label={r.label} c={r.c} />
+              ))}
             </View>
           </Card>
+          <T v="meta" color={C.stone} style={{ marginTop: 10 }}>
+            {S.completionNote}
+          </T>
         </View>
       ) : null}
-      <View style={{ marginTop: week.planned > 0 ? 4 : GAP.section - 14 }}>
+      <View style={{ marginTop: rows.length ? 4 : GAP.section - 14 }}>
         <LinkRow
           title={S.review}
           value={reviewWeek === thisWeek ? PROGRESS.review.thisWeek : PROGRESS.review.lastWeek}

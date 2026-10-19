@@ -28,8 +28,10 @@ export const HOME = {
   num,
 
   stats: {
-    /** After the serif number: "12 day streak" (and, honestly, "0 day streak" after a break). */
+    /** After the serif number: "12 day streak". */
     streak: 'day streak',
+    /** In its place with no streak going (a break, or 2.x points before a first proof): never "0 day streak". */
+    noStreak: 'Prove a mission today to start a streak',
     /** After the serif number: "380 pts". */
     points: 'pts',
     a11yStreak: (n: number) => (n === 1 ? '1 day streak' : `${n} day streak`),

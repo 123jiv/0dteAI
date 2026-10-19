@@ -466,8 +466,11 @@ export const useApp = create<State>()(
         let program = s.program;
         const prog = program ? PROGRAM_BY_ID[program.id] : null;
         if (accepted && program && prog && programId === program.id) program = programProgress(prog, program, d);
+        // The proof that finishes a Plan puts it on the record (plansFinished, backed up with it):
+        // leaving, clearing or starting another Plan never takes it off.
+        const finished = program?.finishedDay && !s.program?.finishedDay ? program.finishedDay : null;
         set({
-          record: c.record,
+          record: program && finished ? recordPlanFinish(c.record, program.id, finished) : c.record,
           program,
           timer: s.timer?.missionId === missionId ? null : s.timer,
           pendingBefore: s.pendingBefore?.missionId === missionId ? null : s.pendingBefore,

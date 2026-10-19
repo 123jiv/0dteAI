@@ -3,11 +3,12 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { dueMoment, momentDayKey, momentShownOn } from '../../core/moments';
 import { programDay } from '../../core/programs';
-import { activeDays, milestones, type MilestoneKey } from '../../core/progress';
+import { activeDays } from '../../core/progress';
 import { reviewWeekFor, weeklyReview } from '../../core/review';
-import { addDays, type DayKey } from '../../core/time';
-import type { MissionDone, RecordState } from '../../core/types';
+import { addDays } from '../../core/time';
+import type { MissionDone } from '../../core/types';
 import { MISSION_BY_ID, PROGRAM_BY_ID } from '../../content';
 import { FOCUS } from '../../content/copy/focus';
 import { HOME } from '../../content/copy/home';
@@ -50,27 +51,8 @@ function accepted(done: MissionDone | null): MissionDone | null {
   return done && done.verification?.status === 'accepted' ? done : null;
 }
 
-/**
- * Milestones the Done stage has already celebrated ("Streak started.", PERFECT DAY): they're
- * marked shown without a second full-screen moment, and stay on Achievements.
- */
-const DONE_SAYS: readonly MilestoneKey[] = ['first-mission', 'perfect-day'];
-
-/**
- * The milestone moment to show: the newest one reached and not shown yet (null when the unseen
- * ones are all ones Done celebrated), and the older unseen ones it stands in for (so a restored
- * record gets one moment, not five).
- */
-function dueMoment(record: RecordState, day: DayKey, shown: readonly string[]): { key: MilestoneKey | null; covers: MilestoneKey[] } | null {
-  const order = milestones(record, day);
-  const unseen = order
-    .map((m, i) => ({ key: m.key, reached: m.reached, i }))
-    .filter((m): m is { key: MilestoneKey; reached: DayKey; i: number } => m.reached !== null && !shown.includes(m.key));
-  if (!unseen.length) return null;
-  const opens = unseen.filter(m => !DONE_SAYS.includes(m.key));
-  const newest = opens.sort((a, b) => (a.reached === b.reached ? a.i - b.i : a.reached < b.reached ? -1 : 1))[opens.length - 1];
-  return { key: newest?.key ?? null, covers: unseen.map(m => m.key) };
-}
+/** A Plan's moment needs the Plan (its title): one no longer in the app shows none. */
+const hasPlan = (id: string) => Boolean(PROGRAM_BY_ID[id]);
 
 /**
  * Today (docs/UX_REDESIGN.md §3): the wordmark and the day, streak and points, the next
@@ -173,31 +155,36 @@ export function HomeScreen({ navigation, route }: TabProps<'Today'>) {
     navigation.navigate('WeeklyFocus');
   }, [wantsFocus, navigation]);
 
-  // Milestone moments first, then Access letters (at the status tiers' days in effect, so a
-  // tier the config moves or switches off moves or drops its letter): one at a time, a beat
-  // after Today settles, and only on a day with something proven.
+  // A Plan finished (core/moments: it stands in for the milestones reached with it), else a
+  // milestone moment, else an Access letter (at the status tiers' days in effect, so a tier the
+  // config moves or switches off moves or drops its letter). One full-screen moment a day: what
+  // comes due after it waits for the next day. A beat after Today settles, and only on a day
+  // with something proven.
   const activeToday = streak.activeToday;
   const lettersShown = record.lettersShown;
   const remoteStatus = useApp(s => s.remote.status);
   useEffect(() => {
     if (!isFocused || !active || !activeToday || sheet) return;
     const st = useApp.getState();
-    const moment = dueMoment(st.record, day, st.momentsShown);
-    if (moment && !moment.key) {
+    const due = dueMoment(st.record, day, st.momentsShown, hasPlan);
+    const moment = due?.moment;
+    if (due && !moment) {
       // Nothing Done didn't already say: seen, without a moment.
-      for (const k of moment.covers) st.markMomentShown(k);
-    } else if (moment?.key) {
-      const key = moment.key;
+      for (const k of due.covers) st.markMomentShown(k);
+    } else if (due && moment) {
       const t = setTimeout(() => {
-        for (const k of moment.covers) useApp.getState().markMomentShown(k);
-        navigation.navigate('Moment', { key });
+        for (const k of due.covers) useApp.getState().markMomentShown(k);
+        navigation.navigate('Moment', moment.kind === 'plan' ? { plan: moment.id, day: moment.day } : { key: moment.key });
       }, MOMENT_DELAY);
       return () => clearTimeout(t);
     }
-    if (!accessEnabled) return;
+    if (!accessEnabled || momentShownOn(st.momentsShown, day)) return;
     const letter = accessLetter(st.record, day, statusTiers(remoteStatus));
     if (!letter) return;
-    const t = setTimeout(() => navigation.navigate('Letter', { letter }), LETTER_DELAY);
+    const t = setTimeout(() => {
+      useApp.getState().markMomentShown(momentDayKey(day));
+      navigation.navigate('Letter', { letter });
+    }, LETTER_DELAY);
     return () => clearTimeout(t);
   }, [isFocused, active, activeToday, sheet, day, momentsShown, lettersShown, accessEnabled, remoteStatus, navigation, provenKey]);
 

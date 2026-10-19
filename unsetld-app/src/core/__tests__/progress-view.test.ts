@@ -103,8 +103,10 @@ describe('achievements', () => {
     const r = { ...recordOf(entries), bonuses: { '2026-10-03': 15 } };
     const v = achievementsView(milestones(r, '2026-10-10'));
     expect(v.reached.map(m => m.key)).toEqual(['first-mission', 'perfect-day', 'streak-7', 'missions-10']);
-    expect(v.next.map(m => m.key)).toEqual(['missions-30', 'missions-100', 'streak-30']);
-    expect(v.next[0]).toMatchObject({ progress: 10, target: 30 });
+    // The first plan (3.3) comes next after the 7-day streak: no plan finished yet.
+    expect(v.next.map(m => m.key)).toEqual(['plan-1', 'missions-30', 'missions-100']);
+    expect(v.next[0]).toMatchObject({ kind: 'plan', progress: 0, target: 1 });
+    expect(v.next[1]).toMatchObject({ progress: 10, target: 30 });
   });
 });
 

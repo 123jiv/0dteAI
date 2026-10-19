@@ -88,9 +88,9 @@ function Figure({ value, unit, colorway, align = 'left' }: { value: string; unit
 }
 
 /**
- * Status at a glance, no sentences: "12 day streak" on the left (it honestly reads "0 day
- * streak" after a break), "380 pts" on the right (opens Rewards, or How points work while
- * rewards are off). Today leaves it out on Day 1, before there's anything to count.
+ * Status at a glance: "12 day streak" on the left (with no streak going, what starts one, never
+ * "0 day streak"), "380 pts" on the right (opens Rewards, or How points work while rewards are
+ * off). Today leaves it out on Day 1, before there's anything to count.
  */
 export function StatsRow({
   colorway,
@@ -108,9 +108,15 @@ export function StatsRow({
 }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, minHeight: 36 }}>
-      <View accessible accessibilityLabel={HOME.stats.a11yStreak(streak)}>
-        <Figure value={HOME.num(streak)} unit={HOME.stats.streak} colorway={colorway} />
-      </View>
+      {streak > 0 ? (
+        <View accessible accessibilityLabel={HOME.stats.a11yStreak(streak)}>
+          <Figure value={HOME.num(streak)} unit={HOME.stats.streak} colorway={colorway} />
+        </View>
+      ) : (
+        <T v="meta" color={colorway.secondary} style={{ flexShrink: 1, paddingBottom: 4 }}>
+          {HOME.stats.noStreak}
+        </T>
+      )}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={HOME.stats.a11yPoints(points)}
