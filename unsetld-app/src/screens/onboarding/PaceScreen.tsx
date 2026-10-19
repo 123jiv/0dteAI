@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { MAIN_MAX_MINUTES, slotsFor } from '../../core/missions';
+import { longestFor, MAIN_MAX_MINUTES, slotsFor } from '../../core/missions';
 import type { MissionSlot, Profile } from '../../core/types';
 import { ONBOARDING } from '../../content/copy/onboarding';
 import type { RootProps } from '../../navigation/types';
@@ -19,9 +19,9 @@ const SHAPE_H = 16;
 const EASY_BAR = 6;
 
 /**
- * The day at this time and intensity, one bar per mission: an easy one short,
- * a focused one tall. A focused bar is as tall as the longest mission the
- * intensity hands out, so Start easy's are lower than Push me's.
+ * The day at this time and intensity (core/missions slotsFor), one bar per
+ * mission: an easy one short, a focused one tall. A focused bar is as tall as
+ * the longest mission the day hands out, so Start easy's are lower than Push me's.
  */
 function DayShape({ slots, longest, on }: { slots: readonly MissionSlot[]; longest: number; on: boolean }) {
   const main = Math.round(EASY_BAR + (SHAPE_H - EASY_BAR) * Math.min(1, longest / MAIN_MAX_MINUTES.push));
@@ -38,9 +38,9 @@ function DayShape({ slots, longest, on }: { slots: readonly MissionSlot[]; longe
 export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
   const edit = Boolean(route.params?.edit);
   const { value, change, save } = useProfileDraft(edit);
-  // 15 and 30 minutes set the whole day whatever the intensity; 45 sets its shape (slotsFor, dayBudget).
+  // The time chosen sets the day (core/missions DAY_SHAPE); intensity counts only with an hour or more.
   const m = value.minutes;
-  const note = m === 15 || m === 30 || m === 45 ? COPY.timeNote[m] : null;
+  const hour = m === 60;
 
   /** A tap on the chosen one does nothing: time and intensity always have an answer. */
   const set = <K extends 'minutes' | 'intensity'>(key: K, v: Profile[K]) => {
@@ -86,39 +86,43 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
         })}
       </View>
 
-      <T v="title.m" accessibilityRole="header" style={{ marginTop: GAP.section }}>
-        {COPY.hard}
-      </T>
-      {/* The time chosen wins over intensity: with 15 or 30 minutes every card gets the same day. */}
-      {note ? (
-        <T v="small" color={C.stone} style={{ marginTop: 8 }}>
-          {note}
+      {/* What the time chosen gives, for every choice: the shape line and its glyph. */}
+      <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <T v="small" color={C.stone} style={{ flex: 1 }}>
+          {COPY.shape[m]}
         </T>
-      ) : null}
-      <View accessibilityRole="radiogroup" accessibilityLabel={COPY.hard} style={{ marginTop: 16, gap: GAP.tight }}>
-        {INTENSITIES.map(i => {
-          const on = value.intensity === i;
-          const card = COPY.intensity[i];
-          // On a short day every card is the same day: the words say what the card does with more time.
-          const body = m === 15 || m === 30 ? card.later : m === 45 ? card.at45 : card.body;
-          const longest = m === 15 || m === 30 ? MAIN_MAX_MINUTES.easy : MAIN_MAX_MINUTES[i];
-          return (
-            <Choice key={i} role="radio" on={on} label={COPY.a11yIntensity(card.name, body)} onPress={() => set('intensity', i)}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Square on={on} />
-                {/* Serif, sentence case, like the area names: tracked capitals are for kickers and the main button. */}
-                <T v="saved" color={on ? C.bone : C.muted} style={{ flex: 1 }}>
-                  {card.name}
-                </T>
-                <DayShape slots={slotsFor({ intensity: i, minutes: m })} longest={longest} on={on} />
-              </View>
-              <T v="small" color={C.stone} style={{ marginTop: 8, marginLeft: 26 }}>
-                {body}
-              </T>
-            </Choice>
-          );
-        })}
+        {hour ? null : <DayShape slots={slotsFor(value)} longest={longestFor(value)} on />}
       </View>
+
+      {/* How hard? only with an hour or more: below that every intensity gets the same day. */}
+      {hour ? (
+        <>
+          <T v="title.m" accessibilityRole="header" style={{ marginTop: GAP.section }}>
+            {COPY.hard}
+          </T>
+          <View accessibilityRole="radiogroup" accessibilityLabel={COPY.hard} style={{ marginTop: 16, gap: GAP.tight }}>
+            {INTENSITIES.map(i => {
+              const on = value.intensity === i;
+              const card = COPY.intensity[i];
+              return (
+                <Choice key={i} role="radio" on={on} label={COPY.a11yIntensity(card.name, card.body)} onPress={() => set('intensity', i)}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Square on={on} />
+                    {/* Serif, sentence case, like the area names: tracked capitals are for kickers and the main button. */}
+                    <T v="saved" color={on ? C.bone : C.muted} style={{ flex: 1 }}>
+                      {card.name}
+                    </T>
+                    <DayShape slots={slotsFor({ intensity: i, minutes: m })} longest={MAIN_MAX_MINUTES[i]} on={on} />
+                  </View>
+                  <T v="small" color={C.stone} style={{ marginTop: 8, marginLeft: 26 }}>
+                    {card.body}
+                  </T>
+                </Choice>
+              );
+            })}
+          </View>
+        </>
+      ) : null}
     </Screen>
   );
 }

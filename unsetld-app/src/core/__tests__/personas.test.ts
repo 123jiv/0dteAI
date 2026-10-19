@@ -2,11 +2,12 @@
 // `PRINT=1 npx vitest run src/core/__tests__/personas.test.ts` prints each day's plan.
 import { describe, expect, it } from 'vitest';
 import missionsJson from '../../content/missions.json';
+import programsJson from '../../content/programs.json';
 import { available, dayBudget, DEFAULT_PROFILE, EASY_MAX_MINUTES, eligibleAreas, fitsSlot, generatePlan, historyFrom, planAreas, rerollMission, serves, slotsFor, usableAreas, type PlanInput } from '../missions';
 import { goalLean, leanFor } from '../personalize';
 import { addDays, type DayKey } from '../time';
 import { missionTitle } from '../titles';
-import type { DayPlan, Mission, Profile, TrackId } from '../types';
+import type { DayPlan, Mission, Profile, Program, TrackId } from '../types';
 
 const LIBRARY = (missionsJson as Mission[]).filter(m => m.active);
 const BY_ID = new Map(LIBRARY.map(m => [m.id, m]));
@@ -207,6 +208,7 @@ describe('the founder personas, from the goal they typed', () => {
 
   it('with three goal areas, each is in the day most days, and the ones with focused missions take turns leading', () => {
     // Money's missions are all short, so it never takes the focused slot; it still comes most days.
+    // Two missions a day at 45 (launch pass): three areas share two slots, so each is in about two days in three.
     const e = persona('E');
     const led = new Set<string>();
     const week = simulateWeek(e, '2026-10-12', 9);
@@ -215,15 +217,48 @@ describe('the founder personas, from the goal they typed', () => {
       if (first?.area) led.add(first.area);
     }
     expect([...led].sort()).toEqual(['career', 'fitness']);
-    for (const a of ['fitness', 'money', 'career']) expect(week.filter(plan => plan.missions.some(x => x.area === a)).length).toBeGreaterThanOrEqual(7);
+    for (const a of ['fitness', 'money', 'career']) expect(week.filter(plan => plan.missions.some(x => x.area === a)).length, a).toBeGreaterThanOrEqual(6);
   });
 
   it('with two goal areas, the first one gets focused days too, not only every third day', () => {
     // A: "Improve grades and train consistently" (School, Fitness); D: "Build and ship an app" (Projects, Skills).
-    for (const [key, area] of [['A', 'school'], ['D', 'projects']] as const) {
+    // One focused slot a day at 45 (launch pass), and an area the goal doesn't name takes it every
+    // other rest day: each goal area holds it on about a third of the days, the two together on
+    // about two days in three.
+    for (const [key, area, other] of [['A', 'school', 'fitness'], ['D', 'projects', 'skills']] as const) {
       const days = simulateWeek(persona(key), '2026-10-12', 28, 9, `two-${key}`);
-      const focused = days.filter(plan => plan.missions.some(x => x.area === area && x.slot === 'main')).length;
-      expect(focused, `${key} ${area}`).toBeGreaterThanOrEqual(14);
+      const focused = (a: string) => days.filter(plan => plan.missions.some(x => x.area === a && x.slot === 'main')).length;
+      expect(focused(area), `${key} ${area}`).toBeGreaterThanOrEqual(9);
+      expect(focused(other), `${key} ${other}`).toBeGreaterThanOrEqual(9);
+      expect(focused(area) + focused(other), key).toBeGreaterThanOrEqual(18);
+    }
+  });
+
+  it('every Plan day keeps all of its missions at every time choice, and adds the day\'s own only while the time allows', () => {
+    const programs = programsJson as Program[];
+    for (const prog of programs) {
+      for (const minutes of [15, 30, 45, 60] as const) {
+        for (const intensity of ['easy', 'lockin', 'push'] as const) {
+          const tracks = [...new Set<TrackId>([...(prog.tracks as TrackId[]), 'school', 'fitness', 'money'])].slice(0, 3);
+          const profile: Profile = { ...DEFAULT_PROFILE, tracks, school: true, project: true, minutes, intensity };
+          prog.plan.forEach((ids, d) => {
+            const plan = generatePlan({
+              library: LIBRARY,
+              profile,
+              day: addDays('2026-10-12', d),
+              salt: `plan-days-${prog.id}`,
+              history: { lastDone: {}, lastPlanned: { D3: '2026-09-01' }, skips: {} },
+              hour: 9,
+              program: { id: prog.id, missionIds: ids },
+            });
+            const label = `${prog.id} day ${d + 1}, ${minutes} ${intensity}`;
+            for (const id of ids) expect(plan.missions.find(x => x.missionId === id)?.programId, `${label}: ${id}`).toBe(prog.id);
+            const planned = ids.reduce((t, id) => t + BY_ID.get(id)!.minutes, 0);
+            const own = plan.missions.filter(x => !x.programId);
+            if (dayBudget(profile) - planned < 10) expect(own, label).toEqual([]);
+          });
+        }
+      }
     }
   });
 
@@ -298,19 +333,62 @@ describe('short days stay useful', () => {
     }
   });
 
-  it('a 15-minute day is two short missions, about 30 minutes', () => {
+  it('a 15-minute day is one mission of 20 minutes or less, 10 or more when its area has one free', () => {
     const p: Profile = { ...DEFAULT_PROFILE, tracks: ['school', 'fitness'], school: true, minutes: 15 };
     for (const plan of salts(10, salt => run(p, 28, salt))) {
-      expect(plan.missions.length).toBe(2);
-      for (const x of plan.missions) expect(BY_ID.get(x.missionId)!.minutes).toBeLessThanOrEqual(EASY_MAX_MINUTES);
-      // Fitness's shortest are 20 minutes: a day can run one short mission over.
-      expect(plan.missions.reduce((t, x) => t + BY_ID.get(x.missionId)!.minutes, 0)).toBeLessThanOrEqual(2 * EASY_MAX_MINUTES);
+      expect(plan.missions.length).toBe(1);
+      const m = BY_ID.get(plan.missions[0].missionId)!;
+      expect(m.minutes).toBeLessThanOrEqual(dayBudget(p));
+      // School's and Fitness's short missions all run 15 or 20 minutes.
+      expect(m.minutes).toBeGreaterThanOrEqual(15);
     }
   });
 
-  it('two areas at 15 minutes: both are in the day', () => {
+  it('two areas at 15 minutes: they take turns, each in the day at least three days of every seven', () => {
     const p: Profile = { ...DEFAULT_PROFILE, tracks: ['fitness', 'organization'], school: false, gym: false, age: 'u16', minutes: 15 };
-    for (const plan of salts(6, salt => run(p, 14, salt))) expect(new Set(plan.missions.map(x => x.area)).size).toBe(2);
+    for (let k = 0; k < 6; k++) {
+      const days = run(p, 14, `s${k}`);
+      for (let w = 0; w + 7 <= days.length; w++) {
+        const week = days.slice(w, w + 7);
+        for (const a of ['fitness', 'organization']) expect(week.filter(plan => plan.missions.some(x => x.area === a)).length, `s${k} ${week[0].day} ${a}`).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it('one mission a day: every area the user picked is in every week, with a goal or without', () => {
+    const goals = ['', 'Improve my grades', 'Build muscle', 'Save $1,000', 'Get organized'];
+    for (const tracks of [
+      ['discipline', 'school', 'fitness', 'money'],
+      ['school', 'fitness', 'career', 'skills'],
+      ['projects', 'money', 'fitness', 'organization'],
+      ['fitness', 'money', 'career'],
+    ] as TrackId[][]) {
+      for (const goal of goals) {
+        const p: Profile = { ...DEFAULT_PROFILE, tracks, school: tracks.includes('school') ? true : null, minutes: 15, goal: goal || undefined };
+        const days = run(p, 28, `w-${goal}`);
+        for (let w = 0; w < 4; w++) {
+          const week = days.slice(w * 7, w * 7 + 7);
+          for (const a of tracks) expect(week.some(plan => plan.missions.some(x => x.area === a)), `${tracks} "${goal}" week ${w + 1} ${a}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('one mission a day: Create Your Study Plan for the Week still comes every week, Sunday to Tuesday', () => {
+    for (const tracks of [
+      ['school', 'fitness'],
+      ['discipline', 'school', 'fitness', 'money'],
+      ['school', 'career', 'skills', 'organization'],
+    ] as TrackId[][]) {
+      for (const goal of ['', 'Build muscle']) {
+        const p: Profile = { ...DEFAULT_PROFILE, tracks, school: true, minutes: 15, goal: goal || undefined };
+        // From Monday 12 October: the first week's comes on the Monday or Tuesday, then every Sunday to Tuesday.
+        const days = run(p, 28, `wk-${tracks.length}-${goal}`);
+        const s12 = days.filter(plan => plan.missions.some(x => x.missionId === 'S12')).map(plan => plan.day);
+        expect(s12.length, `${tracks} "${goal}" ${s12}`).toBeGreaterThanOrEqual(4);
+        for (const d of s12) expect([0, 1, 2], `${tracks} ${d}`).toContain(new Date(`${d}T12:00:00`).getDay());
+      }
+    }
   });
 
   it('a 30-minute day is one short mission and one focused one', () => {
@@ -357,24 +435,16 @@ describe('the founder test, round 3', () => {
     }
   });
 
-  it('every area stays in the day for C and E at 45 minutes (Money six days in seven), and comes round at least two days a week at 15 and 30', () => {
+  it('every area comes round for C and E: at least four days in seven at 45 minutes, two at 30, one in four at 15', () => {
     for (const key of ['C', 'E']) {
       for (const minutes of [15, 30, 45] as const) {
         const p = { ...persona(key), minutes };
         const areas = usableAreas(LIBRARY, p);
         const days = Array.from({ length: 6 }, (_, k) => run(p, 28, `c${k}`)).flat();
-        if (minutes === 45) {
-          // Money is the exception: no mission comes up on more than four days of any seven
-          // (MAX_DAYS_IN_WEEK), Track Everything You Spend Today included, and Money's other missions
-          // are weekly or rarer, so it's in the day about six days in seven.
-          for (const a of areas) {
-            const missing = days.filter(plan => !plan.missions.some(x => x.area === a)).length;
-            expect(missing / days.length, `${key} ${minutes} ${a}`).toBeLessThanOrEqual(a === 'money' ? 1 / 7 : 0.05);
-          }
-        } else {
-          // Two slots, three areas; Career's short missions are mostly weekly or rarer, so it comes less often.
-          for (const a of areas) expect(days.filter(plan => plan.missions.some(x => x.area === a)).length / days.length, `${key} ${minutes} ${a}`).toBeGreaterThanOrEqual(2 / 7);
-        }
+        // Two slots (one at 15), three areas: each area about two days in three at 30 and 45 (one in
+        // three at 15); Career's short missions are mostly weekly or rarer, so it comes less often at 30.
+        const least = minutes === 45 ? 4 / 7 : minutes === 30 ? 2 / 7 : 1 / 4;
+        for (const a of areas) expect(days.filter(plan => plan.missions.some(x => x.area === a)).length / days.length, `${key} ${minutes} ${a}`).toBeGreaterThanOrEqual(least);
       }
     }
   });

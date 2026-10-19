@@ -8,6 +8,7 @@
 // stay on the record.
 // Hydrates the real store from a seeded storage entry.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { slotsFor } from '../../core/missions';
 import v1 from './fixtures/v1-state.json';
 import v30 from './fixtures/v30-state.json';
 import v33 from './fixtures/v33-state.json';
@@ -110,7 +111,8 @@ describe('v3 → v4: today keeps missions to prove', () => {
     };
     const { useApp, MISSION_BY_ID } = await load(v3, 3);
     const plan = useApp.getState().ensurePlan(TODAY);
-    expect(plan.missions.length).toBe(3);
+    // The day's shape at the profile's time (core/missions slotsFor), not a fixed count.
+    expect(plan.missions.length).toBe(slotsFor(useApp.getState().profile).length);
     for (const p of plan.missions) expect(MISSION_BY_ID[p.missionId]).toBeTruthy();
     expect(plan).toMatchObject({ day: TODAY, rerolls: 0, replaced: [] });
     // The old proof still counts.
@@ -131,7 +133,8 @@ describe('v3 → v4: today keeps missions to prove', () => {
     };
     const { useApp, MISSION_BY_ID } = await load(v3, 3);
     const plan = useApp.getState().ensurePlan(TODAY);
-    expect(plan.missions.length).toBe(3);
+    // The day's shape at the profile's time (core/missions slotsFor), not a fixed count.
+    expect(plan.missions.length).toBe(slotsFor(useApp.getState().profile).length);
     for (const p of plan.missions) expect(MISSION_BY_ID[p.missionId]).toBeTruthy();
     expect(plan.rerolls).toBe(1);
     expect(plan.replaced).toEqual(['focus-hide-the-distraction']);
@@ -156,7 +159,7 @@ describe('v3 → v4: today keeps missions to prove', () => {
     expect(s.pendingBefore).toBeNull();
     expect(mem.cancelled).toBe(1);
     expect(mem.deleted).toEqual(['file:///p/before.jpg']);
-    expect(s.ensurePlan(TODAY).missions.length).toBe(3);
+    expect(s.ensurePlan(TODAY).missions.length).toBe(slotsFor(s.profile).length);
   });
 
   it('keeps a saved timer and before photo for missions the library has', async () => {

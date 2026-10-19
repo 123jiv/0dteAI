@@ -3,6 +3,7 @@
 // started, an empty stored day is planned again, and nothing is left running for a mission Home
 // no longer shows. Hydrates the real store from a seeded storage entry.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { slotsFor } from '../../core/missions';
 
 const mem = vi.hoisted(() => {
   (globalThis as { __DEV__?: boolean }).__DEV__ = false;
@@ -69,7 +70,8 @@ describe('Settings > Your plan and programs once the day has started', () => {
     useApp.getState().setProfile({ tracks: ['projects', 'money', 'career'] });
     useApp.getState().replanToday();
     const plan = useApp.getState().plans[TODAY];
-    expect(plan.missions.length).toBe(3);
+    // The day's shape at the profile's time (core/missions slotsFor), not a fixed count.
+    expect(plan.missions.length).toBe(slotsFor(useApp.getState().profile).length);
     for (const p of plan.missions) {
       expect(['projects', 'money', 'career']).toContain(p.area);
       expect(isApproved(p.missionId)).toBe(true);
@@ -138,7 +140,8 @@ describe('ensurePlan with a stored day it cannot use as it is', () => {
   it('a library update rebuilds an untouched day', async () => {
     const { useApp, isApproved } = await load({ plans: { [TODAY]: withRemoved } });
     const plan = useApp.getState().ensurePlan(TODAY);
-    expect(plan.missions.length).toBe(3);
+    // The day's shape at the profile's time (core/missions slotsFor), not a fixed count.
+    expect(plan.missions.length).toBe(slotsFor(useApp.getState().profile).length);
     for (const p of plan.missions) expect(isApproved(p.missionId)).toBe(true);
   });
 
@@ -157,7 +160,8 @@ describe('ensurePlan with a stored day it cannot use as it is', () => {
   it('an empty stored day is planned again, keeping its swaps', async () => {
     const { useApp, isApproved } = await load({ plans: { [TODAY]: { day: TODAY, missions: [], rerolls: 1, replaced: ['S1'] } } });
     const plan = useApp.getState().ensurePlan(TODAY);
-    expect(plan.missions.length).toBe(3);
+    // The day's shape at the profile's time (core/missions slotsFor), not a fixed count.
+    expect(plan.missions.length).toBe(slotsFor(useApp.getState().profile).length);
     for (const p of plan.missions) expect(isApproved(p.missionId)).toBe(true);
     expect(plan).toMatchObject({ rerolls: 1, replaced: ['S1'] });
     expect(useApp.getState().plans[TODAY]).toBe(plan);

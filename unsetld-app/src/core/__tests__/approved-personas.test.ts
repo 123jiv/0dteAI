@@ -14,7 +14,7 @@ import {
   eligibleAreas,
   generatePlan,
   historyFrom,
-  MAIN_MAX_MINUTES,
+  longestFor,
   replacementChoices,
   rerollMission,
   serves,
@@ -134,10 +134,10 @@ describe("the founder's five users, a week each, as the app plans and proves it"
   for (const key of KEYS) {
     const profile = PEOPLE[key];
 
-    it(`User ${key}: three approved missions a day at 45 minutes, from areas they can get missions from, never three from one area`, () => {
-      expect(slotsFor(profile)).toHaveLength(3);
+    it(`User ${key}: two approved missions a day at 45 minutes (one short, one focused), from areas they can get missions from, never three from one area`, () => {
+      expect(slotsFor(profile)).toEqual(['easy', 'main']);
       for (const { day, plan } of week(key).days) {
-        expect(plan.missions, day).toHaveLength(3);
+        expect(plan.missions, day).toHaveLength(2);
         const eligible = eligibleAreas(profile, day);
         const perArea: Record<string, number> = {};
         for (const p of plan.missions) {
@@ -146,7 +146,7 @@ describe("the founder's five users, a week each, as the app plans and proves it"
           expect(m.source).toBe('UNSETLD');
           expect(eligible, `${day} ${p.missionId}`).toContain(p.area);
           expect(serves(m, p.area as TrackId), `${day} ${p.missionId}`).toBe(true);
-          expect(m.minutes).toBeLessThanOrEqual(MAIN_MAX_MINUTES[profile.intensity]);
+          expect(m.minutes).toBeLessThanOrEqual(longestFor(profile));
           perArea[p.area!] = (perArea[p.area!] ?? 0) + 1;
         }
         expect(Math.max(...Object.values(perArea)), day).toBeLessThanOrEqual(2);
@@ -175,8 +175,12 @@ describe("the founder's five users, a week each, as the app plans and proves it"
 
   it('Apply to One Job or Internship (C2) comes up for the two job searches (C, E) and never for A, B or D', () => {
     const c2 = (days: readonly SimDay[]) => days.filter(d => d.plan.missions.some(p => p.missionId === 'C2')).length;
-    expect(c2(week('C').days)).toBeGreaterThan(0);
-    expect(c2(week('E').days)).toBeGreaterThan(0);
+    // Two missions a day at 45 (launch pass): Career holds the focused slot on fewer days, so C2 comes
+    // within the first two weeks and at least twice in four, not every week.
+    for (const key of ['C', 'E'] as const) {
+      expect(c2(month(key).days.slice(0, 14)), key).toBeGreaterThan(0);
+      expect(c2(month(key).days), key).toBeGreaterThanOrEqual(2);
+    }
     for (const key of ['A', 'B', 'D'] as const) expect(c2(month(key).days), key).toBe(0);
   });
 });
@@ -256,7 +260,7 @@ describe('swapping on day 3 (Wednesday), for every reason', () => {
   /**
    * Missions of the swapped one's area that the reason allows and that could go in without
    * anything let back early but a recent showing: not in the day (nor a near-twin of what's left
-   * in it), within the room and what the intensity hands out, of a size the slot takes. "Too hard"
+   * in it), within the room and the longest the day hands out, of a size the slot takes. "Too hard"
    * and "Too easy" are about length, so a near-twin of another length counts (Do 20 Minutes of
    * Cardio for Do Your Planned Cardio Today); the other reasons ask for a different kind.
    */
@@ -267,7 +271,7 @@ describe('swapping on day 3 (Wednesday), for every reason', () => {
     if (reason === 'not-relevant' || reason === 'cant-today' || reason === 'already-did') for (const id of blockedBy(old.id)) out.add(id);
     const spent = others.reduce((t, o) => t + MISSION_BY_ID[o.missionId].minutes, 0);
     const room = Math.max(old.minutes, dayBudget(d.input.profile) - spent);
-    const most = MAIN_MAX_MINUTES[d.input.profile.intensity];
+    const most = longestFor(d.input.profile);
     const oldKinds = new Set(kindsOf(old));
     const fitsSlot = (m: Mission) => m.minutes <= room && (s.p.slot === 'main' || sizeOf(m) === 'easy');
     const ok = (m: Mission) =>
@@ -330,11 +334,11 @@ describe('swapping on day 3 (Wednesday), for every reason', () => {
 
 describe('User A on shorter days', () => {
   for (const minutes of [15, 30] as const) {
-    it(`${minutes} minutes: two approved missions a day from their areas, nothing but a core habit two days running while another fits`, () => {
+    it(`${minutes} minutes: ${minutes === 15 ? 'one approved mission' : 'two approved missions'} a day from their areas, nothing but a core habit two days running while another fits`, () => {
       const profile: Profile = { ...PEOPLE.A, minutes };
       const run = simulate(profile, salt('A'), 7);
       for (const { day, plan } of run.days) {
-        expect(plan.missions, day).toHaveLength(2);
+        expect(plan.missions, day).toHaveLength(minutes === 15 ? 1 : 2);
         for (const p of plan.missions) {
           expect(isApproved(p.missionId)).toBe(true);
           expect(eligibleAreas(profile, day)).toContain(p.area);

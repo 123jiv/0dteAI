@@ -25,7 +25,7 @@ import { createWidget, type WidgetEnvironment } from 'expo-widgets';
 export type LineWidgetProps = {
   /** 'NEXT MISSION', or 'TODAY' when there's no mission to name. */
   label: string;
-  /** Mission title ('Study One Subject for 30 Minutes'), or 'Perfect day.' / 'Three missions are waiting.'. Typographic quotes applied. */
+  /** Mission title ('Study One Subject for 30 Minutes'), or 'Perfect day.' / 'Two missions are waiting.' ('One mission is waiting.' on a 15-minute day). Typographic quotes applied. */
   title: string;
   /** 'School · 30 min · +15', or '3 / 3 PROVEN'; '' when there's nothing to add. */
   meta: string;

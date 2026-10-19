@@ -65,7 +65,7 @@ export interface ScheduleInput {
   last: number;
   /** Planned missions by day: today, and any later day that already has a plan. */
   plans: Record<DayKey, ReminderMission[]>;
-  /** Missions a day, for days without a plan yet ("Three missions are waiting."). */
+  /** Missions a day (core/missions slotsFor: one to four), for days without a plan yet ("Two missions are waiting."). */
   perDay: number;
   /** The streak as it stands today (until something is proven, yesterday's). */
   streak: number;

@@ -6,6 +6,9 @@
 // and 60 minutes, and a second run with about two in three proven) use the same engine; these are
 // the deterministic checks, quick enough to run every time.
 // `PRINT=1 npx vitest run src/core/__tests__/rotation.test.ts` prints what each check measured.
+// Launch pass (model J, src/core/__tests__/day-shape.sim.test.ts): a 45-minute day is two missions
+// and an hour of Lock in runs 75 minutes, so the targets at 45 (and a few at 60) are the measured
+// ones under the new day shapes, marked "model J"; they replace the 15 Oct ones for the founder to approve.
 import { describe, expect, it } from 'vitest';
 import { MISSION_BY_ID, MISSIONS } from '../../content';
 import { completeMission } from '../complete';
@@ -16,14 +19,16 @@ import {
   fitsSlot,
   generatePlan,
   historyFrom,
+  dayShape,
   leadArea,
-  MAIN_MAX_MINUTES,
+  longestFor,
   MAX_DAYS_IN_WEEK,
   meetsRequirements,
   planAreas,
   replacementChoices,
   replaceWith,
   serves,
+  slotsFor,
   slotTracks,
   turnOf,
   TURN_DAYS,
@@ -105,10 +110,10 @@ function daysOf(run: DayPlan[]): Record<string, number[]> {
 /** Average times a mission came up in four weeks, over the installs. */
 const average = (runs: DayPlan[][], id: string) => runs.reduce((t, run) => t + (daysOf(run)[id]?.length ?? 0), 0) / runs.length;
 
-/** The approved missions in the user's plan areas that their answers and intensity allow. */
+/** The approved missions in the user's plan areas that their answers and the day's shape allow (longestFor). */
 function allowed(profile: Profile): string[] {
   const areas = planAreas({ library: MISSIONS, profile, day: MONDAY });
-  return MISSIONS.filter(m => areas.some(a => serves(m, a)) && meetsRequirements(m.requires, profile, MONDAY) && m.minutes <= MAIN_MAX_MINUTES[profile.intensity]).map(m => m.id);
+  return MISSIONS.filter(m => areas.some(a => serves(m, a)) && meetsRequirements(m.requires, profile, MONDAY) && m.minutes <= longestFor(profile)).map(m => m.id);
 }
 
 /** The user's areas their goal names (core/personalize goalAreas within the plan areas). */
@@ -174,40 +179,47 @@ describe('slots and turns', () => {
 
 describe('four weeks, three installs, every mission proven', () => {
   it('at 45 and 60 minutes every mission in their areas comes up', () => {
+    // Model J: two missions a day at 45 (three at 60), so in four weeks every mission comes up in at
+    // least one of the three installs at each, and most in two or three (15 Oct: two of three).
     for (const key of KEYS) {
       for (const minutes of [45, 60] as const) {
         const profile = { ...PEOPLE[key], minutes };
         const seen = installs(key, minutes).map(run => new Set(run.flatMap(plan => plan.missions.map(p => p.missionId))));
-        for (const id of allowed(profile)) {
+        const ids = allowed(profile);
+        let rare = 0;
+        for (const id of ids) {
           const installsWithIt = seen.filter(s => s.has(id)).length;
           print(`${key}${minutes} ${id}: ${installsWithIt}/3`);
-          expect(installsWithIt, `${key} ${minutes} min: ${id}`).toBeGreaterThanOrEqual(2);
+          expect(installsWithIt, `${key} ${minutes} min: ${id}`).toBeGreaterThanOrEqual(1);
+          if (installsWithIt < 2) rare += 1;
         }
+        expect(rare, `${key} ${minutes} min: missions in one install only`).toBeLessThanOrEqual(Math.ceil(ids.length / 6));
       }
     }
   });
 
-  it('weekly missions come about weekly (3–4 times in four weeks at 45 and 60 minutes, at least twice at 15 and 30)', () => {
+  it('weekly missions come about weekly (3–4 times in four weeks with an hour, 2–4 at 45, at least every other week at 15 and 30)', () => {
+    // Model J: at 45 the area holding a weekly one has one of two slots, not one of three.
     for (const key of KEYS) {
       for (const minutes of [15, 30, 45, 60] as const) {
         const ids = allowed({ ...PEOPLE[key], minutes }).filter(id => WEEKLY.includes(id));
         for (const id of ids) {
           const n = average(installs(key, minutes), id);
           print(`${key}${minutes} ${id}: ${n.toFixed(2)}`);
-          if (minutes >= 45) {
-            expect(n, `${key} ${minutes} min: ${id}`).toBeGreaterThanOrEqual(3);
-            expect(n, `${key} ${minutes} min: ${id}`).toBeLessThanOrEqual(4);
-          } else expect(n, `${key} ${minutes} min: ${id}`).toBeGreaterThanOrEqual(2);
+          expect(n, `${key} ${minutes} min: ${id}`).toBeGreaterThanOrEqual(minutes === 60 ? 3 : minutes === 45 ? 2 : 1.5);
+          expect(n, `${key} ${minutes} min: ${id}`).toBeLessThanOrEqual(4);
         }
       }
     }
   });
 
-  it('the rarer ones: M5 about monthly, M6 at most once, C1 and C10 about twice, C9 once or twice', () => {
+  it('the rarer ones: M5 about monthly, M6 at most once, C1 and C10 about twice (once or twice at 45), C9 once or twice (at least every other install at 45)', () => {
     const rule: Record<string, [number, number]> = { M5: [1, 1], M6: [0, 1], C1: [1.5, 2], C10: [1.5, 2], C9: [1, 2] };
+    // Model J: Career holds one of two slots at 45, so its fortnightly and three-weekly missions come less.
+    const at45: Record<string, [number, number]> = { ...rule, C1: [0.5, 2], C10: [0.5, 2], C9: [0.5, 2] };
     for (const key of KEYS) {
       for (const minutes of [45, 60] as const) {
-        for (const [id, [lo, hi]] of Object.entries(rule)) {
+        for (const [id, [lo, hi]] of Object.entries(minutes === 45 ? at45 : rule)) {
           if (!allowed({ ...PEOPLE[key], minutes }).includes(id)) continue;
           const n = average(installs(key, minutes), id);
           print(`${key}${minutes} ${id}: ${n.toFixed(2)}`);
@@ -239,7 +251,8 @@ describe('four weeks, three installs, every mission proven', () => {
     for (const minutes of [45, 60] as const) {
       const n = average(installs('C', minutes), 'C3');
       print(`C${minutes} C3: ${n.toFixed(2)}`);
-      expect(n, `C ${minutes} min`).toBeGreaterThanOrEqual(minutes === 45 ? 3.5 : 3);
+      // Model J: at 45 Career has one of two slots: C3 one to two times in four weeks.
+      expect(n, `C ${minutes} min`).toBeGreaterThanOrEqual(minutes === 45 ? 1.5 : 3);
     }
   });
 
@@ -293,7 +306,10 @@ describe('four weeks, three installs, every mission proven', () => {
           const top = Math.max(...ids.filter(id => !anchors.includes(id)).map(count));
           print(`${key}${minutes} ${area}: anchors on ${withAnchor}/${focused} focused days; anchors ${anchorDays}, top other ${top}${inFocus ? ' (focused slots)' : ''}`);
           if (focused >= 10) expect(withAnchor / focused, `${key} ${minutes} min: ${area}`).toBeGreaterThanOrEqual(0.25);
-          expect(anchorDays, `${key} ${minutes} min: ${area}`).toBeGreaterThan(top);
+          // Model J: at 45 an area has one of two slots, and its core habits come about as often as its
+          // most frequent other mission (within two days in four weeks); with an hour, more often.
+          if (minutes === 45) expect(anchorDays, `${key} ${minutes} min: ${area}`).toBeGreaterThanOrEqual(top - 2);
+          else expect(anchorDays, `${key} ${minutes} min: ${area}`).toBeGreaterThan(top);
         }
       }
     }
@@ -325,20 +341,31 @@ describe('the shape of the day and the swaps (rotation reviews, 15 Oct 2026)', (
           expect(plan.missions.some(p => MISSION_BY_ID[p.missionId].minutes >= 20), `${profile.tracks.join('+')} ${profile.minutes} ${salt} ${plan.day}`).toBe(true);
   });
 
-  it('the day fills the time chosen: 45 minutes or more at 45, 50 or more with an hour and most days the full hour', () => {
+  it('the day fills the time chosen and keeps to it (model J): 40 to 55 minutes at 45, 60 to 80 with an hour of Lock in', () => {
+    const band: Record<45 | 60, [number, number]> = { 45: [40, 55], 60: [60, 80] };
     for (const key of KEYS) {
       for (const minutes of [45, 60] as const) {
         const days = installs(key, minutes).flat().map(minutesOf);
-        const full = days.filter(n => n >= minutes).length / days.length;
-        print(`${key}${minutes}: shortest ${Math.min(...days)} min, ${Math.round(100 * full)}% of days ${minutes}+`);
-        expect(Math.min(...days), `${key} ${minutes} min`).toBeGreaterThanOrEqual(minutes === 45 ? 45 : 50);
-        expect(full, `${key} ${minutes} min`).toBeGreaterThanOrEqual(0.75);
+        const [lo, hi] = band[minutes];
+        const inBand = days.filter(n => n >= lo && n <= hi).length / days.length;
+        print(`${key}${minutes}: ${Math.min(...days)}–${Math.max(...days)} min, ${Math.round(100 * inBand)}% of days ${lo}–${hi}`);
+        expect(Math.min(...days), `${key} ${minutes} min`).toBeGreaterThanOrEqual(minutes === 45 ? 25 : 50);
+        expect(Math.max(...days), `${key} ${minutes} min`).toBeLessThanOrEqual(dayShape({ ...PEOPLE[key], minutes }).budget + 5);
+        expect(inBand, `${key} ${minutes} min`).toBeGreaterThanOrEqual(0.7);
       }
     }
   });
 
   it('a 30-minute day covers two areas: a weekly mission due where the focused slot is trades slots or waits a day', () => {
-    for (const key of KEYS) for (const run of installs(key, 30)) for (const plan of run) expect(new Set(plan.missions.map(p => p.area)).size, `${key} ${plan.day}`).toBe(2);
+    // Model J: or a support task joins its area's real mission when nothing else is short enough
+    // (Write Your Next 3 Project Actions next to 30 minutes of project work, not alone).
+    for (const key of KEYS)
+      for (const run of installs(key, 30))
+        for (const plan of run) {
+          const support = plan.missions.some(p => MISSION_BY_ID[p.missionId].tags?.includes('support'));
+          expect(new Set(plan.missions.map(p => p.area)).size, `${key} ${plan.day}`).toBe(support ? new Set(plan.missions.map(p => p.area)).size : 2);
+          if (support) expect(plan.missions.some(p => MISSION_BY_ID[p.missionId].minutes >= 20 && !MISSION_BY_ID[p.missionId].tags?.includes('support')), `${key} ${plan.day}`).toBe(true);
+        }
   });
 
   it('Too easy only offers missions at least as long as the one it replaces', () => {
@@ -418,27 +445,32 @@ describe('what comes when (rotation reviews, 15 Oct 2026)', () => {
   });
 
   it('Improve Something You Made Yesterday comes after real project work the day before, hardly ever otherwise', () => {
-    // D on a Wednesday: Projects' missions shown three to six days ago, P11 five days ago.
-    const day: DayKey = '2026-11-04';
-    const yesterday = addDays(day, -1);
+    // D from a Wednesday: Projects' missions shown three to six days before, P11 five days before. Model
+    // J: two missions a day at 45, so Projects holds the short slot P11 fits on some days only; four
+    // days in a row, 200 installs each.
     const shown = { P2: '2026-10-30', P3: '2026-10-31', P4: '2026-10-29', P5: '2026-11-01', P7: '2026-10-29', P10: '2026-10-31', P11: '2026-10-30', P12: '2026-11-01', P9: '2026-10-30', P6: '2026-10-30' };
     const plans = (made: boolean) =>
-      Array.from({ length: 200 }, (_, k) =>
-        generatePlan({
-          library: MISSIONS,
-          profile: PEOPLE.D,
-          day,
-          salt: `p11-${k}`,
-          history: made
-            ? { lastDone: { P1: yesterday }, lastPlanned: { ...shown, P1: yesterday }, skips: {} }
-            : { lastDone: { P1: '2026-10-31', D2: yesterday }, lastPlanned: { ...shown, P1: '2026-10-31', D2: yesterday }, skips: {} },
-          hour: 9,
-        }),
-      ).filter(plan => plan.missions.some(p => p.missionId === 'P11')).length;
+      [0, 1, 2, 3].flatMap(shift => {
+        const day = addDays('2026-11-04', shift);
+        const yesterday = addDays(day, -1);
+        const moved = Object.fromEntries(Object.entries(shown).map(([id, d]) => [id, addDays(d, shift)]));
+        return Array.from({ length: 200 }, (_, k) =>
+          generatePlan({
+            library: MISSIONS,
+            profile: PEOPLE.D,
+            day,
+            salt: `p11-${k}`,
+            history: made
+              ? { lastDone: { P1: yesterday }, lastPlanned: { ...moved, P1: yesterday }, skips: {} }
+              : { lastDone: { P1: addDays(day, -4), D2: yesterday }, lastPlanned: { ...moved, P1: addDays(day, -4), D2: yesterday }, skips: {} },
+            hour: 9,
+          }),
+        );
+      }).filter(plan => plan.missions.some(p => p.missionId === 'P11')).length;
     const after = plans(true);
     const without = plans(false);
-    print(`P11 after a day of project work: ${after} of 200; after none: ${without}`);
-    expect(after).toBeGreaterThan(20);
+    print(`P11 after a day of project work: ${after} of 800; after none: ${without}`);
+    expect(after).toBeGreaterThan(40);
     expect(without).toBeLessThan(after / 5);
   });
 
@@ -460,7 +492,9 @@ describe('what comes when (rotation reviews, 15 Oct 2026)', () => {
           for (const [group, days] of Object.entries(byGroup))
             for (let start = 0; start + 7 <= DAYS; start++)
               expect(days.filter(d => d >= start && d < start + 7).length, `${key} ${minutes} min: ${group} from day ${start + 1}`).toBeLessThanOrEqual(MAX_DAYS_IN_WEEK + 1);
-          expect(nextDay, `${key} ${minutes} min`).toBeLessThanOrEqual(2);
+          // Model J: an hour of Lock in is 75 minutes, and Discipline's short slot sometimes has only
+          // Finish One Unfinished Task the day after Finish One Thing You've Been Avoiding.
+          expect(nextDay, `${key} ${minutes} min`).toBeLessThanOrEqual(3);
         }
       }
     }
@@ -515,11 +549,14 @@ describe('the goal shapes the week (spec-goal, 15 Oct 2026)', () => {
       // The spec's 60% for School isn't reached (about 45% at 45 minutes, 50% at an hour; 44% and 46%
       // before): a 45-minute workout leaves School's focused slot 20 minutes in a 75-minute day, and
       // School's eight missions of 20 minutes or less take its focused slot to come round at all.
-      expect(school, `${minutes} min: School`).toBeGreaterThanOrEqual(0.42);
-      expect(school - discipline, `${minutes} min: School over Discipline`).toBeGreaterThanOrEqual(0.1);
-      expect(fitness, `${minutes} min: Fitness`).toBeGreaterThanOrEqual(0.6);
+      // Model J: one focused slot at 45 (Discipline takes it every other rest day) and 75 minutes with
+      // an hour: School about 30% of days, Fitness 30% at 45 and 60% with an hour, Discipline 30%;
+      // School and Fitness together well over Discipline.
+      expect(school, `${minutes} min: School`).toBeGreaterThanOrEqual(0.25);
+      expect(school + fitness, `${minutes} min: School and Fitness over Discipline`).toBeGreaterThanOrEqual(1.5 * discipline);
+      expect(fitness, `${minutes} min: Fitness`).toBeGreaterThanOrEqual(minutes === 45 ? 0.28 : 0.55);
       expect(discipline, `${minutes} min: Discipline`).toBeGreaterThanOrEqual(0.2);
-      expect(sessions, `${minutes} min: S1 + S5 + S11`).toBeGreaterThanOrEqual(10);
+      expect(sessions, `${minutes} min: S1 + S5 + S11`).toBeGreaterThanOrEqual(6);
     }
   });
 
@@ -533,17 +570,18 @@ describe('the goal shapes the week (spec-goal, 15 Oct 2026)', () => {
       print(
         `${minutes}: D Projects 25+ ${focusedShare(d, 'projects').toFixed(2)}, P1 ${times(d, ['P1']).toFixed(2)}; B P1 ${times(b, ['P1']).toFixed(2)}, workouts ${times(b, workouts).toFixed(2)}; C C2 ${times(c, ['C2']).toFixed(2)}; E C2 ${times(e, ['C2']).toFixed(2)}, workouts ${times(e, workouts).toFixed(2)}`,
       );
-      expect(focusedShare(d, 'projects'), `D ${minutes}`).toBeGreaterThanOrEqual(0.6);
+      // Model J: one focused slot at 45 and 75 minutes with an hour (Projects 25+ 0.42 and 0.54).
+      expect(focusedShare(d, 'projects'), `D ${minutes}`).toBeGreaterThanOrEqual(minutes === 45 ? 0.38 : 0.5);
       expect(times(d, ['P1']), `D ${minutes}: P1`).toBeGreaterThanOrEqual(6);
       expect(times(b, ['P1']), `B ${minutes}: P1`).toBeGreaterThanOrEqual(6);
-      expect(times(b, workouts), `B ${minutes}: workouts`).toBeGreaterThanOrEqual(8);
+      expect(times(b, workouts), `B ${minutes}: workouts`).toBeGreaterThanOrEqual(minutes === 45 ? 6 : 8);
       expect(times(c, ['C2']), `C ${minutes}: C2`).toBeGreaterThanOrEqual(4);
-      expect(times(e, ['C2']), `E ${minutes}: C2`).toBeGreaterThanOrEqual(4);
+      expect(times(e, ['C2']), `E ${minutes}: C2`).toBeGreaterThanOrEqual(minutes === 45 ? 3 : 4);
       expect(times(e, workouts), `E ${minutes}: workouts`).toBeGreaterThanOrEqual(8);
       // "Build a clothing brand and save money": on a day Money leads, Fitness takes Money's focused
       // slot in the trade, and the brand still picks first (a 45-minute workout first left it 20).
       print(`${minutes}: B Projects 25+ ${focusedShare(b, 'projects').toFixed(2)}`);
-      expect(focusedShare(b, 'projects'), `B ${minutes}: Projects`).toBeGreaterThanOrEqual(0.75);
+      expect(focusedShare(b, 'projects'), `B ${minutes}: Projects`).toBeGreaterThanOrEqual(minutes === 45 ? 0.5 : 0.75);
       // Spend 30 Minutes Building a Career Skill and Practice Coding for 30 Minutes are one half hour
       // under two names: never both in one day.
       for (const plan of c.flat()) expect(['C7', 'K1'].filter(id => plan.missions.some(p => p.missionId === id)).length, plan.day).toBeLessThanOrEqual(1);
@@ -586,10 +624,13 @@ describe('the goal shapes the week (spec-goal, 15 Oct 2026)', () => {
     print(
       `Build muscle F1 + F7 ${muscle.n.toFixed(2)}; Learn Spanish K4 + K6 ${spanish.n.toFixed(2)}; coder + Fitness 25+ ${focusedShare(fitness.runs, 'fitness').toFixed(2)}, F1/F5/F7 ${fitness.n.toFixed(2)}; coder + Discipline 25+ ${focusedShare(discipline.runs, 'discipline').toFixed(2)}, D1/D2/D3/D5 ${discipline.n.toFixed(2)}`,
     );
-    expect(muscle.n, 'Build muscle: F1 + F7').toBeGreaterThanOrEqual(6);
+    // Model J (45 minutes, two missions): a 45-minute workout leaves the short slot 10, so F1 and F7
+    // come about once a week and more (4.7 in four weeks); the area the goal doesn't name holds the
+    // focused slot every other rest day (about one day in six).
+    expect(muscle.n, 'Build muscle: F1 + F7').toBeGreaterThanOrEqual(4);
     expect(spanish.n, 'Learn Spanish: K4 + K6').toBeGreaterThanOrEqual(1.5);
-    expect(focusedShare(fitness.runs, 'fitness'), 'coder + Fitness').toBeGreaterThanOrEqual(0.2);
-    expect(focusedShare(discipline.runs, 'discipline'), 'coder + Discipline').toBeGreaterThanOrEqual(0.2);
+    expect(focusedShare(fitness.runs, 'fitness'), 'coder + Fitness').toBeGreaterThanOrEqual(0.14);
+    expect(focusedShare(discipline.runs, 'discipline'), 'coder + Discipline').toBeGreaterThanOrEqual(0.14);
   });
 
   it("an updated user's first day with the new library keeps every area: the old library's plans don't make every new mission overdue", () => {
@@ -607,7 +648,7 @@ describe('the goal shapes the week (spec-goal, 15 Oct 2026)', () => {
     expect(history.recent).toEqual({});
     for (let k = 0; k < 20; k++) {
       const plan = generatePlan({ library: MISSIONS, profile, day, salt: `update-${k}`, history, hour: 10 });
-      expect(new Set(plan.missions.map(m => m.area)).size, plan.missions.map(m => m.missionId).join(' + ')).toBe(3);
+      expect(new Set(plan.missions.map(m => m.area)).size, plan.missions.map(m => m.missionId).join(' + ')).toBe(slotsFor(profile).length);
     }
   });
 });
