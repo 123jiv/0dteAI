@@ -2,11 +2,12 @@
 // `PRINT=1 npx vitest run src/core/__tests__/personas.test.ts` prints each day's plan.
 import { describe, expect, it } from 'vitest';
 import missionsJson from '../../content/missions.json';
+import programsJson from '../../content/programs.json';
 import { available, dayBudget, DEFAULT_PROFILE, EASY_MAX_MINUTES, eligibleAreas, fitsSlot, generatePlan, historyFrom, planAreas, rerollMission, serves, slotsFor, usableAreas, type PlanInput } from '../missions';
 import { goalLean, leanFor } from '../personalize';
 import { addDays, type DayKey } from '../time';
 import { missionTitle } from '../titles';
-import type { DayPlan, Mission, Profile, TrackId } from '../types';
+import type { DayPlan, Mission, Profile, Program, TrackId } from '../types';
 
 const LIBRARY = (missionsJson as Mission[]).filter(m => m.active);
 const BY_ID = new Map(LIBRARY.map(m => [m.id, m]));
@@ -230,6 +231,34 @@ describe('the founder personas, from the goal they typed', () => {
       expect(focused(area), `${key} ${area}`).toBeGreaterThanOrEqual(9);
       expect(focused(other), `${key} ${other}`).toBeGreaterThanOrEqual(9);
       expect(focused(area) + focused(other), key).toBeGreaterThanOrEqual(18);
+    }
+  });
+
+  it('every Plan day keeps all of its missions at every time choice, and adds the day\'s own only while the time allows', () => {
+    const programs = programsJson as Program[];
+    for (const prog of programs) {
+      for (const minutes of [15, 30, 45, 60] as const) {
+        for (const intensity of ['easy', 'lockin', 'push'] as const) {
+          const tracks = [...new Set<TrackId>([...(prog.tracks as TrackId[]), 'school', 'fitness', 'money'])].slice(0, 3);
+          const profile: Profile = { ...DEFAULT_PROFILE, tracks, school: true, project: true, minutes, intensity };
+          prog.plan.forEach((ids, d) => {
+            const plan = generatePlan({
+              library: LIBRARY,
+              profile,
+              day: addDays('2026-10-12', d),
+              salt: `plan-days-${prog.id}`,
+              history: { lastDone: {}, lastPlanned: { D3: '2026-09-01' }, skips: {} },
+              hour: 9,
+              program: { id: prog.id, missionIds: ids },
+            });
+            const label = `${prog.id} day ${d + 1}, ${minutes} ${intensity}`;
+            for (const id of ids) expect(plan.missions.find(x => x.missionId === id)?.programId, `${label}: ${id}`).toBe(prog.id);
+            const planned = ids.reduce((t, id) => t + BY_ID.get(id)!.minutes, 0);
+            const own = plan.missions.filter(x => !x.programId);
+            if (dayBudget(profile) - planned < 10) expect(own, label).toEqual([]);
+          });
+        }
+      }
     }
   });
 
