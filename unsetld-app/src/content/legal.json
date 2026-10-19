@@ -8,7 +8,7 @@
       },
       {
         "h": "Swaps",
-        "p": "Don't want one? Swap it before you prove it, and you get another mission from the same area when one fits today. One swap a day, three with UNSETLD+. A mission you swap stays away for a week, or three weeks after you swap it a third time in a month. An everyday habit like Study One Subject for 30 Minutes or Complete Your Workout comes back after a couple of days."
+        "p": "Don't want one? Swap it before you prove it, and you get another mission from the same area when one fits today. One swap a day, three with UNSETLD+. A swap after the day's first earns at most what the mission it replaces was worth, so more swaps never mean more points. A mission you swap stays away for a week, or three weeks after you swap it a third time in a month; one you swap because you can't do it today can come back tomorrow. An everyday habit like Study One Subject for 30 Minutes or Complete Your Workout comes back after a couple of days."
       },
       {
         "h": "Proof",
@@ -34,16 +34,24 @@
         "p": "Your streak is the days in a row you proved at least one mission. Today counts once you prove one. Until then, yesterday's streak stands."
       },
       {
+        "h": "Completion",
+        "p": "Your streak counts the days you showed up. Completion counts how much of those days you finished: missions proven out of missions planned, on the days you proved at least one. Stats shows it for this week and, once your record goes back far enough, the last 30 days. A day with every mission proven is a perfect day."
+      },
+      {
         "h": "Off Days",
         "p": "Miss a day and an Off Day covers it, so the streak keeps going. You earn one every 7 days you show up. You can bank two."
       },
       {
         "h": "Levels",
-        "p": "Each mission's points also count as XP for its area, so you can see where the work is going. An area levels up as its XP adds up, and XP is never spent. Achievements mark your first mission, your first perfect day, 7 days, 30 missions and more."
+        "p": "Each mission's points also count as XP for its area, so you can see where the work is going. An area levels up as its XP adds up, and XP is never spent. Achievements mark your first mission, your first perfect day, 7 days, your first finished Plan, 30 missions and more."
+      },
+      {
+        "h": "Plans",
+        "p": "A Plan, like 7 Day Lock In, sets missions for a run of days. While one runs, all of the day's Plan missions are in your list, even when they take longer than the time you chose, and your other missions fill what time is left. A Plan day moves on once you prove one of its missions, so a missed day doesn't end it. A finished Plan stays on your record. Finishing one earns no extra points."
       },
       {
         "h": "Proof photos",
-        "p": "Photos stay on this phone. They're deleted after 30 days unless you choose 1 year or Always under Proof photos in You. The mission, its points and your streak stay."
+        "p": "Photos stay on this phone. They're deleted from it after 30 days, the next time the app opens, unless you choose 1 year or Always under Proof photos in You. The mission, its points and your streak stay."
       },
       {
         "h": "Rewards",
@@ -112,11 +120,19 @@
   },
   "terms": {
     "title": "Terms of Use",
-    "updated": "2026-10-10",
+    "updated": "2026-10-19",
     "sections": [
       {
         "h": "Using UNSETLD",
         "p": "UNSETLD gives you daily missions, a camera to prove them, points, a streak, levels, plans and reminders. It isn't medical, financial or professional advice. Do missions within your limits, and swap any that don't suit you."
+      },
+      {
+        "h": "Age",
+        "p": "UNSETLD is for people 13 and over."
+      },
+      {
+        "h": "What you write",
+        "p": "Your goal, a weekly focus you type and missions you write are checked on this phone, by fixed rules. Some things can't be used, such as fasting, nicotine, alcohol or drugs, betting, dares or private details like passwords and card numbers, and the app says so under the field. If what you write is about hurting yourself, the app shows where to get free, confidential help."
       },
       {
         "h": "UNSETLD+",
@@ -143,19 +159,19 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "updated": "2026-10-10",
+    "updated": "2026-10-19",
     "sections": [
       {
         "h": "The short version",
-        "p": "Your missions, your answers about you, your streak, points and proof photos live on your iPhone. There are no ads, no tracking and no analytics SDKs."
+        "p": "Your missions, your answers, your streak, points and proof photos live on your iPhone. There are no ads, no tracking and no analytics SDKs, and the app doesn't collect data about how you use it."
       },
       {
         "h": "What leaves your phone",
-        "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so UNSETLD+ works across your devices. Time check: the app asks unsetld.com for the current date so streaks stay honest. No identifier is sent. Config: the app reads small public files from unsetld.com to know whether rewards are on, which rewards and status tiers are offered and when drops open."
+        "p": "Purchases: Apple processes payments, and RevenueCat (our subscription provider) receives an anonymous app user ID and your purchase history so UNSETLD+ works across your devices. Time check: the app asks unsetld.com for the current time so streaks stay honest. No identifier is sent. Config: the app reads small public files from unsetld.com to know whether rewards are on, which rewards and status tiers are offered and when drops open. Nothing else leaves your phone unless you sign in, below."
       },
       {
         "h": "Camera and proof photos",
-        "p": "The camera is used only when you prove a mission. Photos are saved inside the app on this iPhone and the app never uploads them. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days unless you choose 1 year or Always under Proof photos in You; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
+        "p": "The camera is used only when you prove a mission. The app keeps one copy of each photo, inside the app on this iPhone, and never uploads it: the camera's full-size original and the copy made while resizing are deleted once it's kept, and a photo you took but didn't use is deleted too. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days, the next time the app opens, unless you choose 1 year or Always under Proof photos in You; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
       },
       {
         "h": "Proof checks",
@@ -166,8 +182,12 @@
         "p": "Missions never ask for photos of your face or body, other people, IDs, addresses, bank details, grades, medical information or private conversations, or for your location. There is no public feed."
       },
       {
-        "h": "About you",
-        "p": "Your answers (school, work, gym, a business or project, what you're learning, your age range), what you're working toward, this week's focus and the areas you chose only decide which missions you get. They stay on your phone."
+        "h": "Your answers",
+        "p": "The areas you chose, the time you have each day (and how hard you want it, with an hour or more), what you're working toward and the area you pick for it, this week's focus, what you're learning and your age range decide which missions and options you get. Answers an earlier version of the app asked, such as whether you're in school, stay on this phone and can still shape your missions. What you type (your goal, a focus of your own, missions you write) is checked for unsafe words on this phone, never sent anywhere. All of it stays on your phone."
+      },
+      {
+        "h": "Age",
+        "p": "UNSETLD is for people 13 and over. When you start, the app asks the year you were born, and the month only when it's needed to tell whether you're 13 yet. Only an age range is kept (13 to 15, 16 to 17, or 18 and over), on this phone; the year and month aren't saved or sent. On iOS 26 and later, where Apple says age rules apply, the app may ask Apple for your age range instead. Apple shares only the range, and if it isn't shared, the app asks for the year. If the answer is under 13, the app deletes everything it saved on this phone, the Keychain copy included, and goes no further. We don't knowingly collect personal information from anyone under 13. If you think a child under 13 has signed in, email us and we'll delete the account."
       },
       {
         "h": "If you sign in for rewards or UNSETLD status",
@@ -175,19 +195,27 @@
       },
       {
         "h": "Notifications",
-        "p": "Mission reminders and the focus timer alert are local notifications scheduled on your phone. Drop alerts are separate, off by default, and only on if you turn them on."
+        "p": "Mission reminders are off until you turn them on. Reminders, the focus timer alert and, during a free trial, a reminder the day before it ends are local notifications scheduled on your phone. Drop alerts are separate, off by default, and only on if you turn them on."
       },
       {
         "h": "Store links",
         "p": "Links to unsetld.com open in Safari, which is covered by that site's privacy policy."
       },
       {
-        "h": "Deleting your data",
-        "p": "Delete the app to remove its data and proof photos from your phone. A copy of your record (missions, points and streak, never photos) is kept in your iPhone's Keychain so a reinstall picks up where you left off; iOS can keep it after the app is deleted, and it's never uploaded. To delete an account, open You in the app, then Account, then Delete account. We remove the account and what we hold for it, and end the Sign in with Apple link. You can also email unsetldclothing@gmail.com from the address on the account."
+        "h": "The copy in your Keychain",
+        "p": "So a reinstall picks up where you left off, the app keeps a copy of your record in this iPhone's Keychain: the days on your record; each proven mission with its title as you saw it (words from your goal and missions you wrote included), its points, when it was proven and what the proof checks found; the file names and fingerprints of its photos, never the photos; Plans finished; reward codes you've taken; tasks from earlier versions; and a random number the app uses to vary your missions. The app never uploads it. iOS can keep it after the app is deleted, and it can be part of your own encrypted iPhone backup. If you sign in, the sign-in token is kept in the Keychain too."
       },
       {
-        "h": "Age",
-        "p": "UNSETLD is for people 13 and older. We don't knowingly collect personal information from anyone under 13. If you think a child under 13 has signed in, email us and we'll delete the account."
+        "h": "Deleting your data",
+        "p": "To delete everything UNSETLD keeps on this iPhone, open You, then Delete data on this phone. It removes your record, points, plans, answers, settings, missions you wrote, proof photos, sign-in on this phone and the Keychain copy, and clears the app's reminders and widgets. During a free trial, the reminder before it ends stays. It doesn't delete an account on unsetld.com, and UNSETLD+ stays with your Apple ID. Deleting the app removes its data too, except the Keychain copy, which iOS can keep; use Delete data on this phone first if you don't want a reinstall to bring your record back. Copies already in an iPhone backup stay in that backup."
+      },
+      {
+        "h": "Deleting an account",
+        "p": "To delete an account, open You, then Account, then Delete account. We remove the account and what we hold for it, and end the Sign in with Apple link. It doesn't delete what's on this phone: Delete data on this phone does that. You can also email unsetldclothing@gmail.com from the address on the account."
+      },
+      {
+        "h": "Purchase records",
+        "p": "Apple keeps its own record of what you buy. RevenueCat keeps the purchase history it holds under an anonymous ID. To have that deleted, email unsetldclothing@gmail.com with the order ID from Apple's receipt, and we'll ask RevenueCat to delete it."
       },
       {
         "h": "Contact",
