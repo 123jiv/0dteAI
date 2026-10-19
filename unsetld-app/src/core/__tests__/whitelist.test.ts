@@ -14,11 +14,13 @@ import { isCustomId, makeCustomMission } from '../custom';
 import {
   addSkip,
   available,
+  dayBudget,
   DEFAULT_PROFILE,
   eligibleAreas,
   generatePlan,
   historyFrom,
-  MAIN_MAX_MINUTES,
+  longestFor,
+  PLAN_DAY_MIN_LEFT,
   planAreas,
   replacementChoices,
   replaceWith,
@@ -139,13 +141,13 @@ const blockedBy = (m: Mission) => (m.group ? MISSIONS.filter(x => x.group === m.
 
 /**
  * Approved missions that could still have filled a slot left empty: what generatePlan's last
- * step draws from (any size within what the intensity hands out, in the plan areas, nothing
+ * step draws from (any size within the longest the day hands out, in the plan areas, nothing
  * relaxed but the waits, nothing that clashes with the day).
  */
 function leftFor(plan: DayPlan, input: PlanInput): string[] {
   const areas = planAreas(input);
   const blocked = new Set(plan.missions.flatMap(p => (MISSION_BY_ID[p.missionId] ? blockedBy(MISSION_BY_ID[p.missionId]) : [p.missionId])));
-  const cap = Math.min(MAIN_MAX_MINUTES[input.profile.intensity], input.adapt?.preferShort ? LONG_MINUTES - 5 : Infinity);
+  const cap = Math.min(longestFor(input.profile), input.adapt?.preferShort ? LONG_MINUTES - 5 : Infinity);
   const loose = { shown: true, skips: true, lowShown: true, cooldown: true };
   return MISSIONS.filter(m => !blocked.has(m.id) && m.minutes <= cap && areas.some(a => serves(m, a)) && available(m, input, loose)).map(m => m.id);
 }
@@ -258,7 +260,10 @@ function live(k: number, picked: TrackId[], seen: Seen, bad: string[], own: Miss
     }
     if (new Set(plan.missions.map(x => x.missionId)).size !== plan.missions.length) fail(`${day}: a mission twice in one day`);
     if (eligible.length && !plan.missions.length) fail(`${day}: an empty day for areas ${eligible}`);
-    if (plan.missions.length < slotsFor(profile).length) {
+    // A Plan day adds the day's own missions only while PLAN_DAY_MIN_LEFT minutes of the budget are left.
+    const minutes = plan.missions.reduce((t, x) => t + (MISSION_BY_ID[x.missionId]?.minutes ?? 0), 0);
+    const planDayFull = plan.missions.some(x => x.programId) && dayBudget(profile) - minutes < PLAN_DAY_MIN_LEFT;
+    if (plan.missions.length < slotsFor(profile).length && !planDayFull) {
       seen.shortDays += 1;
       const left = leftFor(plan, input);
       if (left.length) fail(`${day}: ${plan.missions.length} of ${slotsFor(profile).length} missions while ${left} were left`);

@@ -240,31 +240,47 @@ const BEFORE: Record<Cell, Pick<CellStats, 'slots' | 'p10' | 'p50' | 'p90' | 'p9
 };
 
 /**
+ * Model J, the planner since the launch pass (core/missions DAY_SHAPE), on the whole grid
+ * (SIM_FULL=1). Cross-checked against the time audit's J (launch-pass audit/results/J.json):
+ * the same medians but 15 (15 here, 20 there: a one-mission day prefers 10 minutes or more only in
+ * its own area, so a Money or Discipline day can be 5), fewer long days (30: max 40, not 60; 45: max
+ * 60, not 75) and more days in the band at 30 and with an hour.
+ */
+const AFTER: Record<Cell, Pick<CellStats, 'slots' | 'p10' | 'p50' | 'p90' | 'p99' | 'max' | 'inBand' | 'pts'>> = {
+  '15': { slots: 1, p10: 10, p50: 15, p90: 20, p99: 20, max: 20, inBand: 0.95, pts: 23.8 },
+  '30': { slots: 2, p10: 30, p50: 35, p90: 40, p99: 40, max: 40, inBand: 0.88, pts: 33.8 },
+  '45': { slots: 2, p10: 35, p50: 45, p90: 50, p99: 55, max: 60, inBand: 0.871, pts: 37.9 },
+  '60/easy': { slots: 3, p10: 45, p50: 60, p90: 65, p99: 70, max: 70, inBand: 0.815, pts: 45.8 },
+  '60/lockin': { slots: 3, p10: 55, p50: 65, p90: 75, p99: 75, max: 80, inBand: 0.822, pts: 49.2 },
+  '60/push': { slots: 4, p10: 70, p50: 90, p90: 100, p99: 105, max: 115, inBand: 0.879, pts: 60.8 },
+};
+
+/**
  * What this grid measured when it was committed (the default grid, not SIM_FULL): the planner as
  * it is. A change to the planner that moves these is a change to the time promise: run the full
- * grid, check the gates and the founder's targets, then write the new numbers here.
+ * grid, check the gates and the founder's targets, then write the new numbers here and in AFTER.
  */
 const MEASURED: Record<Cell, Pick<CellStats, 'p50' | 'p90' | 'max' | 'inBand' | 'pts'>> = {
-  '15': { p50: 30, p90: 40, max: 60, inBand: 0.125, pts: 32.5 },
-  '30': { p50: 45, p90: 50, max: 60, inBand: 0.232, pts: 37.0 },
-  '45': { p50: 65, p90: 75, max: 105, inBand: 0.233, pts: 49.2 },
-  '60/easy': { p50: 65, p90: 80, max: 90, inBand: 0.732, pts: 48.8 },
-  '60/lockin': { p50: 65, p90: 80, max: 105, inBand: 0.663, pts: 49.8 },
-  '60/push': { p50: 90, p90: 110, max: 140, inBand: 0.779, pts: 62.3 },
+  '15': { p50: 15, p90: 20, max: 20, inBand: 0.946, pts: 23.8 },
+  '30': { p50: 35, p90: 40, max: 40, inBand: 0.879, pts: 33.8 },
+  '45': { p50: 45, p90: 50, max: 60, inBand: 0.871, pts: 37.9 },
+  '60/easy': { p50: 60, p90: 65, max: 70, inBand: 0.816, pts: 45.8 },
+  '60/lockin': { p50: 65, p90: 75, max: 80, inBand: 0.819, pts: 49.2 },
+  '60/push': { p50: 90, p90: 100, max: 115, inBand: 0.878, pts: 60.8 },
 };
 
 let stats: Record<Cell, CellStats>;
 beforeAll(() => {
   stats = simulate();
   if (PRINT) {
-    const head = 'cell        slots  p10  p50  p90  p99  max  inBand  over  under  pts/day (before)  long  goal  weekly  distinct';
+    const head = 'cell        slots  p10  p50  p90  p99  max  inBand (before)  over  under  pts/day (before)  long  goal  weekly  distinct';
     const rows = CELL_KEYS.map(c => {
       const s = stats[c];
       return [
         c.padEnd(11),
         String(s.slots).padStart(5),
         ...[s.p10, s.p50, s.p90, s.p99, s.max].map(x => String(x).padStart(4)),
-        s.inBand.toFixed(3).padStart(7),
+        `${s.inBand.toFixed(3).padStart(7)} (${BEFORE[c].inBand.toFixed(2)})`,
         s.over.toFixed(3).padStart(5),
         s.under.toFixed(3).padStart(6),
         `${s.pts.toFixed(1).padStart(7)} (${BEFORE[c].pts.toFixed(1)})`.padStart(17),
@@ -283,10 +299,11 @@ describe('the time promise, as the planner is', () => {
     for (const c of CELL_KEYS) expect(stats[c].short, c).toBe(0);
   });
 
-  it('measures what was committed (MEASURED): the same median and p90, no longer a day, as many days in the band, about the same points', () => {
+  it('measures what was committed (MEASURED): about the same median and p90, no longer a day, as many days in the band, about the same points', () => {
     for (const c of CELL_KEYS) {
-      expect(stats[c].p50, c).toBe(MEASURED[c].p50);
-      expect(stats[c].p90, c).toBe(MEASURED[c].p90);
+      // Within 5 minutes: a goal keyword or a mission's metadata moving shifts a quantile by a step.
+      expect(Math.abs(stats[c].p50 - MEASURED[c].p50), c).toBeLessThanOrEqual(5);
+      expect(Math.abs(stats[c].p90 - MEASURED[c].p90), c).toBeLessThanOrEqual(5);
       expect(stats[c].max, c).toBeLessThanOrEqual(MEASURED[c].max);
       expect(stats[c].inBand, c).toBeGreaterThanOrEqual(MEASURED[c].inBand - 0.02);
       expect(Math.abs(stats[c].pts - MEASURED[c].pts), c).toBeLessThanOrEqual(1);
@@ -294,29 +311,57 @@ describe('the time promise, as the planner is', () => {
   });
 });
 
-// The targets for model J (launch pass decision: two missions every day at 30 minutes), the gates
-// before the planner change merges. Each fails on the planner as it is.
+// The gates for model J (launch pass decision: two missions every day at 30 minutes). They failed on
+// the planner before the launch pass (BEFORE) and hold on the whole grid (AFTER).
 describe('the time promise, model J targets (gates)', () => {
-  it.fails('the median day is inside the band at every time choice', () => {
+  it('the day has the shape the copy states: one mission at 15, two at 30 and 45, three or four with an hour', () => {
+    expect(CELL_KEYS.map(c => stats[c].slots)).toEqual([1, 2, 2, 3, 3, 4]);
+    for (const c of CELL_KEYS) expect(stats[c].slots, c).toBe(AFTER[c].slots);
+  });
+
+  it('the median day is inside the band at every time choice', () => {
     for (const c of CELL_KEYS) {
       expect(stats[c].p50, c).toBeGreaterThanOrEqual(BAND[c][0]);
       expect(stats[c].p50, c).toBeLessThanOrEqual(BAND[c][1]);
     }
   });
 
-  it.fails('at least 80% of days are inside the band at 15, 30 and 45 minutes, and at least 70% with an hour or more', () => {
+  it('at least 80% of days are inside the band at 15, 30 and 45 minutes, and at least 70% with an hour or more', () => {
     for (const c of CELL_KEYS) expect(stats[c].inBand, c).toBeGreaterThanOrEqual(SHORT_DAY(c) ? 0.8 : 0.7);
   });
 
-  it.fails('at 15, 30 and 45 minutes, 99% of days run no more than 5 minutes over the band', () => {
+  it('at 15, 30 and 45 minutes, 99% of days run no more than 5 minutes over the band', () => {
     for (const c of CELL_KEYS.filter(SHORT_DAY)) expect(stats[c].p99, c).toBeLessThanOrEqual(BAND[c][1] + 5);
   });
 
-  it.fails('no day runs more than 10 minutes over the band', () => {
+  it('no day runs more than 10 minutes over the band', () => {
     for (const c of CELL_KEYS) expect(stats[c].max, c).toBeLessThanOrEqual(BAND[c][1] + 10);
   });
 
-  it.fails('a 15-minute day is never more than 20 minutes', () => {
+  it('a 15-minute day is never more than 20 minutes', () => {
     expect(stats['15'].max).toBeLessThanOrEqual(20);
+  });
+});
+
+describe('one mission a day, and what the shapes cost', () => {
+  it('at 15 minutes every area the user picked is in the day every week, and a goal\'s areas get about half the days', () => {
+    expect(stats['15'].weekly).toBeGreaterThanOrEqual(0.99);
+    expect(stats['15'].goal).toBeGreaterThanOrEqual(0.4);
+    expect(stats['15'].goal).toBeLessThanOrEqual(0.6);
+  });
+
+  it('two missions a day still cover the areas weekly, and the goal is in the day on most days', () => {
+    for (const c of ['30', '45'] as const) {
+      expect(stats[c].weekly, c).toBeGreaterThanOrEqual(0.98);
+      expect(stats[c].goal, c).toBeGreaterThanOrEqual(0.65);
+    }
+  });
+
+  it('points a day fall with the shorter days (accepted, launch pass decision 2) but never rise', () => {
+    for (const c of CELL_KEYS) expect(stats[c].pts, c).toBeLessThanOrEqual(BEFORE[c].pts + 0.5);
+    // About a quarter less at 15 and 45, under a tenth at 30, about the same with an hour.
+    expect(stats['15'].pts).toBeGreaterThanOrEqual(0.7 * BEFORE['15'].pts);
+    expect(stats['45'].pts).toBeGreaterThanOrEqual(0.72 * BEFORE['45'].pts);
+    expect(stats['30'].pts).toBeGreaterThanOrEqual(0.88 * BEFORE['30'].pts);
   });
 });

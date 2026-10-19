@@ -6,14 +6,18 @@ import {
   available,
   chooseForSlot,
   dayBudget,
+  dayShape,
   DEFAULT_PROFILE,
   EASY_MAX_MINUTES,
   generatePlan,
   historyFrom,
+  longestFor,
   MAX_PER_AREA,
   meetsRequirements,
+  PLAN_DAY_MIN_LEFT,
   planAreas,
   rerollMission,
+  sizeOf,
   slotsFor,
   slotTracks,
   SLOTS_BY_INTENSITY,
@@ -91,40 +95,63 @@ describe('daily missions', () => {
     expect(a).not.toBe(b);
   });
 
-  it('follows intensity: Push me adds a third focused mission; Start easy keeps them short', () => {
-    expect(generatePlan(input({ profile: profile({ intensity: 'easy' }) })).missions.map(p => p.slot)).toEqual(SLOTS_BY_INTENSITY.easy);
-    expect(generatePlan(input({ profile: profile({ intensity: 'push', minutes: 90 }) })).missions.map(p => p.slot)).toEqual(SLOTS_BY_INTENSITY.push);
+  it('follows intensity with an hour or more: Start easy two short missions and a focused one, Push me a fourth; Start easy keeps them short', () => {
+    expect(generatePlan(input({ profile: profile({ intensity: 'easy', minutes: 60 }) })).missions.map(p => p.slot)).toEqual(SLOTS_BY_INTENSITY.easy);
+    expect(generatePlan(input({ profile: profile({ intensity: 'lockin', minutes: 60 }) })).missions.map(p => p.slot)).toEqual(SLOTS_BY_INTENSITY.lockin);
+    expect(generatePlan(input({ profile: profile({ intensity: 'push', minutes: 60 }) })).missions.map(p => p.slot)).toEqual(SLOTS_BY_INTENSITY.push);
+    expect(SLOTS_BY_INTENSITY).toEqual({ easy: ['easy', 'easy', 'main'], lockin: ['easy', 'main', 'main'], push: ['easy', 'main', 'main', 'main'] });
     for (let i = 0; i < 10; i++) {
-      const plan = generatePlan(input({ day: addDays('2026-10-09', i), profile: profile({ intensity: 'easy' }) }));
+      const plan = generatePlan(input({ day: addDays('2026-10-09', i), profile: profile({ intensity: 'easy', minutes: 60 }) }));
       for (const p of plan.missions) expect(byId.get(p.missionId)!.minutes).toBeLessThanOrEqual(30);
     }
   });
 
-  it('keeps a short day short: with 15 minutes it is two short missions within about 30 minutes', () => {
-    const plan = generatePlan(input({ profile: profile({ minutes: 15 }) }));
-    const total = plan.missions.reduce((t, p) => t + byId.get(p.missionId)!.minutes, 0);
-    expect(total).toBeLessThanOrEqual(dayBudget(profile({ minutes: 15 })));
-    expect(plan.missions.map(p => p.slot)).toEqual(['easy', 'easy']);
+  it('ignores intensity under an hour: the same day for Start easy, Lock in and Push me at 15, 30 and 45 minutes', () => {
+    const history: MissionHistory = { lastDone: {}, lastPlanned: { 'school-m1': '2026-09-01' }, skips: {} };
+    for (const minutes of [15, 30, 45] as const) {
+      expect(new Set((['easy', 'lockin', 'push'] as const).map(intensity => JSON.stringify(dayShape({ minutes, intensity }))))).toHaveProperty('size', 1);
+      for (let i = 0; i < 14; i++) {
+        const day = addDays('2026-10-09', i);
+        const plans = (['easy', 'lockin', 'push'] as const).map(intensity => generatePlan(input({ day, history, profile: profile({ minutes, intensity }) })));
+        expect(plans[0], `${minutes} ${day}`).toEqual(plans[1]);
+        expect(plans[2], `${minutes} ${day}`).toEqual(plans[1]);
+      }
+    }
   });
 
-  it('on a 15-minute day: two missions, and both chosen tracks get one even when their short missions run long', () => {
+  it('keeps a short day short: with 15 minutes it is one mission of 20 minutes or less', () => {
+    for (let i = 0; i < 14; i++) {
+      const plan = generatePlan(input({ day: addDays('2026-10-09', i), profile: profile({ minutes: 15 }) }));
+      expect(plan.missions.map(p => p.slot)).toEqual(['easy']);
+      expect(byId.get(plan.missions[0].missionId)!.minutes).toBeLessThanOrEqual(dayBudget(profile({ minutes: 15 })));
+    }
+  });
+
+  it('on a 15-minute day: one mission, the chosen areas take turns, and a mission of 10 minutes or more goes first in its area', () => {
     const lib = [
       ...Array.from({ length: 4 }, () => m('money', 'quick', { minutes: 5 })),
       ...Array.from({ length: 4 }, () => m('skills', 'quick', { minutes: 10 })),
+      ...Array.from({ length: 4 }, () => m('skills', 'quick', { minutes: 5 })),
       ...Array.from({ length: 3 }, () => m('money', 'progress')),
       ...Array.from({ length: 3 }, () => m('skills', 'challenge')),
       ...Array.from({ length: 3 }, () => m('organization', 'quick', { minutes: 3 })),
     ];
     const ids = new Map(lib.map(x => [x.id, x]));
-    for (const day of ['2026-10-09', '2026-10-10', '2026-10-11']) {
-      const plan = generatePlan(input({ library: lib, day, profile: profile({ tracks: ['money', 'skills'], minutes: 15, intensity: 'push' }) }));
-      expect(plan.missions.length).toBe(2);
-      const tracks = new Set(plan.missions.map(p => ids.get(p.missionId)!.track));
-      expect(tracks.has('money') && tracks.has('skills')).toBe(true);
-      expect(plan.missions.every(p => ids.get(p.missionId)!.minutes <= EASY_MAX_MINUTES)).toBe(true);
+    const history: MissionHistory = { lastDone: {}, lastPlanned: { other: '2026-09-01' }, skips: {} };
+    const areas: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      const plan = generatePlan(input({ library: lib, day: addDays('2026-10-09', i), history, profile: profile({ tracks: ['money', 'skills'], minutes: 15, intensity: 'push' }) }));
+      expect(plan.missions.length).toBe(1);
+      const mission = ids.get(plan.missions[0].missionId)!;
+      areas.push(plan.missions[0].area!);
+      expect(mission.minutes).toBeLessThanOrEqual(EASY_MAX_MINUTES);
+      // Skills has 10-minute missions: never its 5-minute ones. Money has only 5-minute short ones: still its day.
+      if (plan.missions[0].area === 'skills') expect(mission.minutes).toBe(10);
       // Organization was never chosen: its 3-minute missions never fill in.
-      expect(plan.missions.some(p => ids.get(p.missionId)!.track === 'organization')).toBe(false);
+      expect(mission.track).not.toBe('organization');
     }
+    expect(areas.filter(a => a === 'money').length).toBe(3);
+    expect(areas.filter(a => a === 'skills').length).toBe(3);
   });
 
   it('respects requirements: no gym missions without a gym, no work missions without a job, 18+ only when known', () => {
@@ -240,7 +267,7 @@ describe('daily missions', () => {
         }
       }
       plans[day] = plan;
-      expect(plan.missions.length).toBe(3);
+      expect(plan.missions.length).toBe(slotsFor(prof).length);
       for (const p of plan.missions) expect(['money', 'career']).toContain(lib.find(x => x.id === p.missionId)!.track);
     }
   });
@@ -285,47 +312,58 @@ describe('daily missions', () => {
   });
 
   it('fills each slot from an area not in the day yet, and records which area', () => {
-    for (let i = 0; i < 30; i++) {
-      const plan = generatePlan(input({ day: addDays('2026-10-01', i), profile: profile({ tracks: ['money', 'career', 'skills'] }) }));
-      expect(new Set(plan.missions.map(p => p.area)).size).toBe(3);
-      for (const p of plan.missions) expect(['money', 'career', 'skills']).toContain(p.area);
+    for (const minutes of [45, 60] as const) {
+      for (let i = 0; i < 30; i++) {
+        const prof = profile({ minutes, tracks: ['money', 'career', 'skills'] });
+        const plan = generatePlan(input({ day: addDays('2026-10-01', i), profile: prof }));
+        expect(new Set(plan.missions.map(p => p.area)).size).toBe(slotsFor(prof).length);
+        for (const p of plan.missions) expect(['money', 'career', 'skills']).toContain(p.area);
+      }
     }
   });
 
-  it('shares a short day between its two short missions instead of letting the first take it all', () => {
-    // Two short slots on a 30-minute day: the first takes an even share (15), not 20 that leaves the second 10.
-    const lib = (['discipline', 'school', 'fitness'] as TrackId[]).flatMap(t => [5, 10, 15, 15, 20, 20].map(minutes => m(t, 'quick', { minutes, points: minutes <= 10 ? 5 : 10 })));
-    const prof = profile({ minutes: 15 });
+  it('shares an hour between its two short missions (Start easy) instead of letting the first take it all', () => {
+    // Start easy with an hour: the focused mission first, then the two short slots share what's left evenly.
+    const lib = (['discipline', 'school', 'fitness'] as TrackId[]).flatMap(t => [
+      ...[5, 10, 15, 15, 20, 20].map(minutes => m(t, 'quick', { minutes, points: minutes <= 10 ? 5 : 10 })),
+      m(t, 'progress'),
+      m(t, 'progress'),
+    ]);
+    const prof = profile({ minutes: 60, intensity: 'easy' });
     let fifteens = 0;
     for (let i = 0; i < 20; i++) {
       const plan = generatePlan(input({ library: lib, profile: prof, day: addDays('2026-10-01', i) }));
       const mins = plan.missions.map(p => lib.find(x => x.id === p.missionId)!.minutes);
-      expect(mins.length).toBe(2);
+      expect(plan.missions.map(p => p.slot)).toEqual(['easy', 'easy', 'main']);
       expect(mins.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(dayBudget(prof));
-      expect(mins[0]).toBeLessThanOrEqual(15);
-      fifteens += mins.filter(x => x >= 15).length;
+      fifteens += mins.slice(0, 2).filter(x => x >= 15).length;
     }
     expect(fifteens).toBeGreaterThanOrEqual(15);
   });
 
-  it('keeps to the time the user chose: 15 is two short missions, 30 one short and one focused, 45 one short and two focused', () => {
+  it('keeps to the time the user chose (DAY_SHAPE): 15 is one short mission, 30 and 45 one short and one focused, 60+ by intensity', () => {
     for (const intensity of ['easy', 'lockin', 'push'] as const) {
-      expect(slotsFor({ minutes: 15, intensity })).toEqual(['easy', 'easy']);
+      expect(slotsFor({ minutes: 15, intensity })).toEqual(['easy']);
       expect(slotsFor({ minutes: 30, intensity })).toEqual(['easy', 'main']);
-      expect(slotsFor({ minutes: 45, intensity })).toEqual(['easy', 'main', 'main']);
+      expect(slotsFor({ minutes: 45, intensity })).toEqual(['easy', 'main']);
       expect(slotsFor({ minutes: 60, intensity })).toEqual(SLOTS_BY_INTENSITY[intensity]);
-      for (const minutes of [15, 30, 45] as const) {
+      for (const minutes of [15, 30, 45, 60] as const) {
         const prof = profile({ minutes, intensity });
+        expect(slotsFor(prof)).toEqual(dayShape(prof).slots);
+        expect(dayBudget(prof)).toBe(dayShape(prof).budget);
         for (let i = 0; i < 20; i++) {
           const plan = generatePlan(input({ day: addDays('2026-10-01', i), profile: prof }));
           expect(plan.missions.map(p => p.slot)).toEqual(slotsFor(prof));
           expect(plan.missions.reduce((t, p) => t + byId.get(p.missionId)!.minutes, 0)).toBeLessThanOrEqual(dayBudget(prof));
+          for (const p of plan.missions) expect(byId.get(p.missionId)!.minutes).toBeLessThanOrEqual(longestFor(prof));
         }
       }
     }
-    expect([15, 30, 45, 60].map(minutes => dayBudget({ minutes: minutes as Profile['minutes'], intensity: 'lockin' }))).toEqual([30, 45, 75, 95]);
-    expect([45, 60].map(minutes => dayBudget({ minutes: minutes as Profile['minutes'], intensity: 'push' }))).toEqual([85, 150]);
-    expect(dayBudget({ minutes: 60, intensity: 'easy' })).toBe(80);
+    expect([15, 30, 45, 60].map(minutes => dayBudget({ minutes: minutes as Profile['minutes'], intensity: 'lockin' }))).toEqual([20, 35, 55, 75]);
+    expect([15, 30, 45, 60].map(minutes => dayBudget({ minutes: minutes as Profile['minutes'], intensity: 'push' }))).toEqual([20, 35, 55, 100]);
+    expect(dayBudget({ minutes: 60, intensity: 'easy' })).toBe(65);
+    // The most a day can earn stays 95 (docs/ACCESS.md): four missions of at most 20 points, and the perfect-day bonus.
+    expect(Math.max(...[15, 30, 45, 60].flatMap(minutes => (['easy', 'lockin', 'push'] as const).map(intensity => slotsFor({ minutes: minutes as Profile['minutes'], intensity }).length)))).toBe(4);
   });
 
   it('drops an area that can never get a mission, and never falls back to one the user did not choose', () => {
@@ -398,11 +436,34 @@ describe('daily missions', () => {
     expect(hits).toBeGreaterThanOrEqual(19);
   });
 
-  it("places a program's missions first", () => {
+  it("places a program's missions first, and adds the day's own only while the day has time left", () => {
     const ids = [LIB.find(x => x.track === 'money' && x.minutes === 30)!.id];
+    // 45 minutes: 30 of the Plan, 25 left: the short slot is filled too.
     const plan = generatePlan(input({ program: { id: 'p', missionIds: ids } }));
     expect(plan.missions.find(p => p.missionId === ids[0])).toMatchObject({ slot: 'main', programId: 'p' });
-    expect(plan.missions.length).toBe(3);
+    expect(plan.missions.length).toBe(2);
+    // 30 minutes: 5 left, under PLAN_DAY_MIN_LEFT: the Plan's mission is the day.
+    expect(generatePlan(input({ program: { id: 'p', missionIds: ids }, profile: profile({ minutes: 30 }) })).missions).toEqual([
+      { slot: 'main', missionId: ids[0], area: 'money', programId: 'p' },
+    ]);
+  });
+
+  it('keeps every one of a Plan day\'s missions at every time choice, in a slot of its size', () => {
+    const two = [LIB.find(x => x.track === 'discipline' && x.minutes === 5)!.id, LIB.find(x => x.track === 'discipline' && x.minutes === 30)!.id];
+    const three = [...two, LIB.find(x => x.track === 'school' && x.minutes === 45)!.id];
+    for (const missionIds of [two, three])
+      for (const minutes of [15, 30, 45, 60] as const)
+        for (const intensity of ['easy', 'lockin', 'push'] as const) {
+          const prof = profile({ minutes, intensity });
+          const plan = generatePlan(input({ profile: prof, program: { id: 'p', missionIds } }));
+          for (const id of missionIds) expect(plan.missions.find(p => p.missionId === id), `${minutes} ${intensity}`).toMatchObject({ slot: sizeOf(byId.get(id)!), programId: 'p' });
+          const planned = missionIds.reduce((t, id) => t + byId.get(id)!.minutes, 0);
+          const own = plan.missions.filter(p => !p.programId);
+          // The day's own missions only in a slot the Plan left free, while PLAN_DAY_MIN_LEFT minutes of its budget were left.
+          if (dayBudget(prof) - planned < PLAN_DAY_MIN_LEFT || missionIds.length >= slotsFor(prof).length) expect(own).toEqual([]);
+          else expect(own.length).toBeGreaterThan(0);
+          expect(plan.missions.length).toBeGreaterThanOrEqual(missionIds.length);
+        }
   });
 
   it("leaves a program's morning mission out of an afternoon plan", () => {
@@ -627,10 +688,11 @@ describe('proving a mission', () => {
       const c = completeMission(r, plan.day, plan, byId.get(p.missionId)!, [photo(`h${i}`)], accepted, { at: i, verifiedClock: true });
       r = c.record;
       expect(c.points).toBe(byId.get(p.missionId)!.points);
-      expect(c.bonus).toBe(i === 2 ? 15 : 0);
+      expect(c.bonus).toBe(i === plan.missions.length - 1 ? 15 : 0);
     });
+    expect(plan.missions.length).toBe(slotsFor(input().profile).length);
     expect(r.days[plan.day]).toEqual({ verified: true });
-    expect(provenInPlan(r, plan)).toBe(3);
+    expect(provenInPlan(r, plan)).toBe(plan.missions.length);
     expect(balance(r)).toBe(plan.missions.reduce((t, p) => t + byId.get(p.missionId)!.points, 0) + 15);
     // Proving one again earns nothing.
     const again = completeMission(r, plan.day, plan, byId.get(plan.missions[0].missionId)!, [photo('h9')], accepted, { at: 9, verifiedClock: true });
