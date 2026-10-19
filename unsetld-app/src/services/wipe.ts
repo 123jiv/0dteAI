@@ -17,6 +17,7 @@ import { Platform } from 'react-native';
 import { useApp } from '../state/store';
 import { clearSession } from './account';
 import { deleteBackup, resumeBackups, suspendBackups } from './backup';
+import { clearMetrics } from './metrics';
 import { clearPendingExceptTrial, NO_REMINDERS, reschedule, scheduleDropAlerts } from './notifications';
 import { deleteAllPhotos } from './proof';
 import { cancelTimerDone } from './timerNotify';
@@ -90,6 +91,7 @@ async function clearEverythingElse(): Promise<void> {
   // 4. The store: a new install's state, saved (the server config kept, the membership inactive
   //    until the store says otherwise). The user's own missions leave the lookup.
   useApp.getState().resetLocalData();
+  await clearMetrics(); // usage counts waiting to be sent, and their once-only flags (services/metrics)
 
   // 5. Notifications, each kind through its own queue (so a rebuild already running can't put
   //    any back), then anything else of this app's still pending, except the trial reminder;

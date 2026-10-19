@@ -13,6 +13,7 @@ import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
 import { clearSession } from '../services/account';
 import { backupRecord, openBackups } from '../services/backup';
 import { now, today } from '../services/clock';
+import { closeDays, connectMetrics, flushMetrics, stopMetrics } from '../services/metrics';
 import {
   NO_REMINDERS,
   reminderMissions,
@@ -51,20 +52,32 @@ function onPremiumChange(active: boolean, info: EntitlementInfo) {
   setPremiumFrom(active, info).catch(() => {});
 }
 
-/** unsetld.com's config: Access on or off, the collection, reward tiers and status tiers (null keeps the defaults). */
+/**
+ * unsetld.com's config: Access on or off, the collection, reward tiers and status tiers (null keeps
+ * the defaults), and the usage-counts switch: off drops any records waiting (services/metrics).
+ */
 function applyConfig() {
   fetchConfig()
     .then(c => {
-      if (c) useApp.getState().setRemote({ accessEnabled: c.accessEnabled, collection: c.collection, rewards: c.rewards, status: c.status });
+      if (c) useApp.getState().setRemote({ accessEnabled: c.accessEnabled, collection: c.collection, rewards: c.rewards, status: c.status, metrics: c.metrics });
+      if (c && !c.metrics) return stopMetrics();
     })
     .catch(() => {});
 }
 
-/** Today's plan, built the first time it's needed. Not before onboarding: the profile isn't chosen yet. */
+// Usage counts read the user's answer and unsetld.com's switch from the store (docs/METRICS.md).
+connectMetrics(() => ({ shareUsage: useApp.getState().settings.shareUsage, metrics: useApp.getState().remote.metrics }));
+
+/**
+ * Today's plan, built the first time it's needed. Not before onboarding: the profile isn't chosen
+ * yet. Usage counts close the days before today and send what's due (both do nothing while dormant).
+ */
 function ensureToday() {
   const s = useApp.getState();
   s.refreshDay();
   if (s.settings.onboarded) s.ensurePlan(today());
+  closeDays(useApp.getState().plans, useApp.getState().record, s.profile.minutes);
+  void flushMetrics();
 }
 
 /** Clears proof photos past the retention setting, from the record and from the phone. */

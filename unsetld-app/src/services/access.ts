@@ -5,6 +5,7 @@
 // again.
 import { Linking, Platform } from 'react-native';
 import { AppConfig, IS_PREVIEW } from '../config/app';
+import { parseMetricsSwitch } from '../core/metrics';
 import { parseRewards, parseStatus, statusFromMilestones } from '../core/rewards';
 import type { DayKey } from '../core/time';
 import type { RewardTier, StatusTier } from '../core/types';
@@ -86,6 +87,8 @@ export interface RemoteConfig {
    * content/milestones.json.
    */
   status: StatusTier[] | null;
+  /** Anonymous usage counts may be sent (docs/METRICS.md). Only a literal true; absent is false. */
+  metrics: boolean;
 }
 
 export async function fetchConfig(): Promise<RemoteConfig | null> {
@@ -96,6 +99,7 @@ export async function fetchConfig(): Promise<RemoteConfig | null> {
     collection: String(json.collection ?? AppConfig.defaultCollection),
     rewards: parseRewards(json.rewards),
     status: parseStatus(json.status),
+    metrics: parseMetricsSwitch(json.metrics),
   };
 }
 
