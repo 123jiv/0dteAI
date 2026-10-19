@@ -145,8 +145,13 @@ export const ONBOARDING = {
     examples: ['Get my GPA up', 'Launch my clothing brand', 'Get an internship', 'Build muscle', 'Learn coding', 'Save $1,000'],
     a11yExample: (text: string) => `Use ${text}`,
     clear: 'Clear',
-    /** Under the field when what's typed matches nothing the plan can lean toward (core/personalize goalLean). Each word named here does. */
-    noMatch: "This doesn't match any missions yet. Words like gym, grades, job, savings or coding steer them.",
+    /**
+     * Under the field when the words reach none of the user's areas (core/areaChoice
+     * goalQuestion): pick one, and the missions lean toward it. The text stays as written.
+     */
+    area: 'Which of your areas is this about?',
+    /** Above the question, when the words name an area the user didn't pick. */
+    outside: (area: string) => `${area} isn't one of your areas.`,
   },
 
   /** Reminders: onboarding, and You › Reminders. */

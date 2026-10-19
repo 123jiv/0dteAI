@@ -295,3 +295,126 @@ describe('staples and niche missions', () => {
     expect(later).toBeLessThan(total);
   });
 });
+
+describe('the area picked for a goal or a "Something else" (launch pass)', () => {
+  const day: DayKey = '2026-10-14';
+  const week: DayKey = '2026-10-12';
+
+  it('a goal whose words match nothing leans toward the area picked for it', () => {
+    expect(leanFor({ goal: 'Get my life together' }, day).goalAreas).toEqual([]);
+    expect(leanFor({ goal: 'Get my life together', goalArea: 'discipline' }, day).goalAreas).toEqual(['discipline']);
+  });
+
+  it("comes after the areas the words match, and isn't repeated", () => {
+    expect(leanFor({ goal: 'Get my GPA up', goalArea: 'skills' }, day).goalAreas).toEqual(['school', 'skills']);
+    expect(leanFor({ goal: 'Get my GPA up', goalArea: 'school' }, day).goalAreas).toEqual(['school']);
+  });
+
+  it('counts only beside a goal the app can use, and only as a real area', () => {
+    expect(leanFor({ goal: null, goalArea: 'discipline' }, day).goalAreas).toEqual([]);
+    expect(leanFor({ goal: 'Buy a vape', goalArea: 'discipline' }, day).goalAreas).toEqual([]);
+    expect(leanFor({ goal: 'Get my life together', goalArea: 'nonsense' as TrackId }, day).goalAreas).toEqual([]);
+  });
+
+  it('"Something else" with an area picked leans toward that area', () => {
+    const focus = (area?: TrackId, text = 'Get my life together') => ({ focus: { week, id: 'other' as const, text, ...(area ? { area } : {}) } });
+    expect(leanFor(focus(), day).focusArea).toBeNull();
+    expect(leanFor(focus('organization'), day).focusArea).toBe('organization');
+    // The pick wins over what the words match (it's only asked for when they match nothing).
+    expect(leanFor(focus('money', 'Finish my portfolio site'), day).focusArea).toBe('money');
+    // Text the app can't use leans nowhere, picked area or not.
+    expect(leanFor(focus('money', 'Start a betting channel'), day).focusArea).toBeNull();
+    // A focus from the list keeps its own area.
+    expect(leanFor({ focus: { week, id: 'gym', area: 'money' } }, day).focusArea).toBe('fitness');
+  });
+
+  it('the lean is worked out again when either pick changes', () => {
+    expect(leanFor({ goal: 'Get my life together', goalArea: 'money' }, day).goalAreas).toEqual(['money']);
+    expect(leanFor({ goal: 'Get my life together', goalArea: 'skills' }, day).goalAreas).toEqual(['skills']);
+    expect(leanFor({ goal: 'Get my life together', goalArea: null }, day).goalAreas).toEqual([]);
+    const other = (area: TrackId) => ({ focus: { week, id: 'other' as const, text: 'Sort my life out', area } });
+    expect(leanFor(other('money'), day).focusArea).toBe('money');
+    expect(leanFor(other('skills'), day).focusArea).toBe('skills');
+  });
+
+  it('leads the plan with the picked area, as a goal that names it would', () => {
+    const named = profile({ tracks: ['skills', 'school', 'money'], minutes: 30, goal: 'Save $1,000' });
+    const picked = profile({ tracks: ['skills', 'school', 'money'], minutes: 30, goal: 'Get my life together', goalArea: 'money' });
+    const plain = profile({ tracks: ['skills', 'school', 'money'], minutes: 30, goal: 'Get my life together' });
+    const focused = (x: Mission) => x.track === 'money' && x.minutes > 15;
+    expect(count(9, focused, { profile: picked })).toBe(count(9, focused, { profile: named }));
+    expect(count(9, focused, { profile: picked })).toBeGreaterThan(count(9, focused, { profile: plain }));
+  });
+});
+
+describe('text the safety check refuses steers nothing (launch pass)', () => {
+  it('a refused goal matches no area, tag, search or building', () => {
+    for (const g of ['Launch my vape shop', 'Make money sports betting', 'Purge after meals', 'Run until I puke', 'Start my crypto trading page']) {
+      expect(goalLean(g), g).toEqual({ areas: [], tags: [] });
+    }
+    expect(goalPointsAt('Launch my vape shop', 'projects')).toBe(false);
+    expect(goalPointsAt('Get my GPA up without sleep', 'school')).toBe(false);
+    expect(jobSearch({ goal: 'Get a job at the smoke shop' })).toBe(false);
+    expect(jobSearch({ goal: 'Get a job and buy a vape' })).toBe(false);
+  });
+
+  it('a goal with only a note still steers: weight goals lean on training', () => {
+    expect(goalLean('Lose weight').areas).toEqual(['fitness']);
+    expect(goalLean('Bulk up').areas).toEqual(['fitness']);
+  });
+
+  it('a refused "Something else" leans nowhere', () => {
+    const lean = leanFor({ focus: { week: '2026-10-12', id: 'other', text: 'Win at the casino' } }, '2026-10-13');
+    expect(lean.focusArea).toBeNull();
+    expect([...lean.focusTags]).toEqual([]);
+  });
+});
+
+describe('keyword fixes (launch pass)', () => {
+  it('school subjects by name', () => {
+    for (const g of ['Pass calculus', 'Get better at math', 'Ace chemistry', 'Get an A in physics', 'Pass biology', 'Study history', 'Get a 5 on AP Calc']) {
+      expect(goalLean(g).areas, g).toEqual(['school']);
+    }
+    // "AP" only in capitals.
+    expect(goalLean('ap').areas).toEqual([]);
+  });
+
+  it('getting promoted is Career', () => {
+    expect(goalLean('Get promoted').areas).toEqual(['career']);
+  });
+
+  it('locking in and wasting time are Discipline', () => {
+    expect(goalLean('Lock in').areas).toEqual(['discipline']);
+    expect(goalLean('Stop wasting time').areas).toEqual(['discipline']);
+  });
+
+  it('spending time is not Money; spending money still is', () => {
+    expect(goalLean('Spend less time on my phone').areas).toEqual(['discipline']);
+    expect(goalLean('Spend more time reading').areas).not.toContain('money');
+    expect(goalLean('Spend less').areas).toEqual(['money']);
+    expect(goalLean('Stop spending money on clothes').areas[0]).toBe('money');
+  });
+
+  it('more money words', () => {
+    for (const g of ['Pay off my credit card', 'Build an emergency fund', 'Stop impulse buying', 'Afford a car']) expect(goalLean(g).areas[0], g).toBe('money');
+  });
+
+  it('growing an account is Projects; cutting down on the app is not', () => {
+    expect(goalLean('Grow my TikTok').areas).toEqual(['projects']);
+    expect(goalLean('Get 1000 followers').areas).toEqual(['projects']);
+    expect(goalLean('Post on Instagram for my shop').areas).toEqual(['projects']);
+    expect(goalLean('Limit TikTok to 30 minutes').areas).not.toContain('projects');
+    expect(goalLean('Quit Instagram').areas).not.toContain('projects');
+  });
+
+  it('food words no longer point at Fitness (no mission is about food): they get the area question', () => {
+    for (const g of ['Eat healthier', 'Cook dinner more', 'Eat more protein', 'Meal prep on Sundays']) expect(goalLean(g), g).toEqual({ areas: [], tags: [] });
+  });
+
+  it('goals the earlier rows matched keep their areas in the same order', () => {
+    expect(goalLean('Improve grades and train consistently.').areas).toEqual(['school', 'fitness']);
+    expect(goalLean('Build a clothing brand and save money.').areas).toEqual(['projects', 'money']);
+    expect(goalLean('Get a software job and improve coding.').areas).toEqual(['career', 'skills', 'projects']);
+    expect(goalLean('Pass my history exam').areas).toEqual(['school']);
+  });
+});

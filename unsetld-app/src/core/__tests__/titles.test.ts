@@ -51,3 +51,30 @@ describe('personalized titles', () => {
     expect(missionTitle({ title: 'Clear Your Desk' }, me('Launch my clothing brand'))).toBe('Clear Your Desk');
   });
 });
+
+// These titles show on Today, in widgets, on the Lock Screen and in reminders, and read as the
+// app's own: words from a goal the safety check refuses, or that swear, never go in (core/safety).
+describe('titles never carry unsafe or profane goal words', () => {
+  it('keeps the approved title for goals the check refuses', () => {
+    for (const goal of ['Launch my vape shop', 'Grow my weed business', 'Launch my OnlyFans page', 'Start a gambling blog', 'Start my crypto trading page']) {
+      expect(missionTitle(P1, me(goal)), goal).toBe(P1.title);
+      expect(projectFrom(goal), goal).toBeNull();
+    }
+    expect(missionTitle(S1, me('Pass calculus without sleep'))).toBe(S1.title);
+    expect(missionTitle(C2, me('Get a software job and buy a vape'))).toBe(C2.title);
+    expect(opportunityFrom('Get a finance internship and smoke weed')).toBeNull();
+    expect(subjectFrom('Pass chemistry and get drunk')).toBeNull();
+  });
+
+  it('keeps the approved title when the lifted words swear or are about a body', () => {
+    for (const goal of ['Launch my fucking brand', 'Grow my shit business', 'Launch my Bitch Better brand', 'Build my hell app', 'Start my damn channel', 'Grow my abs channel']) {
+      expect(missionTitle(P1, me(goal)), goal).toBe(P1.title);
+    }
+  });
+
+  it('still fills from an ordinary goal, and from a usable one with a note', () => {
+    expect(missionTitle(P1, me('Launch my clothing brand'))).toBe('Work on Your Clothing Brand for 30 Minutes');
+    expect(missionTitle(P1, me('Lose weight and launch my clothing brand'))).toBe('Work on Your Clothing Brand for 30 Minutes');
+    expect(missionTitle(P1, me('Quit vaping and grow my YouTube channel'))).toBe('Work on Your YouTube Channel for 30 Minutes');
+  });
+});

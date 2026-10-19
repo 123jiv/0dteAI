@@ -1,11 +1,15 @@
 // Personalization for the daily plan: plain, deterministic rules (never "AI").
 // - The weekly focus ("What matters most this week?") leans the week toward an area and
 //   specific missions.
-// - The goal ("What are you working toward?") is matched by keywords against mission tags.
+// - The goal ("What are you working toward?") is matched by keywords against mission tags;
+//   when its words reach none of the user's areas, the area they pick for it (Profile.goalArea).
+// - Text the safety check refuses (core/safety) steers nothing, saved before the check or not.
 // - What the user did lately adapts the plan: missions swapped or left undone come up less,
 //   long missions give way to shorter ones when only the shorter ones get done, an area
 //   proven consistently gets slightly bigger missions, and missions tied to the time of day
 //   follow when the user usually proves things.
+import { TRACK_IDS } from './progress';
+import { usableText } from './safety';
 import { addDays, parseDay, type DayKey } from './time';
 import type { DayPlan, FocusId, Mission, MissionDone, Profile, TrackId, WeeklyFocus } from './types';
 
@@ -67,7 +71,6 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
     areas: ['fitness'],
     tags: ['sport', 'training'],
   },
-  { words: /\b(eat(ing)? (better|healthier|healthy)|healthier|nutrition|meals?|protein|cook(ing)?)\b/i, areas: ['fitness'], tags: ['meal', 'food'] },
   // A brand or a business is something being built: Projects (3.3 folded Business into it).
   {
     words: /\b(brand|clothing|apparel|business|shop|store|sell(ing)?|customers?|clients?|startup|company|merch|side hustle|hustle|entrepreneur\w*|etsy|resell(ing)?)\b/i,
@@ -84,7 +87,8 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
   { words: /\b(apps?|websites?)\b/i, areas: ['projects', 'skills'], tags: ['app', 'coding', 'code'] },
   { words: /\b(cod(e|ing)|program(ming)?|developer|software|python|javascript)\b/i, areas: ['skills', 'projects'], tags: ['coding', 'code', 'programming'] },
   {
-    words: /\b(save|saving|savings|budget(ing)?|debt|invest(ing)?|money|spend(ing)?|income|financ\w*)\b|\$\s?\d/i,
+    // "Spend less time on my phone" is about time, not money.
+    words: /\b(save|saving|savings|budget(ing)?|debt|invest(ing)?|money|spend(ing)?(?!(?:\s+\w+){0,3}\s+time\b)|income|financ\w*)\b|\$\s?\d/i,
     areas: ['money'],
     tags: ['save', 'savings', 'budget', 'money'],
   },
@@ -105,6 +109,23 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
   { words: /\b(music|guitar|piano|drums|singing|instrument)\b/i, areas: ['skills'], tags: ['practice', 'learn', 'music'] },
   { words: /\b(languages?|spanish|french|german|japanese|korean|chinese)\b/i, areas: ['skills'], tags: ['practice', 'learn', 'language'] },
   { words: /\b(learn(ing)?|skills?)\b/i, areas: ['skills'], tags: ['learn'] },
+  // Added after the rows above, so a goal those already matched keeps its areas in the same order.
+  // A school subject by name ("Pass calculus", "Get a 5 on AP Calc").
+  {
+    words: /\b(math|maths|calculus|calc|precalc(ulus)?|algebra|geometry|trig(onometry)?|chemistry|chem|physics|biology|history)\b/i,
+    areas: ['school'],
+    tags: ['study', 'grades'],
+  },
+  { words: /\bAP\b/, areas: ['school'], tags: ['study', 'exam'] },
+  { words: /\bpromot(ed|ion)\b/i, areas: ['career'], tags: ['work', 'skill', 'resume'] },
+  { words: /\b(lock(ed)? in|wast(e|ing) (my )?time)\b/i, areas: ['discipline'], tags: ['routine', 'habits', 'focus'] },
+  { words: /\b(credit cards?|emergency fund|impulse|afford\w*|pay(ing)? off)\b/i, areas: ['money'], tags: ['save', 'savings', 'budget', 'money', 'spending'] },
+  // Growing an account is a project; cutting down on the app is not ("Limit TikTok to 30 minutes").
+  {
+    words: /\b(?<!\b(?:limit|less|quit|quitting|stop|delete|deleting|off|no|cut|cutting|without)\s(?:my\s)?)(tiktok|instagram)\b|\bfollowers?\b/i,
+    areas: ['projects'],
+    tags: ['content', 'audience', 'publish'],
+  },
 ];
 
 /**
@@ -114,7 +135,7 @@ const KEYWORDS: { words: RegExp; areas: TrackId[]; tags: string[] }[] = [
  * no bare "build": "Build muscle" is Fitness). core/missions eligibleAreas reads it.
  */
 export function goalPointsAt(text: string | null | undefined, area: TrackId): boolean {
-  if (!text?.trim()) return false;
+  if (!text?.trim() || !usableText(text)) return false;
   return KEYWORDS.some(k => k.areas[0] === area && k.words.test(text));
 }
 
@@ -133,15 +154,19 @@ const NOT_A_SEARCH =
  * didn't pick Career, and the 'jobsearch' requirement (Apply to One Job or Internship), follow it.
  */
 export function jobSearch(profile: Pick<Profile, 'goal' | 'focus' | 'nextFocus'>, day?: DayKey): boolean {
-  if (JOB_SEARCH.test((profile.goal ?? '').replace(NOT_A_SEARCH, ' '))) return true;
+  const goal = usableText(profile.goal) ? (profile.goal ?? '') : '';
+  if (JOB_SEARCH.test(goal.replace(NOT_A_SEARCH, ' '))) return true;
   return day != null && activeFocus(profile, day)?.id === 'apply';
 }
 
-/** What a goal (or a weekly focus typed under "Something else") points at. Empty for no match. */
+/**
+ * What a goal (or a weekly focus typed under "Something else") points at. Empty for no match,
+ * and for text the safety check refuses (core/safety): it steers nothing.
+ */
 export function goalLean(text: string | null | undefined): { areas: TrackId[]; tags: string[] } {
   const areas: TrackId[] = [];
   const tags: string[] = [];
-  if (!text?.trim()) return { areas, tags };
+  if (!text?.trim() || !usableText(text)) return { areas, tags };
   for (const k of KEYWORDS) {
     if (!k.words.test(text)) continue;
     for (const a of k.areas) if (!areas.includes(a)) areas.push(a);
@@ -154,7 +179,10 @@ export function goalLean(text: string | null | undefined): { areas: TrackId[]; t
 export interface Lean {
   /** The week's focus area: it leads the day (and joins the user's areas for the week if it wasn't one). */
   focusArea: TrackId | null;
-  /** Areas the goal points at (lead only when no focus or weekly priority is set). */
+  /**
+   * Areas the goal points at (lead only when no focus or weekly priority is set): what its words
+   * match, then the area picked for it on the Goal screen (Profile.goalArea) when that's another.
+   */
   goalAreas: TrackId[];
   /** Missions the weekly focus names. */
   ids: ReadonlySet<string>;
@@ -167,19 +195,25 @@ export interface Lean {
 const NO_LEAN: Lean = { focusArea: null, goalAreas: [], ids: new Set(), focusTags: new Set(), goalTags: new Set() };
 const leanCache = new Map<string, Lean>();
 
-export function leanFor(profile: Pick<Profile, 'focus' | 'nextFocus' | 'goal'>, day: DayKey): Lean {
+const isArea = (t: unknown): t is TrackId => typeof t === 'string' && TRACK_IDS.includes(t as TrackId);
+
+export function leanFor(profile: Pick<Profile, 'focus' | 'nextFocus' | 'goal' | 'goalArea'>, day: DayKey): Lean {
   const focus = activeFocus(profile, day);
   const goal = profile.goal ?? '';
   if (!focus && !goal.trim()) return NO_LEAN;
-  const key = `${focus?.id ?? ''}|${focus?.text ?? ''}|${goal}`;
+  // The area picked for the goal counts only with a goal the app can use.
+  const goalArea = goal.trim() && usableText(goal) && isArea(profile.goalArea) ? profile.goalArea : null;
+  // "Something else": the area picked for what was typed, when the text itself can be used.
+  const otherArea = focus?.id === 'other' && usableText(focus.text, 'focus') && isArea(focus.area) ? focus.area : null;
+  const key = `${focus?.id ?? ''}|${focus?.text ?? ''}|${otherArea ?? ''}|${goal}|${goalArea ?? ''}`;
   const hit = leanCache.get(key);
   if (hit) return hit;
   const fromGoal = goalLean(goal);
   const known = focus && focus.id !== 'other' ? FOCUS_LEAN[focus.id] : null;
   const typed = focus?.id === 'other' ? goalLean(focus.text) : null;
   const lean: Lean = {
-    focusArea: known?.area ?? typed?.areas[0] ?? null,
-    goalAreas: fromGoal.areas,
+    focusArea: known?.area ?? otherArea ?? typed?.areas[0] ?? null,
+    goalAreas: goalArea && !fromGoal.areas.includes(goalArea) ? [...fromGoal.areas, goalArea] : fromGoal.areas,
     ids: new Set(known?.ids ?? []),
     focusTags: new Set([...(known?.tags ?? []), ...(typed?.tags ?? [])]),
     goalTags: new Set(fromGoal.tags),

@@ -1,5 +1,6 @@
 // "What matters most this week?" (Today, at the start of a week, and You). The plan leans
 // toward the answer all week (core/personalize). Sentence case, no exclamation marks.
+import { usableText } from '../../core/safety';
 import type { FocusId, WeeklyFocus } from '../../core/types';
 
 const OPTIONS = {
@@ -9,7 +10,8 @@ const OPTIONS = {
   gym: 'Get back into training',
   project: 'Finish my project',
   apply: 'Apply for jobs or internships',
-  // No longer offered (3.2 keeps the list to eight); a focus already set still reads.
+  // Offered again since the launch pass, so Discipline, Organization and Skills don't need
+  // "Something else" (ids and what they lean toward unchanged).
   routine: 'Improve my routine',
   organize: 'Get my space in order',
   save: 'Save money',
@@ -21,15 +23,22 @@ export const FOCUS = {
   title: 'What matters most this week?',
   body: 'Your missions lean toward it all week.',
   options: OPTIONS,
-  /** Order on the screen: eight, kept light. */
-  order: ['school-catchup', 'business', 'gym', 'project', 'exam', 'save', 'apply', 'other'] as FocusId[],
+  /**
+   * Order on the screen: the founder's eight, then routine, space and skill before "Something
+   * else". The screen puts the ones in the user's own areas first (core/review focusChoices).
+   */
+  order: ['school-catchup', 'business', 'gym', 'project', 'exam', 'save', 'apply', 'routine', 'organize', 'skill', 'other'] as FocusId[],
   /** "Something else": the most they can type. */
   otherMax: 60,
   otherPlaceholder: 'In a few words',
   otherA11y: 'What matters most this week, in your words',
   otherCount: (n: number, max: number) => `${n} / ${max}`,
-  /** Under the field when what's typed matches nothing the plan can lean toward (core/personalize goalLean). */
-  otherNoMatch: "This doesn't match any missions yet. Pick an option above to steer them.",
+  /**
+   * Under the field when what's typed names no area (core/personalize goalLean), or an area was
+   * picked for it before: the area chips (core/areaChoice focusAreaChoices). A pick is needed
+   * before an unmatched answer can be set.
+   */
+  otherArea: 'Which area is this about?',
   save: 'Set this week',
   skip: 'Not this week',
   clear: 'Clear this week',
@@ -46,6 +55,10 @@ export const FOCUS = {
   currentHint: 'Change this week’s focus',
   /** An option as the user reads it. `gym` is kept for callers; "Get back into training" fits with or without one. */
   option: (id: FocusId, gym?: boolean | null): string => (void gym, OPTIONS[id]),
-  /** What a focus reads as: the option, or what they typed for "Something else". */
-  label: (f: Pick<WeeklyFocus, 'id' | 'text'>, gym?: boolean | null): string => (void gym, f.id === 'other' ? f.text?.trim() || OPTIONS.other : (OPTIONS[f.id] ?? OPTIONS.other)),
+  /**
+   * What a focus reads as: the option, or what they typed for "Something else" (just "Something
+   * else" for text the safety check refuses, core/safety, so it never shows on Today).
+   */
+  label: (f: Pick<WeeklyFocus, 'id' | 'text'>, gym?: boolean | null): string =>
+    (void gym, f.id === 'other' ? (usableText(f.text, 'focus') ? f.text?.trim() : null) || OPTIONS.other : (OPTIONS[f.id] ?? OPTIONS.other)),
 };

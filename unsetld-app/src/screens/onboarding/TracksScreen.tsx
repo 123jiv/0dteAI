@@ -36,7 +36,8 @@ export function useProfileDraft(edit: boolean) {
   const save = (extra?: Partial<Profile>) => {
     const s = useApp.getState();
     const all = { ...changes, ...extra };
-    const diff = (Object.keys(all) as (keyof Profile)[]).filter(k => JSON.stringify(s.profile[k]) !== JSON.stringify(all[k]));
+    // A field older saves don't have (undefined) and its empty value (null) are the same answer.
+    const diff = (Object.keys(all) as (keyof Profile)[]).filter(k => JSON.stringify(s.profile[k] ?? null) !== JSON.stringify(all[k] ?? null));
     if (!diff.length) return;
     s.setProfile(Object.fromEntries(diff.map(k => [k, all[k]])) as Partial<Profile>);
     s.replanToday();

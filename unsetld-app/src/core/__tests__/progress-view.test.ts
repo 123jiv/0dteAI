@@ -2,6 +2,7 @@
 // achievements, proof history by month (cleared photos and timer-only proofs keep their place),
 // and the weekly review's "Next week" focus.
 import { describe, expect, it } from 'vitest';
+import { FOCUS } from '../../content/copy/focus';
 import missionsJson from '../../content/missions.json';
 import { DEFAULT_PROFILE } from '../missions';
 import { achievementsView, areaProgress, areasShown, milestones, proofMonths, trackProgress, weekDays } from '../progress';
@@ -167,5 +168,18 @@ describe('the review sets next week’s focus', () => {
     // An area with nothing the user's answers allow is left out, whatever it is.
     const onlySchool = library.filter(m => m.track === 'school');
     expect(focusChoices(order, onlySchool, p({ school: true }))).toEqual(['school-catchup', 'exam']);
+  });
+
+  it('offers routine, space and skill again (launch pass), so those areas need no "Something else"', () => {
+    const library = missionsJson as unknown as Mission[];
+    const p = (patch: Partial<Profile>): Profile => ({ ...DEFAULT_PROFILE, ...patch });
+    // The screen's order: the founder's eight, then the three, then "Something else" (which the review leaves out).
+    expect(FOCUS.order).toEqual(['school-catchup', 'business', 'gym', 'project', 'exam', 'save', 'apply', 'routine', 'organize', 'skill', 'other']);
+    const all = focusChoices(FOCUS.order, library, p({ school: true, age: '18plus', tracks: ['school', 'fitness'] }));
+    expect(all).toEqual(['school-catchup', 'gym', 'exam', 'business', 'project', 'save', 'apply', 'routine', 'organize', 'skill']);
+    // Someone with Discipline, Organization and Skills sees theirs first.
+    expect(focusChoices(FOCUS.order, library, p({ school: null, tracks: ['discipline', 'organization', 'skills'] })).slice(0, 3)).toEqual(['routine', 'organize', 'skill']);
+    // The labels as stored; the weekly review shows a focus set to one of them as chosen.
+    expect([FOCUS.option('routine'), FOCUS.option('organize'), FOCUS.option('skill')]).toEqual(['Improve my routine', 'Get my space in order', 'Learn a skill']);
   });
 });

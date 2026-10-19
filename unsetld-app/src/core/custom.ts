@@ -8,6 +8,7 @@
 //  - a timer has to run to the end, and photos go through the same fresh / duplicate checks.
 // The generator never plans them (they aren't in the library it draws from), and each carries
 // source USER_CREATED; approved library missions carry UNSETLD.
+import { usableText } from './safety';
 import type { DayPlan, Mission, PlannedMission, ProofType, TrackId } from './types';
 
 export const CUSTOM_PREFIX = 'custom-';
@@ -59,10 +60,14 @@ const PROOF_TEXT: Record<string, string> = {
   TIMER_AND_PHOTO: 'The timer, then a photo of what you got done.',
 };
 
-/** A mission from the form, or null when the input isn't valid. `id` is made by the caller (custom-…). */
+/**
+ * A mission from the form, or null when the input isn't valid: a title of the right length that
+ * the app can use (core/safety: nothing it blocks or answers with support, and nothing about the
+ * scale, since a mission is proven by a photo). `id` is made by the caller (custom-…).
+ */
 export function makeCustomMission(input: CustomInput, id: string): Mission | null {
   const title = cleanTitle(input.title);
-  if (!title || !isCustomId(id) || !CUSTOM_PROOFS.includes(input.proofType)) return null;
+  if (!title || !usableText(title, 'mission') || !isCustomId(id) || !CUSTOM_PROOFS.includes(input.proofType)) return null;
   const timed = input.proofType === 'TIMER' || input.proofType === 'TIMER_AND_PHOTO';
   if (timed && !CUSTOM_TIMER_MINUTES.includes(input.timerMinutes ?? -1)) return null;
   const minutes = timed ? input.timerMinutes! : input.proofType === 'BEFORE_AFTER' ? 20 : 10;

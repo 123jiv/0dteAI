@@ -80,9 +80,13 @@ const GOALS: (string | null)[] = [
   'Get a promotion at work',
   'Become a better person',
   'Ace the SAT and get into a good college',
+  // Launch pass: words that match nothing (the Goal screen asks for an area), and one the text check refuses.
+  'Get my life together',
+  'Buy a car',
+  'Launch my vape shop',
 ];
 /** What someone types for a weekly focus of their own ("Something else"). */
-const TYPED = ['Get back into running', 'Finish my portfolio', 'Study for finals', 'Sell my first shirts', 'Rest', ''];
+const TYPED = ['Get back into running', 'Finish my portfolio', 'Study for finals', 'Sell my first shirts', 'Rest', '', 'Get my life together', 'Win at the casino'];
 /** The hour a plan is made (none: a day planned ahead). */
 const HOURS = [undefined, 5, 8, 11, 13, 16, 20, 23, 2];
 const DAYS = 60;
@@ -117,7 +121,16 @@ function profileFor(k: number, tracks: TrackId[], r: () => number): Profile {
     intensity: oneOf(r, ['easy', 'lockin', 'push'] as const),
     priority: null,
     goal: oneOf(r, GOALS),
+    // The area picked on the Goal screen (launch pass), any area at all: its own generator, so the
+    // users above stay the same.
+    goalArea: goalAreaFor(k),
   };
+}
+
+/** Half the users picked an area for their goal, whatever the goal says. */
+function goalAreaFor(k: number): TrackId | null {
+  const r = mulberry32(hash32(`whitelist-goal-area:${k}`));
+  return r() < 0.5 ? oneOf(r, AREAS) : null;
 }
 
 function proof(p: PlannedMission, day: DayKey, hour: number): MissionDone {
@@ -193,10 +206,13 @@ function live(k: number, picked: TrackId[], seen: Seen, bad: string[], own: Miss
   let program: ProgramState | null = null;
   // A weekly focus for most weeks; some picked ahead on Sunday (nextFocus), some left over from last week.
   const weekFocus = new Map<DayKey, WeeklyFocus | null>();
+  const pickArea = mulberry32(hash32(`whitelist-focus-area:${k}`));
   const focusOf = (week: DayKey): WeeklyFocus | null => {
     if (!weekFocus.has(week)) {
       const id = r() < 0.25 ? null : FOCUS_IDS[Math.floor(r() * FOCUS_IDS.length)];
-      weekFocus.set(week, id ? { week, id, ...(id === 'other' ? { text: oneOf(r, TYPED) } : {}) } : null);
+      // "Something else" with an area picked for it half the time (launch pass), from its own generator.
+      const area = id === 'other' && pickArea() < 0.5 ? oneOf(pickArea, AREAS) : null;
+      weekFocus.set(week, id ? { week, id, ...(id === 'other' ? { text: oneOf(r, TYPED), ...(area ? { area } : {}) } : {}) } : null);
     }
     return weekFocus.get(week)!;
   };

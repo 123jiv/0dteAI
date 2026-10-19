@@ -12,6 +12,7 @@ import {
   isCustomId,
   type CustomInput,
 } from '../../core/custom';
+import { usableText } from '../../core/safety';
 import type { DayPlan, Mission, ProofType, TrackId } from '../../core/types';
 import { MISSION_BY_ID } from '../../content';
 
@@ -53,14 +54,15 @@ export function canAddOwn(plan: DayPlan | null | undefined, index: number): bool
 
 /**
  * Missions of the user's own to use again, newest first (the store keeps them newest last):
- * not one already in the day or swapped out of it today, in one of the user's areas.
+ * not one already in the day or swapped out of it today, in one of the user's areas, and not
+ * one kept from before the text check that it would now refuse (core/safety).
  */
 export function recentOwn(list: readonly Mission[], plan: DayPlan | null | undefined, tracks: readonly TrackId[], count = 3): Mission[] {
   const inDay = new Set([...(plan?.missions ?? []).map(p => p.missionId), ...(plan?.replaced ?? [])]);
   const out: Mission[] = [];
   for (let i = list.length - 1; i >= 0 && out.length < count; i--) {
     const m = list[i];
-    if (!m || inDay.has(m.id) || !tracks.includes(m.track) || !CUSTOM_PROOFS.includes(m.proofType)) continue;
+    if (!m || inDay.has(m.id) || !tracks.includes(m.track) || !CUSTOM_PROOFS.includes(m.proofType) || !usableText(m.title, 'mission')) continue;
     if (out.some(o => o.title.toLowerCase() === m.title.toLowerCase())) continue;
     out.push(m);
   }
@@ -96,11 +98,14 @@ export function draftFrom(m: Mission, current: OwnDraft): OwnDraft {
   return { title: m.title, track: m.track, proofType: m.proofType, minutes: m.timerMinutes ?? current.minutes };
 }
 
-/** What createCustomMission takes, or null while the form isn't complete (a title of 3 to 40 letters, an area). */
+/**
+ * What createCustomMission takes, or null while the form isn't complete (a title of 3 to 40
+ * letters that the text check lets through, an area). Null disables "Add to today".
+ */
 export function draftInput(d: OwnDraft | null | undefined): CustomInput | null {
   if (!d?.track) return null;
   const title = cleanTitle(d.title);
-  if (!title || !CUSTOM_PROOFS.includes(d.proofType)) return null;
+  if (!title || !usableText(title, 'mission') || !CUSTOM_PROOFS.includes(d.proofType)) return null;
   const timed = isTimed(d.proofType);
   if (timed && !CUSTOM_TIMER_MINUTES.includes(d.minutes)) return null;
   return { title, track: d.track, proofType: d.proofType, ...(timed ? { timerMinutes: d.minutes } : {}) };
