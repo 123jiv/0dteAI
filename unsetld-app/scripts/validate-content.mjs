@@ -140,8 +140,26 @@ const SENSITIVE = [
   'selfie', 'mirror', 'face', 'bank balance', 'account number', 'card number', 'grade', 'grades', 'bedroom', 'address',
   'location',
 ];
-// Never in a mission, whatever the context.
-const NEVER = /\b(shirtless|weigh-in|progress pic\w*|body check|before-and-after body|calorie deficit|water fast|dry fast|no sleep|all-nighter|vape|vaping|alcohol|beer|smoke weed|nicotine|options trading|day trading|leverage|casino|sports bet\w*|lottery|dare)\b/i;
+// Never in a mission, whatever the context. Plurals and close synonyms too (launch pass): the same
+// ground core/safety covers for what users write, which every approved mission also passes
+// (src/core/__tests__/safety.test.ts).
+const NEVER = new RegExp(
+  '\\b(' +
+    [
+      'shirtless', 'weigh-ins?', 'weigh ins?', 'weighing yourself', 'progress pic\\w*', 'body checks?', 'before-and-after body',
+      'calorie deficits?', 'counting calories', 'water fast\\w*', 'dry fast\\w*', 'fasting', 'skip(?:ping)? (?:a )?meals?',
+      'purg(?:e|es|ing)', 'starv(?:e|es|ing) yourself', 'laxatives?',
+      'no sleep', 'all-nighters?', 'all nighters?',
+      'vap(?:e|es|ed|ing)', 'juul\\w*', 'nicotine', 'cigarettes?', 'cigs?', 'tobacco', 'smok(?:e|es|ing) (?:weed|pot|cigs?|cigarettes?)',
+      'weed', 'marijuana', 'cannabis', 'thc', 'edibles',
+      'alcohol', 'beers?', 'vodka', 'tequila', 'whiske?y', 'liquor', 'drunk',
+      'options trading', 'day trad(?:e|es|er|ers|ing)', '(?:crypto|stock|forex) trading', 'forex', 'meme ?coins?', 'leverag(?:e|ed|ing)',
+      'casinos?', 'gambl(?:e|es|ed|ing)', 'sports bet\\w*', 'betting', 'lotter(?:y|ies)', 'parlays?',
+      'dares?',
+    ].join('|') +
+    ')\\b',
+  'i',
+);
 const SWEAR = /\b(damn\w*|hell|shit\w*|piss\w*|fuck\w*)\b/i;
 const EMOJI = /\p{Extended_Pictographic}/u;
 const escape = s => s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
