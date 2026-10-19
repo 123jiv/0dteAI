@@ -1,8 +1,9 @@
 // Local notifications: mission reminders (spec section 13), drop alerts and the
-// trial reminder. The timer-done notification lives in timerNotify.ts.
+// trial reminder (`trial-end`). The timer-done notification lives in timerNotify.ts.
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { dayReminderTimes, planNotifications, type PlannedNotification } from '../core/reminders';
+import { reminderAt } from '../core/trial';
 import { dayKeyOf, type DayKey } from '../core/time';
 import { missionTitle } from '../core/titles';
 import type { Profile } from '../core/types';
@@ -185,20 +186,58 @@ async function rebuild(input: ScheduleInput, stale: () => boolean): Promise<numb
   return plan.length;
 }
 
-/** Day-2 reminder for the free trial (trial start + 48 h). */
-export async function scheduleTrialReminder(price: string) {
-  if (!supported) return;
-  await Notifications.scheduleNotificationAsync({
-    identifier: 'trial-day2',
-    content: { title: N.title, body: N.trial(price), sound: false },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(Date.now() + 48 * 3600_000) },
-  }).catch(() => {});
+/** The one "free trial ends tomorrow" reminder. */
+export const TRIAL_REMINDER_ID = 'trial-end';
+/** Before 3.3 the reminder was fixed at 48 hours after the paywall's buy button. */
+const LEGACY_TRIAL_ID = 'trial-day2';
+
+export interface TrialReminderInput {
+  /** ISO date the free trial ends, while it will renew (EntitlementInfo.trialEnds). null: no reminder. */
+  trialEnds: string | null | undefined;
+  /** The price that starts then ("$24.99"), when the offering has been read. */
+  price?: string | null;
+  /** Annual or Monthly: what the price is for. */
+  kind?: 'annual' | 'monthly' | 'lifetime' | null;
 }
 
-/** The trial was cancelled or has ended: its "ends tomorrow" reminder would be wrong. */
+/** "Your free trial ends tomorrow. $24.99 a year starts then. Cancel any time in Settings." */
+export function trialReminderBody(input: Pick<TrialReminderInput, 'price' | 'kind'>): string {
+  const unit = input.kind === 'monthly' ? 'month' : input.kind === 'annual' ? 'year' : null;
+  return input.price && unit ? N.trial(input.price, unit) : N.trialNoPrice;
+}
+
+/**
+ * Keeps the trial reminder in step with the membership the store reports: one notification,
+ * `trial-end`, 24 hours before the trial ends (core/trial reminderAt). Called whenever the
+ * membership is saved from the store (state/premium setPremiumFrom: launch, foreground, a
+ * purchase, a restore), so a trial started on another device or restored after a reinstall gets
+ * one too. Cancels it, and the old `trial-day2`, when there's no renewing trial, when the end is
+ * under 25 hours away, or when notifications aren't allowed. Resolves to when it will fire, or null.
+ */
+export const syncTrialReminder = oneAtATime(trialReminder, null as Date | null);
+
+async function trialReminder(input: TrialReminderInput, stale: () => boolean): Promise<Date | null> {
+  if (!supported) return null;
+  await Notifications.cancelScheduledNotificationAsync(LEGACY_TRIAL_ID).catch(() => {});
+  const end = input.trialEnds ? new Date(input.trialEnds) : null;
+  const at = end ? reminderAt(end, new Date()) : null;
+  const perm = at ? await Notifications.getPermissionsAsync().catch(() => null) : null;
+  if (stale()) return null;
+  await Notifications.cancelScheduledNotificationAsync(TRIAL_REMINDER_ID).catch(() => {});
+  if (!at || !perm?.granted) return null;
+  await Notifications.scheduleNotificationAsync({
+    identifier: TRIAL_REMINDER_ID,
+    content: { title: N.title, body: trialReminderBody(input), sound: false },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
+  });
+  return at;
+}
+
+/** No renewing trial any more: its "ends tomorrow" reminder would be wrong. */
 export function cancelTrialReminder() {
   if (!supported) return;
-  Notifications.cancelScheduledNotificationAsync('trial-day2').catch(() => {});
+  Notifications.cancelScheduledNotificationAsync(TRIAL_REMINDER_ID).catch(() => {});
+  Notifications.cancelScheduledNotificationAsync(LEGACY_TRIAL_ID).catch(() => {});
 }
 
 export interface Drop {

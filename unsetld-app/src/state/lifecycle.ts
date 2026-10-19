@@ -12,7 +12,6 @@ import { fetchConfig, fetchDrops, syncCheckIn } from '../services/access';
 import { backupRecord, readBackup } from '../services/backup';
 import { now, today } from '../services/clock';
 import {
-  cancelTrialReminder,
   reminderMissions,
   reschedule,
   scheduleDropAlerts,
@@ -20,34 +19,32 @@ import {
   type ScheduleInput,
 } from '../services/notifications';
 import { deletePhoto } from '../services/proof';
-import { initPurchases, purchaseMode, refreshPremium, type EntitlementInfo } from '../services/purchases';
+import { initPurchases, refreshPremium, type EntitlementInfo } from '../services/purchases';
 import { cancelTimerDone } from '../services/timerNotify';
 import { prepareWidgetAssets, updateWidgets } from '../services/widgets';
 import { showDialog } from '../ui/actions';
 import { PLATFORM } from '../content/copy/platform';
 import { parseUrl, useIntent } from './intents';
+import { guardPremium, setPremiumFrom } from './premium';
 import { useSaveFailed } from './storage';
 import { useApp, useEntitlements } from './store';
 
 let toldOutOfSpace = false;
 
 /**
- * RevenueCat's answer. Active but not renewing means the trial was cancelled
- * (or it's Lifetime), so the "trial ends tomorrow" reminder goes. Not on
- * inactive: a stale answer right after buying would drop the reminder the
- * paywall promised.
+ * RevenueCat's answer, saved whole (state/premium setPremiumFrom: the trial reminder follows it).
+ * An 'unavailable' build always answers inactive, so nothing saved stays unlocked there.
  */
-function setPremiumFrom(active: boolean, info: EntitlementInfo) {
-  useApp.getState().setPremium({ active, plan: info.plan, renews: info.renews });
-  if (active && !info.renews) cancelTrialReminder();
-}
-
 function applyPremium() {
   refreshPremium()
     .then(r => {
-      if (r) setPremiumFrom(r.active, r.info);
+      if (r) return setPremiumFrom(r.active, r.info);
     })
     .catch(() => {});
+}
+
+function onPremiumChange(active: boolean, info: EntitlementInfo) {
+  setPremiumFrom(active, info).catch(() => {});
 }
 
 /** unsetld.com's config: Access on or off, the collection, reward tiers and status tiers (null keeps the defaults). */
@@ -93,8 +90,9 @@ export function useBootstrap() {
         .catch(() => {});
     }
 
-    useApp.getState().setPremium({ mode: purchaseMode });
-    initPurchases(setPremiumFrom)
+    // Fails closed: a membership unlocked in preview mode goes now, without waiting for RevenueCat.
+    guardPremium();
+    initPurchases(onPremiumChange)
       .then(applyPremium)
       .catch(() => {});
     applyConfig();

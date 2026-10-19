@@ -1,8 +1,9 @@
 import type { Plan } from './purchases';
 
-// Sample products used ONLY in preview mode (browser preview, or no RevenueCat
-// key yet). They mirror what should be configured in App Store Connect and
-// RevenueCat. Real builds read prices from StoreKit and never use these.
+// Sample products used ONLY in preview mode (dev builds without a RevenueCat key,
+// and the browser preview). They mirror what should be configured in App Store
+// Connect and RevenueCat. Real builds read prices and the trial from StoreKit and
+// never use these; a release build without a key sells nothing (services/purchases).
 export const PREVIEW_PLANS: Plan[] = [
   {
     id: 'unsetld_full_annual',
@@ -11,7 +12,7 @@ export const PREVIEW_PLANS: Plan[] = [
     price: 24.99,
     priceString: '$24.99',
     currencyCode: 'USD',
-    trialDays: 3,
+    trial: { unit: 'day', count: 3 },
     eligibleForTrial: true,
   },
   {
@@ -21,7 +22,7 @@ export const PREVIEW_PLANS: Plan[] = [
     price: 4.99,
     priceString: '$4.99',
     currencyCode: 'USD',
-    trialDays: null,
+    trial: null,
     eligibleForTrial: false,
   },
   {
@@ -31,7 +32,7 @@ export const PREVIEW_PLANS: Plan[] = [
     price: 39.99,
     priceString: '$39.99',
     currencyCode: 'USD',
-    trialDays: null,
+    trial: null,
     eligibleForTrial: false,
   },
 ];

@@ -1,6 +1,7 @@
 // You, UNSETLD+, tester tools, widgets and notifications (docs/UX_REDESIGN.md section 11).
 // Every user-facing string for the platform group. Sentence case, no exclamation marks.
 // Straight quotes become typographic at display time.
+import { longDate, shortDate } from '../../core/trial';
 import type { Profile } from '../../core/types';
 
 const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six'];
@@ -65,10 +66,14 @@ export const PLATFORM = {
     openSettings: 'Open Settings',
 
     plus: 'UNSETLD+',
-    plusPitch: 'More swaps, every plan, all colorways.',
+    plusPitch: 'Every plan, all colorways, more swaps.',
     planName: { annual: 'Annual', monthly: 'Monthly', lifetime: 'Lifetime' } as Record<string, string>,
     member: 'Member',
     renews: (name: string, date: string) => `${name}, renews ${date}`,
+    /** In a free trial that will renew: "Free trial, ends 22 Oct". */
+    trialEnds: (date: string) => `Free trial, ends ${date}`,
+    /** Cancelled but still active: "Annual, ends 22 Oct 2026". */
+    ends: (name: string, date: string) => `${name}, ends ${date}`,
     restore: 'Restore purchases',
     restored: 'UNSETLD+ restored.',
     noneTitle: 'Nothing to restore.',
@@ -114,10 +119,10 @@ export const PLATFORM = {
     title: 'UNSETLD+',
     description: 'More room to work with. The core of the app stays free.',
     addsLabel: 'WHAT IT ADDS',
-    /** One line per UNSETLD+ feature in core/features. */
+    /** One line per UNSETLD+ feature in core/features. No promise of content that isn't in the app. */
     adds: {
       extraSwaps: (free: number, plus: number) => `${word(plus)} swaps a day instead of ${word(free).toLowerCase()}`,
-      allPlans: (n: number) => `All ${word(n).toLowerCase()} plans, and new ones each season`,
+      allPlans: (n: number, free: number) => `All ${word(n).toLowerCase()} plans instead of ${word(free).toLowerCase()}`,
       colorways: (n: number) => `All ${n === 10 ? 'ten' : num(n)} colorways, in the app and on your widgets`,
       extraReminders: (free: number, plus: number) => `Up to ${plus === 10 ? 'ten' : num(plus)} reminders a day instead of ${word(free).toLowerCase()}`,
     },
@@ -133,7 +138,8 @@ export const PLATFORM = {
       lifetime: 'Lifetime',
     },
     sub: {
-      annualTrial: (days: number) => `${days} days free, then billed yearly`,
+      /** The trial's length comes from the store product: "1 week free, then billed yearly". */
+      trial: (length: string, kind: 'annual' | 'monthly') => `${length} free, then billed ${kind === 'monthly' ? 'monthly' : 'yearly'}`,
       annual: 'Billed yearly',
       monthly: 'Billed monthly',
       lifetime: 'One payment',
@@ -144,22 +150,31 @@ export const PLATFORM = {
     a11yLoading: 'loading',
     perMonth: (p: string) => `${p} a month`,
     save: (pct: number) => `Save ${pct}%`,
-    timeline: (price: string) =>
-      [
-        ['TODAY', 'Everything opens'],
-        ['DAY 2', 'We remind you'],
-        ['DAY 3', `${price} billed`],
-      ] as const,
-    a11yTimeline: (price: string) => `Today, everything opens. Day 2, we remind you. Day 3, ${price} billed.`,
+    /**
+     * The trial, dated from the store's trial length: today, the reminder (only when one will
+     * arrive: notifications allowed and the trial longer than a day), the first charge.
+     * Labels "22 OCT"; VoiceOver reads "22 October".
+     */
+    timeline: (t: { remind: Date | null; end: Date }, price: string) => {
+      const steps: [Date | null, string][] = [[null, 'Everything opens'], ...(t.remind ? [[t.remind, 'We remind you'] as [Date, string]] : []), [t.end, `${price} billed`]];
+      return {
+        /** "TODAY · Everything opens", "21 OCT · We remind you", "22 OCT · $24.99 billed". */
+        points: steps.map(([d, what]) => [d ? shortDate(d) : 'TODAY', what] as const),
+        /** "Today, everything opens. 21 October, we remind you. 22 October, $24.99 billed." */
+        a11y: steps.map(([d, what]) => `${d ? longDate(d) : 'Today'}, ${what.charAt(0).toLowerCase()}${what.slice(1)}.`).join(' '),
+      };
+    },
     cta: {
       trial: 'Start free trial',
+      /** While prices load, or when they couldn't: nothing is promised yet. */
+      subscribe: 'Subscribe',
       annual: (p: string) => `Subscribe for ${p} a year`,
       monthly: (p: string) => `Subscribe for ${p} a month`,
       lifetime: (p: string) => `Buy for ${p}`,
     },
     fine: {
-      trial: (days: number, p: string) =>
-        `${days} days free, then ${p} per year. Renews automatically. Cancel any time in Settings at least 24 hours before the trial ends.`,
+      trial: (length: string, p: string, kind: 'annual' | 'monthly') =>
+        `${length} free, then ${p} per ${kind === 'monthly' ? 'month' : 'year'}. Renews automatically. Cancel any time in Settings at least 24 hours before the trial ends.`,
       annual: (p: string) => `${p} per year. Renews automatically. Cancel any time in Settings.`,
       monthly: (p: string) => `${p} per month. Renews automatically. Cancel any time in Settings.`,
       lifetime: (p: string) => `One payment of ${p}. No subscription.`,
@@ -171,6 +186,15 @@ export const PLATFORM = {
     tryAgain: 'Try again',
     failedTitle: "Purchase didn't go through.",
     failedBody: 'Nothing was charged. Try again in a moment.',
+    /** Ask to Buy: a parent has to approve it first. */
+    pendingTitle: 'Waiting for approval.',
+    pendingBody: 'UNSETLD+ opens here once the purchase is approved.',
+    /** The App Store took the purchase but UNSETLD+ isn't on the account yet. */
+    receivedTitle: 'Purchase received.',
+    receivedBody: "If UNSETLD+ doesn't open in a minute, tap Restore.",
+    /** A build that can't sell UNSETLD+ (no App Store connection): nothing to buy, nothing lost. */
+    unavailableTitle: "UNSETLD+ isn't available right now.",
+    unavailableBody: 'Everything free still works.',
     restored: 'UNSETLD+ restored.',
     ok: 'OK',
     noneTitle: 'Nothing to restore.',
@@ -239,7 +263,9 @@ export const PLATFORM = {
       streak > 0 ? 'Last call: prove one mission today to keep your streak.' : 'Last call: prove one mission today to start a streak.',
     /** A day the app hasn't planned yet names no mission. */
     waiting: (n: number) => `${word(n)} missions are waiting.`,
-    trial: (p: string) => `Your free trial ends tomorrow. ${p} for the year starts then. Cancel any time in Settings.`,
+    /** 24 hours before the store's trial end (services/notifications syncTrialReminder). */
+    trial: (p: string, unit: 'year' | 'month') => `Your free trial ends tomorrow. ${p} a ${unit} starts then. Cancel any time in Settings.`,
+    trialNoPrice: 'Your free trial ends tomorrow. UNSETLD+ renews then unless you cancel in Settings.',
     /** The drop alert, 24 hours before a drop opens: "Collection 005 opens tomorrow at 9:00 AM." */
     dropPublic: (c: string, when: string) => `Collection ${c} opens ${when}.`,
     whenToday: (time: string) => `today at ${time}`,
