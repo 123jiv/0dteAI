@@ -5,7 +5,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'content');
+// CONTENT_DIR: another copy of src/content to check (the validator's own tests use one).
+const root = process.env.CONTENT_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'content');
 const read = f => JSON.parse(fs.readFileSync(path.join(root, f), 'utf8'));
 
 const tracks = read('tracks.json');
@@ -307,6 +308,30 @@ for (const p of programs) {
   }
 }
 if (programs.filter(p => p.free).length < 2) errors.push('programs.json: at least two programs must be free');
+// Each plan is its own run: five to fourteen days, never another plan's days again, and never
+// mostly the same missions as another (Jaccard overlap of their mission sets under 0.8). A plan
+// that can't meet this needs new approved missions, not a reshuffle of an existing plan.
+const PLAN_DAYS = { min: 5, max: 14 };
+const MAX_OVERLAP = 0.8;
+const missionSet = p => new Set((p.plan ?? []).flat());
+for (const p of programs) {
+  if (!Number.isInteger(p.days) || p.days < PLAN_DAYS.min || p.days > PLAN_DAYS.max) {
+    errors.push(`program ${p.id}: must run ${PLAN_DAYS.min}–${PLAN_DAYS.max} days (has ${p.days})`);
+  }
+}
+for (const [i, a] of programs.entries()) {
+  for (const b of programs.slice(i + 1)) {
+    if (JSON.stringify(a.plan) === JSON.stringify(b.plan)) {
+      errors.push(`programs ${a.id} and ${b.id}: the same days, mission for mission`);
+      continue;
+    }
+    const sa = missionSet(a);
+    const sb = missionSet(b);
+    const shared = [...sa].filter(id => sb.has(id)).length;
+    const overlap = shared / new Set([...sa, ...sb]).size;
+    if (overlap >= MAX_OVERLAP) errors.push(`programs ${a.id} and ${b.id}: ${Math.round(overlap * 100)}% the same missions (must be under ${MAX_OVERLAP * 100}%)`);
+  }
+}
 
 // Rewards
 const rewardIds = new Set();
