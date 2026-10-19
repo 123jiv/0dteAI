@@ -10,7 +10,7 @@ Related documents:
 
 The brief's non-negotiable product rules held throughout: no AI or generated missions, proof photos private and on the phone, no social features, no buying points, UNSETLD+ never raises earning (now enforced, P0-2), the core loop free, no clothing ads in missions, reminders or widgets, no chance-based rewards, the restrained voice, no new tabs, and none of the 66 approved missions renamed, reworded or deleted.
 
-**Baseline and now.** At `acea784`: 45 test files, 508 tests, store `unsetld-v2` version 7. After the merge: about 80 test files and over 1,000 tests, store version 8 (one bump, `toV8`), app version 3.3.0. `npm run check` passes.
+**Baseline and now.** At `acea784`: 45 test files, 508 tests, store `unsetld-v2` version 7. After the merge (with stream H): 85 test files and 1,104 tests, store version 8 (one bump, `toV8`), app version 3.3.0. `npm run check` passes.
 
 ---
 
@@ -19,7 +19,7 @@ The brief's non-negotiable product rules held throughout: no AI or generated mis
 | Priority | Done | Pending |
 |---|---|---|
 | P0 launch blockers | 8 of 8 in code and docs | P0-7's publishing and counsel review, and running P0-8's device checks (ops and founder) |
-| P1 clearly safe | 18 of 21 | P1-18 (ops), most of P1-19 (held), P1-20 (stream H, partly committed) |
+| P1 clearly safe | 19 of 21 | P1-18 (ops), most of P1-19 (held) |
 | P1-founder | PF-1 and PF-3 (approved by the orchestrator) | PF-2, PF-4 to PF-10: founder decisions, documented |
 | P2 | none, by design | listed in section 5 |
 
@@ -62,6 +62,7 @@ The brief's non-negotiable product rules held throughout: no AI or generated mis
 | P1-15 | Release builds ignore tester state | Done | `add78d9` | Offset 0, timer speed 1, a held snapshot comes back, on load in release builds. |
 | P1-16 | Photo hygiene | Done | `add78d9` | One copy kept; memory-only image views; startup orphan and cache sweep with guards. |
 | P1-17 | Backup and session hygiene | Done | `add78d9` | Writes wait for the Keychain read; an empty record deletes the item; an orphaned session token is deleted; not onboarded cancels reminders and resets widgets. |
+| P1-20 | Analytics pipeline, dormant | Done (dormant) | `952e39f`, `3e00978`, `7339b54` | A 16-event allowlist of categories and small numbers, a queue under its own key `unsetld.metrics.v1` (never in the store or the Keychain copy; removed by Delete data on this phone), one `track()` line at each call site, the paywall reading `from`, the config switch, and docs/METRICS.md. Nothing is recorded or sent: there is no consent UI, `settings.shareUsage` is null and only PF-5 can turn it on. The privacy policy and label claim no collection, which stays true until PF-5. |
 | P1-21 | Docs pass | Done | `f63b114`, `8651eca`, `915ffbb` | Specs, README, AGENTS, COMPLIANCE brought to the merged code; the founder documents copied into `docs/founder/` with their contradictions fixed; this document. |
 
 ### P1: pending
@@ -70,7 +71,6 @@ The brief's non-negotiable product rules held throughout: no AI or generated mis
 |---|---|---|---|
 | P1-18 | Time check endpoint | Pending (ops, then one code line) | Kept for ops by the decisions file. Deploy `/api/app/time` (204, `Cache-Control: no-store`), then point `timeCheckUrl` at it. Until then the check reads an edge-cached `Date` and a day may never record as verified. Not a blocker while rewards are off (checklist O4, R8). |
 | P1-19 | Brand code consolidation | Partly done | Only the `expo-secure-store` `faceIDPermission: false` fix shipped (`e4b6c4b`), as the decisions file allowed. The single barcode, `core/serial.ts`, `appStoreName` and the marketing line wait for PF-4 and PF-6. |
-| P1-20 | Analytics pipeline, dormant | In progress (stream H) | First commit `952e39f`: the allowlist, the queue under its own key `unsetld.metrics.v1` (removed by Delete data on this phone), the config switch and sending, all gated off. The call sites and `docs/METRICS.md` were still being written in the same tree when this was written. By design nothing is recorded or sent: no consent UI, `settings.shareUsage` is null and only PF-5 can turn it on. The privacy policy and label claim no collection, which stays true until PF-5. |
 | — | Mission library audit (`founder/MISSION_LIBRARY_AUDIT.md`, brief Priority 7) | Pending | Planned for stream I after the planner merged; not part of this step. The plus audit's candidate missions are referenced from PLANS.md; nothing goes into `missions.json` without approval. |
 
 ---
@@ -138,7 +138,7 @@ Each row is a decision the founder still owns. "In the build" means the default 
 | 21 | Mission library additions | Approve none until the library audit is reviewed | Proposed; nothing added | `scripts/missions/library.py`, after approval |
 | 22 | Local delete | Signed in: a note and "Delete account first"; keep the trial reminder; YOUR DATA between Account and Help; announce a reinstall restore with "Start fresh instead" (PF-7, not built) | In the build (PF-7 proposed) | `DeleteDataScreen`, `copy/data.ts` |
 | 23 | Keychain copy | Keep its contents and the default accessibility for launch; describe them accurately in the policy; compaction is P2 | In the build (policy updated) | `services/backup.ts` and the policy together |
-| 24 | Analytics | No install ID; include `purchase_completed`; 13-month retention; ships dormant; turned on only with the endpoint, policy text, label and manifest; consent switch on the Goal step and in You › PRIVACY, on by default for 18+ and off for 13–17 | Dormant pipeline in progress (P1-20); consent UI not built | METRICS.md; PF-5 |
+| 24 | Analytics | No install ID; include `purchase_completed`; 13-month retention; ships dormant; turned on only with the endpoint, policy text, label and manifest; consent switch on the Goal step and in You › PRIVACY, on by default for 18+ and off for 13–17 | Dormant pipeline in the build (P1-20); consent UI not built | METRICS.md; PF-5 |
 | 25 | Store territories | US only at launch | Proposed | App Store Connect |
 | 26 | App version | The code says 3.3.0 (the decisions file); 1.0.0 recommended for the first App Store release if no build was ever uploaded under `com.unsetld.app` | 3.3.0 in the build | Three files and the lockfile; `version.test.ts` keeps them equal |
 | 27 | Store metadata | "UNSETLD: Daily Missions"; "Do the mission. Prove it."; keyword set 1; the after-shapes promo text; a listing without rewards; the Record grid instead of a Rewards screenshot | Proposed (founder/STORE_METADATA.md); `appStoreName` still "Daily Discipline" | App Store Connect, then `AppConfig.appStoreName` |
