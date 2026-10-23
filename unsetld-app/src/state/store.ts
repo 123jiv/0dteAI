@@ -317,9 +317,8 @@ export const useApp = create<State>()(
       setProfile: patch =>
         set(s => {
           const profile = { ...s.profile, ...patch };
-          // A program with missions the new answers rule out (one holding "Apply to One Job or
-          // Internship" once the goal is no longer a job search) stops; the days already proven
-          // stay on the record.
+          // A program with missions the new answers rule out stops; the days already proven stay on
+          // the record. None can today: the validator keeps missions with a requirement out of plans.
           const p = s.program && !s.program.finishedDay ? PROGRAM_BY_ID[s.program.id] : undefined;
           const fits = !p || p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile, today()));
           return fits ? { profile } : { profile, program: null };
@@ -972,7 +971,7 @@ const FIRST_PLAN_MOMENT = 'plan-1';
  * 7 → 8 (3.3 launch pass). The settings, the one-time UI state, the profile, the weekly focus and
  * the remote config gain keys that need nothing here (merge fills each one's default: null or
  * absent, so the age gate asks once and nothing is shared). This fills the rest:
- * - the reminders offer on Today: 'done' for someone already onboarded (asked at onboarding);
+ * - the reminders offer on Today: 'done' for someone already onboarded (onboarding asked them before 3.3);
  * - the membership, saved whole, gets every field (trial end, end, product id) as null;
  * - a Plan already finished goes on the record (`plansFinished`), from the saved program's
  *   finish day (or its last day proven); finished before yesterday, its moment and the
