@@ -71,7 +71,7 @@ The brief's non-negotiable product rules held throughout: no AI or generated mis
 |---|---|---|---|
 | P1-18 | Time check endpoint | Pending (ops, then one code line) | Kept for ops by the decisions file. Deploy `/api/app/time` (204, `Cache-Control: no-store`), then point `timeCheckUrl` at it. Until then the check reads an edge-cached `Date` and a day may never record as verified. Not a blocker while rewards are off (checklist O4, R8). |
 | P1-19 | Brand code consolidation | Partly done | Only the `expo-secure-store` `faceIDPermission: false` fix shipped (`e4b6c4b`), as the decisions file allowed. The single barcode, `core/serial.ts`, `appStoreName` and the marketing line wait for PF-4 and PF-6. |
-| — | Mission library audit (`founder/MISSION_LIBRARY_AUDIT.md`, brief Priority 7) | Pending | Planned for stream I after the planner merged; not part of this step. The plus audit's candidate missions are referenced from PLANS.md; nothing goes into `missions.json` without approval. |
+| — | Mission library audit (`founder/MISSION_LIBRARY_AUDIT.md`, brief Priority 7) | Done (`f9fd3b5`) | Repetition by area at every time choice and 30 proposals for review; nothing goes into `missions.json` without approval. |
 
 ---
 
@@ -87,7 +87,7 @@ The brief's non-negotiable product rules held throughout: no AI or generated mis
 | PF-6 | App Store metadata | Not changed. Founder decision | founder/STORE_METADATA.md |
 | PF-7 | Announce a reinstall restore with "Start fresh instead" | Not built. Founder decision (depends on P0-5, which shipped) | plan decision 22 |
 | PF-8 | Ask for notification permission right after a trial starts | Not built. Founder decision | founder/PRICING.md decision 4 |
-| PF-9 | Mission library additions | None. Founder review only | mission library audit (pending) |
+| PF-9 | Mission library additions | None. Founder review only | founder/MISSION_LIBRARY_AUDIT.md |
 | PF-10 | Prices, trial length, Family Sharing in App Store Connect and RevenueCat | Nothing set. Founder decision | founder/PRICING.md |
 
 ---
@@ -166,3 +166,18 @@ The founder documents add their own narrower decision tables, each with a recomm
 - Today offers reminders after the first proof, and never shows "0 day streak".
 - You has Delete data on this phone.
 - The paywall shows the trial length the store sells, with dates, and a build without a proper key sells nothing instead of unlocking.
+
+---
+
+## 8. Review fixes (23 Oct 2026)
+
+Four adversarial reviews (product rules, migrations, UX and copy, correctness) ran on the merged pass. Every high and medium finding is fixed, each with a regression test:
+
+- **User-text safety:** self-harm methods, ideation and recovery statements get the support line (checked before the harmless-phrase strip; soft hyphens, "un-alive" and digit spellings handled); body and progress photos, shape goals ("get shredded", "six pack") and numeric dieting, fasting, sleep and weight-cutting phrasing are blocked as own missions and noted as goals; every term on the validator's never list fails as an own mission. Ordinary teen goals still pass (238 of 238; 5 of 176 edge cases flagged). "Quit porn" stays blocked pending a founder decision.
+- **Members-only Plans are earning-neutral:** a day running a Plan that needs UNSETLD+ is capped at what the same user's day earns without it (`capForPlan`); a members-only Plan week never beats the best free option (576 of 576 setups). A capped Plan mission can show fewer points, even +0. Free Plans are unchanged.
+- **Planner:** on a Plan day the focus slot stays in the focus area; one-area Fitness days stay on time (a near-twin may keep the day on time on Push me only); a third mission from one area only on Push me when nothing else fits (at most 0.3% of Push me days).
+- **UX and accessibility:** the age year is confirmed before an under-13 delete; reminder copy matches when they stop; Plan cards say when a day runs longer than the user's time; the 30-minute line reads "About 30 to 40 minutes"; examples hide under the crisis line; the year wheel snaps with 44pt rows; time choices read with their lines in VoiceOver; "days proven" everywhere; the Plan moment is read once.
+- **Migrations and data:** a running timer at tester speed is cleared on release load; a Plan finished during time travel goes back to its real days; the under-13 block survives an interrupted delete, with photos deleted before the reset; trial end dates at month end are correct.
+
+Final checks: `tsc`, `expo lint`, `vitest` (92 files, 1,175 tests), `npm run validate`, the full day-shape simulation and the full plan-earnings check all pass.
+
