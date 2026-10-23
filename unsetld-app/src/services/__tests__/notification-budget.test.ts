@@ -54,7 +54,7 @@ const drops = (n: number) =>
   Array.from({ length: n }, (_, i) => ({ id: `d${i}`, collection: `00${5 + i}`, publicAt: new Date(NOW.getTime() + (10 + i * 7) * 86_400_000).toISOString() }));
 const ids = () => q.pending.map(p => p.identifier);
 
-/** A trial reminder as the paywall schedules it (its id is one of the trial ids). */
+/** A pending trial reminder: `trial-end`, or the `trial-day2` a 3.2 build left. */
 async function trial(id = 'trial-end') {
   const N = await import('expo-notifications');
   await N.scheduleNotificationAsync({ identifier: id, content: { title: 't', body: 'b' }, trigger: { type: 'date', date: new Date(NOW.getTime() + 5 * 86_400_000) } } as never);
@@ -76,8 +76,10 @@ describe('the budget', () => {
   });
 
   it('knows its own ids, and trims unknown ones first, then the latest reminders', () => {
-    expect(['rem-2026-10-20-0', 'drop-d1', 'timer-done', 'trial-end', 'trial-day2'].every(isOwnNotification)).toBe(true);
+    expect(['rem-2026-10-20-0', 'drop-d1', 'timer-done', 'trial-end'].every(isOwnNotification)).toBe(true);
     expect(isOwnNotification('night-2026-10-20')).toBe(false);
+    // 3.2's fixed trial reminder: syncTrialReminder cancels it by name, and so does the budget.
+    expect(isOwnNotification('trial-day2')).toBe(false);
     const rem = Array.from({ length: 58 }, (_, i) => `rem-${dayKeyOf(new Date(2026, 9, 20 + Math.floor(i / 10), 12))}-${i % 10}`);
     const pending = ['night-1', 'timer-done', 'trial-end', 'drop-a', 'drop-b', ...rem];
     // 62 of our own, 2 over the budget: the two latest reminders go, with the unknown id.
@@ -111,23 +113,26 @@ for (const model of ['soonest', 'reject'] as const) {
       const { reschedule, scheduleDropAlerts } = await import('../notifications');
       const { scheduleTimerDone } = await import('../timerNotify');
       await scheduleDropAlerts({ drops: drops(3), optedIn: true });
-      await trial('trial-day2');
+      await trial();
       await reschedule(input(10));
       await scheduleTimerDone(startTimer('D1', dayKeyOf(NOW), 30, Date.now()));
       expect(q.dropped).toEqual([]);
       expect(ids()).toContain('timer-done');
-      expect(ids()).toContain('trial-day2');
+      expect(ids()).toContain('trial-end');
       expect(q.pending.length).toBeLessThanOrEqual(PENDING_BUDGET);
     });
   });
 }
 
 describe('cleaning up', () => {
-  it("cancels ids an older build left behind (2.x night checks) when the reminders are rebuilt", async () => {
+  it("cancels ids an older build left behind (2.x night checks, 3.2's trial-day2) when the reminders are rebuilt", async () => {
     const { reschedule } = await import('../notifications');
     q.pending.push({ identifier: 'night-2026-10-21', date: NOW.getTime() + 86_400_000 }, { identifier: 'something-else', date: NOW.getTime() + 2 * 86_400_000 });
+    await trial('trial-day2');
+    await trial();
     await reschedule(input(3));
-    expect(ids().some(i => i.startsWith('night-') || i === 'something-else')).toBe(false);
+    expect(ids().some(i => i.startsWith('night-') || i === 'something-else' || i === 'trial-day2')).toBe(false);
+    expect(ids()).toContain('trial-end');
   });
 
   it('Delete data on this phone: only the trial reminder stays, and delivered ones are dismissed', async () => {

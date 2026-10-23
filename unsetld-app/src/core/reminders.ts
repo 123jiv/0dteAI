@@ -145,11 +145,11 @@ export function planNotifications(o: PlanOptions): PlannedNotification[] {
 
 /**
  * The notification ids this app schedules: mission reminders (`rem-`), drop alerts (`drop-`), the
- * focus timer's (`timer-done`) and the trial reminder (`trial-end`; `trial-day2` is the one
- * earlier builds scheduled, kept until the trial code cancels it).
+ * focus timer's (`timer-done`) and the trial reminder (`trial-end`). 3.2's fixed `trial-day2` isn't
+ * one: syncTrialReminder cancels it by name, and the budget cancels it like any older build's id.
  */
 const OWN_PREFIXES = ['rem-', 'drop-'];
-const OWN_IDS = ['timer-done', 'trial-end', 'trial-day2'];
+const OWN_IDS = ['timer-done', 'trial-end'];
 
 export function isOwnNotification(id: string): boolean {
   return OWN_IDS.includes(id) || OWN_PREFIXES.some(p => id.startsWith(p));
