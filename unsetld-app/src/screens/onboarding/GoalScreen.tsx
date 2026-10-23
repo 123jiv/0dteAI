@@ -14,6 +14,7 @@ import { T } from '../../ui/text';
 import { color as C, font, GAP, radius } from '../../ui/tokens';
 import { useAnnounce } from '../../ui/useAnnounce';
 import { useSettled } from '../../ui/useSettled';
+import { showsGoalExamples } from './goalExamples';
 import { Chip, useProfileDraft } from './TracksScreen';
 
 const COPY = ONBOARDING.goal;
@@ -29,7 +30,8 @@ function clean(text: string): string | null {
  * their own, or one of the examples to start from. The plan engine reads it
  * (core/personalize) to lean missions toward it. When the words reach none of the user's
  * areas, it asks which one the goal is about (core/areaChoice) and keeps the answer beside
- * the text; text the app can't use (core/safety) gets one line and can't be saved.
+ * the text; text the app can't use (core/safety) gets one line and can't be saved. Under the
+ * support line the examples go: it gives where to get help, and nothing else.
  */
 export function GoalScreen({ navigation, route }: RootProps<'Goal'>) {
   const edit = Boolean(route.params?.edit);
@@ -182,14 +184,18 @@ export function GoalScreen({ navigation, route }: RootProps<'Goal'>) {
           </View>
         ) : null}
 
-        <T v="note" color={C.stone} style={{ marginTop: GAP.tight }}>
-          {COPY.examplesLabel}
-        </T>
-        <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: GAP.tight }}>
-          {COPY.examples.map(e => (
-            <Chip key={e} role="button" title={e} label={COPY.a11yExample(e)} on={text.trim() === e} onPress={() => fillWith(e)} />
-          ))}
-        </View>
+        {showsGoalExamples(flagged) ? (
+          <>
+            <T v="note" color={C.stone} style={{ marginTop: GAP.tight }}>
+              {COPY.examplesLabel}
+            </T>
+            <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: GAP.tight }}>
+              {COPY.examples.map(e => (
+                <Chip key={e} role="button" title={e} label={COPY.a11yExample(e)} on={text.trim() === e} onPress={() => fillWith(e)} />
+              ))}
+            </View>
+          </>
+        ) : null}
       </Screen>
     </KeyboardAvoidingView>
   );
