@@ -340,3 +340,39 @@ describe('dieting and extreme exercise written with numbers', () => {
     );
   });
 });
+
+describe('ordinary goals that read like self-harm', () => {
+  it('kilometres, warm-ups and idioms are fine', () => {
+    expectRows(
+      [
+        ['Run four kms', 'ok'],
+        ['Run six kms', 'ok'],
+        ['Run six kms on Saturday', 'ok'],
+        ['Walk eight kms a day', 'ok'],
+        ['Walk a few kms after school', 'ok'],
+        ['Run a few kms every morning', 'ok'],
+        ['Log my kms every week', 'ok'],
+        ['Run 10 kms this week', 'ok'],
+        ['Warm up so I wont hurt myself', 'ok'],
+        ["Stretch first so I won't hurt myself", 'ok'],
+        ['Take my life one day at a time', 'ok'],
+        ['Take my life by the horns', 'ok'],
+        ['Cut myself a break', 'ok'],
+        ['Cut myself some slack', 'ok'],
+      ],
+      'goal',
+    );
+  });
+
+  it('"kms" on its own still gets the support line', () => {
+    expectRows(
+      [
+        ['kms', 'support', 'self-harm'],
+        ['I want to kms', 'support', 'self-harm'],
+        ['Literally gonna kms', 'support', 'self-harm'],
+        ['Take my life', 'support', 'self-harm'],
+      ],
+      'goal',
+    );
+  });
+});

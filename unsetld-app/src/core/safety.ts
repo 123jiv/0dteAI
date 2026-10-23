@@ -70,7 +70,7 @@ const RECOVERY =
 const SELF_HARM = re([
   'kill(?:ing)? ?my ?self',
   'end(?:ing)? my (?:own )?life',
-  'take my (?:own )?life(?! back| to| into| seriously| more| in)',
+  'take my (?:own )?life(?! back| to| into| seriously| more| in| one (?:day|step)| day by day| step by step| by the horns)',
   'suicid(?:e|al)(?! (?:sprints?|drills?|runs?|squats?|prevention|awareness))',
   'want(?:ed)? to die',
   'wanna die',
@@ -91,7 +91,8 @@ const SELF_HARM = re([
   'hang(?:ing)? my ?self',
   '(?:shoot|drown|stab|poison|strangle|suffocate|burn|set fire to)(?:ing|s)? my ?self(?! (?:in the foot|out|a (?:reminder|text|note|message|email)|an email|in (?:work|books?|homework|music|coffee|studying|school ?work)))',
   'jump(?:ing)? in front of (?:a |the )?(?:train|car|bus|truck|traffic|subway)',
-  '(?<!(?:\\d|\\d |one |two |three |five |ten ))kms',
+  // "kms" on its own; after a number or an amount it's kilometres ("Run six kms", "Log my kms").
+  '(?<!(?:\\d|\\d |\\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|hundred|half|few|couple|several|many|more|most|some|my|your|our|the|those|these|extra|total|of|in|per|easy|long|fast) ))kms',
   'un ?alive(?: my ?self)?',
   'sewer ?slide',
   'end it all',
@@ -460,7 +461,7 @@ const HURT_TRAINING = new RegExp(
   'gi',
 );
 /** Idioms that read as self-harm and aren't: taken out before every check. */
-const SUPPORT_HARMLESS = re(['cut(?:ting)? my ?self (?:some slack|off)']);
+const SUPPORT_HARMLESS = re(['cut(?:ting)? my ?self (?:some slack|a break|off|loose)']);
 
 /** Phrases that look risky but aren't: taken out before the checks after support. */
 const HARMLESS = re([
