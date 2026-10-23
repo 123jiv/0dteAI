@@ -72,7 +72,7 @@ Run `npm run check` (typecheck, lint, every test, content validation) on the com
 
 ## 4. Legal review (scope and sign-off)
 
-Counsel reviews the text as it is in `src/content/legal.json` (updated 19 Oct 2026) and the in-app copy named here, then signs off below. Nothing in the app is legal advice; this list is what to ask.
+Counsel reviews the text as it is in `src/content/legal.json` (Privacy Policy updated 23 Oct 2026, Terms of Use 19 Oct 2026, rewards terms 12 Oct 2026) and the in-app copy named here, then signs off below. Nothing in the app is legal advice; this list is what to ask.
 
 | # | Question | Where | Signed off |
 |---|---|---|---|

@@ -159,7 +159,7 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "updated": "2026-10-19",
+    "updated": "2026-10-23",
     "sections": [
       {
         "h": "The short version",
@@ -171,7 +171,7 @@
       },
       {
         "h": "Camera and proof photos",
-        "p": "The camera is used only when you prove a mission. The app keeps one copy of each photo, inside the app on this iPhone, and never uploads it: the camera's full-size original and the copy made while resizing are deleted once it's kept, and a photo you took but didn't use is deleted too. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days, the next time the app opens, unless you choose 1 year or Always under Proof photos in You; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
+        "p": "The camera is used only when you prove a mission. The app keeps one copy of each photo, inside the app on this iPhone, and never uploads it: the camera's full-size original and the copy made while resizing are deleted once it's kept, and a photo you took but didn't use is deleted later, when the app starts. Each photo is re-encoded when it's saved, which removes its metadata, including location. Photos are deleted after 30 days, the next time the app opens, unless you choose 1 year or Always under Proof photos in You; the mission and its points stay. Like other app files, they can be part of your own iPhone backup."
       },
       {
         "h": "Proof checks",
@@ -203,11 +203,11 @@
       },
       {
         "h": "The copy in your Keychain",
-        "p": "So a reinstall picks up where you left off, the app keeps a copy of your record in this iPhone's Keychain: the days on your record; each proven mission with its title as you saw it (words from your goal and missions you wrote included), its points, when it was proven and what the proof checks found; the file names and fingerprints of its photos, never the photos; Plans finished; reward codes you've taken; tasks from earlier versions; and a random number the app uses to vary your missions. The app never uploads it. iOS can keep it after the app is deleted, and it can be part of your own encrypted iPhone backup. If you sign in, the sign-in token is kept in the Keychain too."
+        "p": "So a reinstall picks up where you left off, the app keeps a copy of your record in this iPhone's Keychain: the days on your record; each proven mission with its title as you saw it (words from your goal and missions you wrote included), its points, when it was proven and what the proof checks found; where its photos are saved on this phone and their fingerprints, never the photos; Plans finished; reward codes you've taken; tasks and answers from earlier versions; and a random number the app uses to vary your missions. The app never uploads it. iOS can keep it after the app is deleted, and it can be part of your own encrypted iPhone backup. If you sign in, the sign-in token is kept in the Keychain too."
       },
       {
         "h": "Deleting your data",
-        "p": "To delete everything UNSETLD keeps on this iPhone, open You, then Delete data on this phone. It removes your record, points, plans, answers, settings, missions you wrote, proof photos, sign-in on this phone and the Keychain copy, and clears the app's reminders and widgets. During a free trial, the reminder before it ends stays. It doesn't delete an account on unsetld.com, and UNSETLD+ stays with your Apple ID. Deleting the app removes its data too, except the Keychain copy, which iOS can keep; use Delete data on this phone first if you don't want a reinstall to bring your record back. Copies already in an iPhone backup stay in that backup."
+        "p": "To delete everything UNSETLD keeps on this iPhone, open You, then Delete data on this phone. It removes your record, points, plans, answers, settings, missions you wrote, proof photos, sign-in on this phone and the Keychain copy, and clears the app's reminders and widgets. During a free trial, the reminder before it ends stays. It doesn't delete an account on unsetld.com, and UNSETLD+ stays with your Apple ID. Deleting the app removes its data too, except what the app keeps in the Keychain, which iOS can keep; use Delete data on this phone first if you don't want a reinstall to bring your record back. Copies already in an iPhone backup stay in that backup."
       },
       {
         "h": "Deleting an account",

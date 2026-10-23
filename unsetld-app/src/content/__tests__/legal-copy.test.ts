@@ -90,6 +90,8 @@ describe('Privacy Policy', () => {
     }
     expect(k).toContain('after the app is deleted');
     expect(k).toContain('sign-in token');
+    // The record holds each photo's full path on the phone (ProofPhoto.uri), not just a file name.
+    expect(k).toContain('where its photos are saved on this phone');
     // The old wording undersold it.
     expect(privacy).not.toContain('missions, points and streak, never photos');
   });
