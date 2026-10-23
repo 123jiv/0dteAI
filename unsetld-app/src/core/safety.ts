@@ -104,9 +104,17 @@ const SELF_HARM = re([
   'jump(?:ing)? off (?:a |the )?(?:bridge|building|roof)',
 ]);
 
+/** Fewer than 1,500 calories: a day's eating target under that is a restriction, not a goal. */
+const LOW_CAL = '(?:0|[1-9]\\d{0,2}|1[0-4]\\d\\d|1,[0-4]\\d\\d|one thousand) (?:cals?|calories|kcals?)';
+/** A stretch of days or weeks, or 12 hours or more. */
+const LONG_SPAN = '(?:(?:a|\\d+|one|two|three|four|five|several) (?:days?|weeks?)|(?:1[2-9]|[2-9]\\d|\\d{3,}) ?(?:h|hrs?|hours?))';
+
 const EATING_RISK = re([
   'starv(?:e|es|ing) (?:my|your) ?self',
-  'stop eating(?: (?:altogether|completely|entirely|for (?:a|\\d+) (?:days?|weeks?)))?$',
+  'starv(?:e|es|ing) (?:until|till|through)',
+  'stop eating(?: (?:altogether|completely|entirely))?$',
+  `stop eating for ${LONG_SPAN}`,
+  `no (?:food|eating) for ${LONG_SPAN}`,
   'not eat(?:ing)? (?:at all|anything|for (?:a|\\d+|one|two|three|several) (?:days?|weeks?))',
   "don'?t eat (?:at all|anything|for)",
   'eat(?:ing)? nothing',
@@ -114,22 +122,35 @@ const EATING_RISK = re([
   'purg(?:e|es|ed|ing)(?= (?:after|what|food|meals?|dinner|lunch|breakfast|snacks?|everything|when i eat|if i eat))',
   '(?:^|(?:stop(?:ped|ping)?|quit|start(?:ed)?|no|no more|not|never|without|keep|been|to|or|and) )purg(?:e|es|ed|ing)$',
   'binge and purge',
-  'throw(?:ing)? up after (?:eating|meals?|food|dinner|lunch)',
+  '(?:throw(?:ing)? up|puk(?:e|ing)|vomit(?:ing)?) after (?:eating|i eat|every meal|meals?|food|dinner|lunch|breakfast|snacks?)',
+  'chew and spit',
+  'ana (?:coach|buddy|buddies)',
+  'bmi (?:under|below|less than|of|to) (?:1[0-7]|\\d)\\b',
   'make (?:my|your) ?self (?:throw up|sick|puke|vomit)',
   'pro ana',
   'pro mia',
   'thinspo\\w*',
   'meanspo\\w*',
   'bonespo\\w*',
-  'ana coach',
   'laxatives?',
   'thigh gap',
-  'eat(?:ing)? (?:only |under |less than |below )?(?:[1-9]\\d{0,2}|1000|one thousand) (?:cal|calories|kcal)',
+  `eat(?:ing)? (?:only |just |under |less than |below |no more than |at most )?${LOW_CAL}`,
+  `(?:stay|staying|keep|keeping|be|go|going) (?:under|below|less than) ${LOW_CAL}`,
 ]);
 
 const DIET = re([
-  'fast(?:ing)? for (?:a|\\d+|one|two|three) (?:days?|weeks?)',
+  // Fasting by the hour or the day ("Fast 72 hours", "a 3 day fast"); running fast isn't fasting.
+  '(?<!(?:run|running|sprint|sprinting|swim|swimming|skate|skating|type|typing|read|reading|go|going|drive|driving|get|getting|really|so|too|very|as) )fast(?:ing)? (?:for )?(?:a|an|\\d+|one|two|three|four|five|several) ?(?:h|hrs?|hours?|days?|weeks?)',
+  '(?:\\d+|one|two|three|four|five|a) ?(?:h|hrs?|hours?|days?) fasts?',
   '(?:water|dry|juice|bone broth) fast(?:ing)?',
+  '(?:juice|water|detox) cleanses?',
+  'detox (?:teas?|diets?)',
+  'eat(?:ing)? (?:only )?once a day',
+  // Cutting weight for a sport or a weigh-in, and losing it fast.
+  '(?:cut|cutting|make|making) weight',
+  'sweat(?:ing)? (?:off|out) (?:(?:\\d+|five|ten|a few|some|the|my) )?(?:lbs?|pounds?|kgs?|kilos?|weight|water weight)',
+  'sauna suits?',
+  '(?:lose|losing|drop|dropping|shed|shedding|cut|cutting) (?:\\d+|five|ten|fifteen|twenty) ?(?:lbs?|pounds?|kgs?|kilos?) (?:in|by|this|within|over|before) (?:a |one |the |\\d+ |two |three |this |next )?(?:days?|weeks?|weekend|tomorrow|weigh ins?|match|meet|tournament)',
   'fasting',
   'omad',
   'one meal a day',
@@ -145,8 +166,7 @@ const DIET = re([
   'weigh ins',
   'weigh in(?! on)',
   'daily weigh',
-  '(?:burn|burning) (?:\\d+ )?(?:cal|calories|kcal)',
-  'lose (?:\\d+|ten|five|twenty) ?(?:lbs?|pounds?|kgs?|kilos?) (?:in|by) (?:a|one|\\d+|two|three) (?:days?|weeks?)',
+  '(?:burn|burning) (?:\\d+ )?(?:cals?|calories|kcals?)',
   'lose (?:weight|fat) (?:in|by) (?:a|one|\\d+|two|three) (?:days?|weeks?)',
 ]);
 
@@ -155,7 +175,7 @@ const WEIGHT = re([
   'lose (?:some )?weight',
   'losing weight',
   'weight loss',
-  'lose (?:\\d+|ten|five|twenty) ?(?:lbs?|pounds?|kgs?|kilos?)',
+  '(?:lose|drop|shed) (?:\\d+|ten|five|fifteen|twenty) ?(?:lbs?|pounds?|kgs?|kilos?)',
   'lose fat',
   'burn fat',
   'get (?:skinny|thin|thinner)',
@@ -205,9 +225,13 @@ const EXTREME = re([
   'work(?:ing)? out (?:while|when) (?:injured|sick)',
   'no rest days?',
   '(?:[5-9]\\d\\d|\\d{4,}) (?:push ?ups|sit ?ups|burpees|squats|crunches|pull ?ups)',
-  '(?:[5-9]|1\\d) hours? (?:of )?(?:working out|work ?outs?|exercise|exercising|gym|training|running|cardio)',
-  '(?:work(?:ing)? out|exercis(?:e|ing)|train(?:ing)?|run(?:ning)?|lift(?:ing)?) (?:for )?(?:[5-9]|1\\d) hours?',
+  '(?:[5-9]|[1-9]\\d) hours? (?:of )?(?:working out|work ?outs?|exercise|exercising|gym|training|running|cardio)',
+  '(?:work(?:ing)? out|exercis(?:e|ing)|train(?:ing)?|run(?:ning)?|lift(?:ing)?) (?:for )?(?:[5-9]|[1-9]\\d) hours?',
   'all nighters?',
+  // Going without sleep, or sleeping four hours or less.
+  'stay(?:ing)? (?:awake|up) (?:for )?(?:(?:2\\d|[3-9]\\d|\\d{3,}) ?(?:h|hrs?|hours?)|(?:a|\\d+|one|two|three|four|five|several) (?:days?|nights?)(?: straight| in a row)?)',
+  'sleep(?:ing)? (?:only |just |for )?(?:[0-4]|one|two|three|four)(?:\\.5)? ?(?:h|hrs?|hours?)\\b(?! (?:earlier|later|more|extra|longer|sooner|less))',
+  '(?:get|getting) (?:only |just )?(?:[0-4]|one|two|three|four)(?:\\.5)? (?:hrs?|hours?) of sleep',
   'no sleep',
   'stay up all night',
   'without sleep(?:ing)?',

@@ -244,3 +244,99 @@ describe('purging, not tidying', () => {
     );
   });
 });
+
+describe('dieting and extreme exercise written with numbers', () => {
+  it('low calorie targets, not eating for days, and purging after meals get the support line', () => {
+    expectRows(
+      [
+        ['Eat under 1200 calories a day', 'support', 'eating-risk'],
+        ['Eat 1200 calories', 'support', 'eating-risk'],
+        ['Only eat 800 cals', 'support', 'eating-risk'],
+        ['Eat 500 cals a day', 'support', 'eating-risk'],
+        ['Eat 0 calories', 'support', 'eating-risk'],
+        ['Stay under 1000 calories', 'support', 'eating-risk'],
+        ['Eat less than 1,400 kcal', 'support', 'eating-risk'],
+        ['No food for 3 days', 'support', 'eating-risk'],
+        ['No eating for 24 hours', 'support', 'eating-risk'],
+        ['Stop eating for 3 days straight', 'support', 'eating-risk'],
+        ['Puke after dinner', 'support', 'eating-risk'],
+        ['Vomit after meals', 'support', 'eating-risk'],
+        ['Throw up after I eat', 'support', 'eating-risk'],
+        ['Starve until summer', 'support', 'eating-risk'],
+        ['Chew and spit', 'support', 'eating-risk'],
+        ['Find an ana buddy', 'support', 'eating-risk'],
+        ['Get my BMI under 17', 'support', 'eating-risk'],
+      ],
+      'goal',
+    );
+  });
+
+  it('fasting by the hour, cleanses, weight cutting and fast loss are blocked', () => {
+    expectRows(
+      [
+        ['Fast 72 hours', 'block', 'diet'],
+        ['Fast for 5 days', 'block', 'diet'],
+        ['Do a 3 day fast', 'block', 'diet'],
+        ['Do a 24h fast', 'block', 'diet'],
+        ['Do a 3 day juice cleanse', 'block', 'diet'],
+        ['Detox tea for a week', 'block', 'diet'],
+        ['Eat once a day', 'block', 'diet'],
+        ['Cut weight for wrestling', 'block', 'diet'],
+        ['Make weight for wrestling', 'block', 'diet'],
+        ['Sweat off 5 pounds in the sauna', 'block', 'diet'],
+        ['Drop 10 pounds this week', 'block', 'diet'],
+        ['Lose 15 lbs in two weeks', 'block', 'diet'],
+        ['Shed 5 kg before the weigh-in', 'block', 'diet'],
+      ],
+      'goal',
+    );
+  });
+
+  it('long sessions, days without sleep and four hours of sleep or less are blocked', () => {
+    expectRows(
+      [
+        ['Exercise for 24 hours', 'block', 'extreme'],
+        ['Run for 20 hours', 'block', 'extreme'],
+        ['Do 30 hours of cardio', 'block', 'extreme'],
+        ['Stay awake for 48 hours', 'block', 'extreme'],
+        ['Stay awake 2 days straight', 'block', 'extreme'],
+        ['Stay up 3 nights in a row', 'block', 'extreme'],
+        ['Sleep 3 hours a night', 'block', 'extreme'],
+        ['Sleep only 4 hours to study more', 'block', 'extreme'],
+        ['Get 4 hours of sleep', 'block', 'extreme'],
+      ],
+      'goal',
+    );
+  });
+
+  it('none of them can become a mission that earns points', () => {
+    for (const title of ['Stay awake for 48 hours', 'Eat under 1200 calories', 'Cut weight for wrestling', 'Fast 72 hours']) {
+      expect(makeCustomMission({ title, track: 'fitness', proofType: 'TIMER_AND_PHOTO', timerMinutes: 60 }, 'custom-x1'), title).toBeNull();
+    }
+  });
+
+  it('ordinary food, sleep, weight and training goals are not caught', () => {
+    expectRows(
+      [
+        ['Eat 2500 calories a day', 'ok'],
+        ['Eat 150 grams of protein', 'ok'],
+        ['Eat breakfast every day', 'ok'],
+        ['Stop eating junk food', 'ok'],
+        ['No food after 9pm', 'ok'],
+        ['Run fast 3 days a week', 'ok'],
+        ['Get faster at the mile', 'ok'],
+        ['Eat less fast food', 'ok'],
+        ['Sleep 8 hours', 'ok'],
+        ['Get 9 hours of sleep', 'ok'],
+        ['Go to sleep 1 hour earlier', 'ok'],
+        ['Stay up 1 hour later to finish my essay', 'ok'],
+        ['Train for 2 hours', 'ok'],
+        ['Study 4 hours for finals', 'ok'],
+        ['Lose 10 pounds by summer', 'note', 'body'],
+        ['Drop 10 pounds', 'note', 'body'],
+        ['Make the weight room my second home', 'ok'],
+      ],
+      'goal',
+    );
+  });
+});
