@@ -16,6 +16,8 @@ describe('the Plan moment', () => {
     expect(M.title('Get Organized')).toBe('GET ORGANIZED.');
     expect(M.line(7)).toBe('Seven days. Each one proven.');
     expect(M.a11y('7 Day Lock In', 7)).toBe('7 Day Lock In, finished. Seven days. Each one proven.');
+    // With the kicker's date (the kicker isn't read on its own).
+    expect(M.a11y('7 Day Lock In', 7, '22 Oct')).toBe('7 Day Lock In, finished 22 Oct. Seven days. Each one proven.');
   });
 
   it('every Plan reads right: five to fourteen days in words, digits past twenty', () => {

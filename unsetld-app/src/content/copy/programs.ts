@@ -66,8 +66,11 @@ export const PROGRAMS_COPY = {
       return words.length > 2 ? `${words.slice(0, -1).join(' ')}\u00A0${words[words.length - 1]}.` : `${words.join(' ')}.`;
     },
     line: (days: number) => daysProven(days),
-    /** One label for VoiceOver, in sentence case: "7 Day Lock In, finished. Seven days. Each one proven." */
-    a11y: (title: string, days: number) => `${title}, finished. ${daysProven(days)}`,
+    /**
+     * One label for VoiceOver, in sentence case, with the date the kicker shows (the kicker itself
+     * isn't read): "7 Day Lock In, finished 22 Oct. Seven days. Each one proven."
+     */
+    a11y: (title: string, days: number, date?: string) => `${title}, finished${date ? ` ${date}` : ''}. ${daysProven(days)}`,
   },
 
   // The list

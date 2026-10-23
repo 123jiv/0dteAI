@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Platform, Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { planMomentKey } from '../../core/programs';
-import { finishedPlans, milestones, type MilestoneKey } from '../../core/progress';
-import type { DayKey } from '../../core/time';
-import { PROGRAM_BY_ID } from '../../content';
-import { PROGRAMS_COPY } from '../../content/copy/programs';
+import { finishedPlans, milestones } from '../../core/progress';
 import { PROGRESS } from '../../content/copy/progress';
 import type { RootParams, RootProps } from '../../navigation/types';
 import { soft } from '../../services/haptics';
@@ -15,9 +12,9 @@ import { Button } from '../../ui/kit';
 import { T } from '../../ui/text';
 import { color as C, ease, MARGIN } from '../../ui/tokens';
 import { Walker } from '../../ui/Walker';
+import { momentWords } from './momentWords';
 
 const M = PROGRESS.moment;
-const P = PROGRAMS_COPY.moment;
 
 type Params = RootParams['Moment'];
 
@@ -29,29 +26,6 @@ function markSeen(p: Params) {
   } else if (milestones(s.record, s.currentDay).some(m => m.key === p.key && m.reached)) s.markMomentShown(p.key);
 }
 
-/** What the page says: the kicker (null claims no date), the title, the line, and one label for both. */
-interface Words {
-  kicker: string | null;
-  a11yKicker: string | null;
-  title: string;
-  line: string;
-  a11y: string | null;
-}
-
-function wordsFor(p: Params, reachedOf: (key: MilestoneKey) => DayKey | null, today: DayKey): Words {
-  if ('plan' in p) {
-    // A Plan finished: its title in capitals, its days in words. No points.
-    const program = PROGRAM_BY_ID[p.plan];
-    if (!program) return { kicker: null, a11yKicker: null, title: '', line: '', a11y: null };
-    const date = PROGRESS.date(p.day, today);
-    return { kicker: P.finished(date), a11yKicker: P.finished(date), title: P.title(program.title), line: P.line(program.days), a11y: P.a11y(program.title, program.days) };
-  }
-  // Null when it isn't reached (a stale link): then no date is claimed.
-  const reached = reachedOf(p.key);
-  const words = M.byKey[p.key] ?? { title: '', line: '' };
-  return { kicker: reached ? M.reached(reached, today) : null, a11yKicker: reached ? M.a11yDate(reached, today) : null, ...words, a11y: null };
-}
-
 /** A progress milestone reached, or a Plan finished: shown once, letter-style, on opaque ink. */
 export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
   const params = route.params;
@@ -61,7 +35,7 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
   const insets = useSafeAreaInsets();
   const today = useApp(s => s.currentDay);
   const record = useApp(s => s.record);
-  const words = wordsFor(params, key => milestones(record, today).find(m => m.key === key)?.reached ?? null, today);
+  const words = momentWords(params, key => milestones(record, today).find(m => m.key === key)?.reached ?? null, today);
   const [rise] = useState(() => new Animated.Value(0));
   const [still, setStill] = useState(false);
 
@@ -103,11 +77,18 @@ export function MomentScreen({ navigation, route }: RootProps<'Moment'>) {
             transform: [{ translateY: still ? 0 : rise.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
           }}>
           {words.kicker ? (
-            <T v="kicker" color={C.stone} accessibilityLabel={words.a11yKicker ?? undefined} style={{ marginBottom: 14 }}>
+            <T
+              v="kicker"
+              color={C.stone}
+              accessibilityLabel={words.a11yKicker ?? undefined}
+              // A Plan's date is said in its one sentence below.
+              accessibilityElementsHidden={words.a11yKicker === null}
+              importantForAccessibility={words.a11yKicker === null ? 'no' : 'auto'}
+              style={{ marginBottom: 14 }}>
               {words.kicker}
             </T>
           ) : null}
-          {/* A Plan's moment reads as one sentence ("7 Day Lock In, finished. Seven days. Each one proven."), not in capitals. */}
+          {/* A Plan's moment reads as one sentence ("7 Day Lock In, finished 22 Oct. Seven days. Each one proven."), not in capitals. */}
           <View accessible={Boolean(words.a11y)} accessibilityRole={words.a11y ? 'header' : undefined} accessibilityLabel={words.a11y ?? undefined}>
             {/* A Plan's name can be long ("BUILD SOMETHING."): two lines at most, never broken mid-word. */}
             <T
