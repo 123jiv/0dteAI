@@ -221,8 +221,10 @@ const OVER_TIME =
   '(?!(?: in total| total)?(?: (?:a|per|each|every|this|next|in a|over (?:a|the)) (?:week|month|year|summer|semester|season|term)| weekly| monthly| total| in total))';
 
 const EXTREME = re([
-  "(?<!shop(?:ping)? )until i (?:puke|throw up|pass out|faint|collapse|cry|bleed|can'?t walk|drop)",
-  '(?<!shop(?:ping)? )till i (?:puke|throw up|pass out|faint|collapse|drop)',
+  "(?<!shop(?:ping)? )(?:until|till) i (?:puke|throw up|pass out|faint|collapse|cry|bleed|drop|can'?t (?:walk|breathe|move|stand|feel my (?:legs|arms)))",
+  // Training without water.
+  'no water (?:during|at|while|in) (?:practice|training|workouts?|games?|the game|the heat)',
+  '(?:train|run|practice|work out|play|exercise)(?:ing)?(?: \\w+){0,4} without (?:drinking )?(?:any )?water',
   'punish(?:ing|ment)?(?: my ?self)?(?: with)? (?:workouts?|exercise|burpees|push ?ups|laps|running)',
   'punish(?:ing)? my ?self',
   'burn off (?:what i ate|food|dinner|lunch|breakfast|calories|everything)',
@@ -245,6 +247,7 @@ const EXTREME = re([
 
 const SUBSTANCES = re([
   'vap(?:e|es|ing|ed)',
+  '^smok(?:e|es|ing)$',
   'vape pens?',
   'juul(?:ing)?',
   'nicotine',
@@ -277,7 +280,8 @@ const SUBSTANCES = re([
   'booze',
   'wine',
   'drunk',
-  'get(?:ting)? (?:drunk|wasted|faded|hammered|lit|stoned)',
+  'get(?:ting)? (?:drunk|wasted|faded|hammered|lit|stoned|zooted|crossfaded|tipsy|blitzed|plastered|sloshed)',
+  'get(?:ting)? baked(?! (?:goods|cookies|bread|treats|potato(?:es)?|beans|ziti|mac|chicken|salmon|sale))',
   'get(?:ting)? high(?! (?:grades?|scores?|marks?|school|honou?rs|gpa|tests?|sat|act|ap|psat|ib|lsat|mcat|gre|gmat|enough|quality|results?|on the|ranks?|rankings?|ratings?|reviews?|percentiles?|standards?|praise|fives|5s|level|elevation|ground|places?|up)\\b)',
   'shrooms',
   'lsd',
@@ -289,10 +293,27 @@ const SUBSTANCES = re([
   'heroin',
   'meth',
   'xanax',
-  'xans',
+  'xans?',
   'percs?',
   'oxy(?:codone|contin)?',
   'lean (?:and|with) sprite',
+  '(?:drink|drinking|sip|sipping|pour|pouring|double cup) (?:some |a cup of |a )?lean(?! (?:protein|meat|muscle|meals?|beef|chicken))',
+  '(?:geek|elf|puff) ?bars?',
+  'lost marys?',
+  '(?:take|taking|pop|popping|do|doing|try|trying|on) molly',
+  '(?:do|doing|did|try|trying|snort|snorting|sniff|sniffing) coke(?! (?:zero|float|and (?:mentos|chips|pizza|popcorn)))',
+  'lines? of coke',
+  'drop(?:ping)? acid',
+  'microdos(?:e|es|ed|ing)',
+  'hit(?:ting)? (?:a|the|my) (?:dab|blunt|joint|pen|cart|vape|bong|pipe|bowl)',
+  'rip(?:ping)? (?:a|the|my) (?:cart|bong|pen|dab|bowl)',
+  'bongs?',
+  'henny',
+  'hennessy',
+  'white claws?',
+  'keg stands?',
+  'shots? of (?:fireball|henny|hennessy|patron|tequila|vodka|whiske?y|rum|gin|liquor)',
+  'fake ids?',
   'kratom',
   'pop(?:ping)? pills',
   'nitrous',
@@ -323,10 +344,18 @@ const GAMBLING = re([
   'prizepicks',
   'stake\\.com',
   'online poker',
-  'poker for (?:money|cash)',
+  'poker(?: \\w+){0,2} for (?:money|cash|real money)',
+  'wager(?:s|ed|ing)?',
+  'bet ?365',
+  'scratch (?:tickets?|cards?)',
+  'loot ?box(?:es)?',
+  'powerball',
+  'mega millions',
+  'lotto',
+  '(?:open(?:ing)?|unbox(?:ing)?) (?:cs ?go |cs ?2 |csgo )?cases(?! of)',
   'real money (?:poker|games?|slots)',
   'skin gambling',
-  'case opening',
+  'case openings?',
 ]);
 
 const TRADING = re([
@@ -335,7 +364,12 @@ const TRADING = re([
   'scalp(?:ing)? (?:stocks|crypto|options|futures)',
   '(?<!(?:my|your|our|the|their|his|her|other|all|some|more|different) )options? (?:trad\\w*|contracts?|calls?|puts?|plays?)',
   '0[ -]?dte',
-  '(?:trade|trading|trades|flip|flipping) (?:crypto|stocks?|options|forex|futures|meme ?coins?|nfts?)',
+  '(?:trade|trading|trades|flip|flipping) (?:crypto|stocks?|options|forex|futures|meme ?coins?|nfts?|bitcoin|btc|eth|ethereum|solana|doge|dogecoin|shib|altcoins?)',
+  // Options by the contract ("Buy calls on Tesla", "Sell covered calls") and longs and shorts.
+  '(?:buy|buying|bought|sell|selling|sold|trade|trading) (?:\\w+ )?(?:calls|puts)\\b(?! (?:to|from|with|for|back|on (?:my|the) phone))',
+  '(?:long|short)(?:ing)? (?:btc|eth|bitcoin|ethereum|crypto|spy|qqq|tsla|tesla|nvda|stocks?)',
+  'prop firms?',
+  'yolo (?:my|all my|the) (?:savings|money|paycheck)',
   '(?:crypto|stock|forex|futures|fx|options) trad(?:e|es|er|ers|ing)',
   'forex',
   'margin (?:trading|account)',
@@ -376,16 +410,30 @@ const DARES = re([
   "break(?:ing)? into (?:a |the |someone'?s )?(?:house|houses|home|car|cars|building|school(?! (?:play|musical|team|band|choir|paper|newspaper|club|council|radio|show|orchestra|theat(?:er|re)|production)))",
   'jump(?:ing)? off (?:a |the )?(?:roof|cliff)',
   'meet (?:up with )?(?:a )?(?:stranger|someone (?:i|from) (?:met )?online)',
+  // Meeting someone from an app or online in person.
+  "meet (?:up with |up )?(?:a |an |this |some |my )?(?:someone|somebody|guy|girl|man|woman|person|people|friends?|dude|stranger)s? (?:i (?:met|know|talked to|talk to|found) )?(?:from |on )(?:discord|snapchat|snap|instagram|insta|ig|tiktok|reddit|roblox|online|the internet|a dating app|tinder|hinge|bumble|omegle|kik|telegram)",
+  'meet (?:up with )?(?:my |a |an )?(?:discord|snapchat|snap|instagram|insta|online|internet|roblox|tiktok|reddit) (?:friends?|bf|gf|boyfriend|girlfriend|guy|girl|crush|date)',
   'dm strangers',
   'talk to strangers online',
   'get in(?:to)? a fight',
   'fight someone',
   'drive (?:without a license|drunk|blindfolded)',
-  'drag rac(?:e|ing)',
+  '(?:drag|street) rac(?:e|es|ing)',
+  '(?:kia|hyundai) (?:challenge|boys|boyz)',
+  'milk crate challenge',
+  'nyquil chicken',
+  'chroming',
+  'drive (?:at )?(?:1\\d\\d|9\\d) ?mph',
+  'climb(?:ing)? (?:a |the )?(?:cell|radio|water|electric(?:al)?|power) (?:towers?|lines?)',
+  'roof ?topping',
+  'ride (?:on )?(?:the )?(?:roof|hood) of (?:a |the |my )?car',
+  'fight (?:a|some|that|this|the) (?:kid|guy|girl|dude)',
 ]);
 
 const ADULT = re([
   'only ?fans',
+  'feet (?:pics|photos|pictures|content)',
+  '(?:make|start|open|create|launch|post on) (?:an |my |a )?of(?: account| page)?$',
   'nudes',
   'send nudes?',
   'porn\\w*',
@@ -452,6 +500,15 @@ function hasCardNumber(t: string): boolean {
     if (d.length >= 13 && d.length <= 19 && luhn(d)) return true;
   }
   return false;
+}
+
+const LEET: Record<string, string> = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '@': 'a', $: 's' };
+/**
+ * Letters written as digits inside a word ("w33d", "su1cide", "v4pe") back as letters, for the
+ * self-harm and substance checks only. A word without a letter next to a digit stays ("5k", "$50").
+ */
+export function unleet(t: string): string {
+  return t.replace(/[a-z0-9@$]+/g, w => (/[a-z][013457@$]|[013457@$][a-z]/.test(w) ? w.replace(/[013457@$]/g, c => LEET[c]) : w));
 }
 
 /** True when the match at `index` is something to stop or avoid ("quit vaping", "no betting"). */
@@ -527,12 +584,12 @@ export function checkText(text: string | null | undefined, field: TextField = 'g
   // Support first, on the text with only the training and idiom phrases out: a habit or
   // recovery phrase never hides self-harm or eating risk ("Break my cutting habit").
   const s = raw.replace(HURT_TRAINING, ' ').replace(SUPPORT_HARMLESS_ALL, ' ');
-  if (SELF_HARM.test(s)) return { level: 'support', category: 'self-harm' };
+  if (SELF_HARM.test(s) || SELF_HARM.test(unleet(s))) return { level: 'support', category: 'self-harm' };
   if (EATING_RISK.test(s)) return { level: 'support', category: 'eating-risk' };
   const t = s.replace(HARMLESS_ALL, ' ');
   if (riskyMatch(t, DIET, true)) return { level: 'block', category: 'diet' };
   if (riskyMatch(t, EXTREME, true)) return { level: 'block', category: 'extreme' };
-  if (riskyMatch(t, SUBSTANCES, true)) return { level: 'block', category: 'substances' };
+  if (riskyMatch(t, SUBSTANCES, true) || riskyMatch(unleet(t), SUBSTANCES, true)) return { level: 'block', category: 'substances' };
   if (riskyMatch(t, GAMBLING, true)) return { level: 'block', category: 'gambling' };
   if (riskyMatch(t, TRADING, true)) return { level: 'block', category: 'trading' };
   if (riskyMatch(t, DARES, true)) return { level: 'block', category: 'dares' };
