@@ -2,7 +2,7 @@
 // the same phone (same bundle id) would otherwise keep its time travel and 60x timers, with no
 // tester tools to undo them. As a release build loads: back to the real date with the real record
 // and plans, the clock's offset 0, timers at normal speed, and a timer or before photo from a
-// travelled day goes. Preview and dev builds keep all of it.
+// travelled day goes, as does a timer started at tester speed. Preview and dev builds keep all of it.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mem = vi.hoisted(() => {
@@ -116,6 +116,19 @@ describe('release builds ignore tester state', () => {
     expect(today()).toBe(TODAY);
     expect(s.settings.timerSpeed).toBe(1);
     expect(Object.keys(s.record.days)).toEqual(['2026-10-18', TODAY, TRAVELLED]);
+  });
+
+  it('a timer running at tester speed on the real day goes too, with its early "done" alert', async () => {
+    const fast = { missionId: 'D1', day: TODAY, requiredSeconds: 1800, startedAt: NOW.getTime() - 60_000, pausedAt: null, pausedMs: 0, speed: 60 };
+    const { useApp } = await load({ ...travelling, dayOffset: 0, devSnapshot: null, devPlans: null, pendingBefore: null, timer: fast }, false);
+    const s = useApp.getState();
+    expect(s.settings.timerSpeed).toBe(1);
+    expect(s.timer).toBeNull();
+    expect(mem.cancelled).toBe(1);
+    // A timer at normal speed on the real day is kept.
+    const normal = await load({ ...travelling, dayOffset: 0, devSnapshot: null, devPlans: null, pendingBefore: null, timer: { ...fast, speed: 1 } }, false);
+    expect(normal.useApp.getState().timer?.missionId).toBe('D1');
+    expect(mem.cancelled).toBe(0);
   });
 
   it('leaves a release state with no tester state untouched', async () => {

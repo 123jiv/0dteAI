@@ -32,7 +32,7 @@ npm run build:preview   # → dist-preview/unsetld-preview.html (one file, opens
 
 The whole app runs in the browser. Proof picks a file instead of opening the camera, and says so. Widgets, notifications, Sign in with Apple and purchases are simulated: the paywall is in preview mode and charges nothing. Access is switched on in the preview so the whole product can be seen.
 
-**Tester tools:** You → Tester tools. They're in dev builds and the browser preview only, never in a release build, and a release build installed over a dev build drops what they left behind as it loads (time travel goes back to the real today with the real record, timers to normal speed). The top lines show the app's idea of today, the streak, points, missions proven today and active days.
+**Tester tools:** You → Tester tools. They're in dev builds and the browser preview only, never in a release build, and a release build installed over a dev build drops what they left behind as it loads (time travel goes back to the real today with the real record, timers to normal speed, and a timer still running at tester speed is stopped). The top lines show the app's idea of today, the streak, points, missions proven today and active days.
 
 - **Flags**
   - UNSETLD+ on or off. A build with a RevenueCat key asks the App Store, and its answer replaces this switch on the next launch.

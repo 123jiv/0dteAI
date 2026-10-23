@@ -6,7 +6,7 @@ import { AppConfig, IS_PREVIEW } from '../config/app';
 import { randomSalt } from '../core/random';
 import { legacyBalance } from '../core/legacy';
 import { completeMission as completeMissionCore } from '../core/complete';
-import { FEATURES, hasFeature, type Feature, type FeatureMap } from '../core/features';
+import { FEATURES, hasFeature, planOpenToAll, type Feature, type FeatureMap } from '../core/features';
 import { goalReach } from '../core/areaChoice';
 import { asPlanned, customsIn, CUSTOM_KEEP, CUSTOM_PER_DAY, isCustomId, makeCustomMission, type CustomInput } from '../core/custom';
 import { dayNumberOf } from '../core/history';
@@ -734,7 +734,8 @@ function planInput(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
     history: historyFrom(s.record.missions ?? {}, s.plans, s.skips, day, id => id in MISSION_BY_ID),
     // Morning missions only go into a plan made in the morning.
     hour: day === today() ? now().getHours() : undefined,
-    program: prog && ids.length ? { id: prog.id, missionIds: ids } : null,
+    // An UNSETLD+ Plan's day earns no more than the same day without it (core/missions capForPlan).
+    program: prog && ids.length ? { id: prog.id, missionIds: ids, membersOnly: !planOpenToAll(prog) } : null,
     // What the last four weeks say: swapped and ignored missions, preferred length, consistent areas.
     adapt: learnFrom(s.plans, s.record.missions, MISSION_BY_ID, day),
   };
@@ -766,12 +767,14 @@ function refilled(s: PlanState, day: DayKey, have: DayPlan): DayPlan {
  * The most a swap's mission may earn: nothing past the usual for the day's first swap (the one
  * everyone has); for every swap after it, what the mission it replaces was worth. So UNSETLD+'s
  * extra swaps never raise what a day can earn: a free day and a member's day have the same
- * ceiling. undefined = no cap. Proof credits the planned value (core/complete).
+ * ceiling. A mission of an UNSETLD+ Plan capped to keep the day's points (core/missions
+ * capForPlan) keeps its cap through every swap, the first too. undefined = no cap. Proof credits
+ * the planned value (core/complete).
  */
 export function swapCap(plan: DayPlan, index: number, freeSwaps: number = RULES.rerolls.free): number | undefined {
-  if (plan.rerolls < freeSwaps) return undefined;
   const old = plan.missions[index];
   if (!old) return undefined;
+  if (plan.rerolls < freeSwaps && !(old.programId && typeof old.points === 'number')) return undefined;
   return typeof old.points === 'number' ? old.points : MISSION_BY_ID[old.missionId]?.points;
 }
 
@@ -857,20 +860,20 @@ export function withoutTesterState(p: Partial<State>): Partial<State> {
   if (p.devSnapshot) out.record = fromBackup(p.devSnapshot);
   if (p.devSnapshot && p.devPlans) out.plans = p.devPlans;
   if (p.settings && p.settings.timerSpeed !== 1) out.settings = { ...p.settings, timerSpeed: 1 };
-  if (p.dayOffset) {
-    const real = dayKeyOf(new Date());
-    const ahead = (x: Started) => Boolean(x && x.day > real);
-    const timer = ahead(p.timer);
-    const before = ahead(p.pendingBefore) ? p.pendingBefore : null;
-    if (timer) out.timer = null;
-    if (before) out.pendingBefore = null;
-    // Afterwards: with synchronous storage this runs while the store is still being created.
-    if (timer || before) {
-      Promise.resolve().then(() => {
-        if (timer) void cancelTimerDone();
-        if (before) deletePhoto(before.photo.uri);
-      });
-    }
+  const real = dayKeyOf(new Date());
+  const ahead = (x: Started) => Boolean(p.dayOffset && x && x.day > real);
+  // A timer from a travelled day goes, and so does one running at tester speed on a real day:
+  // at 60x it would count as done after a real minute (and its "done" alert is queued early).
+  const timer = ahead(p.timer) || Boolean(p.timer && (p.timer.speed ?? 1) !== 1);
+  const before = ahead(p.pendingBefore) ? p.pendingBefore : null;
+  if (timer) out.timer = null;
+  if (before) out.pendingBefore = null;
+  // Afterwards: with synchronous storage this runs while the store is still being created.
+  if (timer || before) {
+    Promise.resolve().then(() => {
+      if (timer) void cancelTimerDone();
+      if (before) deletePhoto(before.photo.uri);
+    });
   }
   return out;
 }
