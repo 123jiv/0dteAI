@@ -32,7 +32,7 @@ npm run build:preview   # → dist-preview/unsetld-preview.html (one file, opens
 
 The whole app runs in the browser. Proof picks a file instead of opening the camera, and says so. Widgets, notifications, Sign in with Apple and purchases are simulated: the paywall is in preview mode and charges nothing. Access is switched on in the preview so the whole product can be seen.
 
-**Tester tools:** You → Tester tools. They're in dev builds and the browser preview only, never in a release build. The top lines show the app's idea of today, the streak, points, missions proven today and active days.
+**Tester tools:** You → Tester tools. They're in dev builds and the browser preview only, never in a release build, and a release build installed over a dev build drops what they left behind as it loads (time travel goes back to the real today with the real record, timers to normal speed). The top lines show the app's idea of today, the streak, points, missions proven today and active days.
 
 - **Flags**
   - UNSETLD+ on or off. A build with a RevenueCat key asks the App Store, and its answer replaces this switch on the next launch.
@@ -136,7 +136,7 @@ Everything editable lives in `src/content/`. Run **`npm run validate`** after ev
 - **On-device checks only.** The checks look at how and when proof was taken: the right photos are there, the proof photo was taken in the last 30 minutes, before and after are at least 2 minutes apart, the focus timer finished first (for a timer-only mission, it ran its full length in the last 30 minutes), and the photo was never used before. They don't look at what's in the photo. There is no AI, and the app never claims a photo was verified by AI. `services/verify.ts` has a `TaskProofVerifier` interface for a future server-side check; none is connected.
 - **What missions never ask for:** faces, bodies, other people, IDs, addresses, bank details, grades, medical information, private conversations, a bedroom specifically, or location. No facial recognition, no public feed.
 - **What leaves the phone:** a time check against unsetld.com (no identifier), the public config and drops files, purchases through Apple and RevenueCat (an anonymous app user ID and purchase history), and, only for someone who signs in for rewards, each day's count of proven missions and their points. Never a photo, never the user's answers, goal, areas or anything they typed. No analytics: the pipeline ships dormant (docs/METRICS.md) and records nothing until the founder turns it on.
-- The record is mirrored into the iOS Keychain so a reinstall keeps the streak and points. The photo files aren't part of it, but their file names and fingerprints are, with each proof's title as the user saw it, reward codes and Plans finished (the Privacy Policy says so).
+- The record is mirrored into the iOS Keychain so a reinstall keeps the streak and points. The photo files aren't part of it, but their paths on the phone and fingerprints are, with each proof's title as the user saw it, reward codes and Plans finished (the Privacy Policy says so).
 - **Delete data on this phone** (You › YOUR DATA) removes everything the app keeps on the phone, the Keychain copy included, with no network call; UNSETLD+ stays with the Apple ID. It's separate from Delete account (You › Account).
 
 ### 5. App Store
