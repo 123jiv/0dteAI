@@ -51,7 +51,7 @@ The brand lives in the system, not in a shop:
 
 The app must work for someone who never buys a hoodie.
 
-App Store name: UNSETLD: Daily Discipline. Subtitle: One line every morning. Age rating: declare Frequent profanity, which gives 13+.
+App Store name: UNSETLD: Daily Discipline. Subtitle: One line every morning. Age rating: declare Frequent profanity, which gives 13+. (2.x history. The proposed listing is "UNSETLD: Daily Missions" / "Do the mission. Prove it." ([founder/STORE_METADATA.md](founder/STORE_METADATA.md), awaiting approval); the app has no profanity, so the rating answers Profanity None, Age Assurance yes and overrides to 13+ ([COMPLIANCE.md](COMPLIANCE.md)).)
 
 NON-NEGOTIABLE RULES FOR THE BUILD
 1. The reader shows the line and nothing that competes with it: no counters, streaks, XP, pills, toasts or tab bar.
