@@ -2,7 +2,8 @@ import { useIsFocused } from '@react-navigation/native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { programDay, programDayView, programFinished } from '../../core/programs';
+import { dayBudget } from '../../core/missions';
+import { longestPlanDay, programDay, programDayView, programFinished } from '../../core/programs';
 import type { Program } from '../../core/types';
 import { planOpenToAll } from '../../core/features';
 import { MISSION_BY_ID, PROGRAM_BY_ID, PROGRAMS, TRACK_BY_ID } from '../../content';
@@ -116,17 +117,28 @@ function PlanMission({ id, area, showArea, state, onOpen }: { id: string; area: 
   );
 }
 
-/** A plan in the list: serif title, one line, "7 days · Discipline", and Start. */
-function PlanCard({ p, included, onStart }: { p: Program; included: boolean; onStart: () => void }) {
+/**
+ * A plan in the list: serif title, one line, "7 days · Discipline", and Start. A plan whose longest
+ * day runs past the user's day says so ("Some days run up to 50 minutes."): a Plan day keeps every
+ * Plan mission.
+ */
+function PlanCard({ p, included, budget, onStart }: { p: Program; included: boolean; budget: number; onStart: () => void }) {
   // Areas by their short names; one the app no longer has is left out.
   const areas = p.tracks.flatMap(t => (TRACK_BY_ID[t] ? [TRACK_BY_ID[t].short] : []));
+  const longest = longestPlanDay(p, id => MISSION_BY_ID[id]?.minutes);
+  const over = longest > budget ? P.overTime(longest) : null;
   return (
     <Card>
-      <View accessible accessibilityLabel={P.cardA11y(p.title, p.short, p.days, areas)}>
+      <View accessible accessibilityLabel={P.cardA11y(p.title, p.short, p.days, areas, over)}>
         <T v="list">{p.title}</T>
         <T v="small" color={C.stone} style={{ marginTop: 4 }}>
           {p.short}
         </T>
+        {over ? (
+          <T v="small" color={C.muted} style={{ marginTop: 4 }}>
+            {over}
+          </T>
+        ) : null}
       </View>
       <View style={{ marginTop: 14, minHeight: 32, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <T v="meta" color={C.muted} style={{ flexShrink: 1 }} accessibilityElementsHidden importantForAccessibility="no">
@@ -223,11 +235,13 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   const free = list.filter(p => planOpenToAll(p));
   const plus = list.filter(p => !planOpenToAll(p));
   const top = Boolean(running || finished);
+  // The user's day, in minutes (DAY_SHAPE): a plan with a longer day says so on its card.
+  const budget = dayBudget(profile);
 
   const cards = (ps: readonly Program[]) => (
     <View style={{ gap: GAP.card }}>
       {ps.map(p => (
-        <PlanCard key={p.id} p={p} included={ent.canStartPlan(p)} onStart={() => start(p)} />
+        <PlanCard key={p.id} p={p} included={ent.canStartPlan(p)} budget={budget} onStart={() => start(p)} />
       ))}
     </View>
   );

@@ -77,10 +77,13 @@ export const PROGRAMS_COPY = {
   days: (n: number) => (n === 1 ? '1 day' : `${n} days`),
   /** "7 days · Discipline", with each area the plan counts toward. */
   meta: (days: string, areas: string[]) => [days, ...areas].join(' · '),
+  /** Under a plan whose longest day runs past the user's day (a Plan day keeps every Plan mission). */
+  overTime: (minutes: number) => `Some days run up to ${minutes} minutes.`,
   start: 'Start',
   startA11y: (title: string) => `Start ${title}`,
   plusA11y: (title: string) => `Start ${title}. Comes with UNSETLD+`,
-  cardA11y: (title: string, short: string, days: number, areas: string[]) => `${title}. ${short} ${days === 1 ? '1 day' : `${days} days`}, ${areas.join(', ')}.`,
+  cardA11y: (title: string, short: string, days: number, areas: string[], over?: string | null) =>
+    `${title}. ${short} ${days === 1 ? '1 day' : `${days} days`}, ${areas.join(', ')}.${over ? ` ${over}` : ''}`,
   switchTitle: (next: string) => `Start ${next}?`,
   switchBody: (current: string) => `One plan at a time. ${current} stops here; the days you proved stay on your record.`,
   switchYes: 'Start',

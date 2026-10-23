@@ -29,6 +29,15 @@ export function finishOf(p: Pick<Program, 'days'> | null | undefined, s: Program
   return days[days.length - 1] ?? null;
 }
 
+/**
+ * The longest day of a Plan, in minutes (its own missions). A Plan day keeps every Plan mission,
+ * so it can run past the time the user chose (7 Day Lock In's Day 4 is 50 minutes; a 15-minute
+ * day is 20 at most): the Plans list says so when it does.
+ */
+export function longestPlanDay(p: Pick<Program, 'plan'>, minutesOf: (id: string) => number | undefined): number {
+  return Math.max(0, ...p.plan.map(day => day.reduce((sum, id) => sum + (minutesOf(id) ?? 0), 0)));
+}
+
 export function startProgram(id: string, today: DayKey): ProgramState {
   return { id, startedDay: today, doneDays: [], finishedDay: null };
 }
