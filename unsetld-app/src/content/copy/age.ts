@@ -17,6 +17,17 @@ export const AGE = {
   a11yMonth: (m: number) => MONTHS_SAID[m - 1] ?? '',
   continue: 'Continue',
 
+  /**
+   * Asked before the answer is kept, after every year alike (so it says nothing about which one
+   * gets in): one mistaken tap would otherwise be final.
+   */
+  confirm: {
+    title: (year: number, month?: number | null) => `Born in ${month ? `${MONTHS_SAID[month - 1] ?? ''} ` : ''}${year}?`,
+    body: 'This can’t be changed later.',
+    change: 'Change',
+    yes: 'Continue',
+  },
+
   blocked: {
     title: 'UNSETLD is for 13 and over.',
     body: 'Nothing you entered was kept.',

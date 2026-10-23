@@ -12,6 +12,7 @@ import { T } from '../../ui/text';
 import { GAP } from '../../ui/tokens';
 import { useAnnounce } from '../../ui/useAnnounce';
 import { WheelColumn, WHEEL_ROW } from '../../ui/WheelColumn';
+import { confirmBirth } from './ageConfirm';
 import { blockUnder13, passAgeGate } from './ageGate';
 import { Chip } from './TracksScreen';
 
@@ -20,7 +21,8 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 /**
  * The 13+ age gate (launch pass P0-4), after Name and before the numbered steps; once for
  * someone onboarded before it existed. Neutral: no year is suggested, nothing says which answer
- * gets in, and there's no going back to change it. The month is asked only on the one year the
+ * gets in, and there's no going back to change it, so Continue asks once ("Born in 2016?", the
+ * same for every year) before anything is kept or deleted. The month is asked only on the one year the
  * 13 line runs through. Where Apple shares an age range (iOS 26.2+, where age rules apply) that
  * answers instead; anything else falls back to the year.
  */
@@ -88,7 +90,8 @@ export function AgeScreen({ navigation }: RootProps<'Age'>) {
           title={AGE.continue}
           disabled={!ready}
           onPress={() => {
-            if (answer && answer.kind !== 'month') decide(answer);
+            if (year === null || !answer || answer.kind === 'month') return;
+            confirmBirth(year, askMonth ? month : null, () => decide(answer));
           }}
         />
       }>
