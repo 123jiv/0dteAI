@@ -73,7 +73,7 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
               key={n}
               role="radio"
               on={on}
-              label={COPY.a11yMinutes[n]}
+              label={COPY.a11yMinutesOption(COPY.a11yMinutes[n], COPY.shape[n])}
               onPress={() => set('minutes', n)}
               style={{ flex: 1, minWidth: 0, minHeight: 76, paddingHorizontal: 4, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
               {/* Four across: at the largest text sizes the number shrinks to fit rather than breaking. */}
@@ -88,8 +88,9 @@ export function PaceScreen({ navigation, route }: RootProps<'Pace'>) {
         })}
       </View>
 
-      {/* What the time chosen gives, for every choice: the shape line and its glyph. */}
-      <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      {/* What the time chosen gives, for every choice: the shape line and its glyph. VoiceOver
+          hears the line with each choice (a11yMinutesOption), so it isn't read again here. */}
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <T v="small" color={C.stone} style={{ flex: 1 }}>
           {COPY.shape[m]}
         </T>

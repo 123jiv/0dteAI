@@ -101,6 +101,11 @@ export const ONBOARDING = {
       },
     } satisfies Record<Profile['intensity'], { name: string; body: string }>,
     a11yIntensity: (name: string, body: string) => `${spoken(name)}. ${body}`,
+    /**
+     * A time choice as VoiceOver says it, with the day it gives ("30 minutes. Two missions a day.
+     * About 30 to 40 minutes."): the shape line under the choices isn't read on its own.
+     */
+    a11yMinutesOption: (minutes: string, shape: string) => `${minutes}. ${shape}`,
   },
 
   goal: {

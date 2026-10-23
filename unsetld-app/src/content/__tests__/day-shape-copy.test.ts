@@ -40,6 +40,12 @@ describe('the day shape, as the copy states it', () => {
     expect(counts(PACE.shape[60])).toEqual([...new Set(INTENSITIES.map(intensity => slotsFor({ minutes: 60, intensity }).length))].sort());
   });
 
+  it('VoiceOver hears each time choice with the day it gives (the shape line is not read on its own)', () => {
+    expect(PACE.a11yMinutesOption(PACE.a11yMinutes[30], PACE.shape[30])).toBe('30 minutes. Two missions a day. About 30 to 40 minutes.');
+    expect(PACE.a11yMinutesOption(PACE.a11yMinutes[60], PACE.shape[60])).toBe('An hour or more. Three or four missions a day, by how hard you want it.');
+    for (const n of MINUTES) expect(PACE.a11yMinutesOption(PACE.a11yMinutes[n], PACE.shape[n])).toContain(PACE.shape[n]);
+  });
+
   it('the "How hard?" cards name the missions each intensity gives with an hour or more', () => {
     for (const intensity of INTENSITIES) expect(counts(PACE.intensity[intensity].body), intensity).toEqual([slotsFor({ minutes: 60, intensity }).length]);
     // Start easy: shorter sessions (its longest mission is shorter than Lock in's); Push me: about an hour and a half.
