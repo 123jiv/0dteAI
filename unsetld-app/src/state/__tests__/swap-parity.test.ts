@@ -93,6 +93,26 @@ describe('swap parity', () => {
     expect(swapCap({ ...plan, rerolls: 2 }, 5)).toBeUndefined();
   });
 
+  it("a mission of an UNSETLD+ Plan capped to keep the day's points (core/missions capForPlan) keeps its cap through the first swap too", () => {
+    const plan: DayPlan = {
+      day: '2026-10-19',
+      missions: [
+        { slot: 'main', missionId: 'P1', area: 'projects', programId: 'build-something', points: 5 },
+        { slot: 'easy', missionId: 'P6', area: 'projects', programId: 'build-something' },
+        { slot: 'main', missionId: 'D1', area: 'discipline' },
+      ],
+      rerolls: 0,
+      replaced: [],
+    };
+    expect(swapCap(plan, 0)).toBe(5);
+    expect(swapCap(plan, 1)).toBeUndefined();
+    expect(swapCap(plan, 2)).toBeUndefined();
+    expect(swapCap({ ...plan, rerolls: RULES.rerolls.free }, 0)).toBe(5);
+    // What it is swapped for is planned at the cap, and pays no more.
+    const next = swap(plan, 0, 'D2', 'discipline', 'another');
+    expect(next && worth(next.missions[0]!)).toBe(5);
+  });
+
   for (const shape of SHAPES) {
     it(`${shape.minutes} min, ${shape.intensity}: three swaps never beat one`, () => {
       for (const tracks of AREAS) {

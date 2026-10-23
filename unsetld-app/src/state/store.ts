@@ -12,9 +12,11 @@ import { asPlanned, customsIn, CUSTOM_KEEP, CUSTOM_PER_DAY, isCustomId, makeCust
 import { dayNumberOf } from '../core/history';
 import {
   addSkip,
+  dayPoints,
   DEFAULT_PROFILE,
   generatePlan,
   historyFrom,
+  ownDay,
   planAreas,
   prunePlans,
   meetsRequirements,
@@ -744,7 +746,11 @@ function planInput(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans'
 }
 
 function buildPlan(s: Pick<State, 'profile' | 'installSalt' | 'record' | 'plans' | 'skips' | 'program'>, day: DayKey): DayPlan {
-  return generatePlan(planInput(s, day));
+  const input = planInput(s, day);
+  if (!input.program?.membersOnly || !s.program) return generatePlan(input);
+  // An UNSETLD+ Plan's day earns no more than the user's own day would have without it (core/missions ownDay, capForPlan).
+  const own = ownDay(input, s.program.startedDay, day, s.record.missions ?? {}, s.plans, s.skips, MISSION_BY_ID, id => id in MISSION_BY_ID);
+  return generatePlan({ ...input, program: { ...input.program, ceiling: dayPoints(own, MISSION_BY_ID) } });
 }
 
 type PlanState = Pick<State, 'profile' | 'installSalt' | 'record' | 'plans' | 'skips' | 'program'>;

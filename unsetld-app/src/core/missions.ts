@@ -5,12 +5,12 @@
 // did and skipped lately, how often each mission should come round, and the time of day.
 // Nothing is ever made up or taken from outside the library. Pure and deterministic: the same
 // library, profile, history and day always give the same plan.
-import { goalPointsAt, jobSearch, kindsOf, leanFor, leansTo, LONG_MINUTES, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
+import { goalPointsAt, jobSearch, kindsOf, leanFor, leansTo, learnFrom, LONG_MINUTES, NO_ADAPTATION, personalWeight, type Adaptation } from './personalize';
 import { hash32, mulberry32 } from './random';
 import { usableText } from './safety';
 import { addDays, DAY_START_HOUR, dayNumber, diffDays, parseDay, type DayKey } from './time';
 import { projectFrom } from './titles';
-import type { DayPlan, Mission, MissionSlot, PlannedMission, Profile, Requirement, SkillId, SwapReason, TrackId } from './types';
+import type { DayPlan, Mission, MissionDone, MissionSlot, PlannedMission, Profile, Requirement, SkillId, SwapReason, TrackId } from './types';
 
 /**
  * A short (easy) mission takes this many minutes or fewer. 20: the approved library runs 5–45
@@ -185,8 +185,17 @@ export interface PlanInput {
    * day. Morning missions are left out from noon until 4 AM.
    */
   hour?: number;
-  /** Today's missions from an active program, placed first. */
-  program?: { id: string; missionIds: string[] } | null;
+  /**
+   * Today's missions from an active program, placed first. `membersOnly`: an UNSETLD+ Plan, whose
+   * day never earns more than the same day planned without it (generatePlan, capForPlan).
+   */
+  program?: {
+    id: string;
+    missionIds: string[];
+    membersOnly?: boolean;
+    /** The most the day's missions may earn on a membersOnly Plan's day (state/store: ownDay's points). */
+    ceiling?: number;
+  } | null;
   /** What the user did lately (core/personalize learnFrom); none = no adaptation. */
   adapt?: Adaptation;
 }
@@ -1174,9 +1183,110 @@ function oneMissionArea(input: PlanInput, areas: readonly TrackId[], lead: Track
 /**
  * The day's plan (DAY_SHAPE): a Plan's missions first, every one of them, then one mission per
  * slot within the time budget. On a Plan day the day's own slots are filled only while
- * PLAN_DAY_MIN_LEFT minutes of the budget are left, and the week's focus keeps a mission.
+ * PLAN_DAY_MIN_LEFT minutes of the budget are left, and the week's focus keeps a mission. A day
+ * running an UNSETLD+ Plan (`program.membersOnly`) earns no more than the same day planned
+ * without it (capForPlan).
  */
 export function generatePlan(input: PlanInput): DayPlan {
+  const plan = planDay(input);
+  if (!input.program?.membersOnly) return plan;
+  const byId = Object.fromEntries(input.library.map(m => [m.id, m]));
+  const without = dayPoints(planDay({ ...input, program: null }), byId);
+  return capForPlan(plan, Math.min(without, input.program.ceiling ?? Infinity), byId);
+}
+
+/** What a planned mission earns when proven: its points, or less where the plan caps it (a swap, an UNSETLD+ Plan). */
+export function plannedPoints(p: Pick<PlannedMission, 'missionId' | 'points'>, byId: Readonly<Record<string, Pick<Mission, 'points'>>>): number {
+  const full = byId[p.missionId]?.points ?? 0;
+  return typeof p.points === 'number' ? Math.max(0, Math.min(p.points, full)) : full;
+}
+
+/** What a day's missions earn when every one is proven (plannedPoints), the perfect-day bonus aside. */
+export function dayPoints(plan: Pick<DayPlan, 'missions'>, byId: Readonly<Record<string, Pick<Mission, 'points'>>>): number {
+  return plan.missions.reduce((t, p) => t + plannedPoints(p, byId), 0);
+}
+
+/**
+ * UNSETLD+ never raises what a day earns (rules review, 23 Oct 2026: a members-only Plan's missions
+ * in areas the user didn't pick are longer, higher-point ones, so a Plan week out-earned every free
+ * week for about half of the users). A day running a members-only Plan earns at most `most`
+ * (generatePlan: the same day planned without it, or the user's own day, ownDay, when that is
+ * less): the Plan's missions give up points, the highest first, 5 at a time, then (when the day's
+ * own missions alone come to more) the day's own. The cap is the planned `points`, as a swap's is:
+ * proof credits it, the card and widgets show it, and a swap of the mission keeps it (state/store
+ * swapCap). Free Plans earn as they always have.
+ */
+export function capForPlan(plan: DayPlan, most: number, byId: Readonly<Record<string, Pick<Mission, 'points'>>>): DayPlan {
+  let over = dayPoints(plan, byId) - most;
+  if (over <= 0) return plan;
+  const worth = plan.missions.map(p => plannedPoints(p, byId));
+  for (const fromPlan of [true, false]) {
+    while (over > 0) {
+      let k = -1;
+      worth.forEach((w, i) => {
+        if (w > 0 && Boolean(plan.missions[i].programId) === fromPlan && (k < 0 || w > worth[k])) k = i;
+      });
+      if (k < 0) break;
+      const cut = Math.min(5, worth[k], over);
+      worth[k] -= cut;
+      over -= cut;
+    }
+  }
+  return { ...plan, missions: plan.missions.map((p, i) => (worth[i] < plannedPoints(p, byId) ? { ...p, points: worth[i] } : p)) };
+}
+
+/** How far back ownDay plans the days again at most (the days before keep what was planned). */
+export const OWN_DAY_REPLAY = 14;
+
+/**
+ * The user's own day, as it would be had the Plan that started `from` not run: the days from
+ * `from` (at most OWN_DAY_REPLAY back) planned again without it, every mission proven (at noon),
+ * then `day`. A Plan rests the user's own areas, so their own day planned on the real history
+ * comes out fresher, and richer, than the days they'd have had without it; this is what an
+ * UNSETLD+ Plan's day is capped at (PlanInput `program.ceiling`, state/store buildPlan).
+ * Every day is planned at `hour`, the hour `day` is.
+ */
+export function ownDay(
+  input: Pick<PlanInput, 'library' | 'profile' | 'salt' | 'hour'>,
+  from: DayKey,
+  day: DayKey,
+  done: Readonly<Record<DayKey, Record<string, MissionDone>>>,
+  plans: Readonly<Record<DayKey, DayPlan>>,
+  skips: MissionHistory['skips'],
+  byId: Readonly<Record<string, Mission>>,
+  known?: (id: string) => boolean,
+): DayPlan {
+  const start = from > addDays(day, -OWN_DAY_REPLAY) ? from : addDays(day, -OWN_DAY_REPLAY);
+  const p: Record<DayKey, DayPlan> = {};
+  const d: Record<DayKey, Record<string, MissionDone>> = {};
+  for (const [k, v] of Object.entries(plans)) if (k < start) p[k] = v;
+  for (const [k, v] of Object.entries(done)) if (k < start) d[k] = v;
+  for (let k = start < day ? start : day; ; k = addDays(k, 1)) {
+    const plan = generatePlan({
+      library: input.library,
+      profile: input.profile,
+      day: k,
+      salt: input.salt,
+      hour: input.hour,
+      history: historyFrom(d, p, skips, k, known),
+      program: null,
+      adapt: learnFrom(p, d, byId, k),
+    });
+    if (k >= day) return plan;
+    p[k] = plan;
+    const at = parseDay(k);
+    at.setHours(12, 0, 0, 0);
+    const verification = { status: 'accepted' as const, method: 'on-device' as const, checks: [], at: at.getTime() };
+    d[k] = Object.fromEntries(
+      plan.missions.map(x => [
+        x.missionId,
+        { missionId: x.missionId, slot: x.slot, track: x.area ?? byId[x.missionId]?.track ?? 'discipline', points: plannedPoints(x, byId), doneAt: at.getTime(), photos: [], verification },
+      ]),
+    );
+  }
+}
+
+function planDay(input: PlanInput): DayPlan {
   const { profile, day, salt } = input;
   const shape = dayShape(profile);
   const slots: MissionSlot[] = [...shape.slots];

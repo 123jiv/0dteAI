@@ -41,6 +41,12 @@ async function load(state: object, version = 8) {
 
 type Store = Awaited<ReturnType<typeof load>>['useApp'];
 
+async function loadWith(state: object) {
+  const loaded = await load(state);
+  const content = await import('../../content');
+  return { ...loaded, MISSION_BY_ID: content.MISSION_BY_ID };
+}
+
 /** Proves one of the running Plan's missions in today's plan, on October `day` at 9 AM. */
 function provePlanDay(useApp: Store, day: number) {
   vi.setSystemTime(at9(day));
@@ -118,6 +124,36 @@ describe('finishing a Plan', () => {
     expect(dueMoment(useApp.getState().record, '2026-10-18', useApp.getState().momentsShown)).toBeNull();
     // The next day: nothing waiting.
     expect(dueMoment(useApp.getState().record, '2026-10-19', useApp.getState().momentsShown)).toBeNull();
+  });
+});
+
+describe('an UNSETLD+ Plan earns no more than the day without it (rules review 4)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(at9(12));
+  });
+
+  const PUSH = { tracks: ['discipline', 'organization'], minutes: 60, intensity: 'push' };
+  const points = (plan: { missions: { missionId: string; points?: number }[] }, byId: Record<string, { points: number }>) =>
+    plan.missions.reduce((t, p) => t + Math.min(typeof p.points === 'number' ? p.points : Infinity, byId[p.missionId].points), 0);
+
+  it('caps a members-only Plan day at the same day planned without it; a free Plan day is as it was', async () => {
+    const { useApp, MISSION_BY_ID } = await loadWith({ installSalt: 'salt-plus', settings: { onboarded: true }, profile: PUSH });
+    const own = points(useApp.getState().ensurePlan('2026-10-12'), MISSION_BY_ID);
+    for (const id of ['build-something', 'school-reset', 'business-week']) {
+      const { useApp: app } = await loadWith({ installSalt: 'salt-plus', settings: { onboarded: true }, profile: PUSH });
+      app.getState().startProgram(id);
+      const plan = app.getState().ensurePlan('2026-10-12');
+      expect(plan.missions.some(p => p.programId === id), id).toBe(true);
+      expect(points(plan, MISSION_BY_ID), id).toBeLessThanOrEqual(own);
+      // School Reset's first day would come to 50 against 45: a Plan mission pays less.
+      if (id === 'school-reset') expect(plan.missions.some(p => p.programId === id && typeof p.points === 'number')).toBe(true);
+    }
+    const { useApp: free } = await loadWith({ installSalt: 'salt-plus', settings: { onboarded: true }, profile: PUSH });
+    free.getState().startProgram('get-organized');
+    const plan = free.getState().ensurePlan('2026-10-12');
+    expect(plan.missions.some(p => p.programId === 'get-organized')).toBe(true);
+    expect(plan.missions.every(p => p.points === undefined)).toBe(true);
   });
 });
 
