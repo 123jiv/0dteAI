@@ -85,7 +85,7 @@ describe('Privacy Policy', () => {
 
   it('says what the Keychain copy holds, and that the photos are not in it', () => {
     const k = section('privacy', 'The copy in your Keychain');
-    for (const thing of ['title', 'goal', 'missions you wrote', 'points', 'fingerprints', 'never the photos', 'reward codes', 'Plans finished']) {
+    for (const thing of ['title', 'goal', 'missions you wrote', 'points', 'fingerprints', 'never the photos', 'reward codes', 'plans finished']) {
       expect(k, thing).toContain(thing);
     }
     expect(k).toContain('after the app is deleted');
@@ -161,6 +161,30 @@ describe('How missions work', () => {
     const plans = section('record', 'Plans');
     expect(plans).toContain('moves on once you prove one of its missions');
     expect(plans).toContain('no extra points');
-    expect(section('record', 'Levels')).toContain('first finished Plan');
+    expect(section('record', 'Levels')).toContain('first finished plan');
   });
 });
+
+// The docs read like the app (UX review 10, rules review 9): "plan" in lower case mid-sentence,
+// as on Plans, Achievements and the moment ("Leave plan", "First plan"), and none of the banned
+// motivational words ("level up").
+describe('the voice in the docs', () => {
+  const all = (v: unknown): string[] =>
+    typeof v === 'string' ? [v] : Array.isArray(v) ? v.flatMap(all) : v && typeof v === 'object' ? Object.values(v).flatMap(all) : [];
+  const texts = all(legal);
+
+  it('has words to check', () => {
+    expect(texts.length).toBeGreaterThan(40);
+  });
+
+  it('"plan" is lower case unless it starts a sentence or a heading', () => {
+    const mid = texts.flatMap(t => t.match(/[a-z,;:] Plans?\b/g) ?? []);
+    expect(mid).toEqual([]);
+  });
+
+  it('no "level up"', () => {
+    expect(texts.filter(t => /\blevels? up\b|\blevell?ing up\b/i.test(t))).toEqual([]);
+    expect(section('record', 'Levels')).toContain("An area's level rises as its XP adds up");
+  });
+});
+

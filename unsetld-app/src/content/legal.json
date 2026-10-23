@@ -43,11 +43,11 @@
       },
       {
         "h": "Levels",
-        "p": "Each mission's points also count as XP for its area, so you can see where the work is going. An area levels up as its XP adds up, and XP is never spent. Achievements mark your first mission, your first perfect day, 7 days, your first finished Plan, 30 missions and more."
+        "p": "Each mission's points also count as XP for its area, so you can see where the work is going. An area's level rises as its XP adds up, and XP is never spent. Achievements mark your first mission, your first perfect day, 7 days, your first finished plan, 30 missions and more."
       },
       {
         "h": "Plans",
-        "p": "A Plan, like 7 Day Lock In, sets missions for a run of days. While one runs, all of the day's Plan missions are in your list, even when they take longer than the time you chose, and your other missions fill what time is left. A Plan day moves on once you prove one of its missions, so a missed day doesn't end it. A finished Plan stays on your record. Finishing one earns no extra points."
+        "p": "A plan, like 7 Day Lock In, sets missions for a run of days. While one runs, all of the day's plan missions are in your list, even when they take longer than the time you chose, and your other missions fill what time is left. A plan day moves on once you prove one of its missions, so a missed day doesn't end it. A finished plan stays on your record. Finishing one earns no extra points."
       },
       {
         "h": "Proof photos",
@@ -203,7 +203,7 @@
       },
       {
         "h": "The copy in your Keychain",
-        "p": "So a reinstall picks up where you left off, the app keeps a copy of your record in this iPhone's Keychain: the days on your record; each proven mission with its title as you saw it (words from your goal and missions you wrote included), its points, when it was proven and what the proof checks found; where its photos are saved on this phone and their fingerprints, never the photos; Plans finished; reward codes you've taken; tasks and answers from earlier versions; and a random number the app uses to vary your missions. The app never uploads it. iOS can keep it after the app is deleted, and it can be part of your own encrypted iPhone backup. If you sign in, the sign-in token is kept in the Keychain too."
+        "p": "So a reinstall picks up where you left off, the app keeps a copy of your record in this iPhone's Keychain: the days on your record; each proven mission with its title as you saw it (words from your goal and missions you wrote included), its points, when it was proven and what the proof checks found; where its photos are saved on this phone and their fingerprints, never the photos; plans finished; reward codes you've taken; tasks and answers from earlier versions; and a random number the app uses to vary your missions. The app never uploads it. iOS can keep it after the app is deleted, and it can be part of your own encrypted iPhone backup. If you sign in, the sign-in token is kept in the Keychain too."
       },
       {
         "h": "Deleting your data",
