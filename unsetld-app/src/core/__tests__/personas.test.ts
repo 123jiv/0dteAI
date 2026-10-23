@@ -284,6 +284,31 @@ describe('the founder personas, from the goal they typed', () => {
     }
   });
 
+  it("a Plan day past its time adds the week's focus only from the focus's own area, never another area in its place", () => {
+    // Discipline's two short missions (Plan Tomorrow's Top 3, Finish One Unfinished Task) were
+    // proven yesterday: both in their cooldown. The Plan's 20-minute cardio fills a 15-minute day.
+    const history = {
+      lastDone: { D4: '2026-10-21', D6: '2026-10-21' },
+      lastPlanned: { D4: '2026-10-21', D6: '2026-10-21', M1: '2026-10-20' },
+      skips: {},
+      recent: { D4: ['2026-10-21'], D6: ['2026-10-21'] },
+    };
+    const base: Profile = { ...DEFAULT_PROFILE, tracks: ['discipline', 'money'], intensity: 'lockin', goal: null, focus: { week: '2026-10-19', id: 'routine' } };
+    const plan = generatePlan({ library: LIBRARY, profile: { ...base, minutes: 15 }, day: '2026-10-22', salt: 's', hour: 19, history, program: { id: 'fitness-base', missionIds: ['F3'] } });
+    expect(plan.missions.map(x => x.missionId)).toEqual(['F3']);
+    // Every Plan, every day of it, at every time choice: where the Plan's missions leave less than
+    // PLAN_DAY_MIN_LEFT of the time, what the day adds is the focus's (Discipline) or nothing.
+    for (const prog of programsJson as Program[])
+      for (const minutes of [15, 30, 45, 60] as const)
+        prog.plan.forEach((ids, d) => {
+          const profile = { ...base, minutes };
+          const p = generatePlan({ library: LIBRARY, profile, day: addDays('2026-10-19', d), salt: `focus-${prog.id}`, hour: 19, history, program: { id: prog.id, missionIds: ids } });
+          const planned = p.missions.filter(x => x.programId).reduce((t, x) => t + BY_ID.get(x.missionId)!.minutes, 0);
+          if (dayBudget(profile) - planned >= 10) return;
+          for (const x of p.missions.filter(y => !y.programId)) expect(x.area, `${prog.id} day ${d + 1} at ${minutes}: ${p.missions.map(y => y.missionId)}`).toBe('discipline');
+        });
+  });
+
   it("doesn't send someone working and out of school to look for internships only", () => {
     const e = persona('E');
     const internshipOnly = (id: string) => {
