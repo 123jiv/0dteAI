@@ -295,10 +295,11 @@ export const PROGRESS = {
     completionNote: 'Counted on the days you showed up.',
     /** The way back to the weekly review (this week's, or last week's on Monday and Tuesday). */
     review: 'Weekly review',
-    active: 'Active days',
+    /** The barcode's label: the same count the Record and the weekly review call days proven. */
+    active: 'Days proven',
     activeSince: (n: number, since: DayKey, today: DayKey) => `${plural(n, 'day', 'days')} since ${date(since, today)}`,
     today: 'TODAY',
-    a11yBarcode: (n: number, since: DayKey, today: DayKey) => `${plural(n, 'active day', 'active days')} since ${date(since, today)}.`,
+    a11yBarcode: (n: number, since: DayKey, today: DayKey) => `${plural(n, 'day', 'days')} proven since ${date(since, today)}.`,
     off: 'Off Days',
     offBanked: (n: number, max: number) => `${n} of ${max} banked`,
     offExplain: 'Miss a day and an Off Day covers it. You earn one every 7 days you show up. You can bank two.',
@@ -382,8 +383,8 @@ export const PROGRESS = {
     otherArea: 'Other',
     /** In the viewer: the proof's day on the record. */
     openDay: 'Open this day',
-    /** "19 active days · 47 missions proven" */
-    monthMeta: (days: number, missions: number) => `${plural(days, 'active day', 'active days')} · ${plural(missions, 'mission', 'missions')} proven`,
+    /** "19 days proven · 47 missions" (days proven, as the Record and the weekly review say it). */
+    monthMeta: (days: number, missions: number) => `${plural(days, 'day', 'days')} proven · ${plural(missions, 'mission', 'missions')}`,
     empty: { title: 'Your proof builds up here.', body: 'Every mission you prove, by month.' },
     /** Under the grid: what happens to photos. */
     keep: (days: number) =>

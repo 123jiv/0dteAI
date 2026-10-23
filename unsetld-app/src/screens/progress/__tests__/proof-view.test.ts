@@ -59,7 +59,7 @@ describe('Proof history, organised', () => {
   it('by date: a section a month, newest first, with its counts', () => {
     const s = proofSections('date', months, '2026');
     expect(s.map(x => x.title)).toEqual(['October', 'September']);
-    expect(s[0].meta).toBe('3 active days · 5 missions proven');
+    expect(s[0].meta).toBe('3 days proven · 5 missions');
     expect(s[0].proofs[0].day).toBe('2026-10-03');
   });
 

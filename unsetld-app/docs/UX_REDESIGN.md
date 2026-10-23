@@ -124,12 +124,12 @@ Stats                          →
 
 - XP = mission points in that area (core/progress `trackProgress`); no second currency. Area cards show level (serif), meter, "120 / 150 XP to level 4", missions completed and time invested (timer seconds + mission minutes for proven missions); Stats shows the area's total ("225 XP total"). The week row says when an Off Day covered a day. A proof that takes an area to a new level adds one line to the Done stage ("SCHOOL · LEVEL 4").
 - **Day 1 (nothing proven):** one `EmptyState`: "Your record starts with your first mission." / "Prove one of today's missions and it shows up here." / `Go to today` → Today. Plus the areas list in a quiet "starts at level 1" form is NOT shown; no zeros.
-- Achievements (milestones): reached ones with dates, then the next three with progress. Stats: longest streak, missions, points earned, focused time, this-week completion, active days, Off Days with their one-line explainer, per-area totals.
+- Achievements (milestones): reached ones with dates, then the next three with progress. Stats: longest streak, missions, points earned, focused time, this-week completion, days proven (the barcode), Off Days with their one-line explainer, per-area totals.
 - Weekly review (modal, Sundays): keep, simplified; "Next week" chips are the weekly focus options (sets next week's focus).
 
 ## 8. Proof history
 
-A private visual record, by month: `October` (serif), "19 active days · 47 missions proven" (meta), a 3-column grid of square thumbnails (radius 6). A photo the retention policy cleared shows a placeholder tile with the area kicker and the date — the history never breaks. Timer-only proofs show a timer tile. Tap → the existing viewer (title, area, date, proof stamp). Top line: "Only on this phone. Never posted anywhere." Empty: "Your proof builds up here."
+A private visual record, by month: `October` (serif), "19 days proven · 47 missions" (meta), a 3-column grid of square thumbnails (radius 6). A photo the retention policy cleared shows a placeholder tile with the area kicker and the date — the history never breaks. Timer-only proofs show a timer tile. Tap → the existing viewer (title, area, date, proof stamp). Top line: "Only on this phone. Never posted anywhere." Empty: "Your proof builds up here."
 
 ## 9. Rewards
 

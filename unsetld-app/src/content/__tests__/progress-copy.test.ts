@@ -41,7 +41,7 @@ describe('dates on the Record say the year when it is not this one', () => {
     expect(PROGRESS.moment.reached('2025-10-14', today)).toBe('Reached 14 Oct 2025');
     expect(PROGRESS.moment.a11yDate('2026-09-20', today)).toBe('Reached 20 Sep');
     expect(PROGRESS.stats.activeSince(330, '2025-10-14', today)).toBe('330 days since 14 Oct 2025');
-    expect(PROGRESS.stats.a11yBarcode(330, '2025-10-14', today)).toBe('330 active days since 14 Oct 2025.');
+    expect(PROGRESS.stats.a11yBarcode(330, '2025-10-14', today)).toBe('330 days proven since 14 Oct 2025.');
     expect(PROGRESS.achievements.a11yReached('First mission', '2025-10-14', today)).toBe('First mission. Reached 14 Oct 2025.');
     expect(PROGRESS.history.proven('9:47 AM', '2025-10-14', today, 15)).toBe('Proven 9:47 AM · 14 Oct 2025 · +15 pts');
     expect(PROGRESS.history.a11yTile('Study for 30 Minutes', 'School', '2025-10-14', today, 'cleared')).toBe(
@@ -238,5 +238,40 @@ describe('milestone moments', () => {
     for (const { line } of Object.values(PROGRESS.moment.byKey)) {
       expect(line).not.toMatch(/!|tomorrow|most people/i);
     }
+  });
+});
+
+// One name for one count (UX review 8): a day with a proven mission is a "day proven" on the
+// Record, the weekly review, Stats and Proof history, never an "active day".
+describe('days proven, everywhere', () => {
+  /** Every string in the copy, functions called with a few sample arguments. */
+  const strings = (v: unknown): string[] => {
+    if (typeof v === 'string') return [v];
+    if (typeof v === 'function') {
+      for (const args of [[3, '2026-10-01', TODAY], [3, 5], [3, 5, 7], [1]]) {
+        try {
+          return strings((v as (...a: unknown[]) => unknown)(...args));
+        } catch {
+          // Try the next arguments.
+        }
+      }
+      return [];
+    }
+    if (Array.isArray(v)) return v.flatMap(strings);
+    if (v && typeof v === 'object') return Object.values(v).flatMap(strings);
+    return [];
+  };
+
+  it('no "active day" in the progress copy', () => {
+    const all = strings(PROGRESS);
+    expect(all.length).toBeGreaterThan(50);
+    expect(all.filter(s => /active days?/i.test(s))).toEqual([]);
+  });
+
+  it('Stats, Proof history, the Record and the weekly review say the same', () => {
+    expect(PROGRESS.stats.active).toBe('Days proven');
+    expect(PROGRESS.stats.a11yBarcode(19, '2026-10-01', TODAY)).toBe('19 days proven since 1 Oct.');
+    expect(PROGRESS.history.monthMeta(19, 47)).toBe('19 days proven · 47 missions');
+    expect(PROGRESS.record.summary(19, 42, 51)).toMatch(/^19 days proven · /);
   });
 });

@@ -99,7 +99,7 @@ export const HISTORY_BY: readonly HistoryBy[] = ['date', 'mission', 'area'];
 export interface ProofSection {
   key: string;
   title: string;
-  /** Under a month ("19 active days · 47 missions proven"); beside a mission or an area, its count. */
+  /** Under a month ("19 days proven · 47 missions"); beside a mission or an area, its count. */
   meta: string;
   said: string;
   month: boolean;
