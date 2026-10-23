@@ -68,7 +68,7 @@ Sources were checked on 2026-10-07: the App Review Guidelines (last updated 2026
   - turning on notifications, tracking or location (5.1.2(i))
   - installing other apps
   - posting about UNSETLD on social media (that would make posts paid endorsements needing #ad)
-- **No purchase necessary.** UNSETLD+ is sold only through in-app purchase via RevenueCat and never changes points, rewards or status. Its extra swaps can't raise a day's points: every swap after the day's first earns at most what it replaces (launch pass P0-2). Everything it includes (more plans, swaps, colorways, reminders) unlocks the moment someone subscribes, never gated by streak or points (3.1.2(a)).
+- **No purchase necessary.** UNSETLD+ is sold only through in-app purchase via RevenueCat and never changes points, rewards or status. Its extra swaps can't raise a day's points: every swap after the day's first earns at most what it replaces (launch pass P0-2). Its extra Plans can't either: a members-only Plan day is capped at what the same user's day earns without it (`capForPlan`). Everything it includes (more plans, swaps, colorways, reminders) unlocks the moment someone subscribes, never gated by streak or points (3.1.2(a)).
 - **Never sell points,** codes or boosts through in-app purchase, and never create a subscription tier whose main value is merch discounts (3.1.1).
 - **Clothes** are paid for only through Shopify checkout at unsetld.com, opened in Safari (3.1.3(e)). Discount codes for physical goods are fine.
 - **No cash value.** Points and codes are not transferable and can't be sold, bought or exchanged for money. Codes are percent-off discounts, never store credit or gift cards (gift card law).

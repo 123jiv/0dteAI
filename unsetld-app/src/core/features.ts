@@ -25,7 +25,8 @@ export const FEATURES = {
   widgets: 'free',
   // The UNSETLD+ side, in the order the paywall lists it (PaywallScreen PLUS_ROWS): the plans
   // first, reminders, a convenience, last. Extra swaps never earn more than the first
-  // (state/store replaceMission), so none of these changes what anyone earns.
+  // (state/store replaceMission), and a members-only Plan day is capped at what the day earns
+  // without it (core/missions capForPlan), so none of these changes what anyone earns.
   /** Every plan in programs.json. */
   allPlans: 'plus',
   /** All colorways. */
