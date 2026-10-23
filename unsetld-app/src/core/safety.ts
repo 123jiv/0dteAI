@@ -5,6 +5,7 @@
 // Levels:
 //  - ok:      nothing to say.
 //  - note:    kept, with one quiet line (weight and body goals: missions stay on training).
+//             A mission of their own about weight, a body photo or a body shape is blocked.
 //  - block:   not kept as written; one line says why. Skip and Back still work.
 //  - support: not kept; a calm line with where to get help (self-harm, eating-disorder signals).
 //
@@ -17,7 +18,7 @@ export type SafetyCategory =
   | 'self-harm'
   | 'eating-risk' // starving, purging, pro-ana: support
   | 'diet' // fasting, calorie counting, crash targets: block
-  | 'body' // weight and body goals: note (an own mission about the scale: block)
+  | 'body' // weight, body photos and body-shape goals: note (an own mission about them: block)
   | 'extreme' // punishment or extreme exercise, no sleep: block
   | 'substances' // nicotine, vaping, alcohol, drugs: block (quitting passes)
   | 'gambling' // betting, casinos: block (quitting passes)
@@ -104,15 +105,17 @@ const SELF_HARM = re([
 ]);
 
 const EATING_RISK = re([
-  'starv(?:e|ing) my ?self',
+  'starv(?:e|es|ing) (?:my|your) ?self',
   'stop eating(?: (?:altogether|completely|entirely|for (?:a|\\d+) (?:days?|weeks?)))?$',
   'not eat(?:ing)? (?:at all|anything|for (?:a|\\d+|one|two|three|several) (?:days?|weeks?))',
   "don'?t eat (?:at all|anything|for)",
   'eat(?:ing)? nothing',
-  'purg(?:e|ing)(?= after| what| food| meals?| dinner| lunch|$)',
+  // Purging after food, or on its own ("Purge", "Stop purging"); a closet or photo purge is tidying.
+  'purg(?:e|es|ed|ing)(?= (?:after|what|food|meals?|dinner|lunch|breakfast|snacks?|everything|when i eat|if i eat))',
+  '(?:^|(?:stop(?:ped|ping)?|quit|start(?:ed)?|no|no more|not|never|without|keep|been|to|or|and) )purg(?:e|es|ed|ing)$',
   'binge and purge',
   'throw(?:ing)? up after (?:eating|meals?|food|dinner|lunch)',
-  'make my ?self (?:throw up|sick|puke|vomit)',
+  'make (?:my|your) ?self (?:throw up|sick|puke|vomit)',
   'pro ana',
   'pro mia',
   'thinspo\\w*',
@@ -130,15 +133,15 @@ const DIET = re([
   'fasting',
   'omad',
   'one meal a day',
-  'skip(?:ping)? (?:meals?|breakfast|lunch|dinner)',
-  'calorie (?:deficit|counting|count|limit|target)',
+  'skip(?:ping)? (?:a |my |your |the )?(?:meals?|breakfast|lunch|dinner)',
+  'calorie (?:deficits?|counting|counts?|limits?|targets?)',
   '(?:count|track|cut|log)(?:ing)? (?:my )?calories',
   'crash diet\\w*',
   'starvation diet',
   'diet pills?',
   'fat burners?',
   'appetite suppressants?',
-  'weigh(?:ing)? my ?self',
+  'weigh(?:ing)? (?:my|your) ?self',
   'weigh ins',
   'weigh in(?! on)',
   'daily weigh',
@@ -164,8 +167,33 @@ const WEIGHT = re([
   'goal weight',
   'bmi',
 ]);
-/** How a body looks: a note wherever it's written. */
-const SHAPE = re(['get (?:abs|shredded|lean|ripped)', 'six pack', 'abs', 'bulk(?:ing)?(?: up)?', 'cut(?:ting)? season', 'tone up', 'diet(?:ing)?']);
+/**
+ * Photos of a body: a goal may name them (with a note); a mission of their own can't, since its
+ * proof would be a photo of the user's body (the library's rule: no face or body proof).
+ */
+const BODY_PHOTO = re([
+  'shirtless',
+  'progress (?:pics?|pictures?|photos?|selfies?)',
+  'body (?:checks?|checking|pics?|pictures?|photos?|selfies?)',
+  'before (?:and|&|n) after (?:body|physique|pics? of (?:my|your) body|photos? of (?:my|your) body)',
+  'physique (?:pics?|pictures?|photos?|checks?|updates?)',
+  'flex (?:pics?|pictures?|photos?)',
+  'mirror (?:pics?|pictures?|photos?|selfies?|shots?)',
+  'gym selfies?',
+  'abs? (?:checks?|pics?|pictures?|photos?|selfies?)',
+  'thirst traps?',
+]);
+/** How a body should look: a note on a goal or focus; never a mission of their own (it would be proven by a body photo). */
+const SHAPE_GOAL = re([
+  'get(?:ting)? (?:abs|shredded|lean|ripped|toned|jacked|swole)',
+  '(?:a )?six ?packs?',
+  'tone up',
+  'bulk(?:ing)? up',
+  'cut(?:ting)? season',
+  '(?:a |my )?(?:summer|beach) body',
+]);
+/** Body words: a note wherever they're written ("Do my abs workout" is still training). */
+const SHAPE = re(['abs', 'bulk(?:ing)?', 'diet(?:ing)?']);
 
 const EXTREME = re([
   "until i (?:puke|throw up|pass out|faint|collapse|cry|bleed|can'?t walk)",
@@ -202,7 +230,7 @@ const SUBSTANCES = re([
   'hookah',
   'smoke shop',
   'head shop',
-  'smok(?:e|ing) (?:weed|pot|a joint|a blunt|cigs?|cigarettes?|a cig)',
+  'smok(?:e|es|ed|ing) (?:weed|pot|a joint|a blunt|cigs?|cigarettes?|a cig)',
   '(?:roll|rolling|smoke|smoking) (?:a )?(?:joint|blunt)s?',
   'weed',
   'marijuana',
@@ -285,6 +313,8 @@ const TRADING = re([
   'leveraged? (?:trading|positions?|etfs?)',
   '\\d+x leverage',
   'leverage (?:trading|crypto)',
+  '(?:use|using|with|on|high|max|more|trade with|trading with) leverage',
+  'leverag(?:e|ed|ing)$',
   'trade (?:with|on) leverage',
   'meme ?coins?',
   'shitcoins?',
@@ -448,7 +478,9 @@ export function checkText(text: string | null | undefined, field: TextField = 'g
   if (riskyMatch(t, TRADING, true)) return { level: 'block', category: 'trading' };
   if (riskyMatch(t, DARES, true)) return { level: 'block', category: 'dares' };
   if (ADULT.test(t)) return { level: 'block', category: 'adult' };
-  if (WEIGHT.test(t)) return { level: field === 'mission' ? 'block' : 'note', category: 'body' };
+  // Weight, body photos and how a body should look: a note on a goal or focus; a mission of
+  // their own about them is blocked (its proof would be a scale or a body).
+  if (WEIGHT.test(t) || BODY_PHOTO.test(t) || SHAPE_GOAL.test(t)) return { level: field === 'mission' ? 'block' : 'note', category: 'body' };
   if (SHAPE.test(t)) return { level: 'note', category: 'body' };
   return OK;
 }

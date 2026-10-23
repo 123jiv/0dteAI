@@ -141,13 +141,15 @@ const SENSITIVE = [
   'selfie', 'mirror', 'face', 'bank balance', 'account number', 'card number', 'grade', 'grades', 'bedroom', 'address',
   'location',
 ];
-// Never in a mission, whatever the context. Plurals and close synonyms too (launch pass): the same
-// ground core/safety covers for what users write, which every approved mission also passes
-// (src/core/__tests__/safety.test.ts).
+// Never in a mission, whatever the context. Plurals and close synonyms too (launch pass). What
+// users write is checked on the same ground: every form of every term here fails core/safety as
+// a mission of their own (src/core/__tests__/safety-gaps.test.ts), and every approved mission
+// passes it (src/core/__tests__/safety.test.ts).
 const NEVER = new RegExp(
   '\\b(' +
     [
-      'shirtless', 'weigh-ins?', 'weigh ins?', 'weighing yourself', 'progress pic\\w*', 'body checks?', 'before-and-after body',
+      'shirtless', 'weigh-ins?', 'weigh ins?', 'weighing yourself', 'progress pic\\w*', 'progress photos?', 'body checks?', 'before-and-after body',
+      'mirror selfies?', 'physique photos?', 'six-packs?',
       'calorie deficits?', 'counting calories', 'water fast\\w*', 'dry fast\\w*', 'fasting', 'skip(?:ping)? (?:a )?meals?',
       'purg(?:e|es|ing)', 'starv(?:e|es|ing) yourself', 'laxatives?',
       'no sleep', 'all-nighters?', 'all nighters?',

@@ -19,8 +19,8 @@ const BLOCK = {
 
 export const SAFETY = {
   block: BLOCK,
-  /** A mission of their own about the scale: it would be proven by a photo of one. */
-  weightMission: 'Missions are about what you do, not what you weigh. Try a workout or a walk.',
+  /** A mission of their own about the scale or a body: it would be proven by a photo of one. */
+  weightMission: 'Missions are about what you do, not what you weigh or how you look. Try a workout or a walk.',
   /** A goal or focus about weight or how a body looks: kept, with this line. */
   bodyNote: 'Missions stay on training and moving. Nothing here tracks weight or food.',
   /** Not kept. No keyword hint, no area question: where to get help, and nothing else. */
