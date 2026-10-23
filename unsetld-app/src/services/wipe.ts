@@ -6,11 +6,12 @@
 //
 // The order matters. The backup writer is suspended first, so a write already waiting can't put
 // the Keychain copy back. Deleting that copy is the only gate: if the Keychain can't be changed,
-// nothing else is touched and the writer resumes. Then the store goes back to a new install's
-// state (from then on nothing schedules reminders or writes widgets: no one is onboarded), and
-// the rest is cleared behind it. Stopped partway (the app killed), startup finishes the job:
-// before the store reset the old record loads and its backup is written again, so a retry
-// works; after it, startup's clean-up cancels reminders, resets widgets and deletes the session.
+// nothing else is touched and the writer resumes. The photos go next, then the store goes back
+// to a new install's state (from then on nothing schedules reminders or writes widgets: no one is
+// onboarded), and the rest is cleared behind it. Stopped partway (the app killed), startup
+// finishes the job: before the store reset the old record loads and its backup is written again,
+// so a retry works; after it, startup's clean-up cancels reminders, resets widgets and deletes the
+// session.
 import { Image } from 'expo-image';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
@@ -88,12 +89,19 @@ async function clearEverythingElse(): Promise<void> {
   // 3. The other Keychain items: the session token, older builds' Apple token and rank state.
   await Promise.all([clearSession().catch(() => {}), deleteOldRank()]);
 
-  // 4. The store: a new install's state, saved (the server config kept, the membership inactive
-  //    until the store says otherwise). The user's own missions leave the lookup.
+  // 4. Files: the proof folder (orphans included), the camera's and the resize's caches, and the
+  //    image views' caches. Before the store reset: startup never sweeps the proof folder of an
+  //    empty record (core/proofs orphans), so photos left behind a reset would stay.
+  deleteAllPhotos();
+  await clearImageViews();
+
+  // 5. The store: a new install's state, saved (the server config kept, the membership inactive
+  //    until the store says otherwise, an under-13 block kept). The user's own missions leave the
+  //    lookup.
   useApp.getState().resetLocalData();
   await clearMetrics(); // usage counts waiting to be sent, and their once-only flags (services/metrics)
 
-  // 5. Notifications, each kind through its own queue (so a rebuild already running can't put
+  // 6. Notifications, each kind through its own queue (so a rebuild already running can't put
   //    any back), then anything else of this app's still pending, except the trial reminder;
   //    delivered ones are dismissed.
   await Promise.all([
@@ -102,11 +110,6 @@ async function clearEverythingElse(): Promise<void> {
     cancelTimerDone().catch(() => {}),
   ]);
   await clearPendingExceptTrial().catch(() => {});
-
-  // 6. Files: the proof folder (orphans included), the camera's and the resize's caches, and the
-  //    image views' caches.
-  deleteAllPhotos();
-  await clearImageViews();
 
   // 7. Widgets: the Black preview, and nothing left for the foreground listener to write back.
   await resetWidgets().catch(() => {});

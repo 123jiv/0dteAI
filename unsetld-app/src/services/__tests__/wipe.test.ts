@@ -167,12 +167,16 @@ describe('Delete data on this phone', () => {
     expect(m.dismissed).toBe(1);
   });
 
-  it('clears the proof folder, the image caches and the widgets, after the store reset', async () => {
+  it('clears the proof folder and the image caches before the store reset, the widgets after', async () => {
     const { deleteLocalData } = await setUp();
     await deleteLocalData();
     expect(m.photosDeleted).toBe(1);
     expect(m.imageCaches).toBe(2);
     expect(m.widgetsReset).toBe(1);
+    // Startup never sweeps the proof folder of an empty record: an app killed after the reset
+    // would otherwise leave the photos for good.
+    expect(m.log.indexOf('photos')).toBeGreaterThan(m.log.indexOf('delete:unsetld.record.v2'));
+    expect(m.log.indexOf('photos')).toBeLessThan(m.log.indexOf('reset'));
     expect(m.log.indexOf('widgets')).toBeGreaterThan(m.log.indexOf('reset'));
   });
 
@@ -256,6 +260,26 @@ describe('Under 13: the age gate runs the real delete', () => {
     await vi.advanceTimersByTimeAsync(5000);
     expect(JSON.parse(m.storage.get('unsetld-v2') ?? '{}').state?.settings?.ageCheck).toBe('under13');
     expect(m.keychain.has('unsetld.record.v2')).toBe(false);
+  });
+
+  it('the block is saved before the delete starts and survives its reset, so a kill partway still blocks', async () => {
+    const { useApp } = await setUp();
+    const { blockUnder13 } = await import('../../screens/onboarding/ageGate');
+    const saved = () => JSON.parse(m.storage.get('unsetld-v2') ?? '{}').state?.settings?.ageCheck ?? null;
+    const seen: Record<string, string | null> = {};
+    const reset = useApp.getState().resetLocalData;
+    useApp.setState({
+      resetLocalData: () => {
+        seen.beforeReset = saved();
+        reset();
+        seen.afterReset = saved();
+      },
+    });
+    expect(saved()).toBeNull();
+    await blockUnder13();
+    // What a relaunch would read at either point the app could be killed.
+    expect(seen).toEqual({ beforeReset: 'under13', afterReset: 'under13' });
+    expect(m.log.indexOf('photos')).toBeLessThan(m.log.indexOf('reset'));
   });
 
   it('a delete that fails still blocks, with the data left for the block screen to try again', async () => {

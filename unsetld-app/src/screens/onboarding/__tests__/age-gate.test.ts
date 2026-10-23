@@ -1,7 +1,7 @@
 // What the age gate's answer does to the store (launch pass P0-4). 13 or over: the bucket and
-// ageCheck 'ok', nothing else. Under 13: everything on this phone is deleted first (stream F's
-// deleteLocalData, faked here as its contract says: the store back to its defaults), then the
-// install is blocked, and stays blocked after a restart. A delete that fails still blocks, and
+// ageCheck 'ok', nothing else. Under 13: the install is blocked, then everything on this phone is
+// deleted (stream F's deleteLocalData, faked here as its contract says: the store back to its
+// defaults), and it stays blocked after a restart. A delete that fails still blocks, and
 // the block screen tries again while anything is left. Hydrates the real store.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -118,8 +118,8 @@ describe('the age gate in the store', () => {
     const { useApp, blockUnder13, holdsData, DEFAULT_SETTINGS } = await load(EXISTING);
     expect(holdsData(useApp.getState())).toBe(true);
     expect(await blockUnder13()).toBe('done');
-    // The delete ran before the block was written.
-    expect(mem.seen).toEqual([null]);
+    // The block was saved before the delete started: an app killed partway still opens on it.
+    expect(mem.seen).toEqual(['under13']);
     const s = useApp.getState();
     expect(s.settings).toEqual({ ...DEFAULT_SETTINGS, ageCheck: 'under13' });
     expect(s.profile.goal ?? null).toBeNull();

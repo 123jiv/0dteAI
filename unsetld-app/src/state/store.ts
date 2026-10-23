@@ -637,10 +637,14 @@ export const useApp = create<State>()(
         clearCustomMissions();
         setDayOffset(0);
         useApp.persist.clearStorage();
-        // A new install's state (actions included), saved as this version's defaults.
+        // A new install's state (actions included), saved as this version's defaults. An
+        // under-13 block stays: it is for good on this install, and the age gate saves it before
+        // its delete starts.
+        const initial = useApp.getInitialState();
         useApp.setState(
           {
-            ...useApp.getInitialState(),
+            ...initial,
+            ...(s.settings.ageCheck === 'under13' ? { settings: { ...initial.settings, ageCheck: 'under13' as const } } : {}),
             hydrated: true,
             installSalt: randomSalt(),
             currentDay: today(),

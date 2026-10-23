@@ -14,11 +14,14 @@ export function passAgeGate(age: AgeBucket): void {
 }
 
 /**
- * Under 13: everything UNSETLD keeps on this phone goes first (the Keychain record included),
- * then this install is blocked. Blocked even when the delete fails: the block screen tries the
- * delete again on the next launch while anything is left (`holdsData`).
+ * Under 13: this install is blocked, then everything UNSETLD keeps on this phone goes (the
+ * Keychain record included). The block is saved before the delete starts, and the delete's store
+ * reset keeps it, so an app killed partway still opens on the block. Blocked even when the delete
+ * fails: the block screen tries the delete again on the next launch while anything is left
+ * (`holdsData`).
  */
 export async function blockUnder13(): Promise<DeleteResult | 'error'> {
+  useApp.getState().updateSettings({ ageCheck: 'under13' });
   let result: DeleteResult | 'error';
   try {
     result = await deleteLocalData();
