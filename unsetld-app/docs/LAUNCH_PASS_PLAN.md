@@ -96,7 +96,7 @@ The brief's non-negotiable product rules held throughout: no AI or generated mis
 
 Kept out of this pass on purpose (from the plan, unchanged):
 - **Planner:** "ABOUT 35 MIN" on Today's header; capping "Too easy" choices near the day's budget; lifting 60+ Start easy; one `dayShape()` source the copy reads (partly there: the copy is tested against `DAY_SHAPE`).
-- **Onboarding and age:** an age-check date or an "Age range" row in You; re-asking Apple's range in regulated regions; removing dead About-you code and fields (with a migration); a tester tool to reset the age check; PlansScreen's About-you line (LAUNCH_CHECKLIST S2).
+- **Onboarding and age:** an age-check date or an "Age range" row in You; re-asking Apple's range in regulated regions; removing dead About-you code and fields (with a migration); a tester tool to reset the age check.
 - **Goal:** example chips ordered by the user's areas with Discipline and Organization examples; "driving test", "college apps" and TikTok title alignment; a "Missions lean toward X" confirmation.
 - **Safety:** leetspeak and Spanish lists; clearing old unsafe saved goals; an anonymous count of blocks by category (only with PF-5, and the decision says never).
 - **Progress:** "Finished 18 Oct" on plan cards; a Plan share card; one perfect-day helper; "x of y" on Today's weekly card.

@@ -97,7 +97,7 @@ Small things the integrator listed that no test covers end to end. Each needs a 
 | # | Seam | What to do | Result |
 |---|---|---|---|
 | S1 | **`trial-day2` legacy id.** 3.2 builds scheduled a fixed 48-hour trial reminder as `trial-day2`. `syncTrialReminder` and `cancelTrialReminder` cancel it by name whenever the membership is read, and it is off the budget's allowlist (`core/reminders` `OWN_IDS`), so every reminder rebuild cancels it as an older build's id, Delete data's included. | Device check D14 (an upgrade mid-trial). | [ ] |
-| S2 | **PlansScreen's About-you line.** `copy/programs.ts` `needsSchool` ("Needs a yes to "In school or college?" in About you") still links to `AboutYou`, which is now You › What you're learning and has no school question. No shipped plan can show it (no approved mission needs school), but a future plan holding C2 (job search) would show a dead end. | Remove or reword before any plan with a requirement ships (PF-2 review). | [ ] |
+| S2 | **PlansScreen's About-you line.** Removed: the `needsSchool` line and its link to `AboutYou` are gone, and `npm run validate` now fails a plan holding any mission with a requirement (C2's job search included), so every plan card shows Start. | None. A plan that needs a requirement would need its own line and a validator change (PF-2 review). | [ ] |
 | S3 | **`eas.json` production environment.** See O7. | O7 | [ ] |
 | S4 | **Declared Age Range on a device.** Only stubs test it. | Device check D15. | [ ] |
 | S5 | **RevenueCat sandbox.** The fail-closed matrix and the trial math are unit-tested; the real store isn't. | Device check D8. | [ ] |

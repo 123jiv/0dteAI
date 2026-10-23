@@ -85,12 +85,4 @@ export const PROGRAMS_COPY = {
   switchBody: (current: string) => `One plan at a time. ${current} stops here; the days you proved stay on your record.`,
   switchYes: 'Start',
   switchNo: 'Cancel',
-  /**
-   * On a plan whose missions need a yes the user hasn't given, instead of Start: "Needs a yes to In
-   * school or college? in About you.", About you a link. Since 3.3 no built-in plan can show it (no
-   * approved School mission needs school; the only requirement left is C2's job search, in no plan):
-   * a plan holding C2 would need its own line.
-   */
-  needsSchool: { before: 'Needs a yes to "In school or college?" in ', link: 'About\u00a0you', after: '.' },
-  needsSchoolHint: 'Opens About you',
 } as const;

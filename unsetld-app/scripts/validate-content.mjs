@@ -312,7 +312,8 @@ for (const p of programs) {
       if (!APPROVED.includes(id)) e(`day ${i + 1}: "${id}" is not an approved mission`);
       else if (!m) e(`day ${i + 1}: unknown mission "${id}"`);
       else if (!m.active) e(`day ${i + 1}: "${id}" is not active`);
-      else if (m.requires?.some(r => r !== 'school')) e(`day ${i + 1}: "${id}" needs ${m.requires.join(', ')}, which not every user has`);
+      // Anyone can start any plan (the Plans screen has no "needs a yes" line), so no plan mission has a requirement.
+      else if (m.requires?.length) e(`day ${i + 1}: "${id}" needs ${m.requires.join(', ')}, which not every user has`);
       else if (m.tags?.includes('niche')) warnings.push(`${where}: day ${i + 1} uses a niche mission ("${m.title}"); a staple usually fits a plan better`);
     }
     if (new Set(day).size !== (day ?? []).length) e(`day ${i + 1} repeats a mission`);

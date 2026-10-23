@@ -2,7 +2,6 @@ import { useIsFocused } from '@react-navigation/native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { meetsRequirements } from '../../core/missions';
 import { programDay, programDayView, programFinished } from '../../core/programs';
 import type { Program } from '../../core/types';
 import { planOpenToAll } from '../../core/features';
@@ -117,11 +116,10 @@ function PlanMission({ id, area, showArea, state, onOpen }: { id: string; area: 
   );
 }
 
-/** A plan in the list: serif title, one line, "7 days · Discipline", and Start (or why it can't start). */
-function PlanCard({ p, fits, included, onStart, onAboutYou }: { p: Program; fits: boolean; included: boolean; onStart: () => void; onAboutYou: () => void }) {
+/** A plan in the list: serif title, one line, "7 days · Discipline", and Start. */
+function PlanCard({ p, included, onStart }: { p: Program; included: boolean; onStart: () => void }) {
   // Areas by their short names; one the app no longer has is left out.
   const areas = p.tracks.flatMap(t => (TRACK_BY_ID[t] ? [TRACK_BY_ID[t].short] : []));
-  const N = P.needsSchool;
   return (
     <Card>
       <View accessible accessibilityLabel={P.cardA11y(p.title, p.short, p.days, areas)}>
@@ -130,28 +128,12 @@ function PlanCard({ p, fits, included, onStart, onAboutYou }: { p: Program; fits
           {p.short}
         </T>
       </View>
-      <View style={{ marginTop: 14, minHeight: fits ? 32 : 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <View style={{ marginTop: 14, minHeight: 32, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <T v="meta" color={C.muted} style={{ flexShrink: 1 }} accessibilityElementsHidden importantForAccessibility="no">
           {P.meta(P.days(p.days), areas)}
         </T>
-        {fits ? <StartButton accessibilityLabel={included ? P.startA11y(p.title) : P.plusA11y(p.title)} onPress={onStart} /> : null}
+        <StartButton accessibilityLabel={included ? P.startA11y(p.title) : P.plusA11y(p.title)} onPress={onStart} />
       </View>
-      {fits ? null : (
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel={`${N.before}${N.link}${N.after}`}
-          accessibilityHint={P.needsSchoolHint}
-          onPress={onAboutYou}
-          style={({ pressed }) => ({ minHeight: 44, justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
-          <T v="note" color={C.stone}>
-            {N.before}
-            <T v="note" color={C.bone} style={{ textDecorationLine: 'underline' }}>
-              {N.link}
-            </T>
-            {N.after}
-          </T>
-        </Pressable>
-      )}
     </Card>
   );
 }
@@ -170,9 +152,6 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   const provenToday = useApp(s => s.record.missions?.[s.currentDay]);
   const ent = useEntitlements();
   const profile = useApp(s => s.profile);
-  // Every mission of the plan has to be one the user's answers allow. No built-in plan has a mission
-  // with a requirement now (3.3: the only one left is C2's job search, in no plan); School Reset runs for anyone.
-  const fits = (p: Program) => p.plan.flat().every(id => meetsRequirements(MISSION_BY_ID[id]?.requires, profile, day));
   /** The plan started on this visit: its note says when Day 1 runs until a day is proven. */
   const [started, setStarted] = useState<string | null>(null);
   const focused = useIsFocused();
@@ -189,7 +168,6 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   const view = running && program ? programDayView(running, program, day, plan) : null;
 
   const start = (p: Program) => {
-    if (!fits(p)) return;
     if (!ent.canStartPlan(p)) {
       selection();
       navigation.navigate('Paywall', { from: 'programs' });
@@ -234,9 +212,9 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   };
 
   // The running or finished plan sits at the top, so the list leaves it out (Clear puts a finished
-  // one back). In each section, plans for the user's areas come first and ones their answers rule
-  // out (none of the built-in ones today) last.
-  const rank = (p: Program) => (fits(p) ? 0 : 2) + (p.tracks.some(t => profile.tracks.includes(t)) ? 0 : 1);
+  // one back). In each section, plans for the user's areas come first. Anyone can start any plan:
+  // no plan holds a mission with a requirement (npm run validate fails one that does).
+  const rank = (p: Program) => (p.tracks.some(t => profile.tracks.includes(t)) ? 0 : 1);
   const list = PROGRAMS.filter(p => p.id !== current?.id)
     .map((p, i) => ({ p, i, r: rank(p) }))
     .sort((a, b) => a.r - b.r || a.i - b.i)
@@ -249,7 +227,7 @@ export function PlansScreen({ navigation }: RootProps<'Plans'>) {
   const cards = (ps: readonly Program[]) => (
     <View style={{ gap: GAP.card }}>
       {ps.map(p => (
-        <PlanCard key={p.id} p={p} fits={fits(p)} included={ent.canStartPlan(p)} onStart={() => start(p)} onAboutYou={() => navigation.navigate('AboutYou', { edit: true })} />
+        <PlanCard key={p.id} p={p} included={ent.canStartPlan(p)} onStart={() => start(p)} />
       ))}
     </View>
   );
