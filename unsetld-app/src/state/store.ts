@@ -27,7 +27,7 @@ import {
 } from '../core/missions';
 import { focusFacts, onboardingFacts, planLeft, provenEvents, swapFacts } from '../core/metrics';
 import { learnFrom, mondayOf } from '../core/personalize';
-import { finishOf, planMomentKey, programMissions, programProgress, recordPlanFinish, startProgram as startProgramCore } from '../core/programs';
+import { finishOf, planMomentKey, programAsOf, programMissions, programProgress, recordPlanFinish, startProgram as startProgramCore } from '../core/programs';
 import { clearPhotos, oldestPhotos, photosToClear, photoUris } from '../core/proofs';
 import { activeDays } from '../core/progress';
 import { balance, effectiveStatus, parseRewards, parseStatus, redeem, statusFromMilestones } from '../core/rewards';
@@ -611,14 +611,16 @@ export const useApp = create<State>()(
         setDayOffset(0);
         // A snapshot kept by an earlier build can hold 3.0 preview area ids or a 2.x record: normalised like a backup.
         // One kept before plans were kept with it leaves the plans as they are.
-        set({
+        // The running plan goes back with the record: days proven and a finish on travelled days
+        // aren't on the real record (its finish, its moment and its achievement come when it really finishes).
+        set(s => ({
           dayOffset: 0,
           currentDay: today(),
           devSnapshot: null,
           devPlans: null,
-          ...(snap ? { record: fromBackup(snap) } : {}),
+          ...(snap ? { record: fromBackup(snap), program: programAsOf(s.program, today()) } : {}),
           ...(snap && devPlans ? { plans: devPlans } : {}),
-        });
+        }));
       },
       refreshDay: () => {
         const d = today();
@@ -857,10 +859,14 @@ function endedEarlier(s: Pick<State, 'timer' | 'pendingBefore'>, day: DayKey): P
  */
 export function withoutTesterState(p: Partial<State>): Partial<State> {
   const out: Partial<State> = { ...p, dayOffset: 0, devSnapshot: null, devPlans: null };
-  if (p.devSnapshot) out.record = fromBackup(p.devSnapshot);
+  const real = dayKeyOf(new Date());
+  if (p.devSnapshot) {
+    out.record = fromBackup(p.devSnapshot);
+    // The plan goes back with the record: a finish on a travelled day isn't on the real record.
+    if (p.program !== undefined) out.program = programAsOf(p.program, real);
+  }
   if (p.devSnapshot && p.devPlans) out.plans = p.devPlans;
   if (p.settings && p.settings.timerSpeed !== 1) out.settings = { ...p.settings, timerSpeed: 1 };
-  const real = dayKeyOf(new Date());
   const ahead = (x: Started) => Boolean(p.dayOffset && x && x.day > real);
   // A timer from a travelled day goes, and so does one running at tester speed on a real day:
   // at 60x it would count as done after a real minute (and its "done" alert is queued early).
@@ -983,7 +989,8 @@ const FIRST_PLAN_MOMENT = 'plan-1';
  * - a Plan already finished goes on the record (`plansFinished`), from the saved program's
  *   finish day (or its last day proven); finished before yesterday, its moment and the
  *   "First plan" achievement's are marked shown, so the update brings no surprise moment.
- * Only the real record: one kept aside by tester time travel comes back without it.
+ * Only the real record: one kept aside by tester time travel comes back without it, and the
+ * program goes back to its real days with it (withoutTesterState, programAsOf).
  */
 function toV8(p: Partial<State>): Partial<State> {
   const out: Partial<State> = { ...p };

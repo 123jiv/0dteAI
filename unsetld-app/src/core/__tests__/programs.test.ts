@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import programsJson from '../../content/programs.json';
 import { emptyRecord } from '../record';
-import { finishOf, planMomentKey, programDayView, programFinished, programProgress, recordPlanFinish, startProgram } from '../programs';
+import { finishOf, planMomentKey, programAsOf, programDayView, programFinished, programProgress, recordPlanFinish, startProgram } from '../programs';
 import type { DayPlan, PlannedMission, Program, ProgramState } from '../types';
 
 const p: Program = { id: 'lock', title: '7 Day Lock In', short: '', days: 3, tracks: ['discipline'], free: true, plan: [['a', 'b'], ['c'], ['d']] };
@@ -125,5 +125,22 @@ describe('recordPlanFinish', () => {
     // A plan the library no longer has: only a finish day says it finished.
     expect(finishOf(undefined, s)).toBeNull();
     expect(finishOf(undefined, { ...s, finishedDay: '2026-10-04' })).toBe('2026-10-04');
+  });
+});
+
+describe('programAsOf (tester time travel going back to the real date)', () => {
+  const s: ProgramState = { id: 'lock', startedDay: '2026-10-01', doneDays: ['2026-10-01', '2026-10-02', '2026-10-05', '2026-10-06'], finishedDay: '2026-10-06' };
+
+  it('days proven after the day go, and a finish after it is undone', () => {
+    expect(programAsOf(s, '2026-10-03')).toEqual({ ...s, doneDays: ['2026-10-01', '2026-10-02'], finishedDay: null });
+  });
+
+  it('nothing past the day: the same object', () => {
+    expect(programAsOf(s, '2026-10-06')).toBe(s);
+    expect(programAsOf(null, '2026-10-06')).toBeNull();
+  });
+
+  it('a program started after the day is none', () => {
+    expect(programAsOf(s, '2026-09-30')).toBeNull();
   });
 });

@@ -38,6 +38,20 @@ export function longestPlanDay(p: Pick<Program, 'plan'>, minutesOf: (id: string)
   return Math.max(0, ...p.plan.map(day => day.reduce((sum, id) => sum + (minutesOf(id) ?? 0), 0)));
 }
 
+/**
+ * A program's state as of `day`, for tester time travel going back to the real date with the
+ * real record: days proven after it go, a finish after it is undone, and a program started after
+ * it is null. Unchanged (the same object) when nothing is past `day`.
+ */
+export function programAsOf(s: ProgramState | null, day: DayKey): ProgramState | null {
+  if (!s) return s;
+  if (s.startedDay > day) return null;
+  const doneDays = Array.isArray(s.doneDays) ? s.doneDays.filter(d => d <= day) : [];
+  const finishedDay = s.finishedDay && s.finishedDay <= day ? s.finishedDay : null;
+  if (doneDays.length === s.doneDays?.length && finishedDay === s.finishedDay) return s;
+  return { ...s, doneDays, finishedDay };
+}
+
 export function startProgram(id: string, today: DayKey): ProgramState {
   return { id, startedDay: today, doneDays: [], finishedDay: null };
 }

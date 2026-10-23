@@ -97,6 +97,25 @@ describe('tester time travel', () => {
     expect(useApp.getState().expireProofPhotos()).toEqual([OLD_PHOTO]);
   });
 
+  it('Back brings the running plan back to its real days: a finish on a travelled day is undone, a plan started there goes', async () => {
+    const record = { days: { [TODAY]: { verified: true } }, missions: { [TODAY]: { S3: proven('S3', PHOTO) } }, bonuses: {}, redemptions: [], legacyPoints: 0 };
+    const base = { installSalt: 's', settings: { onboarded: true }, profile: { tracks: ['discipline', 'fitness'], minutes: 45 }, plans: { [TODAY]: plan(TODAY) }, record };
+    const { useApp, today } = await load({ ...base, program: { id: 'lock-in-7', startedDay: '2026-10-12', doneDays: ['2026-10-12', '2026-10-13'], finishedDay: null } });
+    useApp.getState().setDayOffset(6);
+    // Five travelled days proven: the plan finishes on a travelled day.
+    useApp.setState({ program: { id: 'lock-in-7', startedDay: '2026-10-12', doneDays: ['2026-10-12', '2026-10-13', '2026-10-16', '2026-10-17', '2026-10-18', '2026-10-19', '2026-10-20'], finishedDay: '2026-10-20' } });
+    useApp.getState().backToRealToday();
+    expect(today()).toBe(TODAY);
+    expect(useApp.getState().program).toEqual({ id: 'lock-in-7', startedDay: '2026-10-12', doneDays: ['2026-10-12', '2026-10-13'], finishedDay: null });
+    expect(useApp.getState().record.plansFinished).toBeUndefined();
+
+    // A plan started on a travelled day isn't on the real record at all.
+    useApp.getState().setDayOffset(3);
+    useApp.setState({ program: { id: 'get-organized', startedDay: '2026-10-17', doneDays: ['2026-10-17'], finishedDay: null } });
+    useApp.getState().backToRealToday();
+    expect(useApp.getState().program).toBeNull();
+  });
+
   it('deletes a travelled photo the real record never had', async () => {
     const { useApp } = await load({ installSalt: 's', settings: { onboarded: true, proofRetentionDays: 30 }, profile: { tracks: ['school', 'fitness'], minutes: 45 }, plans: {}, record: { days: {}, missions: {}, bonuses: {}, redemptions: [], legacyPoints: 0 } });
     useApp.getState().setDayOffset(1);

@@ -118,6 +118,18 @@ describe('release builds ignore tester state', () => {
     expect(Object.keys(s.record.days)).toEqual(['2026-10-18', TODAY, TRAVELLED]);
   });
 
+  it('a plan finished on a travelled day goes back to its real days, as the record does', async () => {
+    const program = { id: 'lock-in-7', startedDay: '2026-10-13', doneDays: ['2026-10-13', '2026-10-18', TODAY, '2026-10-20', '2026-10-21', '2026-10-22', TRAVELLED], finishedDay: TRAVELLED };
+    const { useApp } = await load({ ...travelling, program }, false);
+    const s = useApp.getState();
+    expect(s.program).toEqual({ ...program, doneDays: ['2026-10-13', '2026-10-18', TODAY], finishedDay: null });
+    // The real record has no finish, and nothing says the plan finished.
+    expect(s.record.plansFinished).toBeUndefined();
+    // No snapshot kept: the record stays as it is, and so does the plan.
+    const kept = await load({ ...travelling, devSnapshot: null, devPlans: null, program }, false);
+    expect(kept.useApp.getState().program).toEqual(program);
+  });
+
   it('a timer running at tester speed on the real day goes too, with its early "done" alert', async () => {
     const fast = { missionId: 'D1', day: TODAY, requiredSeconds: 1800, startedAt: NOW.getTime() - 60_000, pausedAt: null, pausedMs: 0, speed: 60 };
     const { useApp } = await load({ ...travelling, dayOffset: 0, devSnapshot: null, devPlans: null, pendingBefore: null, timer: fast }, false);
