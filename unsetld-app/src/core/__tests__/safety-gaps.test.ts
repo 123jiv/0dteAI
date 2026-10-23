@@ -376,3 +376,115 @@ describe('ordinary goals that read like self-harm', () => {
     );
   });
 });
+
+describe('common phrasings that were blocked', () => {
+  const FINE = [
+    // get high
+    'Get high SAT scores',
+    'Get high ACT scores',
+    'Get high AP scores',
+    'Get high enough grades for UCLA',
+    'Get high quality sleep',
+    'Get high-quality photos for my brand',
+    // amounts and places, not addresses
+    'Run 2 miles down the road',
+    'Run 3 miles on the road',
+    'Walk 30 minutes down the street',
+    'Run 3 laps around the court',
+    'Make 100 shots at the court',
+    'Shoot 100 shots on the court',
+    'Practice 3 pointers on the court',
+    'Study 2 hours at my place',
+    'Walk 1 lap around the way',
+    'Help 2 neighbors on my street',
+    'Find 1 better way to save money',
+    'Learn 1 new way to cook eggs',
+    'Watch 1 video by Dr K',
+    'Read 1 chapter of Dr Seuss to my brother',
+    // totals over a week or month
+    'Train 6 hours a week for soccer',
+    'Train 6 hours a week',
+    'Work out 5 hours a week',
+    'Get 5 hours of training a week',
+    'Do 5 hours of training a week',
+    'Log 10 hours of cardio this month',
+    'Run for 5 hours total this week',
+    'Do 1000 push ups this month',
+    'Do 500 squats this week',
+    // fasting for Ramadan
+    'Keep my Ramadan fasting and study schedule',
+    'Plan my week around Ramadan fasting',
+    'Fast during Ramadan and keep training',
+    // words that share a drug or drink word
+    'Weed the garden for my mom',
+    'Pull weed out of the backyard',
+    'Make root beer floats for the bake sale',
+    'Try ginger beer instead of soda',
+    'Clean my desk with rubbing alcohol wipes',
+    'Walk my whippets every morning',
+    'Learn oxy acetylene welding',
+    'Write my essay on Prohibition and alcohol laws',
+    'Write a report on tobacco farming in Virginia',
+    // steal, dare, break into, escort, bets
+    'Read Steal Like an Artist',
+    'Steal the spotlight at my recital',
+    'Learn to steal bases',
+    'Dare myself to speak up in class',
+    'Break into the school play',
+    'Escort my little sister to school',
+    'Hedge my bets on colleges by applying to 10',
+    'Bet on my skills',
+    // money that isn't trading
+    'Turn $50 into $100 flipping thrifted shoes',
+    'Flip $40 of thrift finds',
+    'Turn 500 followers into 5000',
+    'Trade coins with my grandpa for his collection',
+    'Explore my options call the counselor',
+    // sleep and shopping
+    'Shop till I drop at the thrift store',
+    'No sleep ins on weekends',
+    'Wake up without sleeping through my alarm',
+    // training
+    'Hold my breath for 30 seconds at swim practice',
+    'Bench my weight',
+  ];
+  for (const f of ['goal', 'mission', 'focus'] as const) {
+    it(`pass as ${f}`, () => expectRows(FINE.map(t => [t, 'ok']), f));
+  }
+
+  it('an own mission like "Run 2 miles down the road" can be made', () => {
+    expect(makeCustomMission({ title: 'Run 2 miles down the road', track: 'fitness', proofType: 'PHOTO' }, 'custom-x1')).not.toBeNull();
+  });
+
+  it('what those rules are for is still blocked', () => {
+    expectRows(
+      [
+        ['Get high', 'block', 'substances'],
+        ['Get high after school', 'block', 'substances'],
+        ['Mail it to 42 Oak Street', 'block', 'private'],
+        ['My address 22 Elm Street', 'block', 'private'],
+        ['Meet me at 1600 Pennsylvania Avenue', 'block', 'private'],
+        ['Work out 6 hours a day', 'block', 'extreme'],
+        ['Train for 8 hours straight', 'block', 'extreme'],
+        ['Do 1000 pushups', 'block', 'extreme'],
+        ['Intermittent fasting', 'block', 'diet'],
+        ['Smoke weed', 'block', 'substances'],
+        ['Buy beer', 'block', 'substances'],
+        ['Drink alcohol at the party', 'block', 'substances'],
+        ['Buy whippets', 'block', 'substances'],
+        ['Steal from the store', 'block', 'dares'],
+        ['Break into a house', 'block', 'dares'],
+        ['Hold my breath for 3 minutes', 'block', 'dares'],
+        ['Become an escort', 'block', 'adult'],
+        ['Place bets on the game', 'block', 'gambling'],
+        ['Turn $100 into $10,000', 'block', 'trading'],
+        ['Flip $100', 'block', 'trading'],
+        ['Buy options calls', 'block', 'trading'],
+        ['Run until I puke', 'block', 'extreme'],
+        ['Pull an all-nighter', 'block', 'extreme'],
+        ['No sleep this week', 'block', 'extreme'],
+      ],
+      'goal',
+    );
+  });
+});

@@ -216,26 +216,30 @@ const SHAPE_GOAL = re([
 /** Body words: a note wherever they're written ("Do my abs workout" is still training). */
 const SHAPE = re(['abs', 'bulk(?:ing)?', 'diet(?:ing)?']);
 
+/** A total over a week, month or season ("Train 6 hours a week", "500 squats this month"): not one session. */
+const OVER_TIME =
+  '(?!(?: in total| total)?(?: (?:a|per|each|every|this|next|in a|over (?:a|the)) (?:week|month|year|summer|semester|season|term)| weekly| monthly| total| in total))';
+
 const EXTREME = re([
-  "until i (?:puke|throw up|pass out|faint|collapse|cry|bleed|can'?t walk)",
-  'till i (?:puke|throw up|pass out|faint|collapse|drop)',
+  "(?<!shop(?:ping)? )until i (?:puke|throw up|pass out|faint|collapse|cry|bleed|can'?t walk|drop)",
+  '(?<!shop(?:ping)? )till i (?:puke|throw up|pass out|faint|collapse|drop)',
   'punish(?:ing|ment)?(?: my ?self)?(?: with)? (?:workouts?|exercise|burpees|push ?ups|laps|running)',
   'punish(?:ing)? my ?self',
   'burn off (?:what i ate|food|dinner|lunch|breakfast|calories|everything)',
   'train(?:ing)? through (?:the )?(?:pain|injury|injuries)',
   'work(?:ing)? out (?:while|when) (?:injured|sick)',
   'no rest days?',
-  '(?:[5-9]\\d\\d|\\d{4,}) (?:push ?ups|sit ?ups|burpees|squats|crunches|pull ?ups)',
-  '(?:[5-9]|[1-9]\\d) hours? (?:of )?(?:working out|work ?outs?|exercise|exercising|gym|training|running|cardio)',
-  '(?:work(?:ing)? out|exercis(?:e|ing)|train(?:ing)?|run(?:ning)?|lift(?:ing)?) (?:for )?(?:[5-9]|[1-9]\\d) hours?',
+  `(?:[5-9]\\d\\d|\\d{4,}) (?:push ?ups|sit ?ups|burpees|squats|crunches|pull ?ups)${OVER_TIME}`,
+  `(?:[5-9]|[1-9]\\d) hours? (?:of )?(?:working out|work ?outs?|exercise|exercising|gym|training|running|cardio)${OVER_TIME}`,
+  `(?:work(?:ing)? out|exercis(?:e|ing)|train(?:ing)?|run(?:ning)?|lift(?:ing)?) (?:for )?(?:[5-9]|[1-9]\\d) hours?${OVER_TIME}`,
   'all nighters?',
   // Going without sleep, or sleeping four hours or less.
   'stay(?:ing)? (?:awake|up) (?:for )?(?:(?:2\\d|[3-9]\\d|\\d{3,}) ?(?:h|hrs?|hours?)|(?:a|\\d+|one|two|three|four|five|several) (?:days?|nights?)(?: straight| in a row)?)',
   'sleep(?:ing)? (?:only |just |for )?(?:[0-4]|one|two|three|four)(?:\\.5)? ?(?:h|hrs?|hours?)\\b(?! (?:earlier|later|more|extra|longer|sooner|less))',
   '(?:get|getting) (?:only |just )?(?:[0-4]|one|two|three|four)(?:\\.5)? (?:hrs?|hours?) of sleep',
-  'no sleep',
+  'no sleep(?! ?ins?\\b)',
   'stay up all night',
-  'without sleep(?:ing)?',
+  'without sleep(?:ing)?(?! (?:through|in|past|late))',
   'skip(?:ping)? sleep',
 ]);
 
@@ -274,7 +278,7 @@ const SUBSTANCES = re([
   'wine',
   'drunk',
   'get(?:ting)? (?:drunk|wasted|faded|hammered|lit|stoned)',
-  'get(?:ting)? high(?! (?:grades?|scores?|marks?|school|honou?rs|gpa|test))',
+  'get(?:ting)? high(?! (?:grades?|scores?|marks?|school|honou?rs|gpa|tests?|sat|act|ap|psat|ib|lsat|mcat|gre|gmat|enough|quality|results?|on the|ranks?|rankings?|ratings?|reviews?|percentiles?|standards?|praise|fives|5s|level|elevation|ground|places?|up)\\b)',
   'shrooms',
   'lsd',
   'mdma',
@@ -329,9 +333,9 @@ const TRADING = re([
   'day ?trad(?:e|es|er|ers|ing)',
   'swing trad(?:e|ing)',
   'scalp(?:ing)? (?:stocks|crypto|options|futures)',
-  'options? (?:trad\\w*|contracts?|calls?|puts?|plays?)',
+  '(?<!(?:my|your|our|the|their|his|her|other|all|some|more|different) )options? (?:trad\\w*|contracts?|calls?|puts?|plays?)',
   '0[ -]?dte',
-  '(?:trade|trading|trades|flip|flipping) (?:crypto|stocks?|options|forex|futures|coins?|meme ?coins?|nfts?)',
+  '(?:trade|trading|trades|flip|flipping) (?:crypto|stocks?|options|forex|futures|meme ?coins?|nfts?)',
   '(?:crypto|stock|forex|futures|fx|options) trad(?:e|es|er|ers|ing)',
   'forex',
   'margin (?:trading|account)',
@@ -345,8 +349,9 @@ const TRADING = re([
   'shitcoins?',
   'pump and dump',
   'get rich quick',
-  'turn \\$?\\d[\\d,]* into \\$?\\d[\\d,]*',
-  'flip \\$\\d+',
+  // Turning money into more money, unless it's by selling or working ("flipping thrifted shoes").
+  'turn \\$?\\d[\\d,]* into \\$?\\d[\\d,]*(?!(?: by)? (?:flipping|reselling|selling|thrifting|making|baking|mowing|tutoring|babysitting|cleaning|washing|walking|working|doing))',
+  'flip \\$\\d[\\d,]*(?= *$| into| to)',
 ]);
 
 const DARES = re([
@@ -364,11 +369,11 @@ const DARES = re([
   'car surfing',
   'train surfing',
   'subway surfing',
-  'hold my breath (?:for|until|till)',
+  'hold my breath (?:for|until|till)(?! (?:[1-9]|[1-5]\\d) (?:seconds?|secs?))',
   'shoplift(?:ing)?',
   'steal(?:ing)?',
   'trespass(?:ing)?',
-  "break(?:ing)? into (?:a |the |someone'?s )?(?:house|houses|home|car|cars|building|school)",
+  "break(?:ing)? into (?:a |the |someone'?s )?(?:house|houses|home|car|cars|building|school(?! (?:play|musical|team|band|choir|paper|newspaper|club|council|radio|show|orchestra|theat(?:er|re)|production)))",
   'jump(?:ing)? off (?:a |the )?(?:roof|cliff)',
   'meet (?:up with )?(?:a )?(?:stranger|someone (?:i|from) (?:met )?online)',
   'dm strangers',
@@ -391,7 +396,11 @@ const ADULT = re([
   'nsfw',
   'strippers?',
   'strip clubs?',
-  'escort(?:ing|s)?',
+  // The noun, not the verb: "Escort my little sister to school" is fine.
+  '(?:an?|be(?:come|coming)? an?|work(?:ing)? as an?) escort',
+  'escorts',
+  'escort (?:service|services|agency|agencies|work|job|jobs|site|sites)',
+  'escorting(?! (?:my|her|him|them|the|a|kids?|children))',
   'sugar (?:daddy|baby|mommy)',
 ]);
 
@@ -411,7 +420,17 @@ const PRIVATE_WORDS = re([
   'my address is',
 ]);
 const SSN = /\b\d{3}[- ]\d{2}[- ]\d{4}\b/;
-const ADDRESS = /\b\d{1,5} (?:[a-z0-9']+ ){1,3}(?:street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|way|place|pl|terrace|circle|cir)\b/;
+/**
+ * A street address: a house number, one to three name words and a street word ("42 Oak Street").
+ * Not an amount ("Run 2 miles down the road", "Learn 1 new way to cook") or a place in a sentence
+ * ("3 laps around the court", "Watch 1 video by Dr K").
+ */
+const ADDRESS_AMOUNT =
+  "(?:miles?|mi|km|kms|k|laps?|hours?|hrs?|minutes?|mins?|seconds?|secs?|shots?|reps?|sets?|times?|pages?|steps?|blocks?|neighbou?rs?|videos?|chapters?|ways?|things?|days?|weeks?|people|friends?|pointers?|points?|free|more|new|better|different|other|of|in|on|at|to|for)";
+const ADDRESS_STOP = '(?:the|my|a|an|our|his|her|their|this|that|down|up|around|on|at|in|to|from|by|along|across|of|per|for|into|onto|over|near|past|through|with)';
+const ADDRESS = new RegExp(
+  `\\b\\d{1,5} (?!${ADDRESS_AMOUNT}\\b)(?:(?!${ADDRESS_STOP}\\b)[a-z0-9']+ ){1,3}(?:street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|way|place|pl|terrace|circle|cir)\\b(?! (?:to|of)\\b)`,
+);
 
 function luhn(digits: string): boolean {
   let sum = 0;
@@ -470,11 +489,26 @@ const HARMLESS = re([
   'fast fashion',
   'lean (?:protein|meat|muscle)',
   'kill(?:ing)? it',
-  'bet on (?:my ?self|yourself)',
+  'bet on (?:my ?self|yourself|(?:my|your) (?:skills?|future|work|talent|ideas?|brand|business|abilit(?:y|ies)|dreams?|goals?))',
+  'hedg(?:e|ing) (?:my|your|our) bets',
   'subway surfers',
   'wine red',
-  'steal (?:a base|bases|the show)',
+  'steal (?:a base|bases|the show|the spotlight)',
+  'steal like an artist',
   'dare to',
+  'dare (?:my|your) ?self to',
+  // Words that share a drug or drink word.
+  '(?:root|ginger|birch) beers?',
+  'rubbing alcohol',
+  'alcohol (?:wipes?|swabs?|pads?|laws?|awareness|education|policy)',
+  'tobacco (?:farming|farms?|history|industry|laws?|policy)',
+  'weed(?:ing)? (?:the |my |our )?(?:garden|yard|lawn|flower ?beds?|vegetable beds?|beds|plot|patch)',
+  'pull(?:ing)? (?:the )?weeds?',
+  '(?:walk|feed|groom|train|wash|brush)(?:ing)? (?:my|our|the) whippets?',
+  'oxy ?(?:acetylene|fuel)',
+  'ramadan fast(?:ing|s)?',
+  'fast(?:ing)?(?: \\w+){0,4} (?:for|during|in) (?:ramadan|lent)',
+  '(?:bench|squat|deadlift|lift|press|curl|carry|pull)(?:ing)? (?:my|your) (?:own )?(?:body ?)?weight',
   'abs plastic',
   'weigh in on',
   '(?:break|kick)(?:ing)? (?:my |the |this )?(?:\\w+ ){1,2}habits?',
