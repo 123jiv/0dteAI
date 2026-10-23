@@ -48,4 +48,11 @@ describe('check-release-env', () => {
     const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as { scripts: Record<string, string> };
     expect(pkg.scripts['eas-build-pre-install']).toBe('node scripts/check-release-env.mjs');
   });
+
+  it('each eas.json build profile loads its own EAS environment, so a production build sees the production key', () => {
+    const eas = JSON.parse(readFileSync(join(ROOT, 'eas.json'), 'utf8')) as { build: Record<string, { environment?: string }> };
+    expect(eas.build.production.environment).toBe('production');
+    expect(eas.build.preview.environment).toBe('preview');
+    expect(eas.build.development.environment).toBe('development');
+  });
 });
