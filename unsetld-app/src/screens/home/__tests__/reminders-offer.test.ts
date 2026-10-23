@@ -71,8 +71,8 @@ describe('the card says what Turn on does', () => {
   it('with the saved count and times', () => {
     const C = HOME.remindersCard;
     expect(C.title).toBe('Get reminded about open missions?');
-    expect(C.body(3, '7:00 AM', '10:00 PM')).toBe('Up to 3 a day, 7:00 AM to 10:00 PM. None once the day is proven.');
-    expect(C.body(1, '8:00 AM', '10:00 PM')).toBe('One a day at 8:00 AM. None once the day is proven.');
+    expect(C.body(3, '7:00 AM', '10:00 PM')).toBe('Up to 3 a day, 7:00 AM to 10:00 PM. None once every mission is proven.');
+    expect(C.body(1, '8:00 AM', '10:00 PM')).toBe('One a day at 8:00 AM. None once every mission is proven.');
     expect(C.on).toBe('Turn on');
     expect(C.notNow).toBe('Not now');
   });
