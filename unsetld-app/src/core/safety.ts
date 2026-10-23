@@ -36,7 +36,10 @@ export interface SafetyResult {
 
 const OK: SafetyResult = { level: 'ok', category: null };
 
-/** Lowercase, plain quotes, no zero-width characters, hyphens and underscores between letters as spaces, single spaces. */
+/**
+ * Lowercase, plain quotes, no invisible characters (zero-width, soft hyphen, direction marks),
+ * hyphens, underscores and dots between letters as spaces, single spaces.
+ */
 export function normalize(text: string): string {
   let t = text;
   try {
@@ -46,9 +49,9 @@ export function normalize(text: string): string {
   }
   return t
     .toLowerCase()
-    .replace(/[​-‍⁠﻿]/g, '')
+    .replace(/[\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u206a-\u206f\ufeff]/g, '')
     .replace(/[‘’ʼ]/g, "'")
-    .replace(/(?<=[a-z])[-_](?=[a-z])/g, ' ')
+    .replace(/(?<=[a-z])[-_.](?=[a-z])/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -64,7 +67,7 @@ const RECOVERY =
   /\b(?:quit(?:ting)?|stop(?:ped|ping)?|cut(?:ting)? (?:down|back|out)(?: on)?|less|fewer|no more|no|not|never|don'?t|do not|avoid(?:ing)?|resist(?:ing)?|reduc(?:e|ing)|without|stay(?:ing)? off|get(?:ting)? off|off of|sober|clean from|kick(?:ing)?(?! off)|break(?:ing)? (?:the |my )?habit|give up|giving up|done with|recover(?:y|ing)? from|free (?:from|of)|lower)\b(?:\s+\S+){0,3}\s*$/;
 
 const SELF_HARM = re([
-  'kill(?:ing)? my ?self',
+  'kill(?:ing)? ?my ?self',
   'end(?:ing)? my (?:own )?life',
   'take my (?:own )?life(?! back| to| into| seriously| more| in)',
   'suicid(?:e|al)(?! (?:sprints?|drills?|runs?|squats?|prevention|awareness))',
@@ -72,16 +75,29 @@ const SELF_HARM = re([
   'wanna die',
   'wish i (?:was|were) dead',
   'better off dead',
+  '(?:want(?:ed|s)?|wanna|wish(?:ed)?|rather|ready) (?:to )?be dead',
+  'no reason (?:to|for me to) (?:live|be alive|keep living|go on|be here|exist)',
+  '(?:better|happier) off without me',
   'self harm(?:ing)?',
   'harm(?:ing)? my ?self',
   'hurt(?:ing)? my ?self',
   'cut(?:ting)? my ?self',
   'cut(?:ting)? my (?:wrists?|arms?|legs?|thighs?)',
+  'slit(?:ting)? (?:my )?(?:wrists?|throat)',
+  '(?:start(?:ed|ing)?|be|been|keep|kept) cutting again',
+  'cutting (?:habit|addiction|urges?)',
+  '(?:stop(?:ped|ping)?|quit|without|no more|not|never) cutting(?: again| anymore)?$',
   'hang(?:ing)? my ?self',
+  '(?:shoot|drown|stab|poison|strangle|suffocate|burn|set fire to)(?:ing|s)? my ?self(?! (?:in the foot|out|a (?:reminder|text|note|message|email)|an email|in (?:work|books?|homework|music|coffee|studying|school ?work)))',
+  'jump(?:ing)? in front of (?:a |the )?(?:train|car|bus|truck|traffic|subway)',
   '(?<!(?:\\d|\\d |one |two |three |five |ten ))kms',
-  'unalive(?: my ?self)?',
+  'un ?alive(?: my ?self)?',
+  'sewer ?slide',
   'end it all',
   'overdos(?:e|ing)',
+  "o ?d(?:ing|'?d)? on (?:pills|meds|medication|drugs|tylenol|advil|painkillers|sleeping pills)",
+  '(?:want to|wanna|gonna|going to) od',
+  '(?:take|taking|swallow|swallowing) (?:all|a bunch|a handful|a whole bottle|a bottle) (?:of )?(?:my |the )?(?:pills|tablets|sleeping pills)(?! (?:on time|every|each|today|daily|in the morning|at night|at|before|after|with))',
   'sleep and (?:never|not) wake up',
   'disappear forever',
   'jump(?:ing)? off (?:a |the )?(?:bridge|building|roof)',
@@ -376,7 +392,23 @@ function riskyMatch(t: string, pattern: RegExp, allowRecovery: boolean): boolean
   return false;
 }
 
-/** Phrases that look risky but aren't: taken out before the checks. */
+/**
+ * Not hurting yourself while training: taken out before every check. Only with a training word
+ * before or after it, so "Go a week without hurting myself" still gets the support line.
+ */
+const TRAINING =
+  '(?:gym|practice|training|workouts?|games?|field|court|track|pool|tryouts|matches|meets?|races?|lifting|running|playing|working out|exercising|skating|skateboarding|biking|climbing|squatting|deadlifting|benching|sports?|lifts?|reps?|sets?|form)';
+const TRAINING_VERB =
+  '(?:lift(?:ing)?|train(?:ing)?|run(?:ning)?|play(?:ing)?|work(?:ing)? out|exercis(?:e|ing)|squat(?:ting)?|deadlift(?:ing)?|bench(?:ing)?|skat(?:e|ing)|climb(?:ing)?|sprint(?:ing)?|warm(?:ing)? up|stretch(?:ing)?|cool(?:ing)? down|good form|proper form|a spotter)';
+const NOT_HURT = "(?:without|not|never|don'?t|won'?t|wont|can'?t|cannot|do not|will not|avoid(?:ing)?) (?:getting |get )?hurt(?:ing)? my ?self";
+const HURT_TRAINING = new RegExp(
+  `\\b(?:${NOT_HURT} (?:(?:at|in|on|during|while|when|doing) )?(?:the |my )?${TRAINING}\\b|${TRAINING_VERB}\\b(?: \\S+){0,5}? ${NOT_HURT}\\b)`,
+  'gi',
+);
+/** Idioms that read as self-harm and aren't: taken out before every check. */
+const SUPPORT_HARMLESS = re(['cut(?:ting)? my ?self (?:some slack|off)']);
+
+/** Phrases that look risky but aren't: taken out before the checks after support. */
 const HARMLESS = re([
   'bar exam',
   'fast food',
@@ -390,11 +422,10 @@ const HARMLESS = re([
   'dare to',
   'abs plastic',
   'weigh in on',
-  'cut(?:ting)? my ?self (?:some slack|off)',
-  "(?:without|not|never|don'?t|avoid) (?:getting )?hurt(?:ing)? my ?self(?: (?:at|while|when|lifting|training|running|in|playing)(?: \\w+){0,3})?",
   '(?:break|kick)(?:ing)? (?:my |the |this )?(?:\\w+ ){1,2}habits?',
 ]);
 const HARMLESS_ALL = new RegExp(HARMLESS.source, 'gi');
+const SUPPORT_HARMLESS_ALL = new RegExp(SUPPORT_HARMLESS.source, 'gi');
 
 /** What the user wrote, checked. Empty text is ok. The first category that matches decides. */
 export function checkText(text: string | null | undefined, field: TextField = 'goal'): SafetyResult {
@@ -404,9 +435,12 @@ export function checkText(text: string | null | undefined, field: TextField = 'g
   if (SSN.test(raw) || hasCardNumber(raw) || ADDRESS.test(raw) || PRIVATE_DISCLOSE.test(raw) || PRIVATE_WORDS.test(raw)) {
     return { level: 'block', category: 'private' };
   }
-  const t = raw.replace(HARMLESS_ALL, ' ');
-  if (SELF_HARM.test(t)) return { level: 'support', category: 'self-harm' };
-  if (EATING_RISK.test(t)) return { level: 'support', category: 'eating-risk' };
+  // Support first, on the text with only the training and idiom phrases out: a habit or
+  // recovery phrase never hides self-harm or eating risk ("Break my cutting habit").
+  const s = raw.replace(HURT_TRAINING, ' ').replace(SUPPORT_HARMLESS_ALL, ' ');
+  if (SELF_HARM.test(s)) return { level: 'support', category: 'self-harm' };
+  if (EATING_RISK.test(s)) return { level: 'support', category: 'eating-risk' };
+  const t = s.replace(HARMLESS_ALL, ' ');
   if (riskyMatch(t, DIET, true)) return { level: 'block', category: 'diet' };
   if (riskyMatch(t, EXTREME, true)) return { level: 'block', category: 'extreme' };
   if (riskyMatch(t, SUBSTANCES, true)) return { level: 'block', category: 'substances' };
