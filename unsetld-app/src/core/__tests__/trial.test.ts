@@ -41,6 +41,17 @@ describe('the end and the reminder', () => {
     expect(trialEnd(start, { unit: 'week', count: 1 })).toEqual(new Date(2026, 9, 26, 10, 0));
     expect(trialEnd(start, { unit: 'month', count: 1 })).toEqual(new Date(2026, 10, 19, 10, 0));
   });
+  it('a month from a date the next month lacks ends on its last day, as the App Store does', () => {
+    expect(trialEnd(new Date(2027, 0, 31, 10, 0), { unit: 'month', count: 1 })).toEqual(new Date(2027, 1, 28, 10, 0));
+    expect(trialEnd(new Date(2028, 0, 31, 10, 0), { unit: 'month', count: 1 })).toEqual(new Date(2028, 1, 29, 10, 0));
+    expect(trialEnd(new Date(2026, 9, 31, 10, 0), { unit: 'month', count: 1 })).toEqual(new Date(2026, 10, 30, 10, 0));
+    expect(trialEnd(new Date(2026, 11, 31, 10, 0), { unit: 'month', count: 2 })).toEqual(new Date(2027, 1, 28, 10, 0));
+    expect(trialEnd(new Date(2026, 7, 31, 10, 0), { unit: 'month', count: 1 })).toEqual(new Date(2026, 8, 30, 10, 0));
+    expect(trialEnd(new Date(2028, 1, 29, 10, 0), { unit: 'year', count: 1 })).toEqual(new Date(2029, 1, 28, 10, 0));
+    expect(trialEnd(new Date(2026, 9, 19, 10, 0), { unit: 'year', count: 1 })).toEqual(new Date(2027, 9, 19, 10, 0));
+    // The paywall's line: "3 MAR" was shown for a trial started on 31 Jan.
+    expect(shortDate(trialEnd(new Date(2027, 0, 31, 10, 0), { unit: 'month', count: 1 }))).toBe('28 FEB');
+  });
   it('reminds 24 hours before the end, for every length', () => {
     for (const t of [
       { unit: 'day', count: 3 },

@@ -36,16 +36,26 @@ export function trialLabel(t: Trial): string {
 
 /**
  * When a trial started at `start` ends, in calendar time (a week is 7 days, a month the same date
- * next month). Only an estimate for the paywall: after a purchase the store's own expiration
- * date is the source of truth.
+ * next month). A date the target month doesn't have ends on its last day, as the App Store does:
+ * a month from 31 Jan ends 28 Feb (29 in a leap year), never 3 Mar; a year from 29 Feb, 28 Feb.
+ * Only an estimate for the paywall: after a purchase the store's own expiration date is the
+ * source of truth.
  */
 export function trialEnd(start: Date, t: Trial): Date {
   const d = new Date(start.getTime());
   if (t.unit === 'day') d.setDate(d.getDate() + t.count);
   else if (t.unit === 'week') d.setDate(d.getDate() + 7 * t.count);
-  else if (t.unit === 'month') d.setMonth(d.getMonth() + t.count);
-  else d.setFullYear(d.getFullYear() + t.count);
+  else addMonths(d, t.unit === 'month' ? t.count : 12 * t.count);
   return d;
+}
+
+/** Moves `d` on by whole months, keeping its time of day; the 31st becomes the month's last day when it has fewer. */
+function addMonths(d: Date, months: number): void {
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, last));
 }
 
 const HOUR = 3_600_000;
