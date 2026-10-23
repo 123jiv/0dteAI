@@ -671,7 +671,12 @@ export interface SlotPick {
   area: TrackId;
 }
 
-/** At most this many missions from one area in a day, unless it's this week's focus or the user's only area. */
+/**
+ * At most this many missions from one area in a day, unless it's this week's focus or the user's
+ * only area. generatePlan's one exception: a short slot that only a mission past the day's time
+ * could fill, with no near-twin that fits either, takes a third, shorter one (a Push me day of two
+ * areas, Fitness's short missions all cardio and its focused one cardio too).
+ */
 export const MAX_PER_AREA = 2;
 
 /** What generatePlan lets a slot take beyond the usual, from the rest of the day (chooseForSlot). */
@@ -995,12 +1000,21 @@ export function chooseForSlot(
  */
 const SAME_TASK: readonly (readonly [string, string])[] = [['C7', 'K1']];
 
-/** A mission's id plus every other mission in its group (and SAME_TASK): none of them can join a day that has it. */
+/** A mission's id plus the other name of the same task (SAME_TASK). */
+function sameTask(id: string): string[] {
+  return [id, ...SAME_TASK.flatMap(([a, b]) => (id === a ? [b] : id === b ? [a] : []))];
+}
+
+/**
+ * A mission's id plus every other mission in its group (and SAME_TASK): none of them can join a day
+ * that has it. generatePlan's one exception: a short slot that only a mission past the day's time
+ * could fill takes a near-twin that keeps the time (Do 20 Minutes of Cardio next to Walk for 30
+ * Minutes for Fitness alone at 30 or 45 minutes); never a second planning mission.
+ */
 function sameDayBlocked(library: readonly Mission[], m: Mission | undefined): string[] {
   if (!m) return [];
-  const same = SAME_TASK.flatMap(([a, b]) => (m.id === a ? [b] : m.id === b ? [a] : []));
-  if (!m.group) return [m.id, ...same];
-  return [m.id, ...library.filter(x => x.group === m.group && x.id !== m.id).map(x => x.id), ...same];
+  if (!m.group) return sameTask(m.id);
+  return [...sameTask(m.id), ...library.filter(x => x.group === m.group && x.id !== m.id).map(x => x.id)];
 }
 
 /**
@@ -1366,9 +1380,18 @@ export function generatePlan(input: PlanInput): DayPlan {
         const got =
           (short > 0 ? chooseAtLeast(input, s, area, out, room, seed, usedTracks, stretch, r, short) : null) ||
           chooseForSlot(input, s, area, out, room, seed, usedTracks, false, stretch, false, r);
-        // A short slot the last steps filled past its time (the areas with room left have only long
-        // missions free): a third mission from an area in the day, a short one, keeps the day's time.
-        if (got && s === 'easy' && got.mission.minutes > Math.max(room, stretch)) {
+        // A short slot the last steps filled past the day's time (budget and overshoot: the areas
+        // with room left have only long missions free): a near-twin of a mission in the day keeps the
+        // time when it fits (Fitness's short missions are all cardio: Do 20 Minutes of Cardio next to
+        // Walk for 30 Minutes, not a 45-minute workout); else a third mission from an area in the day,
+        // a shorter one.
+        const most = budget + shape.overshoot;
+        if (got && s === 'easy' && spent + got.mission.minutes > most) {
+          // Two planning missions still never (Plan Tomorrow's Top 3 and Write Your Next 3 Project Actions read as one task twice).
+          const twinOf = (p: PlannedMission) => (byId.get(p.missionId)?.tags?.includes('planning') ? sameDayBlocked(input.library, byId.get(p.missionId)) : sameTask(p.missionId));
+          const exact = new Set([...chosenSlots.flatMap(p => (p ? twinOf(p) : [])), ...later]);
+          const twin = chooseForSlot(input, s, area, exact, room, seed, usedTracks, false, stretch, false, r);
+          if (twin && spent + twin.mission.minutes <= most) return twin;
           const crowded = chooseForSlot(input, s, area, out, room, seed, usedTracks, false, stretch, true, r);
           if (crowded && crowded.mission.minutes < got.mission.minutes) return crowded;
         }

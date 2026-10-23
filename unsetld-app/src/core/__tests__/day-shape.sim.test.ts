@@ -13,7 +13,7 @@
 //   SIM_FULL=1 SIM_PRINT=1 npx vitest run src/core/__tests__/day-shape.sim.test.ts
 import { beforeAll, describe, expect, it } from 'vitest';
 import { MISSION_BY_ID, MISSIONS } from '../../content';
-import { DEFAULT_PROFILE, generatePlan, historyFrom, planAreas, slotsFor, type PlanInput } from '../missions';
+import { DEFAULT_PROFILE, generatePlan, historyFrom, MAX_PER_AREA, planAreas, slotsFor, type PlanInput } from '../missions';
 import { leanFor, learnFrom } from '../personalize';
 import { addDays, parseDay, type DayKey } from '../time';
 import type { DayPlan, MissionDone, Profile, TrackId } from '../types';
@@ -156,6 +156,11 @@ interface CellStats {
   weekly: number;
   /** Distinct missions in four weeks, on average. */
   distinct: number;
+  /** Days with three missions from one area (MAX_PER_AREA is two; the grid has no weekly focus). */
+  third: number;
+  /** Days with two missions from one group (near-twins), and of those, ones not both cardio. */
+  twins: number;
+  twinsNotCardio: number;
 }
 
 const quantile = (sorted: readonly number[], p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * (sorted.length - 1)))];
@@ -174,6 +179,9 @@ function simulate(): Record<Cell, CellStats> {
     let goalHit = 0;
     let weekly = 0;
     let distinct = 0;
+    let third = 0;
+    let twins = 0;
+    let twinsNotCardio = 0;
     for (const j of setups) {
       const profile = { ...DEFAULT_PROFILE, ...CELLS[cell], tracks: j.tracks, goal: j.goal || undefined, school: j.school } as Profile;
       const want = slotsFor(profile).length;
@@ -194,6 +202,11 @@ function simulate(): Record<Cell, CellStats> {
           if (inDay.some(t => goalAreas.includes(t))) goalHit += 1;
         }
         for (const t of inDay) seenIn[Math.floor(d / 7)].add(t);
+        if (j.tracks.length > 1 && inDay.some(t => inDay.filter(x => x === t).length > MAX_PER_AREA)) third += 1;
+        const groups = ms.flatMap(m => (m.group ? [m.group] : []));
+        const twice = groups.filter((g, k) => groups.indexOf(g) !== k);
+        if (twice.length) twins += 1;
+        if (twice.some(g => g !== 'cardio')) twinsNotCardio += 1;
         for (const m of ms) ids.add(m.id);
       });
       if (seenIn.every(week => usable.every(t => week.has(t)))) weekly += 1;
@@ -221,6 +234,9 @@ function simulate(): Record<Cell, CellStats> {
       goal: goalDays ? round(goalHit / goalDays) : 0,
       weekly: round(weekly / setups.length),
       distinct: round(distinct / setups.length, 1),
+      third,
+      twins,
+      twinsNotCardio,
     };
   }
   return out;
@@ -273,7 +289,7 @@ let stats: Record<Cell, CellStats>;
 beforeAll(() => {
   stats = simulate();
   if (PRINT) {
-    const head = 'cell        slots  p10  p50  p90  p99  max  inBand (before)  over  under  pts/day (before)  long  goal  weekly  distinct';
+    const head = 'cell        slots  p10  p50  p90  p99  max  inBand (before)  over  under  pts/day (before)  long  goal  weekly  distinct  third  twins (not cardio)';
     const rows = CELL_KEYS.map(c => {
       const s = stats[c];
       return [
@@ -288,6 +304,8 @@ beforeAll(() => {
         s.goal.toFixed(2).padStart(5),
         s.weekly.toFixed(2).padStart(7),
         s.distinct.toFixed(1).padStart(9),
+        String(s.third).padStart(6),
+        `${String(s.twins).padStart(6)} (${s.twinsNotCardio})`,
       ].join(' ');
     });
     console.log([`${FULL ? 'full' : 'default'} grid, ${jobs().length} setups, ${stats['15'].days} days per time choice`, head, ...rows].join('\n'));
@@ -340,6 +358,34 @@ describe('the time promise, model J targets (gates)', () => {
 
   it('a 15-minute day is never more than 20 minutes', () => {
     expect(stats['15'].max).toBeLessThanOrEqual(20);
+  });
+});
+
+// Correctness review (23 Oct 2026), findings 2 and 3: a short slot that only a mission past the
+// day's time could fill takes a near-twin first (Fitness's short missions are all cardio), and a
+// third mission from one area only after that. Before the fix: no near-twins, but a third mission
+// from one area on 3 Start easy and 58 Push me days of the default grid, and a one-area Fitness
+// day at 50 to 65 minutes on 30 and up to 75 on 45.
+describe('two from one area at most, one from one group, and one area alone', () => {
+  it('a third mission from one area only on a Push me day, when nothing else keeps the day to its time', () => {
+    for (const c of CELL_KEYS) expect(stats[c].third / stats[c].days, c).toBeLessThanOrEqual(c === '60/push' ? 0.003 : 0);
+  });
+
+  it('two missions from one group only where Fitness holds two slots (its short missions are all cardio)', () => {
+    for (const c of CELL_KEYS) {
+      expect(stats[c].twinsNotCardio, c).toBe(0);
+      expect(stats[c].twins / stats[c].days, c).toBeLessThanOrEqual(c === '60/push' ? 0.006 : 0);
+    }
+  });
+
+  it('one area kept from an earlier version: Fitness alone stays within 5 minutes of the band at 30 and 45 minutes', () => {
+    for (const cell of ['30', '45'] as const)
+      for (const [salt, hour] of INSTALLS) {
+        const profile = { ...DEFAULT_PROFILE, ...CELLS[cell], tracks: ['fitness'] as TrackId[], goal: null };
+        const days = fourWeeks(profile, `one-${salt}`, hour).map(plan => plan.missions.reduce((t, p) => t + MISSION_BY_ID[p.missionId].minutes, 0));
+        expect(Math.max(...days), `${cell} ${salt}: ${days.join(' ')}`).toBeLessThanOrEqual(BAND[cell][1] + 5);
+        expect(Math.min(...days), `${cell} ${salt}`).toBeGreaterThanOrEqual(BAND[cell][0]);
+      }
   });
 });
 
