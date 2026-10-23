@@ -81,7 +81,7 @@ export const ONBOARDING = {
      */
     shape: {
       15: 'One mission a day, 20 minutes at most.',
-      30: 'Two missions a day. About 30 minutes.',
+      30: 'Two missions a day. About 30 to 40 minutes.',
       45: 'Two missions a day. About 45 minutes.',
       60: 'Three or four missions a day, by how hard you want it.',
     } satisfies Record<Profile['minutes'], string>,

@@ -29,7 +29,12 @@ describe('the day shape, as the copy states it', () => {
     }
     expect(PACE.shape[15]).toContain(`${dayBudget({ minutes: 15, intensity: 'lockin' })} minutes at most`);
     expect(longestFor({ minutes: 15, intensity: 'lockin' })).toBeLessThanOrEqual(20);
-    expect(PACE.shape[30]).toContain('About 30 minutes');
+    // 30: the budget is 35 and most days come to 35 (the simulation: p10 30, p90 40), so the line
+    // gives the range, not "about 30" (UX review 4).
+    expect(PACE.shape[30]).toContain('About 30 to 40 minutes');
+    const thirty = dayBudget({ minutes: 30, intensity: 'lockin' });
+    expect(thirty).toBeGreaterThan(30);
+    expect(thirty).toBeLessThanOrEqual(40);
     expect(PACE.shape[45]).toContain('About 45 minutes');
     // An hour or more: three or four, by how hard.
     expect(counts(PACE.shape[60])).toEqual([...new Set(INTENSITIES.map(intensity => slotsFor({ minutes: 60, intensity }).length))].sort());
