@@ -620,7 +620,7 @@ export const DUE_SHARE = 0.4;
  * A short mission this many turns overdue (or never shown in a week of plans) may take a focused
  * slot of its area on a day its area holds no short slot (Money or Organization takes it, or the
  * area leads): with Career, Skills and Organization and an hour or more, Career and Skills only ever hold
- * focused slots, and Practice Explaining One Project You've Built still comes round. A support task
+ * focused slots, and Practice Explaining Something You Made still comes round. A support task
  * this overdue takes a short slot next to its area's real mission (generatePlan).
  */
 export const OVERDUE_TURNS = 3;
@@ -826,7 +826,7 @@ export function chooseForSlot(
   // are all it has (Fitness's short missions are both cardio), the area keeps its slot. Core habits
   // keep their own rules. A focused one OVERDUE_TURNS behind its turn may follow a short twin: where
   // the area holds a focused slot only on the lead's rest day (an area the goal doesn't name) and its
-  // short twin always lands the day before (Finish One Unfinished Task), Finish One Thing You've Been
+  // short twin always lands the day before (Finish Something You Left Half Done), Finish One Thing You've Been
   // Avoiding still comes round. Only there: with no goal, in a weekly focus week, or in an area the
   // goal names, the rule stands as it was.
   const restDayOnly = (m: Mission) =>
@@ -842,7 +842,7 @@ export function chooseForSlot(
     const week = [m, ...twins].flatMap(x => (input.history.recent?.[x.id] ?? []).filter(d => d < input.day && diffDays(d, input.day) < 7));
     return new Set(week).size < MAX_DAYS_IN_WEEK;
   };
-  // Two planning missions in a day (Plan Tomorrow's Top 3 and Create Your Study Plan for the Week)
+  // Two planning missions in a day (List 3 Things You Need to Do Tomorrow and Create Your Study Plan for the Week)
   // read as the same task twice: once the day has one, an area takes another of its missions when it
   // has one. The day's missions and their groups are in `exclude`, and a planning mission's group
   // holds only planning ones, so a planning mission there means one is in the day.
@@ -861,7 +861,7 @@ export function chooseForSlot(
     (Boolean(m.tags?.includes('follow-up')) && !madeYesterday(m)) ||
     (firstDay && morning && m.when === 'evening');
 
-  // A support task (Write Your Next 3 Project Actions) is never an area's only mission of the
+  // A support task (Plan the Next 3 Steps for Your Project) is never an area's only mission of the
   // day while a real one (a work session, a workout) fits: it joins an area holding a real one
   // (`rules.held`), not one holding only another short task (Review One Important Metric).
   // A meal counts the same way unless the goal or focus is about food ("Eat healthier").
@@ -870,7 +870,7 @@ export function chooseForSlot(
     (Boolean(m.tags?.includes('support')) || (m.group === 'meal' && !leansTo(m, lean))) && !held.includes(area);
 
   // `strict` 2: only the usual missions, so a slot takes a real one a little longer (the stretch)
-  // or shown lately before a last resort (tonight's Plan Tomorrow's Top 3 on a Day 1 morning); 1:
+  // or shown lately before a last resort (tonight's List 3 Things You Need to Do Tomorrow on a Day 1 morning); 1:
   // a last resort too, but still not a support task alone (a follow-up a little longer before Write
   // Your Next 3 Project Actions); 0: anything that fits.
   const tryAreas = (list: readonly TrackId[], size: MissionSlot | null, relax: Relax, cap: number, strict: 0 | 1 | 2 = 0): SlotPick | null => {
@@ -988,7 +988,7 @@ export function chooseForSlot(
     return null;
   };
   // 7: a short slot takes a short everyday mission still in its cooldown before a longer one, so the
-  // day keeps its time (Plan Tomorrow's Top 3 a day early, not a 45-minute workout in the short slot);
+  // day keeps its time (List 3 Things You Need to Do Tomorrow a day early, not a 45-minute workout in the short slot);
   // a weekly or rarer one keeps its week, and near-twins keep apart.
   if (slot === 'easy') {
     const cool = cooling('easy', Math.max(maxMinutes, stretch), false) ?? cooling('easy', intensityMax, false);
@@ -1052,7 +1052,7 @@ function dueShort(input: PlanInput, area: TrackId, used: ReadonlySet<string>, ma
 }
 
 /**
- * A support task (Write Your Next 3 Project Actions) is never its area's only mission of the day, so
+ * A support task (Plan the Next 3 Steps for Your Project) is never its area's only mission of the day, so
  * where the area holds one slot a day it would never come up. Once its turn is OVERDUE_TURNS
  * overdue (or it was never shown), a short slot takes it next to its area's real mission, on a day
  * of 45 minutes or more (at 15 or 30 minutes the day has no time for it). That area then has two
@@ -1119,7 +1119,7 @@ function reserveFor(input: PlanInput, area: TrackId, used: ReadonlySet<string>):
 
 /**
  * The shortest short mission an area can hold a day with on its own today: free, and not a
- * support task or a follow-up, which never stand alone (Write Your Next 3 Project Actions). Fitness
+ * support task or a follow-up, which never stand alone (Plan the Next 3 Steps for Your Project). Fitness
  * is 20 (its cardio), Projects usually 20 too (Publish Something You Made). Infinity: none.
  */
 function shortestAlone(input: PlanInput, area: TrackId): number {
@@ -1338,7 +1338,7 @@ function planDay(input: PlanInput): DayPlan {
 
   // A Plan's missions all go in, each in a free slot it fits; one that fits none gets a slot of
   // its own size, so a Plan day never has fewer slots than the Plan's missions (7 Day Lock In's
-  // Plan Tomorrow's Top 3 and Lock In for 30 Minutes on a 15-minute day).
+  // List 3 Things You Need to Do Tomorrow and Lock In for 30 Minutes on a 15-minute day).
   const byId = new Map(input.library.map(m => [m.id, m]));
   const focusArea = lean.focusArea && areas.includes(lean.focusArea) ? lean.focusArea : null;
   /** A mission the week's focus names or tags (pick's FOCUS_SHARE). */
@@ -1497,7 +1497,7 @@ function planDay(input: PlanInput): DayPlan {
         // a shorter one.
         const most = budget + shape.overshoot;
         if (got && s === 'easy' && spent + got.mission.minutes > most) {
-          // Two planning missions still never (Plan Tomorrow's Top 3 and Write Your Next 3 Project Actions read as one task twice).
+          // Two planning missions still never (List 3 Things You Need to Do Tomorrow and Plan the Next 3 Steps for Your Project read as one task twice).
           const twinOf = (p: PlannedMission) => (byId.get(p.missionId)?.tags?.includes('planning') ? sameDayBlocked(input.library, byId.get(p.missionId)) : sameTask(p.missionId));
           const exact = new Set([...chosenSlots.flatMap(p => (p ? twinOf(p) : [])), ...later]);
           const twin = chooseForSlot(input, s, area, exact, room, seed, usedTracks, false, stretch, false, r);
@@ -1526,7 +1526,7 @@ function planDay(input: PlanInput): DayPlan {
       // The focused slot found only a short mission in the room its short slots keep (Write Your Next
       // 3 Project Actions where Skills' short slot keeps 15 of a 30-minute day), or, in the week's
       // focus area, nothing the focus names (Get Outside and Move in a gym week, its workouts 30
-      // minutes), while another area has a shorter mission for the short slot (Plan Tomorrow's Top 3,
+      // minutes), while another area has a shorter mission for the short slot (List 3 Things You Need to Do Tomorrow,
       // 5): the focused slot takes its real work in the room that leaves, and the short slot goes to
       // that area (30 + 5, not a support task alone; or the support task joins the real work).
       const offFocus = (m: Mission) => got?.area === focusArea && !onFocus(m);

@@ -76,6 +76,8 @@ A normal, high-value action: work done, something learned, made, organised, trai
 
 The built-in library is exactly the founder's 66 approved missions. The planner, swaps, the RECOMMENDED FOR YOU choices and plans (programs) draw only from it: `MISSIONS` in src/content/index.ts (the active approved missions), with `APPROVED_IDS` (the 66 in order) and `isApproved(id)`. There are no fallback lists, no missions generated or made up at runtime, and no LLM. A mission is never added, renamed or reworded, and an id is never renumbered: the gaps (S8, S14, F4, M4, C6, C8, P8, K8, O3, O4, O6, O7) are missions the founder turned down. Retiring an approved mission is the founder's decision.
 
+**Wording pass (3 Nov 2026, at the founder's request).** The founder found titles like "Write Your Next 3 Project Actions" too vague and asked for wording tied to a normal day. Twenty titles and every vague instruction were reworded to name a concrete action with everyday examples ("Plan the Next 3 Steps for Your Project": "Write three steps you can each do in one sitting, like sketching a logo, filming an intro, or fixing a sign-up page."). Ids, areas, minutes, points, proof types, frequencies, groups and tags are unchanged, so plans, history and analytics still line up; a proof keeps the title it was proven under. P3 and P6 gained a `{project}` template, and P3's proof line names the post or video. The tables below are the current text.
+
 | area | letter | missions | ids |
 |---|---|---|---|
 | Discipline | D | 6 | D1–D6 |
@@ -94,11 +96,11 @@ The built-in library is exactly the founder's 66 approved missions. The planner,
 | id | title | min | pts | proof | frequency (cooldown) | notes |
 |---|---|---|---|---|---|---|
 | D1 | Lock In for 30 Minutes | 30 | 15 | timer + photo | high (1 d) | core habit |
-| D2 | Do Your Most Important Task for 30 Minutes | 30 | 15 | timer + photo | high (1 d) | core habit |
+| D2 | Work on Your Top To-Do for 30 Minutes | 30 | 15 | timer + photo | high (1 d) | core habit |
 | D3 | Finish One Thing You've Been Avoiding | 30 | 15 | photo | medium (3 d) |  |
-| D4 | Plan Tomorrow's Top 3 | 5 | 5 | photo | medium (3 d) | evening |
+| D4 | List 3 Things You Need to Do Tomorrow | 5 | 5 | photo | medium (3 d) | evening |
 | D5 | Work With Your Phone Away for 30 Minutes | 30 | 15 | timer + photo | high (1 d) | core habit |
-| D6 | Finish One Unfinished Task | 20 | 10 | photo | medium (3 d) |  |
+| D6 | Finish Something You Left Half Done | 20 | 10 | photo | medium (3 d) |  |
 
 **School (13)**
 
@@ -112,10 +114,10 @@ The built-in library is exactly the founder's 66 approved missions. The planner,
 | S6 | Start an Assignment Before It's Urgent | 30 | 15 | timer + photo | medium (3 d) |  |
 | S7 | Turn Today's Notes Into 10 Questions | 15 | 10 | photo | medium (3 d) | evening |
 | S9 | Test Yourself on Flashcards for 20 Minutes | 20 | 10 | timer + photo | high (1 d) |  |
-| S10 | Explain One Difficult Concept From Memory | 15 | 10 | photo | high (2 d) |  |
+| S10 | Explain One Hard Topic in Your Own Words | 15 | 10 | photo | high (2 d) |  |
 | S11 | Spend 30 Minutes on Your Hardest Class | 30 | 15 | timer + photo | high (1 d) |  |
 | S12 | Create Your Study Plan for the Week | 15 | 10 | photo | low (7 d) |  |
-| S13 | Work on an Upcoming Project for 30 Minutes | 30 | 15 | timer + photo | medium (3 d) |  |
+| S13 | Work on a School Project for 30 Minutes | 30 | 15 | timer + photo | medium (3 d) |  |
 | S15 | Review a Topic You Learned Earlier This Week | 20 | 10 | timer + photo | high (2 d) |  |
 
 **Fitness (7)**
@@ -135,9 +137,9 @@ The built-in library is exactly the founder's 66 approved missions. The planner,
 | id | title | min | pts | proof | frequency (cooldown) | notes |
 |---|---|---|---|---|---|---|
 | M1 | Track Everything You Spend Today | 5 | 5 | photo | high (1 d) | core habit; evening |
-| M2 | Review Your Spending From the Last 7 Days | 15 | 10 | photo | low (7 d) |  |
+| M2 | Add Up What You Spent This Past Week | 15 | 10 | photo | low (7 d) |  |
 | M3 | Make a Spending Plan for This Week | 10 | 5 | photo | low (7 d) |  |
-| M5 | Check One Subscription or Recurring Charge | 10 | 5 | photo | low (30 d) |  |
+| M5 | Decide If One Subscription Is Worth It | 10 | 5 | photo | low (30 d) |  |
 | M6 | Set One Savings Goal and Deadline | 10 | 5 | photo | low (45 d) |  |
 
 **Career (10)**
@@ -149,10 +151,10 @@ The built-in library is exactly the founder's 66 approved missions. The planner,
 | C3 | Find 3 Opportunities Worth Applying To | 20 | 10 | photo | medium (3 d) | template `Find 3 {opportunities} Worth Applying To`; weight 2 (the founder: 1–2 times a week) |
 | C4 | Improve One Part of Your Portfolio | 30 | 15 | photo | medium (3 d) |  |
 | C5 | Practice 5 Interview Questions | 20 | 10 | photo | low (7 d) |  |
-| C7 | Spend 30 Minutes Building a Career Skill | 30 | 15 | timer + photo | medium (3 d) | core habit |
-| C9 | Add One Project or Accomplishment to Your Resume or Portfolio | 15 | 10 | photo | low (21 d) |  |
+| C7 | Spend 30 Minutes Practicing a Job Skill | 30 | 15 | timer + photo | medium (3 d) | core habit |
+| C9 | Add Something New to Your Resume or Portfolio | 15 | 10 | photo | low (21 d) |  |
 | C10 | Research 3 Skills Required for a Job You Want | 15 | 10 | photo | low (14 d) |  |
-| C11 | Practice Explaining One Project You've Built | 15 | 10 | photo | medium (4 d) |  |
+| C11 | Practice Explaining Something You Made | 15 | 10 | photo | medium (4 d) |  |
 | C12 | Complete One Part of an Application | 30 | 15 | photo | medium (3 d) |  |
 
 **Projects (11)**
@@ -161,12 +163,12 @@ The built-in library is exactly the founder's 66 approved missions. The planner,
 |---|---|---|---|---|---|---|
 | P1 | Work on Your Project for 30 Minutes | 30 | 15 | timer + photo | high (1 d) | core habit; template `Work on {project} for 30 Minutes` |
 | P2 | Finish One Small Part of Your Project | 30 | 15 | photo | high (1 d) | template `Finish One Small Part of {project}` |
-| P3 | Create One Piece of Content | 30 | 15 | photo | medium (3 d) |  |
-| P4 | Improve One Page, Screen, Product, or Listing | 30 | 15 | before + after | medium (3 d) |  |
-| P5 | Fix One Problem With Your Project | 30 | 15 | photo | high (2 d) | template `Fix One Problem With {project}` |
-| P6 | Write Your Next 3 Project Actions | 10 | 5 | photo | medium (3 d) | support |
-| P7 | Create One New Design, Prototype, or Draft | 30 | 15 | photo | high (2 d) |  |
-| P9 | Review One Important Metric and Make One Decision From It | 15 | 10 | photo | low (7 d) |  |
+| P3 | Make One Post or Video for Your Project | 30 | 15 | photo | medium (3 d) | template `Make One Post or Video for {project}` |
+| P4 | Improve One Page, Photo, or Screen | 30 | 15 | before + after | medium (3 d) |  |
+| P5 | Fix One Thing Wrong With Your Project | 30 | 15 | photo | high (2 d) | template `Fix One Thing Wrong With {project}` |
+| P6 | Plan the Next 3 Steps for Your Project | 10 | 5 | photo | medium (3 d) | support; template `Plan the Next 3 Steps for {project}` |
+| P7 | Sketch One New Design | 30 | 15 | photo | high (2 d) |  |
+| P9 | Check Your Views or Sales and Pick One Change | 15 | 10 | photo | low (7 d) |  |
 | P10 | Publish Something You Made | 20 | 10 | photo | medium (4 d) |  |
 | P11 | Improve Something You Made Yesterday | 20 | 10 | before + after | high (2 d) |  |
 | P12 | Turn One Idea Into a First Draft | 30 | 15 | photo | high (2 d) |  |
@@ -177,10 +179,10 @@ The built-in library is exactly the founder's 66 approved missions. The planner,
 |---|---|---|---|---|---|---|
 | K1 | Practice Your Skill for 30 Minutes | 30 | 15 | timer + photo | high (1 d) | core habit; template `Practice {skill} for 30 Minutes` |
 | K2 | Complete One Lesson, Then Use What You Learned | 30 | 15 | photo | high (2 d) |  |
-| K3 | Practice One Weak Part of Your Skill for 20 Minutes | 20 | 10 | timer + photo | high (2 d) |  |
-| K4 | Build a Small Project Using Your Skill | 45 | 20 | photo | medium (4 d) |  |
+| K3 | Practice What Trips You Up for 20 Minutes | 20 | 10 | timer + photo | high (2 d) |  |
+| K4 | Make One Small Thing Using Your Skill | 45 | 20 | photo | medium (4 d) |  |
 | K5 | Explain One Thing You Learned From Memory | 15 | 10 | photo | high (2 d) |  |
-| K6 | Create Something You Can Put in a Portfolio | 45 | 20 | photo | medium (4 d) |  |
+| K6 | Create Something Worth Showing Someone | 45 | 20 | photo | medium (4 d) |  |
 | K7 | Improve Something You Created Before | 20 | 10 | before + after | high (2 d) |  |
 | K9 | Watch One Tutorial and Apply One Thing From It | 30 | 15 | photo | high (2 d) |  |
 | K10 | Recreate Something Without Following the Tutorial | 30 | 15 | photo | medium (3 d) |  |
@@ -190,7 +192,7 @@ The built-in library is exactly the founder's 66 approved missions. The planner,
 | id | title | min | pts | proof | frequency (cooldown) | notes |
 |---|---|---|---|---|---|---|
 | O1 | Clear Your Desk | 10 | 5 | before + after | medium (3 d) |  |
-| O2 | Do a 15-Minute Room Reset | 15 | 10 | before + after | medium (3 d) | core habit |
+| O2 | Clean Up Your Room | 15 | 10 | before + after | medium (3 d) | core habit |
 | O5 | Pack Everything You Need for Tomorrow | 10 | 5 | photo | medium (3 d) | evening |
 | O8 | Reset Your Workspace for Tomorrow | 10 | 5 | photo | medium (3 d) | evening |
 | O9 | Review Your Calendar for the Next 7 Days | 10 | 5 | photo | low (7 d) |  |
@@ -252,7 +254,7 @@ The founder's proof types map onto the app's four:
 | BEFORE_AFTER | `BEFORE_AFTER`: a photo before, one after |
 | COMPLETION_SCREEN, RESULT PHOTO, SCREENSHOT | `PHOTO`, with a proof line that says personal details can be hidden ("The submitted screen or confirmation. Hide anything personal.") |
 
-A photo never pretends to prove elapsed time: a title that names a length of time (`for 30 Minutes`, `20 Minutes of Cardio`) needs `TIMER` or `TIMER_AND_PHOTO`. The one exception is `Do a 15-Minute Room Reset` (O2): before and after of the room is enough.
+A photo never pretends to prove elapsed time: a title that names a length of time (`for 30 Minutes`, `20 Minutes of Cardio`) needs `TIMER` or `TIMER_AND_PHOTO`. The one exception is `Clean Up Your Room` (O2): before and after of the room is enough.
 
 ### Points by time
 
@@ -274,7 +276,7 @@ A mission is offered only when the user's answers allow it. The approved library
 Errors fail the run:
 - **Ids:** exactly the 66 approved ids, in order (one missing, extra or out of order fails); each id's letter matches its area (D discipline, S school, F fitness, M money, C career, P projects, K skills, O organization).
 - **Areas:** exactly the eight, in order.
-- **Every mission:** `source` `UNSETLD`; `frequency` high, medium or low with a matching cooldown (high 1–2, medium 3–4, low 7 or more); repeatable; points that match the time; a timer for a title that names a length of time (O2 excepted); `template` and `personalize` together, the template with exactly the one slot `personalize` names, and the title equal to the template with the plain default in it (`Your Project`, `One Subject`, `Your Skill`, `Job or Internship`, `Opportunities`); known requirements; tags; no retired fields.
+- **Every mission:** `source` `UNSETLD`; `frequency` high, medium or low with a matching cooldown (high 1–2, medium 3–4, low 7 or more); repeatable; points that match the time; a timer for a title that names a length of time; `template` and `personalize` together, the template with exactly the one slot `personalize` names, and the title equal to the template with the plain default in it (`Your Project`, `One Subject`, `Your Skill`, `Job or Internship`, `Opportunities`); known requirements; tags; no retired fields.
 - **Voice and safety:** no `"!"`, `"…"`, emoji or swearing; no hustle or therapy words (grind, level up, mindset, journey, your potential, you got this ...); nothing unsafe for a teen (calorie deficits, fasts and fasting, skipping meals, weigh-ins and body photos, no sleep and all-nighters, alcohol and liquor, beers, vaping and vapes, cigarettes, nicotine, weed, day, options, leveraged, crypto, stock or forex trading, casinos, gambling, betting, dares, purging, starving yourself; plurals and synonyms since the launch pass); no mention of points, codes, merch or UNSETLD.
 - **Plans (programs):** approved ids only, no mission with a requirement, no two from one group a day, at least two free; since the launch pass also five to fourteen days, no two plans with the same day lists, and under 80% of a plan's missions shared with any other plan (Jaccard of the mission sets). Every shipped plan is run through the real planner and must finish in exactly its days on every day shape (src/core/__tests__).
 - **Retired missions:** legacy-missions.json never holds an approved id, and each entry has a title, one of the eight areas, minutes, a proof type and a proof line.
@@ -314,11 +316,11 @@ An area is eligible for a user when:
 - **Areas first.** Every mission comes from one of the day's areas (above), and the plan records which area each mission is in the day for (`PlannedMission.area`; the row shows it and a swap stays in it). This week's focus area leads every day; otherwise the lead (the area the goal points at, else the first pick) leads on two days in three and the others go first on the third, in rotation. A goal naming two of the user's areas has them take turns leading and resting, and the other areas move on once every three days, so each goal area gets focused days (not only the second one). **The goal shapes the week** (spec-goal, 15 Oct 2026): when the goal names areas among the day's areas, the focused slots go to the lead and then the goal's other areas, before the areas the goal doesn't name, on every day the lead doesn't rest ("Improve grades and train consistently": School and Fitness hold the focused slots, Discipline the short one); the short slots keep their turn, so a 30-minute day (one focused slot, the lead's) and a 15-minute day (short slots only) are as before. On the lead's rest day (every third) the other areas get the focused slots, the ones the goal doesn't name included, so a picked area outside the goal still has focused missions about one day in three (`slotTracks`, `goalFocused`); when the goal names more areas than the day has focused slots ("Get a software job and improve coding" names Career, Skills and Projects), an area it doesn't name still takes one of them that day. The slot order of no goal, a goal naming only the lead, Day 1 and a week with a weekly focus (the focus leads) is unchanged. At most two missions from one area a day (`MAX_PER_AREA`), unless it's this week's focus or the user's only area. A focused slot drawn for Money or Organization (short missions only) trades areas with a short slot, so the day keeps its focused work; when the goal shapes the week and the trade gives that focused slot to an area the goal doesn't name, it fills after the lead's and the goal's ("Build a clothing brand and save money" on a day Money leads: the brand picks before Fitness, so a 45-minute workout doesn't leave it 20 minutes). On a 30-minute day, when a weekly mission is due in the area holding the focused slot, the two slots trade areas on most days (`DUE_SHARE`; `WEEK_PLAN_SHARE` for a plan for the week): the weekly mission takes the short slot and the short slot's area the focused one, so the day still covers two areas. When the short slot's area has no focused missions it waits a day; the week's focus can have both slots.
 - **Core habits come back.** When an area has a core habit free, a slot takes it 45% of the time (`CORE_SHARE`), 50% in an area the goal names (`GOAL_CORE_SHARE`; not in a weekly focus week), half that when every core habit on offer was in yesterday's plan; core habits skip the "shown lately" gap. At most half, so the rest of an area gets enough slots for every mission in it to come round within a few weeks (0.6 in the goal's areas, the first proposal, left School's other missions out of whole months for a user whose goal is grades); Day 1 is still all core habits.
 - **Frequency and cooldowns** (`available`). After a mission is done it waits its `cooldownDays`. Shown but not done: a high or medium one waits 2–3 days (core habits excepted), so a medium one comes round about twice a week at most. A low-frequency one (S12, M2, M3, M5, M6, C1, C5, C9, C10, P9, O9) waits its whole cooldown after being shown as well as after being done: weekly ones about once a week, M5 about monthly, M6, C9, C1 and C10 less often. Only the guarantee's last steps let it back early.
-- **Rotation by turn.** Each mission's turn comes round after `TURN_DAYS` (high 2.5 days, medium 4.5) or, for a low-frequency one, its whole cooldown (`turnOf`). Its weight is multiplied by the days since it was last shown, done or swapped away over that turn, kept between 0.25 and 10 (`TURN_MIN`, `TURN_MAX`); never shown counts as fully due (10), and shown or done yesterday is at most 0.3 (`YESTERDAY_WEIGHT`). The ceiling is high because the goal and the time of day weigh missions up to three times apart, and a mission they weigh down still has to come round within a few weeks. A mission the user turned down (swapped as Not relevant, or its kind swapped again and again) doesn't build up a turn. Each recent swap still divides the weight by one more. A day never holds two from one group, nor C7 and K1 (Spend 30 Minutes Building a Career Skill and Practice Coding for 30 Minutes are the same half hour under two names; `SAME_TASK`, not a group, so swaps don't learn them as one kind), and morning-only missions drop out of a plan made between noon and 4 AM. Near-twins in one area (a group: D3 and D6, O1 and O8, the cardio missions) count together for the four days in seven, and a medium or low-frequency one isn't planned the day after its twin; both are preferences within the area, so where its twins are all it has (Fitness's short missions are both cardio) the area keeps its slot. One exception, in an area the goal doesn't name and outside a weekly focus week: a focused-only one (30 minutes or more) `OVERDUE_TURNS` behind its turn may follow a short twin. With the goal's areas holding the focused slots, Discipline holds one only on the lead's rest day, and D6 (short) always lands the day before it, so without the exception D3 would never come. With no goal, in an area the goal names and in a focus week the rule stands as it was. Once the day has a planning mission (Plan Tomorrow's Top 3, Create Your Study Plan for the Week), an area takes another of its missions when it has one. **Keeping the day on time (launch pass):** when a short slot would push the day past its budget plus the 5-minute overshoot, it first tries a near-twin of a mission already in the day if that keeps the time (two planning missions still never pair); in practice only cardio, on Push me days. Only after that fails may a third mission come from an area already in the day; the day-shape simulation holds both to Push me only (third-mission days at most 0.3% of Push me days, none below).
+- **Rotation by turn.** Each mission's turn comes round after `TURN_DAYS` (high 2.5 days, medium 4.5) or, for a low-frequency one, its whole cooldown (`turnOf`). Its weight is multiplied by the days since it was last shown, done or swapped away over that turn, kept between 0.25 and 10 (`TURN_MIN`, `TURN_MAX`); never shown counts as fully due (10), and shown or done yesterday is at most 0.3 (`YESTERDAY_WEIGHT`). The ceiling is high because the goal and the time of day weigh missions up to three times apart, and a mission they weigh down still has to come round within a few weeks. A mission the user turned down (swapped as Not relevant, or its kind swapped again and again) doesn't build up a turn. Each recent swap still divides the weight by one more. A day never holds two from one group, nor C7 and K1 (Spend 30 Minutes Practicing a Job Skill and Practice Coding for 30 Minutes are the same half hour under two names; `SAME_TASK`, not a group, so swaps don't learn them as one kind), and morning-only missions drop out of a plan made between noon and 4 AM. Near-twins in one area (a group: D3 and D6, O1 and O8, the cardio missions) count together for the four days in seven, and a medium or low-frequency one isn't planned the day after its twin; both are preferences within the area, so where its twins are all it has (Fitness's short missions are both cardio) the area keeps its slot. One exception, in an area the goal doesn't name and outside a weekly focus week: a focused-only one (30 minutes or more) `OVERDUE_TURNS` behind its turn may follow a short twin. With the goal's areas holding the focused slots, Discipline holds one only on the lead's rest day, and D6 (short) always lands the day before it, so without the exception D3 would never come. With no goal, in an area the goal names and in a focus week the rule stands as it was. Once the day has a planning mission (List 3 Things You Need to Do Tomorrow, Create Your Study Plan for the Week), an area takes another of its missions when it has one. **Keeping the day on time (launch pass):** when a short slot would push the day past its budget plus the 5-minute overshoot, it first tries a near-twin of a mission already in the day if that keeps the time (two planning missions still never pair); in practice only cardio, on Push me days. Only after that fails may a third mission come from an area already in the day; the day-shape simulation holds both to Push me only (third-mission days at most 0.3% of Push me days, none below).
 - **Weekly missions come round on time.** When a low-frequency mission's turn has come (its cooldown is over, or it was never shown), a slot of its area takes it 40% of the time (`DUE_SHARE`), ahead of the core habits; not on Day 1. A focused slot takes one too while the day keeps a focused mission (above), so a weekly mission in an area that only ever holds a focused slot (P9 for someone whose short slot is always Money's) still comes about weekly; on a 30-minute day the slots trade areas instead (above).
 - **Plans for the week at the start of the week.** S12, M3 and O9 (weekly, tagged `planning`) are due Sunday to Tuesday (`WEEK_START_DAYS`), when a slot takes one 80% of the time (`WEEK_PLAN_SHARE`); Wednesday to Saturday they weigh a fifth and wait unless two turns overdue. They aren't tied to those days (no `days`), so a week is never missed, but they don't stick to whatever weekday they first landed on.
 - **The first weeks are the staples.** A mission rarer than weekly (M5, M6, C1, C9, C10) the user never had becomes due in their second week (`MissionHistory.recent` counts the days with a plan), and once a day has one weekly or rarer mission the user never had, the others wait for another day (a slot still takes one rather than stay empty).
-- **Short missions that never get a short slot.** A focused slot may take a short mission three turns overdue (`OVERDUE_TURNS`; never shown counts once the user has a week of plans) in an area holding no short slot that day, so Career's and Skills' short missions (C11, K5) come round for someone whose short slot is always Organization's, and the lead area's short ones for someone with four areas. A support task (P6, Write Your Next 3 Project Actions) only joins its area's real mission (20 minutes or more, not another short task like P9); three turns overdue, a short slot takes it next to that real mission on a day of three or more missions (that area has two that day), so it comes round for someone whose Projects holds one slot a day. A follow-up (P11, Improve Something You Made Yesterday) is a last resort unless real work in its area (20 minutes or more) was proven the day before.
+- **Short missions that never get a short slot.** A focused slot may take a short mission three turns overdue (`OVERDUE_TURNS`; never shown counts once the user has a week of plans) in an area holding no short slot that day, so Career's and Skills' short missions (C11, K5) come round for someone whose short slot is always Organization's, and the lead area's short ones for someone with four areas. A support task (P6, Plan the Next 3 Steps for Your Project) only joins its area's real mission (20 minutes or more, not another short task like P9); three turns overdue, a short slot takes it next to that real mission on a day of three or more missions (that area has two that day), so it comes round for someone whose Projects holds one slot a day. A follow-up (P11, Improve Something You Made Yesterday) is a last resort unless real work in its area (20 minutes or more) was proven the day before.
 - **No mission on more than four days of any seven** (`MAX_DAYS_IN_WEEK`), core habits included: on the fifth, M1's area gives way to the others (Money is then in the day about six days in seven). Only the guarantee lets it back.
 - **The guarantee: no empty slot.** Each step draws only from the approved library and the day's areas, and stops at the first that has a mission (`chooseForSlot`):
   1. the slot's area at the slot's size within the time left (missions shown lately wait, then are let back), then for a focused slot a shorter one there;
@@ -366,14 +368,16 @@ Read-time gates, so text saved before the check stops steering without anything 
 
 ### Personalized titles (core/titles.ts)
 
-Seven approved missions have a template with one slot, filled from the user's own words; the action never changes and nothing is generated:
+Nine approved missions have a template with one slot, filled from the user's own words; the action never changes and nothing is generated:
 
 | id | template | filled from | example |
 |---|---|---|---|
 | S1 | Study {subject} for 30 Minutes | one school subject the goal names | Pass calculus → Study Calculus for 30 Minutes |
 | P1 | Work on {project} for 30 Minutes | the thing the goal says is being built | Launch my clothing brand → Work on Your Clothing Brand for 30 Minutes |
 | P2 | Finish One Small Part of {project} | the same | Build and ship an app → Finish One Small Part of Your App |
-| P5 | Fix One Problem With {project} | the same | Launch UNSETLD → Fix One Problem With UNSETLD |
+| P3 | Make One Post or Video for {project} | the same | Start a YouTube channel → Make One Post or Video for Your YouTube Channel |
+| P5 | Fix One Thing Wrong With {project} | the same | Launch UNSETLD → Fix One Thing Wrong With UNSETLD |
+| P6 | Plan the Next 3 Steps for {project} | the same | Launch my clothing brand → Plan the Next 3 Steps for Your Clothing Brand |
 | C2 | Apply to One {opportunity} | a field and a job or internship the goal names | Get a finance internship → Apply to One Finance Internship |
 | C3 | Find 3 {opportunities} Worth Applying To | the same, plural | Find 3 Finance Internships Worth Applying To |
 | K1 | Practice {skill} for 30 Minutes | the skill the goal names, else their only skill under What are you learning? | Coding → Practice Coding for 30 Minutes |
@@ -494,7 +498,7 @@ Paywall rows (core/features order: plans first, reminders, a convenience, last):
 
 - **Reminders are offered after the first proof (launch pass P1-3).** A card on Today, in the weekly focus card's place and only when that question isn't showing: something proven today, reminders off, notifications not turned off for the app, and the offer new or first shown today. `Get reminded about open missions?` / `Up to 3 a day, 7:00 AM to 10:00 PM. None once every mission is proven.` / `Turn on` / `Not now`; either button settles it for good (`reading.remindersOffer = 'done'`). The permission ask at the first timer stays.
 - **The pending budget (P1-13, core/reminders).** iOS keeps 64 pending notifications per app and drops the rest without a word. The app keeps 4 free and holds one place for the timer's "done", one for the trial reminder and two for drop alerts: 56 reminders (days ahead: floor(56 / a day's count): 56, 18, 11, 5 for 1, 3, 5, 10 a day). Only the next two drop alerts are scheduled. After each rebuild `overBudget` cancels ids the app doesn't schedule (allowlist `rem-`, `drop-`, `timer-done`, `trial-end`) and then the latest reminders until 60 are left. The timer's "done" isn't scheduled when it would fire after that day's 4:00 AM.
-- Reminders name missions by title, as the user reads it (§4, Personalized titles). First of the day: `Today: Study One Subject for 30 Minutes, Complete Your Workout, Plan Tomorrow's Top 3.` Later ones name what's left (`2 missions left. Complete Your Workout takes 45 minutes.`) and stop once everything is proven. The last one, only while nothing is proven today: `Last call: 1 mission left to keep the streak.` A day with no plan yet: `Two missions are waiting.` (the default day's count, `slotsFor`; `One mission is waiting.` at 15 minutes) or a plain prompt from `reminders.json`. Timer end: `30:00 done. Take the proof photo.` (TIMER_AND_PHOTO) or `30:00 done. Open the mission and mark it done.` (TIMER).
+- Reminders name missions by title, as the user reads it (§4, Personalized titles). First of the day: `Today: Study One Subject for 30 Minutes, Complete Your Workout, List 3 Things You Need to Do Tomorrow.` Later ones name what's left (`2 missions left. Complete Your Workout takes 45 minutes.`) and stop once everything is proven. The last one, only while nothing is proven today: `Last call: 1 mission left to keep the streak.` A day with no plan yet: `Two missions are waiting.` (the default day's count, `slotsFor`; `One mission is waiting.` at 15 minutes) or a plain prompt from `reminders.json`. Timer end: `30:00 done. Take the proof photo.` (TIMER_AND_PHOTO) or `30:00 done. Open the mission and mark it done.` (TIMER).
 - Widgets: **Next mission** (Line): `NEXT MISSION`, the title (personalized as on Today), `School · 30 min · +15` and `1 / 3`; tap opens the mission. **Today** (Standard, Lock Screen): the day's mission titles with a square each, filled once proven, and `1 / 3`. **Streak** (Record): streak, points, active-days barcode.
 
 ## 14. Removed

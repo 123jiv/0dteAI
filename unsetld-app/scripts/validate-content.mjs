@@ -36,14 +36,14 @@ const APPROVED = [
   'K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K9', 'K10',
   'O1', 'O2', 'O5', 'O8', 'O9',
 ];
-// The approved titles, word for word (the founder's text: never reworded; a template only fills its slot for the user).
+// The approved titles, word for word (the founder's text, last reworded at the founder's request on 3 Nov 2026; a template only fills its slot for the user).
 const APPROVED_TITLES = {
   D1: 'Lock In for 30 Minutes',
-  D2: 'Do Your Most Important Task for 30 Minutes',
+  D2: 'Work on Your Top To-Do for 30 Minutes',
   D3: "Finish One Thing You've Been Avoiding",
-  D4: "Plan Tomorrow's Top 3",
+  D4: 'List 3 Things You Need to Do Tomorrow',
   D5: 'Work With Your Phone Away for 30 Minutes',
-  D6: 'Finish One Unfinished Task',
+  D6: 'Finish Something You Left Half Done',
   S1: 'Study One Subject for 30 Minutes',
   S2: 'Test Yourself Without Looking at Your Notes',
   S3: 'Complete 10 Practice Problems',
@@ -52,10 +52,10 @@ const APPROVED_TITLES = {
   S6: "Start an Assignment Before It's Urgent",
   S7: "Turn Today's Notes Into 10 Questions",
   S9: 'Test Yourself on Flashcards for 20 Minutes',
-  S10: 'Explain One Difficult Concept From Memory',
+  S10: 'Explain One Hard Topic in Your Own Words',
   S11: 'Spend 30 Minutes on Your Hardest Class',
   S12: 'Create Your Study Plan for the Week',
-  S13: 'Work on an Upcoming Project for 30 Minutes',
+  S13: 'Work on a School Project for 30 Minutes',
   S15: 'Review a Topic You Learned Earlier This Week',
   F1: 'Complete Your Workout',
   F2: 'Walk for 30 Minutes',
@@ -65,42 +65,42 @@ const APPROVED_TITLES = {
   F7: 'Complete Your Planned Strength Workout',
   F8: 'Do Your Planned Cardio Today',
   M1: 'Track Everything You Spend Today',
-  M2: 'Review Your Spending From the Last 7 Days',
+  M2: 'Add Up What You Spent This Past Week',
   M3: 'Make a Spending Plan for This Week',
-  M5: 'Check One Subscription or Recurring Charge',
+  M5: 'Decide If One Subscription Is Worth It',
   M6: 'Set One Savings Goal and Deadline',
   C1: 'Improve One Resume Bullet',
   C2: 'Apply to One Job or Internship',
   C3: 'Find 3 Opportunities Worth Applying To',
   C4: 'Improve One Part of Your Portfolio',
   C5: 'Practice 5 Interview Questions',
-  C7: 'Spend 30 Minutes Building a Career Skill',
-  C9: 'Add One Project or Accomplishment to Your Resume or Portfolio',
+  C7: 'Spend 30 Minutes Practicing a Job Skill',
+  C9: 'Add Something New to Your Resume or Portfolio',
   C10: 'Research 3 Skills Required for a Job You Want',
-  C11: "Practice Explaining One Project You've Built",
+  C11: 'Practice Explaining Something You Made',
   C12: 'Complete One Part of an Application',
   P1: 'Work on Your Project for 30 Minutes',
   P2: 'Finish One Small Part of Your Project',
-  P3: 'Create One Piece of Content',
-  P4: 'Improve One Page, Screen, Product, or Listing',
-  P5: 'Fix One Problem With Your Project',
-  P6: 'Write Your Next 3 Project Actions',
-  P7: 'Create One New Design, Prototype, or Draft',
-  P9: 'Review One Important Metric and Make One Decision From It',
+  P3: 'Make One Post or Video for Your Project',
+  P4: 'Improve One Page, Photo, or Screen',
+  P5: 'Fix One Thing Wrong With Your Project',
+  P6: 'Plan the Next 3 Steps for Your Project',
+  P7: 'Sketch One New Design',
+  P9: 'Check Your Views or Sales and Pick One Change',
   P10: 'Publish Something You Made',
   P11: 'Improve Something You Made Yesterday',
   P12: 'Turn One Idea Into a First Draft',
   K1: 'Practice Your Skill for 30 Minutes',
   K2: 'Complete One Lesson, Then Use What You Learned',
-  K3: 'Practice One Weak Part of Your Skill for 20 Minutes',
-  K4: 'Build a Small Project Using Your Skill',
+  K3: 'Practice What Trips You Up for 20 Minutes',
+  K4: 'Make One Small Thing Using Your Skill',
   K5: 'Explain One Thing You Learned From Memory',
-  K6: 'Create Something You Can Put in a Portfolio',
+  K6: 'Create Something Worth Showing Someone',
   K7: 'Improve Something You Created Before',
   K9: 'Watch One Tutorial and Apply One Thing From It',
   K10: 'Recreate Something Without Following the Tutorial',
   O1: 'Clear Your Desk',
-  O2: 'Do a 15-Minute Room Reset',
+  O2: 'Clean Up Your Room',
   O5: 'Pack Everything You Need for Tomorrow',
   O8: 'Reset Your Workspace for Tomorrow',
   O9: 'Review Your Calendar for the Next 7 Days',
@@ -121,10 +121,8 @@ const SLOTS = { project: ['project'], subject: ['subject'], skill: ['skill'], op
 const SLOT_DEFAULT = { project: 'Your Project', subject: 'One Subject', skill: 'Your Skill', opportunity: 'Job or Internship', opportunities: 'Opportunities' };
 // Points by time (the founder's scale): 5–10 min = 5, 15–20 = 10, 25–45 = 15 or 20, over 45 = 20 or 25.
 const pointsFor = min => (min <= 10 ? [5] : min <= 20 ? [10] : min <= 45 ? [15, 20] : [20, 25]);
-// A title that names a length of time ("for 30 Minutes", "a 15-Minute Room Reset").
+// A title that names a length of time ("for 30 Minutes", "Do 20 Minutes of Cardio").
 const TIMED_TITLE = /\b\d+[- ]minutes?\b/i;
-// Before and after is enough for a room: O2 names its 15 minutes but is proven by the room.
-const TIMED_TITLE_OK = new Set(['O2']);
 // Motivational talk, therapy-speak and slang: missions say what to do, plainly.
 const BANNED = [
   'sigma', 'grindset', 'rise and grind', 'best version of yourself', 'level up', 'unlock', 'journey', 'manifest',
@@ -198,7 +196,7 @@ for (const m of missions) {
   if (APPROVED_TITLES[m.id] != null && m.title !== APPROVED_TITLES[m.id]) e(`the title is the approved one, word for word: "${APPROVED_TITLES[m.id]}" (got "${m.title}")`);
   // The founder's approved titles run to 61 characters ("Add One Project or Accomplishment to Your Resume or Portfolio").
   if (!title || title.length > 64 || /[.!?]$/.test(title)) e(`title must be 1–64 characters with no end punctuation: "${title}"`);
-  if (TIMED_TITLE.test(title) && !['TIMER', 'TIMER_AND_PHOTO'].includes(m.proofType) && !TIMED_TITLE_OK.has(m.id)) {
+  if (TIMED_TITLE.test(title) && !['TIMER', 'TIMER_AND_PHOTO'].includes(m.proofType)) {
     e(`a title with a length of time needs the timer (TIMER or TIMER_AND_PHOTO): a photo can't prove "${title}"`);
   }
   // Personalization: one slot, the one `personalize` names, and the title is the template with a plain default in it.

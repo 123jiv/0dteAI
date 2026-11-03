@@ -177,7 +177,7 @@ All seven are UNSETLD+. Proposed ids follow the validator's pattern. Short lines
 | 2 | S11 Spend 30 Minutes on Your Hardest Class | 30 |
 | 3 | S9 Test Yourself on Flashcards for 20 Minutes + S2 Test Yourself Without Looking at Your Notes | 35 |
 | 4 | S3 Complete 10 Practice Problems + S7 Turn Today's Notes Into 10 Questions | 35 |
-| 5 | S15 Review a Topic You Learned Earlier This Week + S10 Explain One Difficult Concept From Memory | 35 |
+| 5 | S15 Review a Topic You Learned Earlier This Week + S10 Explain One Hard Topic in Your Own Words | 35 |
 | 6 | S11 Spend 30 Minutes on Your Hardest Class | 30 |
 | 7 | S9 Test Yourself on Flashcards for 20 Minutes + S4 Write Everything You Remember About One Topic | 35 |
 
@@ -195,10 +195,10 @@ All seven are UNSETLD+. Proposed ids follow the validator's pattern. Short lines
 
 | Day | Missions | Min |
 |---|---|---|
-| 1 | S12 Create Your Study Plan for the Week + D6 Finish One Unfinished Task | 35 |
+| 1 | S12 Create Your Study Plan for the Week + D6 Finish Something You Left Half Done | 35 |
 | 2 | S5 Finish One Assignment | 30 |
 | 3 | D3 Finish One Thing You've Been Avoiding | 30 |
-| 4 | S5 Finish One Assignment + D4 Plan Tomorrow's Top 3 | 35 |
+| 4 | S5 Finish One Assignment + D4 List 3 Things You Need to Do Tomorrow | 35 |
 | 5 | S6 Start an Assignment Before It's Urgent | 30 |
 
 - 6 distinct missions. S5 comes twice.
@@ -236,12 +236,12 @@ All seven are UNSETLD+. Proposed ids follow the validator's pattern. Short lines
 | Day | Missions | Min |
 |---|---|---|
 | 1 | C4 Improve One Part of Your Portfolio | 30 |
-| 2 | K6 Create Something You Can Put in a Portfolio | 45 |
-| 3 | K7 Improve Something You Created Before + C11 Practice Explaining One Project You've Built | 35 |
-| 4 | C9 Add One Project or Accomplishment to Your Resume or Portfolio + K3 Practice One Weak Part of Your Skill for 20 Minutes | 35 |
-| 5 | K4 Build a Small Project Using Your Skill | 45 |
+| 2 | K6 Create Something Worth Showing Someone | 45 |
+| 3 | K7 Improve Something You Created Before + C11 Practice Explaining Something You Made | 35 |
+| 4 | C9 Add Something New to Your Resume or Portfolio + K3 Practice What Trips You Up for 20 Minutes | 35 |
+| 5 | K4 Make One Small Thing Using Your Skill | 45 |
 | 6 | C4 Improve One Part of Your Portfolio | 30 |
-| 7 | C9 Add One Project or Accomplishment to Your Resume or Portfolio + C11 Practice Explaining One Project You've Built | 30 |
+| 7 | C9 Add Something New to Your Resume or Portfolio + C11 Practice Explaining Something You Made | 30 |
 
 - 7 distinct missions. C4, C9 and C11 come twice each.
 - C9 has a 21-day cooldown in the daily planner. Inside the plan it comes on days 4 and 7.
@@ -255,13 +255,13 @@ All seven are UNSETLD+. Proposed ids follow the validator's pattern. Short lines
 
 | Day | Missions | Min |
 |---|---|---|
-| 1 | P6 Write Your Next 3 Project Actions + P2 Finish One Small Part of Your Project | 40 |
-| 2 | P5 Fix One Problem With Your Project | 30 |
-| 3 | P4 Improve One Page, Screen, Product, or Listing | 30 |
-| 4 | P3 Create One Piece of Content | 30 |
+| 1 | P6 Plan the Next 3 Steps for Your Project + P2 Finish One Small Part of Your Project | 40 |
+| 2 | P5 Fix One Thing Wrong With Your Project | 30 |
+| 3 | P4 Improve One Page, Photo, or Screen | 30 |
+| 4 | P3 Make One Post or Video for Your Project | 30 |
 | 5 | P11 Improve Something You Made Yesterday | 20 |
 | 6 | P10 Publish Something You Made | 20 |
-| 7 | P9 Review One Important Metric and Make One Decision From It | 15 |
+| 7 | P9 Check Your Views or Sales and Pick One Change | 15 |
 
 - 8 distinct missions, with no repeats.
 - **Overlap is 0.50 with both Build Something and Business Week.**
@@ -282,11 +282,11 @@ Skill Week isn't in the brief. The audit proposes it to cover the "Learn a skill
 |---|---|---|
 | 1 | K9 Watch One Tutorial and Apply One Thing From It | 30 |
 | 2 | K1 Practice Your Skill for 30 Minutes | 30 |
-| 3 | K3 Practice One Weak Part of Your Skill for 20 Minutes + K5 Explain One Thing You Learned From Memory | 35 |
+| 3 | K3 Practice What Trips You Up for 20 Minutes + K5 Explain One Thing You Learned From Memory | 35 |
 | 4 | K2 Complete One Lesson, Then Use What You Learned | 30 |
 | 5 | K10 Recreate Something Without Following the Tutorial | 30 |
 | 6 | K7 Improve Something You Created Before + K5 Explain One Thing You Learned From Memory | 35 |
-| 7 | K4 Build a Small Project Using Your Skill | 45 |
+| 7 | K4 Make One Small Thing Using Your Skill | 45 |
 
 - 8 distinct missions. K5 comes twice.
 - It shares no missions with an existing plan. Overlap with Portfolio Week, also proposed, is 0.25.
@@ -299,20 +299,20 @@ Skill Week isn't in the brief. The audit proposes it to cover the "Learn a skill
 
 | Day | Missions | Min |
 |---|---|---|
-| 1 | D4 Plan Tomorrow's Top 3 + D1 Lock In for 30 Minutes | 35 |
-| 2 | D2 Do Your Most Important Task for 30 Minutes | 30 |
-| 3 | D5 Work With Your Phone Away for 30 Minutes + D4 Plan Tomorrow's Top 3 | 35 |
-| 4 | D6 Finish One Unfinished Task | 20 |
-| 5 | D1 Lock In for 30 Minutes + D4 Plan Tomorrow's Top 3 | 35 |
+| 1 | D4 List 3 Things You Need to Do Tomorrow + D1 Lock In for 30 Minutes | 35 |
+| 2 | D2 Work on Your Top To-Do for 30 Minutes | 30 |
+| 3 | D5 Work With Your Phone Away for 30 Minutes + D4 List 3 Things You Need to Do Tomorrow | 35 |
+| 4 | D6 Finish Something You Left Half Done | 20 |
+| 5 | D1 Lock In for 30 Minutes + D4 List 3 Things You Need to Do Tomorrow | 35 |
 | 6 | D3 Finish One Thing You've Been Avoiding | 30 |
-| 7 | D2 Do Your Most Important Task for 30 Minutes + D4 Plan Tomorrow's Top 3 | 35 |
+| 7 | D2 Work on Your Top To-Do for 30 Minutes + D4 List 3 Things You Need to Do Tomorrow | 35 |
 | 8 | D5 Work With Your Phone Away for 30 Minutes | 30 |
-| 9 | D6 Finish One Unfinished Task + D4 Plan Tomorrow's Top 3 | 25 |
+| 9 | D6 Finish Something You Left Half Done + D4 List 3 Things You Need to Do Tomorrow | 25 |
 | 10 | D1 Lock In for 30 Minutes | 30 |
-| 11 | D3 Finish One Thing You've Been Avoiding + D4 Plan Tomorrow's Top 3 | 35 |
-| 12 | D2 Do Your Most Important Task for 30 Minutes | 30 |
-| 13 | D5 Work With Your Phone Away for 30 Minutes + D4 Plan Tomorrow's Top 3 | 35 |
-| 14 | D1 Lock In for 30 Minutes + D4 Plan Tomorrow's Top 3 | 35 |
+| 11 | D3 Finish One Thing You've Been Avoiding + D4 List 3 Things You Need to Do Tomorrow | 35 |
+| 12 | D2 Work on Your Top To-Do for 30 Minutes | 30 |
+| 13 | D5 Work With Your Phone Away for 30 Minutes + D4 List 3 Things You Need to Do Tomorrow | 35 |
+| 14 | D1 Lock In for 30 Minutes + D4 List 3 Things You Need to Do Tomorrow | 35 |
 
 - 6 distinct missions, the same six as 7 Day Lock In.
 - D4 (5 minutes, an evening list) is on 8 of the 14 days, always paired with another mission.
@@ -348,11 +348,11 @@ Each of these can be built today, and each passes the validator. Each is held be
 
 | Day | Missions | Min |
 |---|---|---|
-| 1 | M2 Review Your Spending From the Last 7 Days + M1 Track Everything You Spend Today | 20 |
-| 2 | M5 Check One Subscription or Recurring Charge + M1 Track Everything You Spend Today | 15 |
+| 1 | M2 Add Up What You Spent This Past Week + M1 Track Everything You Spend Today | 20 |
+| 2 | M5 Decide If One Subscription Is Worth It + M1 Track Everything You Spend Today | 15 |
 | 3 | M3 Make a Spending Plan for This Week + M1 Track Everything You Spend Today | 15 |
 | 4 | M6 Set One Savings Goal and Deadline + M1 Track Everything You Spend Today | 15 |
-| 5 | M2 Review Your Spending From the Last 7 Days | 15 |
+| 5 | M2 Add Up What You Spent This Past Week | 15 |
 
 **Why hold**
 - It uses all 5 Money missions in 5 days, and M1 is on 4 of them.
@@ -379,9 +379,9 @@ Each of these can be built today, and each passes the validator. Each is held be
 | Day | Missions | Min |
 |---|---|---|
 | 1 | C10 Research 3 Skills Required for a Job You Want + C1 Improve One Resume Bullet | 30 |
-| 2 | C1 Improve One Resume Bullet + C9 Add One Project or Accomplishment to Your Resume or Portfolio | 30 |
+| 2 | C1 Improve One Resume Bullet + C9 Add Something New to Your Resume or Portfolio | 30 |
 | 3 | C3 Find 3 Opportunities Worth Applying To + C1 Improve One Resume Bullet | 35 |
-| 4 | C11 Practice Explaining One Project You've Built + C1 Improve One Resume Bullet | 30 |
+| 4 | C11 Practice Explaining Something You Made + C1 Improve One Resume Bullet | 30 |
 | 5 | C12 Complete One Part of an Application | 30 |
 
 **Why hold**
@@ -402,10 +402,10 @@ Each of these can be built today, and each passes the validator. Each is held be
 | Day | Missions | Min |
 |---|---|---|
 | 1 | C10 Research 3 Skills Required for a Job You Want + C5 Practice 5 Interview Questions | 35 |
-| 2 | C11 Practice Explaining One Project You've Built + C1 Improve One Resume Bullet | 30 |
+| 2 | C11 Practice Explaining Something You Made + C1 Improve One Resume Bullet | 30 |
 | 3 | C5 Practice 5 Interview Questions | 20 |
-| 4 | C11 Practice Explaining One Project You've Built + C9 Add One Project or Accomplishment to Your Resume or Portfolio | 30 |
-| 5 | C5 Practice 5 Interview Questions + C11 Practice Explaining One Project You've Built | 35 |
+| 4 | C11 Practice Explaining Something You Made + C9 Add Something New to Your Resume or Portfolio | 30 |
+| 5 | C5 Practice 5 Interview Questions + C11 Practice Explaining Something You Made | 35 |
 
 **Why hold**
 - Only C5 and C11 are interview practice, and each comes 3 times in 5 days.
@@ -424,13 +424,13 @@ Each of these can be built today, and each passes the validator. Each is held be
 
 | Day | Missions | Min |
 |---|---|---|
-| 1 | P6 Write Your Next 3 Project Actions + P12 Turn One Idea Into a First Draft | 40 |
-| 2 | P3 Create One Piece of Content | 30 |
+| 1 | P6 Plan the Next 3 Steps for Your Project + P12 Turn One Idea Into a First Draft | 40 |
+| 2 | P3 Make One Post or Video for Your Project | 30 |
 | 3 | P10 Publish Something You Made | 20 |
-| 4 | P7 Create One New Design, Prototype, or Draft | 30 |
+| 4 | P7 Sketch One New Design | 30 |
 | 5 | P11 Improve Something You Made Yesterday | 20 |
-| 6 | P3 Create One Piece of Content | 30 |
-| 7 | P10 Publish Something You Made + P9 Review One Important Metric and Make One Decision From It | 35 |
+| 6 | P3 Make One Post or Video for Your Project | 30 |
+| 7 | P10 Publish Something You Made + P9 Check Your Views or Sales and Pick One Change | 35 |
 
 **Why hold**
 - P3 and P10 come twice each, so the plan publishes twice in 7 days.
@@ -468,7 +468,7 @@ Days, with minutes: P6 + P1 (40) · P1 (30) · P2 (30) · P7 (30) · P5 (30) · 
 
 ### Sunday Reset · `sunday-reset` · Organization · 1 day
 
-Day, with minutes: O9 Review Your Calendar for the Next 7 Days + O2 Do a 15-Minute Room Reset (25)
+Day, with minutes: O9 Review Your Calendar for the Next 7 Days + O2 Clean Up Your Room (25)
 
 - It is one day long.
 - Plans are runs of days and aren't tied to weekdays, so a "Sunday" plan can't be made to land on a Sunday.

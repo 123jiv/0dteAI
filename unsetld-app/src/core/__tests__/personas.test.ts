@@ -92,7 +92,7 @@ describe('personas', () => {
         expect(ms.reduce((t, m) => t + m.minutes, 0)).toBeLessThanOrEqual(dayBudget(p.profile) + 15);
         // The day covers as many of their areas as it has slots, never three from one. An area takes
         // a second slot only when another area's short missions are all resting, or for a support
-        // task next to its real one (Write Your Next 3 Project Actions): at most one day a week.
+        // task next to its real one (Plan the Next 3 Steps for Your Project): at most one day a week.
         const areas = usableAreas(LIBRARY, p.profile);
         const per = plan.missions.reduce<Record<string, number>>((t, x) => ({ ...t, [x.area!]: (t[x.area!] ?? 0) + 1 }), {});
         expect(Math.max(...Object.values(per))).toBeLessThanOrEqual(2);
@@ -285,7 +285,7 @@ describe('the founder personas, from the goal they typed', () => {
   });
 
   it("a Plan day past its time adds the week's focus only from the focus's own area, never another area in its place", () => {
-    // Discipline's two short missions (Plan Tomorrow's Top 3, Finish One Unfinished Task) were
+    // Discipline's two short missions (List 3 Things You Need to Do Tomorrow, Finish Something You Left Half Done) were
     // proven yesterday: both in their cooldown. The Plan's 20-minute cardio fills a 15-minute day.
     const history = {
       lastDone: { D4: '2026-10-21', D6: '2026-10-21' },
@@ -334,7 +334,7 @@ describe('short days stay useful', () => {
   const salts = (n: number, f: (salt: string) => DayPlan[]) => Array.from({ length: n }, (_, k) => f(`s${k}`)).flat();
   const run = (profile: Profile, days: number, salt: string) => simulateWeek(profile, '2026-10-12', days, 9, salt);
 
-  it('Projects is never just a support task (Write Your Next 3 Project Actions) at 15 or 30 minutes while a real one fits', () => {
+  it('Projects is never just a support task (Plan the Next 3 Steps for Your Project) at 15 or 30 minutes while a real one fits', () => {
     for (const key of ['B', 'D']) {
       for (const minutes of [15, 30] as const) {
         const p = { ...persona(key), minutes };

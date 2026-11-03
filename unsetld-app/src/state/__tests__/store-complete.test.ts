@@ -57,7 +57,7 @@ describe('proving a mission', () => {
     expect(useApp.getState().record.missions[TODAY].P1).toMatchObject({ missionId: 'P1', title: 'Work on Your Clothing Brand for 30 Minutes', track: 'projects', points: 15 });
     // A mission without a slot to fill keeps its approved title.
     useApp.getState().completeMission('D4', photo('D4'), accepted(), { verifiedClock: true });
-    expect(useApp.getState().record.missions[TODAY].D4.title).toBe("Plan Tomorrow's Top 3");
+    expect(useApp.getState().record.missions[TODAY].D4.title).toBe("List 3 Things You Need to Do Tomorrow");
   });
 
   it('keeps the approved title when the goal names nothing to fill in', async () => {

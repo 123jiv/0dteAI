@@ -137,7 +137,7 @@ export const ONBOARDING = {
      * a plan, three approved missions stand in (S1, F1, D4).
      */
     previewBody: (titles: string[]) =>
-      `Today: ${(titles.length ? titles : ['Study One Subject for 30 Minutes', 'Complete Your Workout', "Plan Tomorrow's Top 3"]).join(', ')}.`,
+      `Today: ${(titles.length ? titles : ['Study One Subject for 30 Minutes', 'Complete Your Workout', "List 3 Things You Need to Do Tomorrow"]).join(', ')}.`,
     a11yPreview: (time: string, body: string) => `Notification preview. unsetld, ${time}. ${body}`,
     /** The switch that turns them all off. */
     toggle: 'Remind me',

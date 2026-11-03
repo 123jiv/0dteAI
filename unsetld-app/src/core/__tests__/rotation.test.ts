@@ -244,7 +244,7 @@ describe('four weeks, three installs, every mission proven', () => {
     // C3 is due every 4–5 days (medium) and weighs double (weight 2), but shares Career's one slot a
     // day with two core habits, four weekly or rarer missions and three other medium ones: three to
     // four times in four weeks at 45 minutes (Career takes it on the days Skills holds Practice Coding,
-    // which keeps out Spend 30 Minutes Building a Career Skill), a little less with an hour (once a
+    // which keeps out Spend 30 Minutes Practicing a Job Skill), a little less with an hour (once a
     // focused slot holds a 20-minute mission the other takes 30). The founder's 1–2 a week would need
     // Career's weekly missions to take Organization's slot, and Organization stays in the day
     // (personas.test.ts).
@@ -358,7 +358,7 @@ describe('the shape of the day and the swaps (rotation reviews, 15 Oct 2026)', (
 
   it('a 30-minute day covers two areas: a weekly mission due where the focused slot is trades slots or waits a day', () => {
     // Model J: or a support task joins its area's real mission when nothing else is short enough
-    // (Write Your Next 3 Project Actions next to 30 minutes of project work, not alone).
+    // (Plan the Next 3 Steps for Your Project next to 30 minutes of project work, not alone).
     for (const key of KEYS)
       for (const run of installs(key, 30))
         for (const plan of run) {
@@ -433,7 +433,7 @@ describe('what comes when (rotation reviews, 15 Oct 2026)', () => {
     }
   });
 
-  it('Write Your Next 3 Project Actions joins a real Projects mission (20 minutes or more), not another short task', () => {
+  it('Plan the Next 3 Steps for Your Project joins a real Projects mission (20 minutes or more), not another short task', () => {
     for (const key of ['B', 'D'] as const)
       for (const minutes of [45, 60] as const)
         for (const plan of installs(key, minutes).flat()) {
@@ -493,7 +493,7 @@ describe('what comes when (rotation reviews, 15 Oct 2026)', () => {
             for (let start = 0; start + 7 <= DAYS; start++)
               expect(days.filter(d => d >= start && d < start + 7).length, `${key} ${minutes} min: ${group} from day ${start + 1}`).toBeLessThanOrEqual(MAX_DAYS_IN_WEEK + 1);
           // Model J: an hour of Lock in is 75 minutes, and Discipline's short slot sometimes has only
-          // Finish One Unfinished Task the day after Finish One Thing You've Been Avoiding.
+          // Finish Something You Left Half Done the day after Finish One Thing You've Been Avoiding.
           expect(nextDay, `${key} ${minutes} min`).toBeLessThanOrEqual(3);
         }
       }
@@ -582,14 +582,14 @@ describe('the goal shapes the week (spec-goal, 15 Oct 2026)', () => {
       // slot in the trade, and the brand still picks first (a 45-minute workout first left it 20).
       print(`${minutes}: B Projects 25+ ${focusedShare(b, 'projects').toFixed(2)}`);
       expect(focusedShare(b, 'projects'), `B ${minutes}: Projects`).toBeGreaterThanOrEqual(minutes === 45 ? 0.5 : 0.75);
-      // Spend 30 Minutes Building a Career Skill and Practice Coding for 30 Minutes are one half hour
+      // Spend 30 Minutes Practicing a Job Skill and Practice Coding for 30 Minutes are one half hour
       // under two names: never both in one day.
       for (const plan of c.flat()) expect(['C7', 'K1'].filter(id => plan.missions.some(p => p.missionId === id)).length, plan.day).toBeLessThanOrEqual(1);
     }
   });
 
   it("a focused near-twin long overdue may follow its short twin only in an area the goal doesn't name, outside a weekly focus week", () => {
-    // Finish One Unfinished Task yesterday, Finish One Thing You've Been Avoiding not for 20 days.
+    // Finish Something You Left Half Done yesterday, Finish One Thing You've Been Avoiding not for 20 days.
     const day: DayKey = '2026-11-09';
     const history = { lastDone: {}, lastPlanned: { D6: '2026-11-08', D3: '2026-10-20', D1: '2026-11-06', D2: '2026-11-05', D5: '2026-11-07', D4: '2026-11-07' }, skips: {} };
     const d3 = (profile: Profile) =>
@@ -613,7 +613,7 @@ describe('the goal shapes the week (spec-goal, 15 Oct 2026)', () => {
     // "Build muscle" (Fitness alone): Complete Your Workout and Complete Your Planned Strength Workout
     // come about twice a week, as with no goal (once in four weeks when the lead's slot kept room for Discipline).
     const muscle = over({ ...BASE, age: '16to17', school: true, schoolLevel: 'high', gym: true, tracks: ['fitness', 'school', 'discipline'], goal: 'Build muscle' }, ['F1', 'F7']);
-    // "Learn Spanish" (Skills alone): Build a Small Project Using Your Skill and Create Something You
+    // "Learn Spanish" (Skills alone): Make One Small Thing Using Your Skill and Create Something You
     // Can Put in a Portfolio, 45 minutes each, still come round.
     const spanish = over({ ...BASE, age: '18plus', tracks: ['skills', 'fitness', 'discipline'], skills: ['language'], goal: 'Learn Spanish' }, ['K4', 'K6']);
     // "Get a software job and improve coding" names Career, Skills and Projects: with Fitness or

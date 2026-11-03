@@ -12,7 +12,7 @@ const PLAN: DayPlan = {
   missions: [
     { slot: 'easy', missionId: 'F3', area: 'fitness' }, // Do 20 Minutes of Cardio: TIMER_AND_PHOTO 20 min, 10 pts
     { slot: 'main', missionId: 'S1', area: 'school' }, // Study One Subject for 30 Minutes: TIMER_AND_PHOTO 30 min, 15 pts
-    { slot: 'main', missionId: 'O2', area: 'organization' }, // Do a 15-Minute Room Reset: BEFORE_AFTER, 10 pts
+    { slot: 'main', missionId: 'O2', area: 'organization' }, // Clean Up Your Room: BEFORE_AFTER, 10 pts
   ],
   rerolls: 0,
   replaced: [],

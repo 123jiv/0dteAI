@@ -200,11 +200,13 @@ describe('their goal in the titles, and on the record', () => {
     for (const key of KEYS) for (const x of shown(key)) expect(x.kept, `${key} ${x.id}`).toBe(x.title);
   });
 
-  it('B builds a clothing brand: Your Clothing Brand in P1, P2 and P5', () => {
+  it('B builds a clothing brand: Your Clothing Brand in P1, P2, P3, P5 and P6', () => {
     const want: Record<string, string> = {
       P1: 'Work on Your Clothing Brand for 30 Minutes',
       P2: 'Finish One Small Part of Your Clothing Brand',
-      P5: 'Fix One Problem With Your Clothing Brand',
+      P3: 'Make One Post or Video for Your Clothing Brand',
+      P5: 'Fix One Thing Wrong With Your Clothing Brand',
+      P6: 'Plan the Next 3 Steps for Your Clothing Brand',
     };
     const got = titlesOf('B', Object.keys(want));
     expect(got.some(x => x.inWeek)).toBe(true);
@@ -222,11 +224,13 @@ describe('their goal in the titles, and on the record', () => {
     for (const x of got) expect(x.title).toBe(want[x.id]);
   });
 
-  it('D builds an app and codes: Your App in P1, P2 and P5, Coding in K1', () => {
+  it('D builds an app and codes: Your App in P1, P2, P3, P5 and P6, Coding in K1', () => {
     const want: Record<string, string> = {
       P1: 'Work on Your App for 30 Minutes',
       P2: 'Finish One Small Part of Your App',
-      P5: 'Fix One Problem With Your App',
+      P3: 'Make One Post or Video for Your App',
+      P5: 'Fix One Thing Wrong With Your App',
+      P6: 'Plan the Next 3 Steps for Your App',
       K1: 'Practice Coding for 30 Minutes',
     };
     const got = titlesOf('D', Object.keys(want));

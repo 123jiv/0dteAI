@@ -21,7 +21,7 @@ Sources:
   - **Money (5 missions).** Four of the five are weekly or rarer. Only M1 (Track Everything You Spend Today, 5 min) can come back within a week, and nothing runs over 15 minutes. At 30 minutes and with an hour or more, M1 is 55–59% of all Money missions a user sees in a month (41% at 45 minutes), and in 72–100% of those setups it is at least half of them. With "Save money" as the weekly focus it is 50–60% at every time choice.
   - **Organization (5 missions).** Everything is 10–15 minutes, and two of the five (O1, O8) are near-twins. A user with Organization sees the whole library every month (4.9–5.0 different missions in 30 days at 30 minutes or more). Someone who picks only Money and Organization gets about 19 minutes on a 45-minute day and 28 minutes on an hour's day, because neither area has a longer mission. Not one of their 45-minute days falls inside the promised 40–55 minutes.
   - **Fitness (7 missions).** Nothing is shorter than 20 minutes. On a 15-minute day only F3 and F6 fit, and both are cardio. At 30 minutes the planner has to bend a rule for 42% of Fitness picks (the cardio near-twins run past four days in seven). A 17-year-old whose goal is "Build muscle" gets 20-minute cardio on almost every day of a 30-minute month, and the at-home workout once.
-  - **Discipline (6 missions).** Nothing runs between 6 and 19 minutes. On a 15-minute day Discipline is D6 (Finish One Unfinished Task) 83% of the time: 1.6 different missions in 30 days. With "Improve my routine" as the focus, a 15-minute day alternates D6 with the 5-minute D4, so a third of those days come in under the promised 10 minutes.
+  - **Discipline (6 missions).** Nothing runs between 6 and 19 minutes. On a 15-minute day Discipline is D6 (Finish Something You Left Half Done) 83% of the time: 1.6 different missions in 30 days. With "Improve my routine" as the focus, a 15-minute day alternates D6 with the 5-minute D4, so a third of those days come in under the promised 10 minutes.
 - **The other four areas hold up.** School is the strongest (13 missions, 11–12.5 different in a month with an hour or more). Career, Skills and Projects run short of variety only at 15 and 30 minutes, where few of their missions fit.
 - **30 proposals:** Money 7, Organization 6, Fitness 4, Discipline 4, Career 4, Skills 2, Projects 2 and School 1. The plus audit's 5 candidates are D10, C13, C14, C15 and C16. Every one passes `checkText(…, 'mission')` and the content validator: 96 missions, "Content OK", no warnings. None has face, body or voice proof, and none asks for a bank, card or account screen.
 - **With all 30 (what-if, real planner), variety goes up in every area and the time promise gets better.**
@@ -124,9 +124,9 @@ Each table covers every setup that includes the area: the grid and the goals tog
 | ID | Title | Min | Frequency, cooldown | Notes |
 |---|---|---|---|---|
 | M1 | Track Everything You Spend Today | 5 | high, 1 day; core | evening |
-| M2 | Review Your Spending From the Last 7 Days | 15 | low, 7 | |
+| M2 | Add Up What You Spent This Past Week | 15 | low, 7 | |
 | M3 | Make a Spending Plan for This Week | 10 | low, 7 | a plan for the week: Sunday to Tuesday |
-| M5 | Check One Subscription or Recurring Charge | 10 | low, 30 | |
+| M5 | Decide If One Subscription Is Worth It | 10 | low, 30 | |
 | M6 | Set One Savings Goal and Deadline | 10 | low, 45 | |
 
 Every proof is written ("never a bank or card screen"; M5: "No account screenshots").
@@ -173,7 +173,7 @@ Every proof is written ("never a bank or card screen"; M5: "No account screensho
 | ID | Title | Min | Frequency, cooldown | Notes |
 |---|---|---|---|---|
 | O1 | Clear Your Desk | 10 | medium, 3 | desk group with O8; before and after |
-| O2 | Do a 15-Minute Room Reset | 15 | medium, 3; core | before and after |
+| O2 | Clean Up Your Room | 15 | medium, 3; core | before and after |
 | O5 | Pack Everything You Need for Tomorrow | 10 | medium, 3 | evening |
 | O8 | Reset Your Workspace for Tomorrow | 10 | medium, 3 | evening; desk group with O1 |
 | O9 | Review Your Calendar for the Next 7 Days | 10 | low, 7 | a plan for the week: Sunday to Tuesday |
@@ -266,11 +266,11 @@ All are high frequency with a 1-day cooldown. Every proof is the place or the ge
 | ID | Title | Min | Group | Notes |
 |---|---|---|---|---|
 | D1 | Lock In for 30 Minutes | 30 | deep-work (core) | timer |
-| D2 | Do Your Most Important Task for 30 Minutes | 30 | deep-work (core) | timer |
+| D2 | Work on Your Top To-Do for 30 Minutes | 30 | deep-work (core) | timer |
 | D3 | Finish One Thing You've Been Avoiding | 30 | finish-it | medium, 3 days |
-| D4 | Plan Tomorrow's Top 3 | 5 | planning | medium, 3 days; evening |
+| D4 | List 3 Things You Need to Do Tomorrow | 5 | planning | medium, 3 days; evening |
 | D5 | Work With Your Phone Away for 30 Minutes | 30 | deep-work (core) | timer |
-| D6 | Finish One Unfinished Task | 20 | finish-it | medium, 3 days |
+| D6 | Finish Something You Left Half Done | 20 | finish-it | medium, 3 days |
 
 **Effective variety.**
 - On a 15-minute day only D4 (5 minutes) and D6 (20) fit.

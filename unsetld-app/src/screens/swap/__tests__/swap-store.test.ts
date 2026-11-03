@@ -30,7 +30,7 @@ const PROFILE = { tracks: ['discipline', 'school', 'fitness'], school: true, gym
 const PLAN = {
   day: TODAY,
   missions: [
-    { slot: 'easy', missionId: 'D4', area: 'discipline' }, // Plan Tomorrow's Top 3: PHOTO, 5 pts
+    { slot: 'easy', missionId: 'D4', area: 'discipline' }, // List 3 Things You Need to Do Tomorrow: PHOTO, 5 pts
     { slot: 'main', missionId: 'F1', area: 'fitness' }, // Complete Your Workout: PHOTO 45 min, 20 pts
     { slot: 'main', missionId: 'S1', area: 'school' }, // Study One Subject for 30 Minutes: TIMER_AND_PHOTO, 15 pts
   ],
